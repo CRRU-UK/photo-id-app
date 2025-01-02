@@ -12,7 +12,7 @@ export interface StackProps {
 
 const Stack = ({
   data,
-}: StackProps): JSX.Element => {
+}: StackProps) => {
   if (!data) {
     return (
       <SkeletonBox
@@ -55,9 +55,19 @@ const Stack = ({
         right: "10px",
         bottom: "10px",
       }}>
-        <ButtonGroup sx={{ opacity: 0.8 }}>
-          <IconButton icon={ChevronLeftIcon} aria-label="" onClick={() => handlePrev()} />
-          <IconButton icon={ChevronRightIcon} aria-label="" onClick={() => handleNext()} />
+        <ButtonGroup>
+          <IconButton
+            icon={ChevronLeftIcon}
+            size="small"
+            aria-label=""
+            onClick={() => handlePrev()}
+          />
+          <IconButton
+            icon={ChevronRightIcon}
+            size="small"
+            aria-label=""
+            onClick={() => handleNext()}
+          />
         </ButtonGroup>
       </div>)}
 

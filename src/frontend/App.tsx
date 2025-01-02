@@ -26,7 +26,7 @@ const App = () => {
   }, []);
 
   return (
-    <SplitPageLayout sx={{ backgroundColor: "canvas.default", height: "100vh" }}>
+    <SplitPageLayout sx={{ backgroundColor: "var(--bgColor-default)", height: "100vh" }}>
       <SplitPageLayout.Pane
         position="start"
         width={{
@@ -50,8 +50,7 @@ const App = () => {
               <Text
                 size="small"
                 weight="light"
-                block
-                sx={{ display: "block", color: "fg.muted" }}
+                sx={{ display: "block", color: "var(--fgColor-muted)" }}
               >
                 <FileDirectoryOpenFillIcon size="small" />
                 Currently viewing:
@@ -62,8 +61,8 @@ const App = () => {
         </Stack>
       </SplitPageLayout.Pane>
 
-      <SplitPageLayout.Content sx={{ height: "100vh" }}>
-        <Placeholder callback={handleOpenFolder} />
+      <SplitPageLayout.Content sx={{ minHeight: "100vh" }}>
+        {!data && <Placeholder callback={handleOpenFolder} />}
       </SplitPageLayout.Content>
     </SplitPageLayout>
   );
