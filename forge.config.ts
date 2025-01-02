@@ -13,6 +13,12 @@ const config: ForgeConfig = {
   packagerConfig: {
     asar: true,
     icon: path.join(__dirname, 'src', 'assets', 'icon'),
+    ignore: [
+      /^\/\.github/,
+      /^\/public/,
+      /^\/src/,
+      /^\/temp/,
+    ],
   },
   rebuildConfig: {},
   makers: [new MakerSquirrel({}), new MakerZIP({}, ['darwin']), new MakerRpm({}), new MakerDeb({})],

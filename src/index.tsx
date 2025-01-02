@@ -4,6 +4,9 @@ import { ThemeProvider, BaseStyles } from '@primer/react';
 
 import App from './frontend/App';
 
+import '@primer/primitives/dist/css/functional/themes/light.css';
+import '@primer/primitives/dist/css/functional/themes/dark.css';
+
 const container = document.getElementById('root') as HTMLDivElement;
 const root = createRoot(container);
 

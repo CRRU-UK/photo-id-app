@@ -1,8 +1,9 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
+import fs from 'fs';
 import path from 'path';
+import { app, BrowserWindow, ipcMain, Menu, dialog,  } from 'electron';
 import started from 'electron-squirrel-startup';
 
-import { handleSetTitle } from './backend';
+import handleOpenFolder from './backend/openFolder';
 
 if (started) {
   app.quit();
@@ -15,6 +16,7 @@ const createWindow = () => {
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: true,
+      webSecurity: false,
     },
   });
 
@@ -23,6 +25,19 @@ const createWindow = () => {
   } else {
     mainWindow.loadFile(path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`));
   }
+
+  const menu = Menu.buildFromTemplate([{
+    label: 'File',
+    submenu: [{
+      label: 'Open Folder',
+      accelerator: 'CmdOrCtrl+O',
+      async click() {
+        handleOpenFolder(mainWindow);
+      },
+    }],
+  }]);
+
+  Menu.setApplicationMenu(menu);
 
   mainWindow.webContents.openDevTools();
 };
@@ -42,5 +57,9 @@ app.on('activate', () => {
 });
 
 app.whenReady().then(() => {
-  ipcMain.on('set-title', (event, title) => handleSetTitle(event, title)); 
+  ipcMain.on('open-folder', (event) => {
+    const webContents = event.sender;
+    const window = BrowserWindow.fromWebContents(webContents);
+    handleOpenFolder(window);
+  });
 });
