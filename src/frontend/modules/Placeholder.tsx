@@ -1,22 +1,34 @@
 import { Box, Text, Button } from "@primer/react";
-import { FileDirectoryOpenFillIcon } from "@primer/octicons-react";
+import { FileDirectoryIcon, FileIcon } from "@primer/octicons-react";
 
 interface PlaceholderProps {
-  callback: () => void;
+  openProjectFolderCallback: () => void;
+  openProjectFileCallback: () => void;
 }
 
-const Placeholder = ({ callback }: PlaceholderProps) => (
+const Placeholder = ({ openProjectFolderCallback, openProjectFileCallback }: PlaceholderProps) => (
   <Box>
     <Text>Open a folder with photos (JPEG, TIFF, PNG) to get started.</Text>
     <Button
-      onClick={() => callback()}
+      onClick={() => openProjectFolderCallback()}
       variant="primary"
       size="large"
       block
-      leadingVisual={FileDirectoryOpenFillIcon}
+      leadingVisual={FileDirectoryIcon}
       sx={{ mt: 4 }}
     >
-      Open Folder
+      Open Project Folder
+    </Button>
+
+    <Button
+      onClick={() => openProjectFileCallback()}
+      variant="primary"
+      size="large"
+      block
+      leadingVisual={FileIcon}
+      sx={{ mt: 4 }}
+    >
+      Open Project File
     </Button>
   </Box>
 );

@@ -10,8 +10,6 @@ export interface StackProps {
 }
 
 const Stack = ({ photos }: StackProps) => {
-  console.log("photos", photos);
-
   if (!photos || photos.length === 0) {
     return (
       <div

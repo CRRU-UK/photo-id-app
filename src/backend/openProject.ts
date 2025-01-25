@@ -17,35 +17,28 @@ const sendData = (mainWindow: Electron.BrowserWindow, data: PROJECT_JSON) => {
 };
 
 /**
- * Handles opening, filtering, and processing a photo folder with a project.
+ * Handles opening, filtering, and processing a project folder.
  */
-const handleOpenFolder = async (mainWindow: Electron.BrowserWindow) => {
+const handleOpenProjectDirectory = async (mainWindow: Electron.BrowserWindow) => {
   const event = await dialog.showOpenDialog({ properties: ["openDirectory"] });
 
   if (event.canceled) {
     return;
   }
 
-  console.log("event", event);
-
   const [directory] = event.filePaths;
 
   const files = fs.readdirSync(directory);
 
-  console.log("files", files);
-
   if (files.includes("data.json")) {
-    console.log("uh oh");
-
     const { response } = await dialog.showMessageBox({
       message: EXISTING_DATA_MESSAGE,
       type: "question",
       buttons: EXISTING_DATA_BUTTONS,
     });
 
-    // Cancel
+    // Cancelled
     if (response === 0) {
-      console.debug("cancelled");
       return;
     }
 
@@ -80,13 +73,28 @@ const handleOpenFolder = async (mainWindow: Electron.BrowserWindow) => {
     discarded: [],
   };
 
-  console.debug("filtered files", files);
-
   fs.writeFileSync(path.join(directory, "data.json"), JSON.stringify(data), "utf8");
-
-  console.debug("created data.json, sending to renderer");
 
   return sendData(mainWindow, data);
 };
 
-export default handleOpenFolder;
+/**
+ * Handles opening a project file.
+ */
+const handleOpenProjectFile = async (mainWindow: Electron.BrowserWindow) => {
+  const event = await dialog.showOpenDialog({
+    properties: ["openFile"],
+    filters: [{ name: "Projects", extensions: ["json"] }],
+  });
+
+  if (event.canceled) {
+    return;
+  }
+
+  const [file] = event.filePaths;
+
+  const data = fs.readFileSync(file, "utf8");
+  return sendData(mainWindow, JSON.parse(data) as PROJECT_JSON);
+};
+
+export { handleOpenProjectDirectory, handleOpenProjectFile };

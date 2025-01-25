@@ -17,16 +17,11 @@ import Placeholder from "./modules/Placeholder";
 const App = () => {
   const [project, setProject] = useState<Project | null>(null);
 
-  console.log("project", project);
-
-  const handleOpenFolder = () => window.electronAPI.openFolder();
+  const handleopenProjectFolder = () => window.electronAPI.openProjectFolder();
+  const handleopenProjectFile = () => window.electronAPI.openProjectFile();
 
   useEffect(() => {
-    console.log("register");
-
     window.electronAPI.onLoadProject((data) => {
-      console.log("received data:", data);
-
       const project = new Project().loadFromJSON(data);
       setProject(project);
     });
@@ -69,7 +64,12 @@ const App = () => {
       </SplitPageLayout.Pane>
 
       <SplitPageLayout.Content sx={{ minHeight: "100vh", backgroundColor: "var(--bgColor-inset)" }}>
-        {!project && <Placeholder callback={handleOpenFolder} />}
+        {!project && (
+          <Placeholder
+            openProjectFolderCallback={handleopenProjectFolder}
+            openProjectFileCallback={handleopenProjectFile}
+          />
+        )}
       </SplitPageLayout.Content>
     </SplitPageLayout>
   );

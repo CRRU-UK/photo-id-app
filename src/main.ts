@@ -2,7 +2,7 @@ import path from "path";
 import { app, BrowserWindow, ipcMain, Menu } from "electron";
 import started from "electron-squirrel-startup";
 
-import handleOpenFolder from "./backend/openFolder";
+import { handleOpenProjectDirectory, handleOpenProjectFile } from "./backend/openProject";
 
 if (started) {
   app.quit();
@@ -33,7 +33,7 @@ const createWindow = () => {
           label: "Open Folder",
           accelerator: "CmdOrCtrl+O",
           async click() {
-            handleOpenFolder(mainWindow);
+            handleOpenProjectDirectory(mainWindow);
           },
         },
       ],
@@ -60,9 +60,15 @@ app.on("activate", () => {
 });
 
 app.whenReady().then(() => {
-  ipcMain.on("open-folder", (event) => {
+  ipcMain.on("open-project-folder", (event) => {
     const webContents = event.sender;
     const window = BrowserWindow.fromWebContents(webContents);
-    handleOpenFolder(window);
+    handleOpenProjectDirectory(window);
+  });
+
+  ipcMain.on("open-project-file", (event) => {
+    const webContents = event.sender;
+    const window = BrowserWindow.fromWebContents(webContents);
+    handleOpenProjectFile(window);
   });
 });

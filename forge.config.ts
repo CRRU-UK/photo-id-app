@@ -50,6 +50,4 @@ const config: ForgeConfig = {
   ],
 };
 
-console.debug("icon", config.packagerConfig.icon);
-
 export default config;
