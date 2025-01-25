@@ -1,13 +1,11 @@
-import { Box, Text, Button } from '@primer/react';
-import { FileDirectoryOpenFillIcon } from '@primer/octicons-react';
+import { Box, Text, Button } from "@primer/react";
+import { FileDirectoryOpenFillIcon } from "@primer/octicons-react";
 
 interface PlaceholderProps {
-  callback: () => void,
+  callback: () => void;
 }
 
-const Placeholder = ({
-  callback,
-}: PlaceholderProps) => (
+const Placeholder = ({ callback }: PlaceholderProps) => (
   <Box>
     <Text>Open a folder with photos (JPEG, TIFF, PNG) to get started.</Text>
     <Button

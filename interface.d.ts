@@ -1,11 +1,11 @@
-import type { PROJECT_JSON } from './src/helpers/types';
+import type { PROJECT_JSON } from "./src/helpers/types";
 
 export interface IElectronAPI {
   // Methods (main)
-  openFolder: () => Promise<void>,
+  openFolder: () => Promise<void>;
 
   // Listeners (renderer)
-  onLoadProject: (callback: (value: PROJECT_JSON) => void) => void,
+  onLoadProject: (callback: (value: PROJECT_JSON) => void) => void;
 }
 
 declare global {

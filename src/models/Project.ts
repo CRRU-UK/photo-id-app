@@ -1,6 +1,6 @@
 import type { DIRECTORY, PHOTO_STACK, MATCH, PROJECT_JSON } from "../helpers/types";
 
-import Photo from '../models/Photo';
+import Photo from "../models/Photo";
 
 class Project {
   version?: string;
@@ -10,8 +10,8 @@ class Project {
   discarded?: PHOTO_STACK;
 
   constructor(
-    version = 'v1',
-    directory: DIRECTORY = '',
+    version = "v1",
+    directory: DIRECTORY = "",
     photos: PHOTO_STACK = [],
     matched: MATCH[] = [],
     discarded: PHOTO_STACK = [],
@@ -23,12 +23,10 @@ class Project {
     this.discarded = discarded;
   }
 
-  public loadFromJSON(
-    json: PROJECT_JSON | string,
-  ): this {
+  public loadFromJSON(json: PROJECT_JSON | string): this {
     let data = json;
 
-    if (typeof json === 'string') {
+    if (typeof json === "string") {
       data = JSON.parse(json);
     }
 
@@ -36,7 +34,7 @@ class Project {
 
     this.version = version;
     this.directory = directory;
-    this.photos = photos.map((file) => new Photo(file, directory))
+    this.photos = photos.map((file) => new Photo(file, directory));
     this.discarded = discarded.map((file) => new Photo(file, directory));
 
     this.matched = matched.map(({ id, left, right }) => ({

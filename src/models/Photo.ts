@@ -1,7 +1,5 @@
-import File from './File'
+import File from "./File";
 
-class Photo extends File {
-
-}
+class Photo extends File {}
 
 export default Photo;
