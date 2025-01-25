@@ -30,10 +30,17 @@ const createWindow = () => {
       label: "File",
       submenu: [
         {
-          label: "Open Folder",
+          label: "Open Project Folder",
           accelerator: "CmdOrCtrl+O",
           async click() {
             handleOpenProjectDirectory(mainWindow);
+          },
+        },
+        {
+          label: "Open Project File",
+          accelerator: "CmdOrCtrl+Shift+O",
+          async click() {
+            handleOpenProjectFile(mainWindow);
           },
         },
       ],

@@ -20,7 +20,10 @@ const sendData = (mainWindow: Electron.BrowserWindow, data: PROJECT_JSON) => {
  * Handles opening, filtering, and processing a project folder.
  */
 const handleOpenProjectDirectory = async (mainWindow: Electron.BrowserWindow) => {
-  const event = await dialog.showOpenDialog({ properties: ["openDirectory"] });
+  const event = await dialog.showOpenDialog({
+    title: "Open Project Folder",
+    properties: ["openDirectory"],
+  });
 
   if (event.canceled) {
     return;
@@ -83,6 +86,7 @@ const handleOpenProjectDirectory = async (mainWindow: Electron.BrowserWindow) =>
  */
 const handleOpenProjectFile = async (mainWindow: Electron.BrowserWindow) => {
   const event = await dialog.showOpenDialog({
+    title: "Open Project File",
     properties: ["openFile"],
     filters: [{ name: "Projects", extensions: ["json"] }],
   });
