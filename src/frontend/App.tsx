@@ -1,27 +1,34 @@
-import type { PHOTO_DATA } from '../helpers/types';
+import { useState, useEffect } from "react";
+import { SplitPageLayout, Stack, Box, Text, BranchName } from "@primer/react";
+import { FileDirectoryOpenFillIcon } from "@primer/octicons-react";
 
-import { useState, useEffect } from 'react';
-import { SplitPageLayout, Stack, Box, Text, BranchName } from '@primer/react';
-import { FileDirectoryOpenFillIcon } from '@primer/octicons-react';
+import type { PROJECT_JSON } from "../helpers/types";
 
-import { SIDEBAR_WIDTHS } from '../helpers/constants';
+import { SIDEBAR_WIDTHS } from "../helpers/constants";
 
-import MainSelection from './modules/MainSelection';
-import Placeholder from './modules/Placeholder';
+import Project from "../models/Project";
 
-import mockedData from '../../data/mock.json';
+import MainSelection from "./modules/MainSelection";
+import Placeholder from "./modules/Placeholder";
+
+// import mockedData from "../../data/mock.json";
+// const mockedProject = new Project();
 
 const App = () => {
-  const [data, setData] = useState<PHOTO_DATA | null>(mockedData);
+  const [project, setProject] = useState<Project | null>(null);
+
+  console.log("project", project);
 
   const handleOpenFolder = () => window.electronAPI.openFolder();
 
   useEffect(() => {
-    console.log('register');
+    console.log("register");
 
-    window.electronAPI.onLoadData((value) => {
-      console.log('received data:', value);
-      setData(value);
+    window.electronAPI.onLoadProject((data) => {
+      console.log("received data:", data);
+
+      const project = new Project().loadFromJSON(data);
+      setProject(project);
     });
   }, []);
 
@@ -43,10 +50,10 @@ const App = () => {
           justify="space-between"
           style={{ height: "100%" }}
         >
-          <MainSelection data={data} />
+          <MainSelection photos={project?.photos || []} />
 
-          {data?.directory &&
-            <Box sx={{ marginTop: "100%" }}>
+          {project?.directory && (
+            <Box sx={{ marginTop: "auto" }}>
               <Text
                 size="small"
                 weight="light"
@@ -55,14 +62,14 @@ const App = () => {
                 <FileDirectoryOpenFillIcon size="small" />
                 Currently viewing:
               </Text>
-              <BranchName>{data.directory}</BranchName>
+              <BranchName>{project.directory}</BranchName>
             </Box>
-          }
+          )}
         </Stack>
       </SplitPageLayout.Pane>
 
-      <SplitPageLayout.Content sx={{ minHeight: "100vh" }}>
-        {!data && <Placeholder callback={handleOpenFolder} />}
+      <SplitPageLayout.Content sx={{ minHeight: "100vh", backgroundColor: "var(--bgColor-inset)" }}>
+        {!project && <Placeholder callback={handleOpenFolder} />}
       </SplitPageLayout.Content>
     </SplitPageLayout>
   );

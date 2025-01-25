@@ -1,36 +1,37 @@
-import type { PHOTO_DATA } from '../../helpers/types';
+import type { PHOTO_STACK } from "../../helpers/types";
 
-import { useState } from 'react';
+import { useState } from "react";
 
-import { Box, ButtonGroup, IconButton } from '@primer/react';
-import { SkeletonBox } from '@primer/react/experimental';
-import { ChevronLeftIcon, ChevronRightIcon } from '@primer/octicons-react';
+import { Box, ButtonGroup, IconButton } from "@primer/react";
+import { ChevronLeftIcon, ChevronRightIcon } from "@primer/octicons-react";
 
 export interface StackProps {
-  data: PHOTO_DATA,
+  photos: PHOTO_STACK;
 }
 
-const Stack = ({
-  data,
-}: StackProps) => {
-  if (!data) {
+const Stack = ({ photos }: StackProps) => {
+  console.log("photos", photos);
+
+  if (!photos || photos.length === 0) {
     return (
-      <SkeletonBox
-        width={"100%"}
-        height={"auto"}
-        sx={{ aspectRatio: "4/3", objectFit: "cover" }}
+      <div
+        style={{
+          width: "100%",
+          height: "auto",
+          aspectRatio: "4/3",
+          objectFit: "cover",
+          background: "var(--bgColor-emphasis)",
+        }}
       />
     );
   }
 
   const [currentIndex, setCurrentIndex] = useState<number>(0);
 
-  const { files, directory } = data;
-
   const handlePrev = () => {
     let newIndex = currentIndex - 1;
     if (newIndex < 0) {
-      newIndex = files.length - 1;
+      newIndex = photos.length - 1;
     }
 
     return setCurrentIndex(newIndex);
@@ -38,41 +39,44 @@ const Stack = ({
 
   const handleNext = () => {
     let newIndex = currentIndex + 1;
-    if (newIndex >= files.length) {
+    if (newIndex >= photos.length) {
       newIndex = 0;
     }
 
     return setCurrentIndex(newIndex);
   };
 
-  const currentFile = files[currentIndex % files.length];
-  const filePath = `file://${directory}/${currentFile}`;
+  const currentFile = photos[currentIndex % photos.length];
 
   return (
     <Box sx={{ position: "relative" }}>
-      {files.length > 1 && (<div style={{
-        position: "absolute",
-        right: "10px",
-        bottom: "10px",
-      }}>
-        <ButtonGroup>
-          <IconButton
-            icon={ChevronLeftIcon}
-            size="small"
-            aria-label=""
-            onClick={() => handlePrev()}
-          />
-          <IconButton
-            icon={ChevronRightIcon}
-            size="small"
-            aria-label=""
-            onClick={() => handleNext()}
-          />
-        </ButtonGroup>
-      </div>)}
+      {photos.length > 1 && (
+        <div
+          style={{
+            position: "absolute",
+            right: "10px",
+            bottom: "10px",
+          }}
+        >
+          <ButtonGroup>
+            <IconButton
+              icon={ChevronLeftIcon}
+              size="small"
+              aria-label=""
+              onClick={() => handlePrev()}
+            />
+            <IconButton
+              icon={ChevronRightIcon}
+              size="small"
+              aria-label=""
+              onClick={() => handleNext()}
+            />
+          </ButtonGroup>
+        </div>
+      )}
 
       <img
-        src={filePath}
+        src={currentFile.getFullPath()}
         style={{
           display: "block",
           width: "100%",

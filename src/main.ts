@@ -1,6 +1,5 @@
-import fs from 'fs';
 import path from 'path';
-import { app, BrowserWindow, ipcMain, Menu, dialog,  } from 'electron';
+import { app, BrowserWindow, ipcMain, Menu } from 'electron';
 import started from 'electron-squirrel-startup';
 
 import handleOpenFolder from './backend/openFolder';

@@ -1,11 +1,11 @@
-import type { PHOTO_DATA } from './src/helpers/types';
+import type { PROJECT_JSON } from './src/helpers/types';
 
 export interface IElectronAPI {
   // Methods (main)
   openFolder: () => Promise<void>,
 
   // Listeners (renderer)
-  onLoadData: (callback: (value: PHOTO_DATA) => void) => void,
+  onLoadProject: (callback: (value: PROJECT_JSON) => void) => void,
 }
 
 declare global {

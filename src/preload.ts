@@ -5,5 +5,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
   openFolder: () => ipcRenderer.send('open-folder'),
 
   // Listeners (renderer)
-  onLoadData: (callback: Function) => ipcRenderer.on('load-data', (_event, value) => callback(value)),
+  onLoadProject: (callback: any) => ipcRenderer.on('load-project', (_event, value) => callback(value)),
 });

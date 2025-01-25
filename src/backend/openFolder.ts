@@ -1,4 +1,4 @@
-import type { PHOTO_DATA } from '../helpers/types';
+import type { PROJECT_JSON } from '../helpers/types';
 
 import fs from 'fs';
 import path from 'path';
@@ -12,13 +12,13 @@ import {
 } from '../helpers/constants';
 
 /**
- * Handles opening, filtering, and processing a photo folder.
+ * Handles opening, filtering, and processing a photo folder with a project.
  */
 const handleOpenFolder = async (
   mainWindow: Electron.BrowserWindow,
 ) => {
   const event = await dialog.showOpenDialog({ properties: ['openDirectory'] });
-  
+
   if (event.canceled) {
     return;
   }
@@ -27,7 +27,7 @@ const handleOpenFolder = async (
 
   const [directory] = event.filePaths;
 
-  let files = fs.readdirSync(directory);
+  const files = fs.readdirSync(directory);
 
   console.log('files', files);
 
@@ -51,7 +51,7 @@ const handleOpenFolder = async (
     }
   }
 
-  files = files.filter((fileName) => {
+  const photos = files.filter((fileName) => {
     // Filter directories
     if (!fs.lstatSync(path.join(directory, fileName)).isFile()) {
       return false;
@@ -63,14 +63,14 @@ const handleOpenFolder = async (
     }
 
     return true;
-  });
+  })
 
-  const data: PHOTO_DATA = {
+  const data: PROJECT_JSON = {
     version: '1',
     directory,
-    files,
-    matches: [],
-    unused: [],
+    photos,
+    matched: [],
+    discarded: [],
   };
 
   console.debug('filtered files', files);
@@ -80,7 +80,7 @@ const handleOpenFolder = async (
   console.debug('created data.json, sending to renderer');
 
   mainWindow.setTitle(`${DEFAULT_WINDOW_TITLE} - ${directory}`);
-  mainWindow.webContents.send('load-data', data);
+  mainWindow.webContents.send('load-project', data);
 }
 
 export default handleOpenFolder;
