@@ -2,8 +2,6 @@ import { useState, useEffect } from "react";
 import { SplitPageLayout, Stack, Box, Text, BranchName } from "@primer/react";
 import { FileDirectoryOpenFillIcon } from "@primer/octicons-react";
 
-import type { PROJECT_JSON } from "../helpers/types";
-
 import { SIDEBAR_WIDTHS } from "../helpers/constants";
 
 import Project from "../models/Project";

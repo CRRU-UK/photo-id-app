@@ -10,6 +10,8 @@ export interface StackProps {
 }
 
 const Stack = ({ photos }: StackProps) => {
+  const [currentIndex, setCurrentIndex] = useState<number>(0);
+
   if (!photos || photos.length === 0) {
     return (
       <div
@@ -23,8 +25,6 @@ const Stack = ({ photos }: StackProps) => {
       />
     );
   }
-
-  const [currentIndex, setCurrentIndex] = useState<number>(0);
 
   const handlePrev = () => {
     let newIndex = currentIndex - 1;
@@ -82,6 +82,7 @@ const Stack = ({ photos }: StackProps) => {
           aspectRatio: "4/3",
           objectFit: "cover",
         }}
+        alt=""
       />
     </Box>
   );

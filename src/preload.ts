@@ -6,6 +6,6 @@ contextBridge.exposeInMainWorld("electronAPI", {
   openProjectFile: () => ipcRenderer.send("open-project-file"),
 
   // Listeners (renderer)
-  onLoadProject: (callback: any) =>
+  onLoadProject: (callback: (...params: unknown[]) => void) =>
     ipcRenderer.on("load-project", (_event, value) => callback(value)),
 });
