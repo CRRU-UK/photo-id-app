@@ -46,7 +46,7 @@ class Project {
     return this;
   }
 
-  public saveAsJSON(): string {
+  public returnAsJSON(): string {
     const data = {
       version: this.version,
       directory: this.directory,

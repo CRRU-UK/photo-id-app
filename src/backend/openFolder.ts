@@ -11,6 +11,11 @@ import {
   EXISTING_DATA_BUTTONS,
 } from "../helpers/constants";
 
+const sendData = (mainWindow: Electron.BrowserWindow, data: PROJECT_JSON) => {
+  mainWindow.setTitle(`${DEFAULT_WINDOW_TITLE} - ${data.directory}`);
+  mainWindow.webContents.send("load-project", data);
+};
+
 /**
  * Handles opening, filtering, and processing a photo folder with a project.
  */
@@ -38,15 +43,19 @@ const handleOpenFolder = async (mainWindow: Electron.BrowserWindow) => {
       buttons: EXISTING_DATA_BUTTONS,
     });
 
+    // Cancel
     if (response === 0) {
       console.debug("cancelled");
       return;
     }
 
+    // Pre-existing project
     if (response === 1) {
-      console.debug("open existing, return existing data");
-      return;
+      const data = fs.readFileSync(path.join(directory, "data.json"), "utf8");
+      return sendData(mainWindow, JSON.parse(data) as PROJECT_JSON);
     }
+
+    // Otherwise, create and open new project...
   }
 
   const photos = files.filter((fileName) => {
@@ -77,8 +86,7 @@ const handleOpenFolder = async (mainWindow: Electron.BrowserWindow) => {
 
   console.debug("created data.json, sending to renderer");
 
-  mainWindow.setTitle(`${DEFAULT_WINDOW_TITLE} - ${directory}`);
-  mainWindow.webContents.send("load-project", data);
+  return sendData(mainWindow, data);
 };
 
 export default handleOpenFolder;
