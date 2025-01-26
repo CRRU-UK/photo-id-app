@@ -1,6 +1,11 @@
-import { Box, Stack as PrimerStack, Text, ProgressBar } from "@primer/react";
+import type Photo from "../../models/Photo";
 
 import type { PHOTO_STACK } from "../../helpers/types";
+
+import { useDroppable } from "@dnd-kit/core";
+import { Box, Stack as PrimerStack, Text, ProgressBar } from "@primer/react";
+
+import { DragAreas } from "../../helpers/constants";
 
 import Stack from "../components/Stack";
 
@@ -25,21 +30,23 @@ const ProgressElements = ({ progress, total }: ProgressElementsProps) => (
 
 export interface MainSelectionProps {
   photos: PHOTO_STACK;
+  total: number;
 }
 
-const MainSelection = ({ photos }: MainSelectionProps) => {
-  const progress = 0; // Temp
+const MainSelection = ({ photos, total }: MainSelectionProps) => {
+  const { isOver, setNodeRef: setDroppableNodeRef } = useDroppable({ id: DragAreas.MainSelection });
 
   return (
     <Box
+      ref={setDroppableNodeRef}
       sx={{
         width: "100%",
         padding: "var(--stack-gap-normal)",
-        borderColor: "var(--borderColor-default)",
+        borderColor: isOver ? "var(--borderColor-done-emphasis)" : "var(--borderColor-default)",
         borderWidth: "var(--borderWidth-default)",
         borderStyle: "solid",
         borderRadius: "var(--borderRadius-default)",
-        backgroundColor: "var(--bgColor-muted)",
+        backgroundColor: isOver ? "var(--bgColor-neutral-muted)" : "var(--bgColor-muted)",
       }}
     >
       <Text
@@ -56,7 +63,7 @@ const MainSelection = ({ photos }: MainSelectionProps) => {
 
       <Stack photos={photos} />
 
-      {photos && <ProgressElements progress={progress} total={photos.length} />}
+      {photos && <ProgressElements progress={total - photos.size} total={total} />}
     </Box>
   );
 };

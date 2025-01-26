@@ -12,3 +12,8 @@ export const SIDEBAR_WIDTHS = {
   MAX: 500,
   DEFAULT: 400,
 };
+
+export enum DragAreas {
+  MainSelection = "main-selection",
+  DiscardedSelection = "discarded-selection",
+}

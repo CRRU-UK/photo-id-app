@@ -1,6 +1,7 @@
 import type { PHOTO_STACK } from "../../helpers/types";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useDraggable } from "@dnd-kit/core";
 
 import { Box, ButtonGroup, IconButton } from "@primer/react";
 import { ChevronLeftIcon, ChevronRightIcon } from "@primer/octicons-react";
@@ -9,27 +10,30 @@ export interface StackProps {
   photos: PHOTO_STACK;
 }
 
-const Stack = ({ photos }: StackProps) => {
+const StackArea = ({ photos }: StackProps) => {
   const [currentIndex, setCurrentIndex] = useState<number>(0);
 
-  if (!photos || photos.length === 0) {
-    return (
-      <div
-        style={{
-          width: "100%",
-          height: "auto",
-          aspectRatio: "4/3",
-          objectFit: "cover",
-          background: "var(--bgColor-emphasis)",
-        }}
-      />
-    );
-  }
+  const currentFile = Array.from(photos)[currentIndex % photos.size];
+
+  // Show latest photo when dragged onto
+  useEffect(() => {
+    console.log("photos", photos);
+    setCurrentIndex(photos.size);
+  }, [photos]);
+
+  const {
+    setNodeRef: setDraggableNodeRef,
+    attributes,
+    listeners,
+  } = useDraggable({
+    id: currentFile.id,
+    data: currentFile,
+  });
 
   const handlePrev = () => {
     let newIndex = currentIndex - 1;
     if (newIndex < 0) {
-      newIndex = photos.length - 1;
+      newIndex = photos.size - 1;
     }
 
     return setCurrentIndex(newIndex);
@@ -37,18 +41,16 @@ const Stack = ({ photos }: StackProps) => {
 
   const handleNext = () => {
     let newIndex = currentIndex + 1;
-    if (newIndex >= photos.length) {
+    if (newIndex >= photos.size) {
       newIndex = 0;
     }
 
     return setCurrentIndex(newIndex);
   };
 
-  const currentFile = photos[currentIndex % photos.length];
-
   return (
-    <Box sx={{ position: "relative" }}>
-      {photos.length > 1 && (
+    <>
+      {photos.size > 1 && (
         <div
           style={{
             position: "absolute",
@@ -74,6 +76,9 @@ const Stack = ({ photos }: StackProps) => {
       )}
 
       <img
+        ref={setDraggableNodeRef}
+        {...listeners}
+        {...attributes}
         src={currentFile.getFullPath()}
         style={{
           display: "block",
@@ -84,8 +89,26 @@ const Stack = ({ photos }: StackProps) => {
         }}
         alt=""
       />
-    </Box>
+    </>
   );
 };
+
+/**
+ * Wrap the draggable area in a condition to prevent issues with hooks.
+ */
+const Stack = ({ photos }: StackProps) => (
+  <Box
+    style={{
+      position: "relative",
+      width: "100%",
+      height: "auto",
+      aspectRatio: "4/3",
+      objectFit: "cover",
+      background: "var(--bgColor-emphasis)",
+    }}
+  >
+    {photos.size > 0 && <StackArea photos={photos} />}
+  </Box>
+);
 
 export default Stack;

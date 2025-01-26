@@ -1,26 +1,29 @@
-import type { DIRECTORY, PHOTO_STACK, MATCH, PROJECT_JSON } from "../helpers/types";
+import type { DIRECTORY, MATCH, PROJECT_JSON } from "../helpers/types";
 
 import Photo from "../models/Photo";
 
 class Project {
   version?: string;
   directory?: DIRECTORY;
-  photos?: PHOTO_STACK;
+  totalPhotos?: number;
+  photos?: Set<Photo>;
   matched?: MATCH[];
-  discarded?: PHOTO_STACK;
+  discarded?: Set<Photo>;
 
   constructor(
-    version = "v1",
-    directory: DIRECTORY = "",
-    photos: PHOTO_STACK = [],
-    matched: MATCH[] = [],
-    discarded: PHOTO_STACK = [],
+    version?: "v1",
+    directory?: "",
+    totalPhotos?: 0,
+    photos?: [],
+    matched?: [],
+    discarded?: [],
   ) {
     this.version = version;
     this.directory = directory;
-    this.photos = photos;
+    this.totalPhotos = totalPhotos;
+    this.photos = new Set(photos);
     this.matched = matched;
-    this.discarded = discarded;
+    this.discarded = new Set(discarded);
   }
 
   public loadFromJSON(json: PROJECT_JSON | string): this {
@@ -30,12 +33,17 @@ class Project {
       data = JSON.parse(json);
     }
 
-    const { version, directory, photos, matched, discarded } = data as PROJECT_JSON;
+    const { version, directory, totalPhotos, photos, matched, discarded } = data as PROJECT_JSON;
 
     this.version = version;
     this.directory = directory;
-    this.photos = photos.map((file) => new Photo(file, directory));
-    this.discarded = discarded.map((file) => new Photo(file, directory));
+    this.totalPhotos = totalPhotos;
+
+    const photosSet = photos.map((file) => new Photo(file, directory));
+    this.photos = new Set(photosSet);
+
+    const discardedSet = discarded.map((file) => new Photo(file, directory));
+    this.discarded = new Set(discardedSet);
 
     this.matched = matched.map(({ id, left, right }) => ({
       id,
@@ -56,6 +64,28 @@ class Project {
     };
 
     return JSON.stringify(data);
+  }
+
+  public addPhotoToSelection(photo: Photo): this {
+    if (this.photos.has(photo)) {
+      return this;
+    }
+
+    this.photos.add(photo);
+    this.discarded.delete(photo);
+
+    return this;
+  }
+
+  public addPhotoToDiscarded(photo: Photo): this {
+    if (this.discarded.has(photo)) {
+      return this;
+    }
+
+    this.photos.delete(photo);
+    this.discarded.add(photo);
+
+    return this;
   }
 }
 

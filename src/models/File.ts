@@ -1,16 +1,19 @@
 import type { DIRECTORY, FILE_NAME } from "../helpers/types";
 
 class Photo {
-  readonly directory;
+  readonly id;
   readonly fileName;
+  readonly filePath;
 
-  constructor(directory: DIRECTORY, fileName: FILE_NAME) {
-    this.directory = directory;
+  constructor(fileName: FILE_NAME, filePath: DIRECTORY) {
     this.fileName = fileName;
+    this.filePath = filePath;
+
+    this.id = btoa(this.getFullPath());
   }
 
   public getFullPath() {
-    return ["file://", this.fileName, this.directory].join("/");
+    return ["file://", this.filePath, this.fileName].join("/");
   }
 }
 

@@ -1,0 +1,49 @@
+import type { PHOTO_STACK } from "../../helpers/types";
+
+import { useDroppable } from "@dnd-kit/core";
+import { Box, Text } from "@primer/react";
+
+import { DragAreas } from "../../helpers/constants";
+
+import Stack from "../components/Stack";
+
+export interface DiscardedSelectionProps {
+  photos: PHOTO_STACK;
+}
+
+const DiscardedSelection = ({ photos }: DiscardedSelectionProps) => {
+  const { isOver, setNodeRef: setDroppableNodeRef } = useDroppable({
+    id: DragAreas.DiscardedSelection,
+  });
+
+  return (
+    <Box
+      ref={setDroppableNodeRef}
+      sx={{
+        width: "100%",
+        padding: "var(--stack-gap-normal)",
+        borderColor: isOver ? "var(--borderColor-done-emphasis)" : "var(--borderColor-default)",
+        borderWidth: "var(--borderWidth-default)",
+        borderStyle: "solid",
+        borderRadius: "var(--borderRadius-default)",
+        backgroundColor: isOver ? "var(--bgColor-neutral-muted)" : "var(--bgColor-muted)",
+      }}
+    >
+      <Text
+        size="medium"
+        weight="semibold"
+        sx={{
+          display: "block",
+          color: "var(--fgColor-muted)",
+          mb: 2,
+        }}
+      >
+        Discarded Photos
+      </Text>
+
+      <Stack photos={photos} />
+    </Box>
+  );
+};
+
+export default DiscardedSelection;
