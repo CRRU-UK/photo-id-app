@@ -26,7 +26,7 @@ const StackArea = ({ photos }: StackProps) => {
     attributes,
     listeners,
   } = useDraggable({
-    id: currentFile.id,
+    id: currentFile.getFileName(),
     data: currentFile,
   });
 

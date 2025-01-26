@@ -22,7 +22,12 @@ const ProgressElements = ({ progress, total }: ProgressElementsProps) => (
     <Text size="small" weight="light" whiteSpace="nowrap" sx={{ color: "var(--fgColor-muted)" }}>
       {progress} of {total}
     </Text>
-    <ProgressBar progress={Math.floor((progress / total) * 100)} width="100%" inline />
+    <ProgressBar
+      progress={Math.floor((progress / total) * 100)}
+      width="100%"
+      inline
+      bg={progress >= total ? "success.emphasis" : "accent.emphasis"}
+    />
   </PrimerStack>
 );
 
