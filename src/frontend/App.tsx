@@ -11,7 +11,7 @@ import Project from "../models/Project";
 
 import MainSelection from "./modules/MainSelection";
 import DiscardedSelection from "./modules/DiscardedSelection";
-import Placeholder from "./modules/Placeholder";
+import StartPage from "./modules/StartPage";
 
 const DraggableImage = ({ photo }: { photo: Photo }) => (
   <img
@@ -28,12 +28,12 @@ const DraggableImage = ({ photo }: { photo: Photo }) => (
   />
 );
 
+// import mockedData from "../../data/mock-project.json";
+// const mockedProject = new Project().loadFromJSON(mockedData as any);
+
 const App = () => {
   const [project, setProject] = useState<Project | null>(null);
   const [draggingPhoto, setDraggingPhoto] = useState<Photo>(null);
-
-  const handleOpenProjectFolder = () => window.electronAPI.openProjectFolder();
-  const handleOpenProjectFile = () => window.electronAPI.openProjectFile();
 
   const handleDragStart = (event: DragStartEvent) =>
     setDraggingPhoto(event.active.data.current as Photo);
@@ -58,6 +58,10 @@ const App = () => {
       setProject(project);
     });
   }, []);
+
+  if (!project) {
+    return <StartPage />;
+  }
 
   return (
     <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
@@ -101,14 +105,7 @@ const App = () => {
 
         <SplitPageLayout.Content
           sx={{ minHeight: "100vh", backgroundColor: "var(--bgColor-inset)" }}
-        >
-          {!project && (
-            <Placeholder
-              openProjectFolderCallback={handleOpenProjectFolder}
-              openProjectFileCallback={handleOpenProjectFile}
-            />
-          )}
-        </SplitPageLayout.Content>
+        ></SplitPageLayout.Content>
       </SplitPageLayout>
     </DndContext>
   );

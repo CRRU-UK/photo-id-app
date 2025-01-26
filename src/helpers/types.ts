@@ -14,9 +14,12 @@ export type MATCH = {
 
 export type PROJECT_JSON_BODY = {
   version: string;
+  id: string;
   directory: DIRECTORY;
   totalPhotos: number;
   photos: string[];
   matched: { id: string; left: string[]; right: string[] }[];
   discarded: string[];
+  created: string;
+  lastModified: string;
 };

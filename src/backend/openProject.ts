@@ -2,6 +2,7 @@ import type { PROJECT_JSON_BODY } from "../helpers/types";
 
 import fs from "fs";
 import path from "path";
+import crypto from "crypto";
 import { dialog } from "electron";
 
 import {
@@ -68,16 +69,21 @@ const handleOpenProjectDirectory = async (mainWindow: Electron.BrowserWindow) =>
     return true;
   });
 
+  const now = new Date().toISOString();
+
   const data: PROJECT_JSON_BODY = {
-    version: "1",
+    version: "v1",
+    id: crypto.randomUUID(),
     directory,
     totalPhotos: photos.length,
     photos,
     matched: [],
     discarded: [],
+    created: now,
+    lastModified: now,
   };
 
-  fs.writeFileSync(path.join(directory, "data.json"), JSON.stringify(data), "utf8");
+  fs.writeFileSync(path.join(directory, "data.json"), JSON.stringify(data, null, 2), "utf8");
 
   return sendData(mainWindow, data);
 };
@@ -102,4 +108,12 @@ const handleOpenProjectFile = async (mainWindow: Electron.BrowserWindow) => {
   return sendData(mainWindow, JSON.parse(data) as PROJECT_JSON_BODY);
 };
 
-export { handleOpenProjectDirectory, handleOpenProjectFile };
+/**
+ * Handles opening a recent project file.
+ */
+const handleOpenRecentProject = async (mainWindow: Electron.BrowserWindow, file: string) => {
+  const data = fs.readFileSync(file, "utf8");
+  return sendData(mainWindow, JSON.parse(data) as PROJECT_JSON_BODY);
+};
+
+export { handleOpenProjectDirectory, handleOpenProjectFile, handleOpenRecentProject };

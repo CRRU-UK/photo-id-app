@@ -4,26 +4,35 @@ import Photo from "../models/Photo";
 
 class Project {
   version?: string;
+  id?: string;
   directory?: DIRECTORY;
   totalPhotos?: number;
   photos?: Set<Photo>;
   matched?: MATCH[];
   discarded?: Set<Photo>;
+  created?: Date;
+  lastModified?: Date;
 
   constructor(
     version?: "v1",
+    id?: "",
     directory?: "",
     totalPhotos?: 0,
     photos?: [],
     matched?: [],
     discarded?: [],
+    created = new Date().toISOString(),
+    lastModified = new Date().toISOString(),
   ) {
     this.version = version;
+    this.id = id;
     this.directory = directory;
     this.totalPhotos = totalPhotos;
     this.photos = new Set(photos);
     this.matched = matched;
     this.discarded = new Set(discarded);
+    this.created = new Date(created);
+    this.lastModified = new Date(lastModified);
   }
 
   public loadFromJSON(json: PROJECT_JSON_BODY | string): this {
@@ -33,7 +42,7 @@ class Project {
       data = JSON.parse(json);
     }
 
-    const { version, directory, totalPhotos, photos, matched, discarded } =
+    const { version, directory, totalPhotos, photos, matched, discarded, created, lastModified } =
       data as PROJECT_JSON_BODY;
 
     this.version = version;
@@ -52,17 +61,23 @@ class Project {
       right: right.map((file) => new Photo(file, directory)),
     }));
 
+    this.created = new Date(created);
+    this.lastModified = new Date(lastModified);
+
     return this;
   }
 
   private returnAsJSONString(): string {
     const data: PROJECT_JSON_BODY = {
       version: this.version,
+      id: this.id,
       directory: this.directory,
       totalPhotos: this.totalPhotos,
       photos: Array.from(this.photos).map((item) => item.getFileName()),
       matched: [], // Temporary
       discarded: Array.from(this.discarded).map((item) => item.getFileName()),
+      created: this.created.toISOString(),
+      lastModified: this.lastModified.toISOString(),
     };
 
     // Format JSON to make debugging easier
@@ -70,6 +85,7 @@ class Project {
   }
 
   public save() {
+    this.lastModified = new Date();
     window.electronAPI.saveProject(this.returnAsJSONString());
   }
 

@@ -2,7 +2,11 @@ import path from "path";
 import { app, BrowserWindow, ipcMain, Menu } from "electron";
 import started from "electron-squirrel-startup";
 
-import { handleOpenProjectDirectory, handleOpenProjectFile } from "./backend/openProject";
+import {
+  handleOpenProjectDirectory,
+  handleOpenProjectFile,
+  handleOpenRecentProject,
+} from "./backend/openProject";
 import { handleSaveProject } from "./backend/saveProject";
 
 if (started) {
@@ -78,6 +82,12 @@ app.whenReady().then(() => {
     const webContents = event.sender;
     const window = BrowserWindow.fromWebContents(webContents);
     handleOpenProjectFile(window);
+  });
+
+  ipcMain.on("open-recent-project", (event, file) => {
+    const webContents = event.sender;
+    const window = BrowserWindow.fromWebContents(webContents);
+    handleOpenRecentProject(window, file);
   });
 
   ipcMain.on("save-project", (event, data) => {

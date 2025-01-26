@@ -1,9 +1,9 @@
 import type { PHOTO_STACK } from "../../helpers/types";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useDraggable } from "@dnd-kit/core";
 
-import { Box, ButtonGroup, IconButton } from "@primer/react";
+import { Box, Stack as StackComponent, CounterLabel, ButtonGroup, IconButton } from "@primer/react";
 import { ChevronLeftIcon, ChevronRightIcon } from "@primer/octicons-react";
 
 export interface StackProps {
@@ -24,6 +24,10 @@ const Stack = ({ photos }: StackProps) => {
     data: currentFile,
     disabled: photos.size <= 0,
   });
+
+  useEffect(() => {
+    setCurrentIndex(0);
+  }, [photos]);
 
   const handlePrev = () => {
     let newIndex = currentIndex - 1;
@@ -54,14 +58,25 @@ const Stack = ({ photos }: StackProps) => {
         background: "var(--bgColor-emphasis)",
       }}
     >
-      <div
+      <StackComponent
+        direction="horizontal"
+        align="center"
+        justify="space-between"
+        padding="condensed"
         style={{
+          width: "100%",
           position: "absolute",
-          right: "10px",
-          bottom: "10px",
+          left: "0",
+          bottom: "0",
         }}
       >
-        <ButtonGroup>
+        {photos.size > 0 && (
+          <CounterLabel scheme="primary">
+            {currentIndex + 1} / {photos.size}
+          </CounterLabel>
+        )}
+
+        <ButtonGroup sx={{ marginLeft: "auto" }}>
           <IconButton
             icon={ChevronLeftIcon}
             size="small"
@@ -77,7 +92,7 @@ const Stack = ({ photos }: StackProps) => {
             disabled={photos.size <= 1}
           />
         </ButtonGroup>
-      </div>
+      </StackComponent>
 
       <div ref={setDraggableNodeRef} {...listeners} {...attributes}>
         {currentFile && (
