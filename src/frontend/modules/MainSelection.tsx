@@ -1,5 +1,3 @@
-import type Photo from "../../models/Photo";
-
 import type { PHOTO_STACK } from "../../helpers/types";
 
 import { useDroppable } from "@dnd-kit/core";

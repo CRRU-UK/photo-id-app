@@ -38,11 +38,6 @@ const App = () => {
   const handleOpenProjectFolder = () => window.electronAPI.openProjectFolder();
   const handleOpenProjectFile = () => window.electronAPI.openProjectFile();
 
-  const handleDiscardPhoto = (photo: Photo) => {
-    project.discarded.add(photo);
-    project.photos.delete(photo);
-  };
-
   useEffect(() => {
     console.log("draggingPhoto", draggingPhoto);
   }, [draggingPhoto]);
