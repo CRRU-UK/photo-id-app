@@ -13,9 +13,6 @@ import MainSelection from "./modules/MainSelection";
 import DiscardedSelection from "./modules/DiscardedSelection";
 import Placeholder from "./modules/Placeholder";
 
-import mockedData from "../../data/mock.json";
-const mockedProject = new Project().loadFromJSON(mockedData);
-
 const DraggableImage = ({ photo }: { photo: Photo }) => (
   <img
     src={photo.getFullPath()}
@@ -32,7 +29,7 @@ const DraggableImage = ({ photo }: { photo: Photo }) => (
 );
 
 const App = () => {
-  const [project, setProject] = useState<Project | null>(mockedProject);
+  const [project, setProject] = useState<Project | null>(null);
   const [draggingPhoto, setDraggingPhoto] = useState<Photo>(null);
 
   const handleOpenProjectFolder = () => window.electronAPI.openProjectFolder();
@@ -87,8 +84,8 @@ const App = () => {
             justify="space-between"
             style={{ height: "100%" }}
           >
-            <MainSelection photos={project.photos} total={project.totalPhotos} />
-            <DiscardedSelection photos={project.discarded} />
+            {project && <MainSelection photos={project.photos} total={project.totalPhotos} />}
+            {project && <DiscardedSelection photos={project.discarded} />}
 
             {project?.directory && (
               <Box sx={{ marginTop: "auto" }}>

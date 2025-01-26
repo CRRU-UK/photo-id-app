@@ -1,4 +1,4 @@
-import type { DIRECTORY, MATCH, PROJECT_JSON } from "../helpers/types";
+import type { DIRECTORY, MATCH, PROJECT_JSON_BODY } from "../helpers/types";
 
 import Photo from "../models/Photo";
 
@@ -26,14 +26,15 @@ class Project {
     this.discarded = new Set(discarded);
   }
 
-  public loadFromJSON(json: PROJECT_JSON | string): this {
+  public loadFromJSON(json: PROJECT_JSON_BODY | string): this {
     let data = json;
 
     if (typeof json === "string") {
       data = JSON.parse(json);
     }
 
-    const { version, directory, totalPhotos, photos, matched, discarded } = data as PROJECT_JSON;
+    const { version, directory, totalPhotos, photos, matched, discarded } =
+      data as PROJECT_JSON_BODY;
 
     this.version = version;
     this.directory = directory;
@@ -54,16 +55,22 @@ class Project {
     return this;
   }
 
-  public returnAsJSON(): string {
-    const data = {
+  private returnAsJSONString(): string {
+    const data: PROJECT_JSON_BODY = {
       version: this.version,
       directory: this.directory,
-      photos: this.photos,
-      matched: this.matched,
-      discarded: this.discarded,
+      totalPhotos: this.totalPhotos,
+      photos: Array.from(this.photos).map((item) => item.getFileName()),
+      matched: [], // Temporary
+      discarded: Array.from(this.discarded).map((item) => item.getFileName()),
     };
 
-    return JSON.stringify(data);
+    // Format JSON to make debugging easier
+    return JSON.stringify(data, null, 2);
+  }
+
+  public save() {
+    window.electronAPI.saveProject(this.returnAsJSONString());
   }
 
   public addPhotoToSelection(photo: Photo): this {
@@ -74,6 +81,7 @@ class Project {
     this.photos.add(photo);
     this.discarded.delete(photo);
 
+    this.save();
     return this;
   }
 
@@ -85,6 +93,7 @@ class Project {
     this.photos.delete(photo);
     this.discarded.add(photo);
 
+    this.save();
     return this;
   }
 }

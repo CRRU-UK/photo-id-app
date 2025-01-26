@@ -1,9 +1,9 @@
 import type { DIRECTORY, FILE_NAME } from "../helpers/types";
 
 class Photo {
-  readonly id;
-  readonly fileName;
-  readonly filePath;
+  private readonly id;
+  private readonly fileName;
+  private readonly filePath;
 
   constructor(fileName: FILE_NAME, filePath: DIRECTORY) {
     this.fileName = fileName;
@@ -14,6 +14,10 @@ class Photo {
 
   public getFullPath() {
     return ["file://", this.filePath, this.fileName].join("/");
+  }
+
+  public getFileName() {
+    return this.fileName;
   }
 }
 

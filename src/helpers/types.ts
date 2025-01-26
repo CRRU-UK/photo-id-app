@@ -12,7 +12,7 @@ export type MATCH = {
   right: Photo[];
 };
 
-export type PROJECT_JSON = {
+export type PROJECT_JSON_BODY = {
   version: string;
   directory: DIRECTORY;
   totalPhotos: number;

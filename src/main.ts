@@ -3,6 +3,7 @@ import { app, BrowserWindow, ipcMain, Menu } from "electron";
 import started from "electron-squirrel-startup";
 
 import { handleOpenProjectDirectory, handleOpenProjectFile } from "./backend/openProject";
+import { handleSaveProject } from "./backend/saveProject";
 
 if (started) {
   app.quit();
@@ -77,5 +78,9 @@ app.whenReady().then(() => {
     const webContents = event.sender;
     const window = BrowserWindow.fromWebContents(webContents);
     handleOpenProjectFile(window);
+  });
+
+  ipcMain.on("save-project", (event, data) => {
+    handleSaveProject(data);
   });
 });
