@@ -10,23 +10,19 @@ export interface StackProps {
   photos: PHOTO_STACK;
 }
 
-const StackArea = ({ photos }: StackProps) => {
+const Stack = ({ photos }: StackProps) => {
   const [currentIndex, setCurrentIndex] = useState<number>(0);
 
   const currentFile = Array.from(photos)[currentIndex % photos.size];
-
-  // Show latest photo when dragged onto
-  useEffect(() => {
-    setCurrentIndex(photos.size);
-  }, [photos]);
 
   const {
     setNodeRef: setDraggableNodeRef,
     attributes,
     listeners,
   } = useDraggable({
-    id: currentFile.getFileName(),
+    id: currentFile?.getFileName() || null,
     data: currentFile,
+    disabled: photos.size <= 0,
   });
 
   const handlePrev = () => {
@@ -48,66 +44,59 @@ const StackArea = ({ photos }: StackProps) => {
   };
 
   return (
-    <>
-      {photos.size > 1 && (
-        <div
-          style={{
-            position: "absolute",
-            right: "10px",
-            bottom: "10px",
-          }}
-        >
-          <ButtonGroup>
-            <IconButton
-              icon={ChevronLeftIcon}
-              size="small"
-              aria-label=""
-              onClick={() => handlePrev()}
-            />
-            <IconButton
-              icon={ChevronRightIcon}
-              size="small"
-              aria-label=""
-              onClick={() => handleNext()}
-            />
-          </ButtonGroup>
-        </div>
-      )}
-
-      <img
-        ref={setDraggableNodeRef}
-        {...listeners}
-        {...attributes}
-        src={currentFile.getFullPath()}
+    <Box
+      style={{
+        position: "relative",
+        width: "100%",
+        height: "auto",
+        aspectRatio: "4/3",
+        objectFit: "cover",
+        background: "var(--bgColor-emphasis)",
+      }}
+    >
+      <div
         style={{
-          display: "block",
-          width: "100%",
-          height: "auto",
-          aspectRatio: "4/3",
-          objectFit: "cover",
+          position: "absolute",
+          right: "10px",
+          bottom: "10px",
         }}
-        alt=""
-      />
-    </>
+      >
+        <ButtonGroup>
+          <IconButton
+            icon={ChevronLeftIcon}
+            size="small"
+            aria-label=""
+            onClick={() => handlePrev()}
+            disabled={photos.size <= 1}
+          />
+          <IconButton
+            icon={ChevronRightIcon}
+            size="small"
+            aria-label=""
+            onClick={() => handleNext()}
+            disabled={photos.size <= 1}
+          />
+        </ButtonGroup>
+      </div>
+
+      <div ref={setDraggableNodeRef} {...listeners} {...attributes}>
+        {currentFile && (
+          <img
+            src={currentFile.getFullPath()}
+            style={{
+              cursor: "pointer",
+              display: "block",
+              width: "100%",
+              height: "auto",
+              aspectRatio: "4/3",
+              objectFit: "cover",
+            }}
+            alt=""
+          />
+        )}
+      </div>
+    </Box>
   );
 };
-
-/**
- * Wrap the draggable area in a condition to prevent issues with hooks.
- */
-const Stack = ({ photos }: StackProps) => (
-  <Box
-    style={{
-      position: "relative",
-      width: "100%",
-      height: "auto",
-      aspectRatio: "4/3",
-      objectFit: "cover",
-      background: "var(--bgColor-emphasis)",
-    }}
-  >
-    {photos.size > 0 && <StackArea photos={photos} />}
-  </Box>
-);
 
 export default Stack;
