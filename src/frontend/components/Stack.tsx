@@ -1,6 +1,7 @@
 import type { PHOTO_STACK } from "../../helpers/types";
 
 import { useState } from "react";
+import { useDraggable } from "@dnd-kit/core";
 
 import { Box, ButtonGroup, IconButton } from "@primer/react";
 import { ChevronLeftIcon, ChevronRightIcon } from "@primer/octicons-react";
@@ -12,24 +13,22 @@ export interface StackProps {
 const Stack = ({ photos }: StackProps) => {
   const [currentIndex, setCurrentIndex] = useState<number>(0);
 
-  if (!photos || photos.length === 0) {
-    return (
-      <div
-        style={{
-          width: "100%",
-          height: "auto",
-          aspectRatio: "4/3",
-          objectFit: "cover",
-          background: "var(--bgColor-emphasis)",
-        }}
-      />
-    );
-  }
+  const currentFile = Array.from(photos)[currentIndex % photos.size];
+
+  const {
+    setNodeRef: setDraggableNodeRef,
+    attributes,
+    listeners,
+  } = useDraggable({
+    id: currentFile?.getFileName() || null,
+    data: currentFile,
+    disabled: photos.size <= 0,
+  });
 
   const handlePrev = () => {
     let newIndex = currentIndex - 1;
     if (newIndex < 0) {
-      newIndex = photos.length - 1;
+      newIndex = photos.size - 1;
     }
 
     return setCurrentIndex(newIndex);
@@ -37,53 +36,65 @@ const Stack = ({ photos }: StackProps) => {
 
   const handleNext = () => {
     let newIndex = currentIndex + 1;
-    if (newIndex >= photos.length) {
+    if (newIndex >= photos.size) {
       newIndex = 0;
     }
 
     return setCurrentIndex(newIndex);
   };
 
-  const currentFile = photos[currentIndex % photos.length];
-
   return (
-    <Box sx={{ position: "relative" }}>
-      {photos.length > 1 && (
-        <div
-          style={{
-            position: "absolute",
-            right: "10px",
-            bottom: "10px",
-          }}
-        >
-          <ButtonGroup>
-            <IconButton
-              icon={ChevronLeftIcon}
-              size="small"
-              aria-label=""
-              onClick={() => handlePrev()}
-            />
-            <IconButton
-              icon={ChevronRightIcon}
-              size="small"
-              aria-label=""
-              onClick={() => handleNext()}
-            />
-          </ButtonGroup>
-        </div>
-      )}
-
-      <img
-        src={currentFile.getFullPath()}
+    <Box
+      style={{
+        position: "relative",
+        width: "100%",
+        height: "auto",
+        aspectRatio: "4/3",
+        objectFit: "cover",
+        background: "var(--bgColor-emphasis)",
+      }}
+    >
+      <div
         style={{
-          display: "block",
-          width: "100%",
-          height: "auto",
-          aspectRatio: "4/3",
-          objectFit: "cover",
+          position: "absolute",
+          right: "10px",
+          bottom: "10px",
         }}
-        alt=""
-      />
+      >
+        <ButtonGroup>
+          <IconButton
+            icon={ChevronLeftIcon}
+            size="small"
+            aria-label=""
+            onClick={() => handlePrev()}
+            disabled={photos.size <= 1}
+          />
+          <IconButton
+            icon={ChevronRightIcon}
+            size="small"
+            aria-label=""
+            onClick={() => handleNext()}
+            disabled={photos.size <= 1}
+          />
+        </ButtonGroup>
+      </div>
+
+      <div ref={setDraggableNodeRef} {...listeners} {...attributes}>
+        {currentFile && (
+          <img
+            src={currentFile.getFullPath()}
+            style={{
+              cursor: "pointer",
+              display: "block",
+              width: "100%",
+              height: "auto",
+              aspectRatio: "4/3",
+              objectFit: "cover",
+            }}
+            alt=""
+          />
+        )}
+      </div>
     </Box>
   );
 };

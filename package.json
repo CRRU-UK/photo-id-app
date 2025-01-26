@@ -19,6 +19,7 @@
     "test:watch": "npm run test:unit -- --watchAll"
   },
   "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
     "@primer/octicons-react": "^19.14.0",
     "@primer/primitives": "^10.3.2",
     "@primer/react": "^37.8.0",
