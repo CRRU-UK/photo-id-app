@@ -3,7 +3,7 @@ import type { PHOTO_STACK } from "../../helpers/types";
 import { useDroppable } from "@dnd-kit/core";
 import { Box, Text } from "@primer/react";
 
-import { DragAreas } from "../../helpers/constants";
+import { DragAreas, BOX_HOVER_STYLES } from "../../helpers/constants";
 
 import Stack from "../components/Stack";
 
@@ -22,11 +22,12 @@ const DiscardedSelection = ({ photos }: DiscardedSelectionProps) => {
       sx={{
         width: "100%",
         padding: "var(--stack-gap-normal)",
-        borderColor: isOver ? "var(--borderColor-done-emphasis)" : "var(--borderColor-default)",
+        borderColor: "var(--borderColor-default)",
         borderWidth: "var(--borderWidth-default)",
         borderStyle: "solid",
         borderRadius: "var(--borderRadius-default)",
-        backgroundColor: isOver ? "var(--bgColor-neutral-muted)" : "var(--bgColor-muted)",
+        backgroundColor: "var(--bgColor-muted)",
+        ...(isOver ? BOX_HOVER_STYLES : undefined),
       }}
     >
       <Text

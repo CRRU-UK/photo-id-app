@@ -17,7 +17,6 @@ const StackArea = ({ photos }: StackProps) => {
 
   // Show latest photo when dragged onto
   useEffect(() => {
-    console.log("photos", photos);
     setCurrentIndex(photos.size);
   }, [photos]);
 

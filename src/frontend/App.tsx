@@ -35,15 +35,11 @@ const App = () => {
   const handleOpenProjectFolder = () => window.electronAPI.openProjectFolder();
   const handleOpenProjectFile = () => window.electronAPI.openProjectFile();
 
-  useEffect(() => {
-    console.log("draggingPhoto", draggingPhoto);
-  }, [draggingPhoto]);
-
   const handleDragStart = (event: DragStartEvent) =>
     setDraggingPhoto(event.active.data.current as Photo);
 
   const handleDragEnd = (event: DragEndEvent) => {
-    const { id } = event.over;
+    const id = event.over?.id || null;
 
     if (id === DragAreas.MainSelection) {
       return project.addPhotoToSelection(draggingPhoto);
