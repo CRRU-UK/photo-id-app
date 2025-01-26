@@ -1,6 +1,6 @@
 import type { PHOTO_STACK } from "../../helpers/types";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useDraggable } from "@dnd-kit/core";
 
 import { Box, ButtonGroup, IconButton } from "@primer/react";
