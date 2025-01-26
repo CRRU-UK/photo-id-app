@@ -20,8 +20,8 @@ import recentProjects from "../../../data/mock-recents.json";
 
 const StartPage = () => {
   const handleOpenProjectFolder = () => window.electronAPI.openProjectFolder();
-  const handleOpenProjectFile = () => window.electronAPI.openProjectFile();
-  const handleOpenRecentProject = (path: string) => window.electronAPI.openRecentProject(path);
+  const handleOpenFilePrompt = () => window.electronAPI.openProjectFile();
+  const handleOpenProjectFile = (path: string) => window.electronAPI.openRecentProject(path);
 
   return (
     <PageLayout
@@ -76,7 +76,7 @@ const StartPage = () => {
           </Button>
 
           <Button
-            onClick={() => handleOpenProjectFile()}
+            onClick={() => handleOpenFilePrompt()}
             variant="default"
             size="large"
             block
@@ -98,7 +98,7 @@ const StartPage = () => {
               <Timeline.Body>
                 <Link
                   href="#"
-                  onClick={() => handleOpenRecentProject(item.path)}
+                  onClick={() => handleOpenProjectFile(item.path)}
                   sx={{
                     fontWeight: "bold",
                   }}

@@ -20,7 +20,7 @@ const sendData = (mainWindow: Electron.BrowserWindow, data: PROJECT_JSON_BODY) =
 /**
  * Handles opening, filtering, and processing a project folder.
  */
-const handleOpenProjectDirectory = async (mainWindow: Electron.BrowserWindow) => {
+const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => {
   const event = await dialog.showOpenDialog({
     title: "Open Project Folder",
     properties: ["openDirectory"],
@@ -91,7 +91,7 @@ const handleOpenProjectDirectory = async (mainWindow: Electron.BrowserWindow) =>
 /**
  * Handles opening a project file.
  */
-const handleOpenProjectFile = async (mainWindow: Electron.BrowserWindow) => {
+const handleOpenFilePrompt = async (mainWindow: Electron.BrowserWindow) => {
   const event = await dialog.showOpenDialog({
     title: "Open Project File",
     properties: ["openFile"],
@@ -111,9 +111,9 @@ const handleOpenProjectFile = async (mainWindow: Electron.BrowserWindow) => {
 /**
  * Handles opening a recent project file.
  */
-const handleOpenRecentProject = async (mainWindow: Electron.BrowserWindow, file: string) => {
+const handleOpenProjectFile = async (mainWindow: Electron.BrowserWindow, file: string) => {
   const data = fs.readFileSync(file, "utf8");
   return sendData(mainWindow, JSON.parse(data) as PROJECT_JSON_BODY);
 };
 
-export { handleOpenProjectDirectory, handleOpenProjectFile, handleOpenRecentProject };
+export { handleOpenDirectoryPrompt, handleOpenFilePrompt, handleOpenProjectFile };

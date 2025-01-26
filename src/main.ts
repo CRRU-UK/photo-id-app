@@ -3,9 +3,9 @@ import { app, BrowserWindow, ipcMain, Menu } from "electron";
 import started from "electron-squirrel-startup";
 
 import {
-  handleOpenProjectDirectory,
+  handleOpenDirectoryPrompt,
+  handleOpenFilePrompt,
   handleOpenProjectFile,
-  handleOpenRecentProject,
 } from "./backend/openProject";
 import { handleSaveProject } from "./backend/saveProject";
 
@@ -38,14 +38,14 @@ const createWindow = () => {
           label: "Open Project Folder",
           accelerator: "CmdOrCtrl+O",
           async click() {
-            handleOpenProjectDirectory(mainWindow);
+            handleOpenDirectoryPrompt(mainWindow);
           },
         },
         {
           label: "Open Project File",
           accelerator: "CmdOrCtrl+Shift+O",
           async click() {
-            handleOpenProjectFile(mainWindow);
+            handleOpenFilePrompt(mainWindow);
           },
         },
       ],
@@ -72,22 +72,22 @@ app.on("activate", () => {
 });
 
 app.whenReady().then(() => {
-  ipcMain.on("open-project-folder", (event) => {
+  ipcMain.on("open-folder-prompt", (event) => {
     const webContents = event.sender;
     const window = BrowserWindow.fromWebContents(webContents);
-    handleOpenProjectDirectory(window);
+    handleOpenDirectoryPrompt(window);
   });
 
-  ipcMain.on("open-project-file", (event) => {
+  ipcMain.on("open-file-prompt", (event) => {
     const webContents = event.sender;
     const window = BrowserWindow.fromWebContents(webContents);
-    handleOpenProjectFile(window);
+    handleOpenFilePrompt(window);
   });
 
-  ipcMain.on("open-recent-project", (event, file) => {
+  ipcMain.on("open-project-file", (event, file) => {
     const webContents = event.sender;
     const window = BrowserWindow.fromWebContents(webContents);
-    handleOpenRecentProject(window, file);
+    handleOpenProjectFile(window, file);
   });
 
   ipcMain.on("save-project", (event, data) => {
