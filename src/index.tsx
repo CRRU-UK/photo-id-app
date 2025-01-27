@@ -9,6 +9,8 @@ import "@primer/primitives/dist/css/functional/size/size.css";
 import "@primer/primitives/dist/css/functional/themes/light.css";
 import "@primer/primitives/dist/css/functional/themes/dark.css";
 
+import "./styles.css";
+
 const container = document.getElementById("root") as HTMLDivElement;
 const root = createRoot(container);
 
