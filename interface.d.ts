@@ -1,5 +1,13 @@
+import type { PROJECT_JSON_BODY } from "./src/helpers/types";
+
 export interface IElectronAPI {
-  setTitle: (title: string) => Promise<void>,
+  // Methods (main)
+  openProjectFolder: () => Promise<void>;
+  openProjectFile: () => Promise<void>;
+  saveProject: (data: string) => Promise<void>;
+
+  // Listeners (renderer)
+  onLoadProject: (callback: (value: PROJECT_JSON_BODY) => void) => void;
 }
 
 declare global {
