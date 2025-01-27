@@ -34,7 +34,7 @@ The app is made up of the following parts:
   - [`src/assets`](src/assets) contains app assets (e.g. icons)
   - [`src/backend`](src/backend) contains backend (_main_) controllers
   - [`src/frontend`](src/frontend) contains frontend (_renderer_) views
-    - [`src/frontend/app.tsx`](src/frontend/app.tsx) contains the main React app wrapper
+    - [`src/frontend/App.tsx`](src/frontend/App.tsx) contains the main React app wrapper
     - [`src/frontend/components`](src/frontend/components) contains reusable UI components
     - [`src/frontend/modules`](src/frontend/modules) contains UI sections and pages
   - [`src/helpers`](src/helpers) contains common helpers, utility functions, constants, and types
