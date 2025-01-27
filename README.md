@@ -1,6 +1,6 @@
 > [!IMPORTANT]  
 > This project is under initial development and is a work-in-progress.
-> 
+>
 > A roadmap of the project is available [here](https://github.com/orgs/CRRU-UK/projects/3).
 
 ---
@@ -38,8 +38,9 @@ The app is made up of the following parts:
     - [`src/frontend/modules`](src/frontend/modules) contains UI sections and pages
   - [`src/helpers`](src/helpers) contains common helpers, utility functions, constants, and types
   - [`src/models`](src/models) contains classes
-- [`app.ts`](app.ts) contains the app entry-point
-- [`preload.ts`](preload.ts) contains preloaded app methods
+  - [`src/index.ts`](src/app.ts) contains the frontend (_renderer_) entry point
+  - [`src/main.ts`](src/main.ts) contains the backend (_main_) entry point
+  - [`src/preload.ts`](src/preload.ts) contains preloaded app methods
 
 ## Installation
 
