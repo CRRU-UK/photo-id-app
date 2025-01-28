@@ -15,10 +15,10 @@
 [![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=CRRU-UK_photo-id-app&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=CRRU-UK_photo-id-app)
 [![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=CRRU-UK_photo-id-app&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=CRRU-UK_photo-id-app)
 
-1. [Introduction](#introduction)
-2. [Overview](#overview)
-3. [Installation](#installation)
-4. [Development](#development)
+- [Introduction](#introduction)
+- [Overview](#overview)
+- [Installation](#installation)
+- [Development](#development)
 
 ## Introduction
 
