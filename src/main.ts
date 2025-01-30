@@ -6,8 +6,10 @@ import {
   handleOpenDirectoryPrompt,
   handleOpenFilePrompt,
   handleOpenProjectFile,
-} from "./backend/openProject";
-import { handleSaveProject } from "./backend/saveProject";
+  handleSaveProject,
+} from "./backend/projects";
+
+import { getRecentProjects } from "./backend/recents";
 
 if (started) {
   app.quit();
@@ -88,6 +90,12 @@ app.whenReady().then(() => {
     const webContents = event.sender;
     const window = BrowserWindow.fromWebContents(webContents);
     handleOpenProjectFile(window, file);
+  });
+
+  ipcMain.on("get-recent-projects", (event) => {
+    const webContents = event.sender;
+    const window = BrowserWindow.fromWebContents(webContents);
+    window.webContents.send("load-recent-projects", getRecentProjects());
   });
 
   ipcMain.on("save-project", (event, data) => {

@@ -23,3 +23,8 @@ export type PROJECT_JSON_BODY = {
   created: string;
   lastModified: string;
 };
+
+export type RECENT_PROJECTS = {
+  path: string;
+  lastOpened: string;
+}[];

@@ -28,9 +28,6 @@ const DraggableImage = ({ photo }: { photo: Photo }) => (
   />
 );
 
-// import mockedData from "../../data/mock-project.json";
-// const mockedProject = new Project().loadFromJSON(mockedData as any);
-
 const App = () => {
   const [project, setProject] = useState<Project | null>(null);
   const [draggingPhoto, setDraggingPhoto] = useState<Photo>(null);
