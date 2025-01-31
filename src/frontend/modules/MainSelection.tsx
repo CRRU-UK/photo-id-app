@@ -1,4 +1,4 @@
-import type { PHOTO_STACK } from "../../helpers/types";
+import type { PhotoStack } from "../../helpers/types";
 
 import { useDroppable } from "@dnd-kit/core";
 import { Box, Stack as PrimerStack, Text, ProgressBar } from "@primer/react";
@@ -32,7 +32,7 @@ const ProgressElements = ({ progress, total }: ProgressElementsProps) => (
 );
 
 export interface MainSelectionProps {
-  photos: PHOTO_STACK;
+  photos: PhotoStack;
   total: number;
 }
 

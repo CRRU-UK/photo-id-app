@@ -1,4 +1,4 @@
-import type { PROJECT_JSON_BODY } from "../helpers/types";
+import type { ProjectJSONBody } from "../helpers/types";
 
 import fs from "fs";
 import path from "path";
@@ -11,7 +11,7 @@ import {
   EXISTING_DATA_BUTTONS,
 } from "../helpers/constants";
 
-const sendData = (mainWindow: Electron.BrowserWindow, data: PROJECT_JSON_BODY) => {
+const sendData = (mainWindow: Electron.BrowserWindow, data: ProjectJSONBody) => {
   mainWindow.setTitle(`${DEFAULT_WINDOW_TITLE} - ${data.directory}`);
   mainWindow.webContents.send("load-project", data);
 };
@@ -48,7 +48,7 @@ const handleOpenProjectDirectory = async (mainWindow: Electron.BrowserWindow) =>
     // Pre-existing project
     if (response === 1) {
       const data = fs.readFileSync(path.join(directory, "data.json"), "utf8");
-      return sendData(mainWindow, JSON.parse(data) as PROJECT_JSON_BODY);
+      return sendData(mainWindow, JSON.parse(data) as ProjectJSONBody);
     }
 
     // Otherwise, create and open new project...
@@ -68,7 +68,7 @@ const handleOpenProjectDirectory = async (mainWindow: Electron.BrowserWindow) =>
     return true;
   });
 
-  const data: PROJECT_JSON_BODY = {
+  const data: ProjectJSONBody = {
     version: "1",
     directory,
     totalPhotos: photos.length,
@@ -99,7 +99,7 @@ const handleOpenProjectFile = async (mainWindow: Electron.BrowserWindow) => {
   const [file] = event.filePaths;
 
   const data = fs.readFileSync(file, "utf8");
-  return sendData(mainWindow, JSON.parse(data) as PROJECT_JSON_BODY);
+  return sendData(mainWindow, JSON.parse(data) as ProjectJSONBody);
 };
 
 export { handleOpenProjectDirectory, handleOpenProjectFile };

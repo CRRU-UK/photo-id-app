@@ -1,4 +1,4 @@
-import type { PHOTO_STACK } from "../../helpers/types";
+import type { PhotoStack } from "../../helpers/types";
 
 import { useState } from "react";
 import { useDraggable } from "@dnd-kit/core";
@@ -7,7 +7,7 @@ import { Box, ButtonGroup, IconButton } from "@primer/react";
 import { ChevronLeftIcon, ChevronRightIcon } from "@primer/octicons-react";
 
 export interface StackProps {
-  photos: PHOTO_STACK;
+  photos: PhotoStack;
 }
 
 const Stack = ({ photos }: StackProps) => {

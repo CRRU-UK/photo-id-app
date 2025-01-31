@@ -1,4 +1,4 @@
-import type { PROJECT_JSON_BODY } from "./src/helpers/types";
+import type { ProjectJSONBody } from "./src/helpers/types";
 
 export interface IElectronAPI {
   // Methods (main)
@@ -7,7 +7,7 @@ export interface IElectronAPI {
   saveProject: (data: string) => Promise<void>;
 
   // Listeners (renderer)
-  onLoadProject: (callback: (value: PROJECT_JSON_BODY) => void) => void;
+  onLoadProject: (callback: (value: ProjectJSONBody) => void) => void;
 }
 
 declare global {

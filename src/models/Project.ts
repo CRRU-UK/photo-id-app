@@ -1,13 +1,13 @@
-import type { DIRECTORY, MATCH, PROJECT_JSON_BODY } from "../helpers/types";
+import type { Directory, Match, ProjectJSONBody } from "../helpers/types";
 
 import Photo from "../models/Photo";
 
 class Project {
   version?: string;
-  directory?: DIRECTORY;
+  directory?: Directory;
   totalPhotos?: number;
   photos?: Set<Photo>;
-  matched?: MATCH[];
+  matched?: Match[];
   discarded?: Set<Photo>;
 
   constructor(
@@ -26,15 +26,14 @@ class Project {
     this.discarded = new Set(discarded);
   }
 
-  public loadFromJSON(json: PROJECT_JSON_BODY | string): this {
+  public loadFromJSON(json: ProjectJSONBody | string): this {
     let data = json;
 
     if (typeof json === "string") {
       data = JSON.parse(json);
     }
 
-    const { version, directory, totalPhotos, photos, matched, discarded } =
-      data as PROJECT_JSON_BODY;
+    const { version, directory, totalPhotos, photos, matched, discarded } = data as ProjectJSONBody;
 
     this.version = version;
     this.directory = directory;
@@ -56,7 +55,7 @@ class Project {
   }
 
   private returnAsJSONString(): string {
-    const data: PROJECT_JSON_BODY = {
+    const data: ProjectJSONBody = {
       version: this.version,
       directory: this.directory,
       totalPhotos: this.totalPhotos,
