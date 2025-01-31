@@ -1,4 +1,4 @@
-import type { PhotoStack } from "../../helpers/types";
+import type { PhotoStack } from "../../types";
 
 import { useState, useEffect } from "react";
 import { useDraggable } from "@dnd-kit/core";

@@ -1,9 +1,9 @@
-import type { PhotoStack } from "../../helpers/types";
+import type { PhotoStack } from "../../types";
 
 import { useDroppable } from "@dnd-kit/core";
 import { Box, Stack as PrimerStack, Text, ProgressBar } from "@primer/react";
 
-import { DragAreas, BOX_HOVER_STYLES } from "../../helpers/constants";
+import { DragAreas, BOX_HOVER_STYLES } from "../../constants";
 
 import Stack from "../components/Stack";
 

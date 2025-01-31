@@ -5,7 +5,7 @@ import { type DragStartEvent, type DragEndEvent, DragOverlay, DndContext } from 
 import { SplitPageLayout, Stack, Box, Text, BranchName } from "@primer/react";
 import { FileDirectoryOpenFillIcon } from "@primer/octicons-react";
 
-import { DragAreas, SIDEBAR_WIDTHS } from "../helpers/constants";
+import { DragAreas, SIDEBAR_WIDTHS } from "../constants";
 
 import Project from "../models/Project";
 

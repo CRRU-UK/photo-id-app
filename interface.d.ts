@@ -1,4 +1,4 @@
-import type { ProjectBody, RECENT_PROJECTS } from "./src/helpers/types";
+import type { ProjectBody, RecentProjects } from "./src/types";
 
 export interface IElectronAPI {
   // Methods (main)
@@ -10,7 +10,7 @@ export interface IElectronAPI {
 
   // Listeners (renderer)
   onLoadProject: (callback: (value: ProjectBody) => void) => void;
-  onLoadRecentProjects: (callback: (value: RECENT_PROJECTS) => void) => void;
+  onLoadRecentProjects: (callback: (value: RecentProjects) => void) => void;
 }
 
 declare global {

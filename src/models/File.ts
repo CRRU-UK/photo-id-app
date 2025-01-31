@@ -1,4 +1,4 @@
-import type { Directory, FileName } from "../helpers/types";
+import type { Directory, FileName } from "../types";
 
 class Photo {
   private readonly fileName;

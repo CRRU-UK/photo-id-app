@@ -1,4 +1,4 @@
-import type { Directory, Match, ProjectBody } from "../helpers/types";
+import type { Directory, Match, ProjectBody } from "../types";
 
 import Photo from "../models/Photo";
 

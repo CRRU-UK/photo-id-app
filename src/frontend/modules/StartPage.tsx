@@ -1,4 +1,4 @@
-import type { RECENT_PROJECTS } from "src/helpers/types";
+import type { RECENT_PROJECTS } from "src/types";
 
 import { useState, useEffect } from "react";
 import {
@@ -19,7 +19,7 @@ import { version } from "../../../package.json";
 
 import logo from "../img/logo.png";
 
-import { PROJECT_FILE_NAME } from "../../helpers/constants";
+import { PROJECT_FILE_NAME } from "../../constants";
 
 interface RecentProjectsProps {
   projects: RECENT_PROJECTS;

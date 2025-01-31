@@ -1,4 +1,4 @@
-import type { ProjectBody } from "../helpers/types";
+import type { ProjectBody } from "../types";
 
 import fs from "fs";
 import path from "path";
@@ -11,7 +11,7 @@ import {
   EXISTING_DATA_MESSAGE,
   EXISTING_DATA_BUTTONS,
   PROJECT_FILE_NAME,
-} from "../helpers/constants";
+} from "../constants";
 
 import { updateRecentProjects } from "./recents";
 
