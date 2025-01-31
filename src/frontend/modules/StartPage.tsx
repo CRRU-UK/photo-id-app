@@ -21,12 +21,42 @@ import logo from "../img/logo.png";
 
 import { PROJECT_FILE_NAME } from "../../helpers/constants";
 
+interface RecentProjectsProps {
+  projects: RECENT_PROJECTS;
+}
+
+const RecentProjects = ({ projects }: RecentProjectsProps) => {
+  const handleOpenProjectFile = (path: string) => window.electronAPI.openRecentProject(path);
+
+  return (
+    <Timeline clipSidebar style={{ marginTop: "var(--stack-gap-spacious)" }}>
+      {projects.map((item) => (
+        <Timeline.Item key={item.path}>
+          <Timeline.Badge>
+            <HistoryIcon />
+          </Timeline.Badge>
+          <Timeline.Body>
+            <Link
+              href="#"
+              onClick={() => handleOpenProjectFile(item.path)}
+              sx={{
+                fontWeight: "bold",
+              }}
+            >
+              {item.path}
+            </Link>
+            <RelativeTime datetime={item.lastOpened} sx={{ ml: 2 }} />
+          </Timeline.Body>
+        </Timeline.Item>
+      ))}
+    </Timeline>
+  );
+};
 const StartPage = () => {
   const [recentProjects, setRecentProjects] = useState<RECENT_PROJECTS>([]);
 
   const handleOpenProjectFolder = () => window.electronAPI.openProjectFolder();
   const handleOpenFilePrompt = () => window.electronAPI.openProjectFile();
-  const handleOpenProjectFile = (path: string) => window.electronAPI.openRecentProject(path);
 
   useEffect(() => {
     window.electronAPI.getRecentProjects();
@@ -97,31 +127,12 @@ const StartPage = () => {
           </Button>
         </Stack>
 
-        <Text>Or open a recent project:</Text>
-
-        <Timeline clipSidebar style={{ marginTop: "var(--stack-gap-spacious)" }}>
-          {recentProjects.length > 0
-            ? recentProjects.map((item) => (
-                <Timeline.Item key={item.path}>
-                  <Timeline.Badge>
-                    <HistoryIcon />
-                  </Timeline.Badge>
-                  <Timeline.Body>
-                    <Link
-                      href="#"
-                      onClick={() => handleOpenProjectFile(item.path)}
-                      sx={{
-                        fontWeight: "bold",
-                      }}
-                    >
-                      {item.path}
-                    </Link>
-                    <RelativeTime datetime={item.lastOpened} sx={{ ml: 2 }} />
-                  </Timeline.Body>
-                </Timeline.Item>
-              ))
-            : "None yet"}
-        </Timeline>
+        {recentProjects.length > 0 && (
+          <>
+            <Text>Or open a recent project:</Text>
+            <RecentProjects projects={recentProjects} />
+          </>
+        )}
       </PageLayout.Content>
     </PageLayout>
   );
