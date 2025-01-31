@@ -2,8 +2,14 @@ import path from "path";
 import { app, BrowserWindow, ipcMain, Menu } from "electron";
 import started from "electron-squirrel-startup";
 
-import { handleOpenProjectDirectory, handleOpenProjectFile } from "./backend/openProject";
-import { handleSaveProject } from "./backend/saveProject";
+import {
+  handleOpenDirectoryPrompt,
+  handleOpenFilePrompt,
+  handleOpenProjectFile,
+  handleSaveProject,
+} from "./backend/projects";
+
+import { getRecentProjects } from "./backend/recents";
 
 if (started) {
   app.quit();
@@ -34,14 +40,14 @@ const createWindow = () => {
           label: "Open Project Folder",
           accelerator: "CmdOrCtrl+O",
           async click() {
-            handleOpenProjectDirectory(mainWindow);
+            handleOpenDirectoryPrompt(mainWindow);
           },
         },
         {
           label: "Open Project File",
           accelerator: "CmdOrCtrl+Shift+O",
           async click() {
-            handleOpenProjectFile(mainWindow);
+            handleOpenFilePrompt(mainWindow);
           },
         },
       ],
@@ -68,16 +74,28 @@ app.on("activate", () => {
 });
 
 app.whenReady().then(() => {
-  ipcMain.on("open-project-folder", (event) => {
+  ipcMain.on("open-folder-prompt", (event) => {
     const webContents = event.sender;
     const window = BrowserWindow.fromWebContents(webContents);
-    handleOpenProjectDirectory(window);
+    handleOpenDirectoryPrompt(window);
   });
 
-  ipcMain.on("open-project-file", (event) => {
+  ipcMain.on("open-file-prompt", (event) => {
     const webContents = event.sender;
     const window = BrowserWindow.fromWebContents(webContents);
-    handleOpenProjectFile(window);
+    handleOpenFilePrompt(window);
+  });
+
+  ipcMain.on("open-project-file", (event, file) => {
+    const webContents = event.sender;
+    const window = BrowserWindow.fromWebContents(webContents);
+    handleOpenProjectFile(window, file);
+  });
+
+  ipcMain.on("get-recent-projects", (event) => {
+    const webContents = event.sender;
+    const window = BrowserWindow.fromWebContents(webContents);
+    window.webContents.send("load-recent-projects", getRecentProjects());
   });
 
   ipcMain.on("save-project", (event, data) => {
