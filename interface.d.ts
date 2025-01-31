@@ -1,4 +1,4 @@
-import type { ProjectJSONBody, RECENT_PROJECTS } from "./src/helpers/types";
+import type { ProjectBody, RECENT_PROJECTS } from "./src/helpers/types";
 
 export interface IElectronAPI {
   // Methods (main)
@@ -9,7 +9,7 @@ export interface IElectronAPI {
   getRecentProjects: () => Promise<void>;
 
   // Listeners (renderer)
-  onLoadProject: (callback: (value: ProjectJSONBody) => void) => void;
+  onLoadProject: (callback: (value: ProjectBody) => void) => void;
   onLoadRecentProjects: (callback: (value: RECENT_PROJECTS) => void) => void;
 }
 

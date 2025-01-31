@@ -1,4 +1,4 @@
-import type { Directory, Match, ProjectJSONBody } from "../helpers/types";
+import type { Directory, Match, ProjectBody } from "../helpers/types";
 
 import Photo from "../models/Photo";
 
@@ -35,7 +35,7 @@ class Project {
     this.lastModified = new Date(lastModified);
   }
 
-  public loadFromJSON(json: ProjectJSONBody | string): this {
+  public loadFromJSON(json: ProjectBody | string): this {
     let data = json;
 
     if (typeof json === "string") {
@@ -43,7 +43,7 @@ class Project {
     }
 
     const { version, directory, totalPhotos, photos, matched, discarded, created, lastModified } =
-      data as ProjectJSONBody;
+      data as ProjectBody;
 
     this.version = version;
     this.directory = directory;
@@ -68,7 +68,7 @@ class Project {
   }
 
   private returnAsJSONString(): string {
-    const data: ProjectJSONBody = {
+    const data: ProjectBody = {
       version: this.version,
       id: this.id,
       directory: this.directory,

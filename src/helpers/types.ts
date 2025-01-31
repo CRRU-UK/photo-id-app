@@ -12,7 +12,7 @@ export type Match = {
   right: Photo[];
 };
 
-export type ProjectJSONBody = {
+export type ProjectBody = {
   version: string;
   id: string;
   directory: Directory;

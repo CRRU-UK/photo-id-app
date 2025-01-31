@@ -1,4 +1,4 @@
-import type { ProjectJSONBody } from "../helpers/types";
+import type { ProjectBody } from "../helpers/types";
 
 import fs from "fs";
 import path from "path";
@@ -15,7 +15,7 @@ import {
 
 import { updateRecentProjects } from "./recents";
 
-const sendData = (mainWindow: Electron.BrowserWindow, data: ProjectJSONBody) => {
+const sendData = (mainWindow: Electron.BrowserWindow, data: ProjectBody) => {
   mainWindow.setTitle(`${DEFAULT_WINDOW_TITLE} - ${data.directory}`);
   mainWindow.webContents.send("load-project", data);
 
@@ -54,7 +54,7 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
     // Pre-existing project
     if (response === 1) {
       const data = fs.readFileSync(path.join(directory, PROJECT_FILE_NAME), "utf8");
-      return sendData(mainWindow, JSON.parse(data) as ProjectJSONBody);
+      return sendData(mainWindow, JSON.parse(data) as ProjectBody);
     }
 
     // Otherwise, create and open new project...
@@ -80,7 +80,7 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
 
   const now = new Date().toISOString();
 
-  const data: ProjectJSONBody = {
+  const data: ProjectBody = {
     version: "v1",
     id: crypto.randomUUID(),
     directory,
@@ -114,7 +114,7 @@ const handleOpenFilePrompt = async (mainWindow: Electron.BrowserWindow) => {
   const [file] = event.filePaths;
 
   const data = fs.readFileSync(file, "utf8");
-  return sendData(mainWindow, JSON.parse(data) as ProjectJSONBody);
+  return sendData(mainWindow, JSON.parse(data) as ProjectBody);
 };
 
 /**
@@ -122,14 +122,14 @@ const handleOpenFilePrompt = async (mainWindow: Electron.BrowserWindow) => {
  */
 const handleOpenProjectFile = async (mainWindow: Electron.BrowserWindow, file: string) => {
   const data = fs.readFileSync(file, "utf8");
-  return sendData(mainWindow, JSON.parse(data) as ProjectJSONBody);
+  return sendData(mainWindow, JSON.parse(data) as ProjectBody);
 };
 
 /**
  * Handles saving a project file.
  */
 const handleSaveProject = async (data: string) => {
-  const { directory } = JSON.parse(data) as ProjectJSONBody;
+  const { directory } = JSON.parse(data) as ProjectBody;
   fs.writeFileSync(path.join(directory, PROJECT_FILE_NAME), data, "utf8");
 };
 
