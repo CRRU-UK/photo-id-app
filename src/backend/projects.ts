@@ -2,6 +2,7 @@ import type { ProjectJSONBody } from "../helpers/types";
 
 import fs from "fs";
 import path from "path";
+import crypto from "crypto";
 import { dialog } from "electron";
 
 import {
@@ -9,17 +10,22 @@ import {
   PHOTO_FILE_EXTENSIONS,
   EXISTING_DATA_MESSAGE,
   EXISTING_DATA_BUTTONS,
+  PROJECT_FILE_NAME,
 } from "../helpers/constants";
+
+import { updateRecentProjects } from "./recents";
 
 const sendData = (mainWindow: Electron.BrowserWindow, data: ProjectJSONBody) => {
   mainWindow.setTitle(`${DEFAULT_WINDOW_TITLE} - ${data.directory}`);
   mainWindow.webContents.send("load-project", data);
+
+  updateRecentProjects(path.join(data.directory, PROJECT_FILE_NAME));
 };
 
 /**
  * Handles opening, filtering, and processing a project folder.
  */
-const handleOpenProjectDirectory = async (mainWindow: Electron.BrowserWindow) => {
+const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => {
   const event = await dialog.showOpenDialog({
     title: "Open Project Folder",
     properties: ["openDirectory"],
@@ -33,7 +39,7 @@ const handleOpenProjectDirectory = async (mainWindow: Electron.BrowserWindow) =>
 
   const files = fs.readdirSync(directory);
 
-  if (files.includes("data.json")) {
+  if (files.includes(PROJECT_FILE_NAME)) {
     const { response } = await dialog.showMessageBox({
       message: EXISTING_DATA_MESSAGE,
       type: "question",
@@ -47,7 +53,7 @@ const handleOpenProjectDirectory = async (mainWindow: Electron.BrowserWindow) =>
 
     // Pre-existing project
     if (response === 1) {
-      const data = fs.readFileSync(path.join(directory, "data.json"), "utf8");
+      const data = fs.readFileSync(path.join(directory, PROJECT_FILE_NAME), "utf8");
       return sendData(mainWindow, JSON.parse(data) as ProjectJSONBody);
     }
 
@@ -61,23 +67,32 @@ const handleOpenProjectDirectory = async (mainWindow: Electron.BrowserWindow) =>
     }
 
     // Filter non-images based on file extension
-    if (!PHOTO_FILE_EXTENSIONS.some((extension) => extension === path.extname(fileName))) {
+    if (
+      !PHOTO_FILE_EXTENSIONS.some(
+        (extension) => extension.toLowerCase() === path.extname(fileName.toLowerCase()),
+      )
+    ) {
       return false;
     }
 
     return true;
   });
 
+  const now = new Date().toISOString();
+
   const data: ProjectJSONBody = {
-    version: "1",
+    version: "v1",
+    id: crypto.randomUUID(),
     directory,
     totalPhotos: photos.length,
     photos,
     matched: [],
     discarded: [],
+    created: now,
+    lastModified: now,
   };
 
-  fs.writeFileSync(path.join(directory, "data.json"), JSON.stringify(data), "utf8");
+  fs.writeFileSync(path.join(directory, PROJECT_FILE_NAME), JSON.stringify(data, null, 2), "utf8");
 
   return sendData(mainWindow, data);
 };
@@ -85,7 +100,7 @@ const handleOpenProjectDirectory = async (mainWindow: Electron.BrowserWindow) =>
 /**
  * Handles opening a project file.
  */
-const handleOpenProjectFile = async (mainWindow: Electron.BrowserWindow) => {
+const handleOpenFilePrompt = async (mainWindow: Electron.BrowserWindow) => {
   const event = await dialog.showOpenDialog({
     title: "Open Project File",
     properties: ["openFile"],
@@ -102,4 +117,25 @@ const handleOpenProjectFile = async (mainWindow: Electron.BrowserWindow) => {
   return sendData(mainWindow, JSON.parse(data) as ProjectJSONBody);
 };
 
-export { handleOpenProjectDirectory, handleOpenProjectFile };
+/**
+ * Handles opening a recent project file.
+ */
+const handleOpenProjectFile = async (mainWindow: Electron.BrowserWindow, file: string) => {
+  const data = fs.readFileSync(file, "utf8");
+  return sendData(mainWindow, JSON.parse(data) as ProjectJSONBody);
+};
+
+/**
+ * Handles saving a project file.
+ */
+const handleSaveProject = async (data: string) => {
+  const { directory } = JSON.parse(data) as ProjectJSONBody;
+  fs.writeFileSync(path.join(directory, PROJECT_FILE_NAME), data, "utf8");
+};
+
+export {
+  handleOpenDirectoryPrompt,
+  handleOpenFilePrompt,
+  handleOpenProjectFile,
+  handleSaveProject,
+};

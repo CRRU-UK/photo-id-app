@@ -14,9 +14,17 @@ export type Match = {
 
 export type ProjectJSONBody = {
   version: string;
+  id: string;
   directory: Directory;
   totalPhotos: number;
   photos: string[];
   matched: { id: string; left: string[]; right: string[] }[];
   discarded: string[];
+  created: string;
+  lastModified: string;
 };
+
+export type RecentProjects = {
+  path: string;
+  lastOpened: string;
+}[];

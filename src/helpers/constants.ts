@@ -22,3 +22,9 @@ export const BOX_HOVER_STYLES = {
   backgroundColor: "var(--bgColor-neutral-muted)",
   boxShadow: "0 0 0 3px var(--borderColor-done-emphasis)",
 };
+
+export const PROJECT_FILE_NAME = "data.json";
+
+export const RECENT_PROJECTS_FILE_NAME = "recent-projects.json";
+
+export const MAX_RECENT_PROJECTS = 5;
