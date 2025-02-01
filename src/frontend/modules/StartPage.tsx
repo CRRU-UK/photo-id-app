@@ -25,7 +25,7 @@ interface RecentProjectsProps {
   projects: RecentProjects;
 }
 
-const RecentProjects = ({ projects }: RecentProjectsProps) => {
+const RecentProjectsList = ({ projects }: RecentProjectsProps) => {
   const handleOpenProjectFile = (path: string) => window.electronAPI.openRecentProject(path);
 
   return (
@@ -130,7 +130,7 @@ const StartPage = () => {
         {recentProjects.length > 0 && (
           <>
             <Text>Or open a recent project:</Text>
-            <RecentProjects projects={recentProjects} />
+            <RecentProjectsList projects={recentProjects} />
           </>
         )}
       </PageLayout.Content>
