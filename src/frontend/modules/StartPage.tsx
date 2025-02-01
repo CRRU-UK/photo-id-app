@@ -94,7 +94,7 @@ const StartPage = () => {
           />
 
           <Box>
-            <Heading variant="large">CRRU Photo ID App</Heading>
+            <Heading variant="large">Photo ID</Heading>
             <BranchName as="span">v{version}</BranchName>
           </Box>
         </Stack>

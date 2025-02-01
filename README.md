@@ -5,7 +5,7 @@
 
 ---
 
-# CRRU Photo ID App
+# Photo ID App
 
 [![Test](https://github.com/CRRU-UK/photo-id-app/actions/workflows/main.yaml/badge.svg?branch=main)](https://github.com/CRRU-UK/photo-id-app/actions/workflows/main.yaml)
 
@@ -22,7 +22,7 @@
 
 ## Introduction
 
-Source code for the CRRU Photo ID App. The app is a research tool used in photo-identification methodologies for longitudinal mark-recapture studies. It allows for the organisation, categorisation, and matching of photographs containing unique identification markings (e.g. cetacean dorsal fins). It also includes tools for editing and visually filtering photographs to improve marking identification confidence.
+Source code for the Photo ID app. The app is a research tool used in photo-identification methodologies for longitudinal mark-recapture studies. It allows for the organisation, categorisation, and matching of photographs containing unique identification markings (e.g. cetacean dorsal fins). It also includes tools for editing and visually filtering photographs to improve marking identification confidence.
 
 The app is built in Electron, TypeScript, Jest, React, and [Primer](https://primer.style).
 
@@ -60,7 +60,6 @@ Below are the NPM commands that can be used for development:
 | `package`         | Builds and packages the app.                                     |
 | `make`            | Builds app distributables.                                       |
 | `publish`         | Publishes the app.                                               |
-| `lint`            | Runs ESLint and Prettier tests.                                  |
 | `test`            | Runs `test:linting`, `test:types`, and `test:jest` sequentially. |
 | `test:linting`    | Runs ESLint and Prettier tests.                                  |
 | `test:types`      | Runs TypeScript tests.                                           |
