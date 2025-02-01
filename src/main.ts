@@ -9,7 +9,7 @@ import {
   handleSaveProject,
 } from "./backend/projects";
 
-import { getRecentProjects } from "./backend/recents";
+import { getRecentProjects } from "@/backend/recents";
 
 if (started) {
   app.quit();

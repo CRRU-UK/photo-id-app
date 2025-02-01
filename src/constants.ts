@@ -1,4 +1,4 @@
-export const DEFAULT_WINDOW_TITLE = "CRRU Photo ID";
+export const DEFAULT_WINDOW_TITLE = "Photo ID";
 
 export const PHOTO_FILE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".tiff"];
 

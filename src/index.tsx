@@ -2,7 +2,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { ThemeProvider, BaseStyles } from "@primer/react";
 
-import App from "./frontend/App";
+import App from "@/frontend/App";
 
 import "@primer/primitives/dist/css/functional/size/border.css";
 import "@primer/primitives/dist/css/functional/size/size.css";

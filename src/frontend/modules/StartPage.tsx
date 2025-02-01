@@ -1,4 +1,4 @@
-import type { RECENT_PROJECTS } from "src/helpers/types";
+import type { RecentProjects } from "@/types";
 
 import { useState, useEffect } from "react";
 import {
@@ -17,15 +17,15 @@ import { FileDirectoryIcon, FileIcon, HistoryIcon } from "@primer/octicons-react
 
 import { version } from "../../../package.json";
 
-import logo from "../img/logo.png";
+import logo from "@/frontend/img/logo.png";
 
-import { PROJECT_FILE_NAME } from "../../helpers/constants";
+import { PROJECT_FILE_NAME } from "@/constants";
 
 interface RecentProjectsProps {
-  projects: RECENT_PROJECTS;
+  projects: RecentProjects;
 }
 
-const RecentProjects = ({ projects }: RecentProjectsProps) => {
+const RecentProjectsList = ({ projects }: RecentProjectsProps) => {
   const handleOpenProjectFile = (path: string) => window.electronAPI.openRecentProject(path);
 
   return (
@@ -53,7 +53,7 @@ const RecentProjects = ({ projects }: RecentProjectsProps) => {
   );
 };
 const StartPage = () => {
-  const [recentProjects, setRecentProjects] = useState<RECENT_PROJECTS>([]);
+  const [recentProjects, setRecentProjects] = useState<RecentProjects>([]);
 
   const handleOpenProjectFolder = () => window.electronAPI.openProjectFolder();
   const handleOpenFilePrompt = () => window.electronAPI.openProjectFile();
@@ -94,7 +94,7 @@ const StartPage = () => {
           />
 
           <Box>
-            <Heading variant="large">CRRU Photo ID App</Heading>
+            <Heading variant="large">Photo ID</Heading>
             <BranchName as="span">v{version}</BranchName>
           </Box>
         </Stack>
@@ -130,7 +130,7 @@ const StartPage = () => {
         {recentProjects.length > 0 && (
           <>
             <Text>Or open a recent project:</Text>
-            <RecentProjects projects={recentProjects} />
+            <RecentProjectsList projects={recentProjects} />
           </>
         )}
       </PageLayout.Content>

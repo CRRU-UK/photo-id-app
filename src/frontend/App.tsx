@@ -1,17 +1,17 @@
-import type Photo from "../models/Photo";
+import type Photo from "@/models/Photo";
 
 import { useState, useEffect } from "react";
 import { type DragStartEvent, type DragEndEvent, DragOverlay, DndContext } from "@dnd-kit/core";
 import { SplitPageLayout, Stack, Box, Text, BranchName } from "@primer/react";
 import { FileDirectoryOpenFillIcon } from "@primer/octicons-react";
 
-import { DragAreas, SIDEBAR_WIDTHS } from "../helpers/constants";
+import { DragAreas, SIDEBAR_WIDTHS } from "@/constants";
 
-import Project from "../models/Project";
+import Project from "@/models/Project";
 
-import MainSelection from "./modules/MainSelection";
-import DiscardedSelection from "./modules/DiscardedSelection";
-import StartPage from "./modules/StartPage";
+import MainSelection from "@/frontend/modules/MainSelection";
+import DiscardedSelection from "@/frontend/modules/DiscardedSelection";
+import StartPage from "@/frontend/modules/StartPage";
 
 const DraggableImage = ({ photo }: { photo: Photo }) => (
   <img

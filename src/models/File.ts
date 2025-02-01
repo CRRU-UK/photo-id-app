@@ -1,10 +1,10 @@
-import type { DIRECTORY, FILE_NAME } from "../helpers/types";
+import type { Directory, FileName } from "@/types";
 
 class Photo {
   private readonly fileName;
   private readonly filePath;
 
-  constructor(fileName: FILE_NAME, filePath: DIRECTORY) {
+  constructor(fileName: FileName, filePath: Directory) {
     this.fileName = fileName;
     this.filePath = filePath;
   }

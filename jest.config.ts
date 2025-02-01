@@ -13,7 +13,7 @@ const config: Config.InitialOptions = {
   testMatch: ["**/*.test.ts", "**/*.test.tsx"],
   testPathIgnorePatterns: ["<rootDir>/node_modules/"],
   collectCoverageFrom: ["**/*.ts", "**/*.tsx"],
-  coveragePathIgnorePatterns: ["src/helpers/types.ts", "src/helpers/constants.ts"],
+  coveragePathIgnorePatterns: ["src/types.ts", "src/constants.ts"],
 };
 
 export default config;
