@@ -54,12 +54,15 @@ The app is made up of the following parts:
 
 Below are the NPM commands that can be used for development:
 
-| Command      | Description                                      |
-| ------------ | ------------------------------------------------ |
-| `start`      | Starts the app in development mode.              |
-| `package`    | Builds and packages the app.                     |
-| `make`       | Builds app distributables.                       |
-| `publish`    | Publishes the app.                               |
-| `lint`       | Runs ESLint and Prettier tests.                  |
-| `test`       | Runs unit tests and generates a coverage report. |
-| `test:watch` | Same as `test:jest` but runs it in watch mode.   |
+| Command           | Description                                                      |
+| ----------------- | ---------------------------------------------------------------- |
+| `start`           | Starts the app in development mode.                              |
+| `package`         | Builds and packages the app.                                     |
+| `make`            | Builds app distributables.                                       |
+| `publish`         | Publishes the app.                                               |
+| `lint`            | Runs ESLint and Prettier tests.                                  |
+| `test`            | Runs `test:linting`, `test:types`, and `test:jest` sequentially. |
+| `test:linting`    | Runs ESLint and Prettier tests.                                  |
+| `test:types`      | Runs TypeScript tests.                                           |
+| `test:jest`       | Runs unit and integration tests and generates a coverage report. |
+| `test:jest:watch` | Same as `test:jest` but runs it in watch mode.                   |

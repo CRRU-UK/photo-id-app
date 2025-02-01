@@ -1,4 +1,4 @@
-import type Photo from "../models/Photo";
+import type Photo from "@/models/Photo";
 
 export type Directory = string;
 

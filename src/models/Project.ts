@@ -1,6 +1,6 @@
-import type { Directory, Match, ProjectBody } from "../types";
+import type { Directory, Match, ProjectBody } from "@/types";
 
-import Photo from "../models/Photo";
+import Photo from "./Photo";
 
 class Project {
   version?: string;

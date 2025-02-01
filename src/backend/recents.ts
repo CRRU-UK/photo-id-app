@@ -1,15 +1,15 @@
-import type { RECENT_PROJECTS } from "src/types";
+import type { RecentProjects } from "@/types";
 
 import fs from "fs";
 import path from "path";
 import { app } from "electron";
 
-import { RECENT_PROJECTS_FILE_NAME, MAX_RECENT_PROJECTS } from "../constants";
+import { RECENT_PROJECTS_FILE_NAME, MAX_RECENT_PROJECTS } from "@/constants";
 
 const userDataPath = app.getPath("userData");
 const recentProjectsFile = path.join(userDataPath, RECENT_PROJECTS_FILE_NAME);
 
-const getRecentProjects = (): RECENT_PROJECTS => {
+const getRecentProjects = (): RecentProjects => {
   if (!fs.existsSync(recentProjectsFile)) {
     return [];
   }
@@ -30,7 +30,7 @@ const updateRecentProjects = (projectFilePath: string) => {
         accumulator.push(currentValue);
       }
       return accumulator;
-    }, [] as RECENT_PROJECTS)
+    }, [] as RecentProjects)
     .slice(0, MAX_RECENT_PROJECTS);
 
   fs.writeFileSync(recentProjectsFile, JSON.stringify(data, null, 2), "utf8");

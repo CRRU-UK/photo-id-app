@@ -1,4 +1,4 @@
-import type { RECENT_PROJECTS } from "src/types";
+import type { RecentProjects } from "@/types";
 
 import { useState, useEffect } from "react";
 import {
@@ -17,12 +17,12 @@ import { FileDirectoryIcon, FileIcon, HistoryIcon } from "@primer/octicons-react
 
 import { version } from "../../../package.json";
 
-import logo from "../img/logo.png";
+import logo from "@/frontend/img/logo.png";
 
-import { PROJECT_FILE_NAME } from "../../constants";
+import { PROJECT_FILE_NAME } from "@/constants";
 
 interface RecentProjectsProps {
-  projects: RECENT_PROJECTS;
+  projects: RecentProjects;
 }
 
 const RecentProjects = ({ projects }: RecentProjectsProps) => {
@@ -53,7 +53,7 @@ const RecentProjects = ({ projects }: RecentProjectsProps) => {
   );
 };
 const StartPage = () => {
-  const [recentProjects, setRecentProjects] = useState<RECENT_PROJECTS>([]);
+  const [recentProjects, setRecentProjects] = useState<RecentProjects>([]);
 
   const handleOpenProjectFolder = () => window.electronAPI.openProjectFolder();
   const handleOpenFilePrompt = () => window.electronAPI.openProjectFile();
