@@ -1,7 +1,7 @@
 import type { PhotoStack } from "@/types";
 
 import { useDroppable } from "@dnd-kit/core";
-import { Box, Stack as PrimerStack, Text, ProgressBar } from "@primer/react";
+import { Stack as PrimerStack, Text, ProgressBar } from "@primer/react";
 
 import { DragAreas, BOX_HOVER_STYLES } from "@/constants";
 
@@ -40,9 +40,9 @@ const MainSelection = ({ photos, total }: MainSelectionProps) => {
   const { isOver, setNodeRef: setDroppableNodeRef } = useDroppable({ id: DragAreas.MainSelection });
 
   return (
-    <Box
+    <div
       ref={setDroppableNodeRef}
-      sx={{
+      style={{
         width: "100%",
         padding: "var(--stack-gap-normal)",
         borderColor: "var(--borderColor-default)",
@@ -68,7 +68,7 @@ const MainSelection = ({ photos, total }: MainSelectionProps) => {
       <Stack photos={photos} />
 
       {photos && <ProgressElements progress={total - photos.size} total={total} />}
-    </Box>
+    </div>
   );
 };
 

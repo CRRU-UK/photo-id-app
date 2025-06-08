@@ -1,7 +1,7 @@
 import type { PhotoStack } from "@/types";
 
 import { useDroppable } from "@dnd-kit/core";
-import { Box, Text } from "@primer/react";
+import { Text } from "@primer/react";
 
 import { DragAreas, BOX_HOVER_STYLES } from "@/constants";
 
@@ -17,9 +17,9 @@ const DiscardedSelection = ({ photos }: DiscardedSelectionProps) => {
   });
 
   return (
-    <Box
+    <div
       ref={setDroppableNodeRef}
-      sx={{
+      style={{
         width: "100%",
         padding: "var(--stack-gap-normal)",
         borderColor: "var(--borderColor-default)",
@@ -43,7 +43,7 @@ const DiscardedSelection = ({ photos }: DiscardedSelectionProps) => {
       </Text>
 
       <Stack photos={photos} />
-    </Box>
+    </div>
   );
 };
 

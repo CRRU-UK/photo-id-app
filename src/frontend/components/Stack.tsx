@@ -3,7 +3,7 @@ import type { PhotoStack } from "@/types";
 import { useState, useEffect } from "react";
 import { useDraggable } from "@dnd-kit/core";
 
-import { Box, Stack as StackComponent, CounterLabel, ButtonGroup, IconButton } from "@primer/react";
+import { Stack as StackComponent, CounterLabel, ButtonGroup, IconButton } from "@primer/react";
 import { ChevronLeftIcon, ChevronRightIcon } from "@primer/octicons-react";
 
 export interface StackProps {
@@ -49,7 +49,7 @@ const Stack = ({ photos }: StackProps) => {
   };
 
   return (
-    <Box
+    <div
       style={{
         position: "relative",
         width: "100%",
@@ -111,7 +111,7 @@ const Stack = ({ photos }: StackProps) => {
           />
         )}
       </div>
-    </Box>
+    </div>
   );
 };
 

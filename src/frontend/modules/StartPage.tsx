@@ -3,7 +3,6 @@ import type { RecentProject } from "@/types";
 import { useState, useEffect } from "react";
 import {
   PageLayout,
-  Box,
   Heading,
   Text,
   BranchName,
@@ -100,10 +99,10 @@ const StartPage = () => {
             alt=""
           />
 
-          <Box>
+          <div>
             <Heading variant="large">Photo ID</Heading>
             <BranchName as="span">v{version}</BranchName>
-          </Box>
+          </div>
         </Stack>
 
         <Text style={{ marginBottom: "var(--stack-gap-spacious)" }}>

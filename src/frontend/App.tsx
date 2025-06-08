@@ -2,7 +2,7 @@ import type Photo from "@/models/Photo";
 
 import { useState, useEffect } from "react";
 import { type DragStartEvent, type DragEndEvent, DragOverlay, DndContext } from "@dnd-kit/core";
-import { SplitPageLayout, Stack, Box, Text, BranchName } from "@primer/react";
+import { SplitPageLayout, Stack, Text, BranchName } from "@primer/react";
 import { FileDirectoryOpenFillIcon } from "@primer/octicons-react";
 
 import { DragAreas, SIDEBAR_WIDTHS } from "@/constants";
@@ -85,7 +85,7 @@ const App = () => {
             {project && <DiscardedSelection photos={project.discarded} />}
 
             {project?.directory && (
-              <Box sx={{ marginTop: "auto" }}>
+              <div style={{ marginTop: "auto" }}>
                 <Text
                   size="small"
                   weight="light"
@@ -95,7 +95,7 @@ const App = () => {
                   Currently viewing:
                 </Text>
                 <BranchName>{project.directory}</BranchName>
-              </Box>
+              </div>
             )}
           </Stack>
         </SplitPageLayout.Pane>
