@@ -57,6 +57,7 @@ const config: ForgeConfig = {
           owner: "CRRU-UK",
           name: "photo-id-app",
         },
+        force: true,
         prerelease: true,
         generateReleaseNotes: true,
       },
