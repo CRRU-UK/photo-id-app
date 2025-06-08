@@ -48,6 +48,19 @@ const config: ForgeConfig = {
       [FuseV1Options.OnlyLoadAppFromAsar]: true,
     }),
   ],
+  publishers: [
+    {
+      name: "@electron-forge/publisher-github",
+      config: {
+        repository: {
+          owner: "CRRU-UK",
+          name: "photo-id-app",
+        },
+        prerelease: true,
+        generateReleaseNotes: true,
+      },
+    },
+  ],
 };
 
 export default config;

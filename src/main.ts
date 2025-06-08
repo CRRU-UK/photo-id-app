@@ -1,6 +1,7 @@
 import path from "path";
 import { app, BrowserWindow, ipcMain, Menu } from "electron";
 import started from "electron-squirrel-startup";
+import { updateElectronApp } from "update-electron-app";
 
 import {
   handleOpenDirectoryPrompt,
@@ -10,6 +11,8 @@ import {
 } from "./backend/projects";
 
 import { getRecentProjects } from "@/backend/recents";
+
+updateElectronApp();
 
 if (started) {
   app.quit();
