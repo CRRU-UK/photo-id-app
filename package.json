@@ -2,6 +2,7 @@
   "private": true,
   "version": "0.0.1",
   "name": "photo-id",
+  "description": "Photo-identification research tool for longitudinal mark-recapture studies.",
   "productName": "Photo ID",
   "main": ".vite/build/main.js",
   "author": {
