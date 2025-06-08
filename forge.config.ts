@@ -13,6 +13,7 @@ const config: ForgeConfig = {
   packagerConfig: {
     asar: true,
     icon: path.join(__dirname, "src", "assets", "icon"),
+    executableName: "photo-id",
     ignore: [/^\/\.github/, /^\/public/, /^\/src/, /^\/temp/],
   },
   rebuildConfig: {},
