@@ -6,7 +6,7 @@ import {
   Heading,
   Text,
   BranchName,
-  Stack,
+  Stack as PrimerStack,
   Button,
   Timeline,
   Link,
@@ -82,7 +82,7 @@ const StartPage = () => {
       }}
     >
       <PageLayout.Content>
-        <Stack
+        <PrimerStack
           gap="spacious"
           direction="horizontal"
           align="center"
@@ -103,13 +103,13 @@ const StartPage = () => {
             <Heading variant="large">Photo ID</Heading>
             <BranchName as="span">v{version}</BranchName>
           </div>
-        </Stack>
+        </PrimerStack>
 
         <Text style={{ marginBottom: "var(--stack-gap-spacious)" }}>
           Open a project folder or a project file (<code>{PROJECT_FILE_NAME}</code>) to get started.
         </Text>
 
-        <Stack direction="horizontal" style={{ marginBottom: "var(--stack-gap-spacious)" }}>
+        <PrimerStack direction="horizontal" style={{ marginBottom: "var(--stack-gap-spacious)" }}>
           <Button
             onClick={() => handleOpenProjectFolder()}
             variant="default"
@@ -131,7 +131,7 @@ const StartPage = () => {
           >
             Open Project File
           </Button>
-        </Stack>
+        </PrimerStack>
 
         {recentProjects.length > 0 && (
           <>

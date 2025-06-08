@@ -37,7 +37,10 @@ export interface MainSelectionProps {
 }
 
 const MainSelection = ({ photos, total }: MainSelectionProps) => {
-  const { isOver, setNodeRef: setDroppableNodeRef } = useDroppable({ id: DragAreas.MainSelection });
+  const { isOver, setNodeRef: setDroppableNodeRef } = useDroppable({
+    id: DragAreas.MainSelection,
+    data: { photos },
+  });
 
   return (
     <div

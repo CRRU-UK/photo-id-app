@@ -1,16 +1,18 @@
 import type Photo from "@/models/Photo";
+import type { DraggableStartData, DraggableEndData, PhotoStack } from "../types";
 
 import { useState, useEffect } from "react";
 import { type DragStartEvent, type DragEndEvent, DragOverlay, DndContext } from "@dnd-kit/core";
-import { SplitPageLayout, Stack, Text, BranchName } from "@primer/react";
+import { SplitPageLayout, Stack as PrimerStack, Text, BranchName } from "@primer/react";
 import { FileDirectoryOpenFillIcon } from "@primer/octicons-react";
 
-import { DragAreas, SIDEBAR_WIDTHS } from "@/constants";
+import { SIDEBAR_WIDTHS } from "@/constants";
 
 import Project from "@/models/Project";
 
 import MainSelection from "@/frontend/modules/MainSelection";
 import DiscardedSelection from "@/frontend/modules/DiscardedSelection";
+import RowSelection from "@/frontend/modules/RowSelection";
 import StartPage from "@/frontend/modules/StartPage";
 
 const DraggableImage = ({ photo }: { photo: Photo }) => (
@@ -31,19 +33,21 @@ const DraggableImage = ({ photo }: { photo: Photo }) => (
 const App = () => {
   const [project, setProject] = useState<Project | null>(null);
   const [draggingPhoto, setDraggingPhoto] = useState<Photo>(null);
+  const [draggingStackFrom, setDraggingStackFrom] = useState<PhotoStack>(null);
 
-  const handleDragStart = (event: DragStartEvent) =>
-    setDraggingPhoto(event.active.data.current as Photo);
+  const handleDragStart = (event: DragStartEvent) => {
+    const { stack, currentFile } = event.active.data.current as unknown as DraggableStartData;
+    setDraggingStackFrom(stack);
+    setDraggingPhoto(currentFile);
+  };
 
   const handleDragEnd = (event: DragEndEvent) => {
-    const id = event.over?.id || null;
+    console.debug("event", event);
 
-    if (id === DragAreas.MainSelection) {
-      return project.addPhotoToSelection(draggingPhoto);
-    }
-
-    if (id === DragAreas.DiscardedSelection) {
-      return project.addPhotoToDiscarded(draggingPhoto);
+    const target = event.over || null;
+    if (target) {
+      const draggingStackTo = (target.data.current as DraggableEndData).photos;
+      return project.addPhotoToStack(draggingStackFrom, draggingStackTo, draggingPhoto);
     }
 
     setDraggingPhoto(null);
@@ -75,7 +79,7 @@ const App = () => {
           sx={{ height: "100vh" }}
           resizable
         >
-          <Stack
+          <PrimerStack
             direction="vertical"
             align="start"
             justify="space-between"
@@ -97,12 +101,16 @@ const App = () => {
                 <BranchName>{project.directory}</BranchName>
               </div>
             )}
-          </Stack>
+          </PrimerStack>
         </SplitPageLayout.Pane>
 
         <SplitPageLayout.Content
           sx={{ minHeight: "100vh", backgroundColor: "var(--bgColor-inset)" }}
-        ></SplitPageLayout.Content>
+        >
+          {Array.from(project.matched).map((item) => (
+            <RowSelection key={item.id} match={item} />
+          ))}
+        </SplitPageLayout.Content>
       </SplitPageLayout>
     </DndContext>
   );

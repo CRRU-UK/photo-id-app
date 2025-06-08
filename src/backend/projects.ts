@@ -83,13 +83,24 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
 
   const now = new Date().toISOString();
 
+  const defaultMatches = [];
+  for (let i = 0; i < 50; i += 1) {
+    defaultMatches.push({
+      id: String(i),
+      left: [],
+      right: [],
+    });
+  }
+
+  console.log("defaultMatches", defaultMatches);
+
   const data: ProjectBody = {
     version: "v1",
     id: crypto.randomUUID(),
     directory,
     totalPhotos: photos.length,
     photos,
-    matched: [],
+    matched: defaultMatches,
     discarded: [],
     created: now,
     lastModified: now,
