@@ -19,7 +19,10 @@ const sendData = (mainWindow: Electron.BrowserWindow, data: ProjectBody) => {
   mainWindow.setTitle(`${DEFAULT_WINDOW_TITLE} - ${data.directory}`);
   mainWindow.webContents.send("load-project", data);
 
-  updateRecentProjects(path.join(data.directory, PROJECT_FILE_NAME));
+  updateRecentProjects({
+    name: path.basename(data.directory),
+    path: path.join(data.directory, PROJECT_FILE_NAME),
+  });
 };
 
 /**

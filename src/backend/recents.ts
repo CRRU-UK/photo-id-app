@@ -1,4 +1,4 @@
-import type { RecentProjects } from "@/types";
+import type { RecentProject } from "@/types";
 
 import fs from "fs";
 import path from "path";
@@ -9,7 +9,7 @@ import { RECENT_PROJECTS_FILE_NAME, MAX_RECENT_PROJECTS } from "@/constants";
 const userDataPath = app.getPath("userData");
 const recentProjectsFile = path.join(userDataPath, RECENT_PROJECTS_FILE_NAME);
 
-const getRecentProjects = (): RecentProjects => {
+const getRecentProjects = (): RecentProject[] => {
   if (!fs.existsSync(recentProjectsFile)) {
     return [];
   }
@@ -18,10 +18,15 @@ const getRecentProjects = (): RecentProjects => {
   return JSON.parse(data);
 };
 
-const updateRecentProjects = (projectFilePath: string) => {
+interface UpdateRecentProjectsProps {
+  name: string;
+  path: string;
+}
+
+const updateRecentProjects = ({ name, path }: UpdateRecentProjectsProps) => {
   const recentProjects = getRecentProjects();
 
-  const lastProject = { path: projectFilePath, lastOpened: new Date().toISOString() };
+  const lastProject = { name, path, lastOpened: new Date().toISOString() };
 
   // TODO: Probably a simpler way of doing this
   const data = [lastProject, ...recentProjects]
@@ -30,7 +35,7 @@ const updateRecentProjects = (projectFilePath: string) => {
         accumulator.push(currentValue);
       }
       return accumulator;
-    }, [] as RecentProjects)
+    }, [] as RecentProject[])
     .slice(0, MAX_RECENT_PROJECTS);
 
   fs.writeFileSync(recentProjectsFile, JSON.stringify(data, null, 2), "utf8");

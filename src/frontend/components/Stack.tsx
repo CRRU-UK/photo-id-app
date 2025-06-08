@@ -26,6 +26,7 @@ const Stack = ({ photos }: StackProps) => {
   });
 
   useEffect(() => {
+    // This does not work?
     setCurrentIndex(0);
   }, [photos]);
 

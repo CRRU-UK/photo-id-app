@@ -1,4 +1,4 @@
-import type { RecentProjects } from "@/types";
+import type { RecentProject } from "@/types";
 
 import { useState, useEffect } from "react";
 import {
@@ -22,14 +22,14 @@ import logo from "@/frontend/img/logo.png";
 import { PROJECT_FILE_NAME } from "@/constants";
 
 interface RecentProjectsProps {
-  projects: RecentProjects;
+  projects: RecentProject[];
 }
 
 const RecentProjectsList = ({ projects }: RecentProjectsProps) => {
   const handleOpenProjectFile = (path: string) => window.electronAPI.openRecentProject(path);
 
   return (
-    <Timeline clipSidebar style={{ marginTop: "var(--stack-gap-spacious)" }}>
+    <Timeline style={{ marginTop: "var(--stack-gap-spacious)" }}>
       {projects.map((item) => (
         <Timeline.Item key={item.path}>
           <Timeline.Badge>
@@ -43,9 +43,16 @@ const RecentProjectsList = ({ projects }: RecentProjectsProps) => {
                 fontWeight: "bold",
               }}
             >
-              {item.path}
+              {item.name}
             </Link>
             <RelativeTime datetime={item.lastOpened} sx={{ ml: 2 }} />
+            <Text
+              weight="semibold"
+              size="small"
+              style={{ display: "block", fontFamily: "var(--fontStack-monospace)" }}
+            >
+              {item.path}
+            </Text>
           </Timeline.Body>
         </Timeline.Item>
       ))}
@@ -53,7 +60,7 @@ const RecentProjectsList = ({ projects }: RecentProjectsProps) => {
   );
 };
 const StartPage = () => {
-  const [recentProjects, setRecentProjects] = useState<RecentProjects>([]);
+  const [recentProjects, setRecentProjects] = useState<RecentProject[]>([]);
 
   const handleOpenProjectFolder = () => window.electronAPI.openProjectFolder();
   const handleOpenFilePrompt = () => window.electronAPI.openProjectFile();

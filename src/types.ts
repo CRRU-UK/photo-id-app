@@ -24,7 +24,8 @@ export type ProjectBody = {
   lastModified: string;
 };
 
-export type RecentProjects = {
+export type RecentProject = {
+  name: string;
   path: string;
   lastOpened: string;
-}[];
+};
