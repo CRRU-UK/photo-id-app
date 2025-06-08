@@ -4,6 +4,10 @@
   "name": "photo-id",
   "description": "Photo-identification research tool for longitudinal mark-recapture studies.",
   "productName": "Photo ID",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/crru-uk/photo-id-app.git"
+  },
   "main": ".vite/build/main.js",
   "author": {
     "name": "Cetacean Research & Rescue Unit (CRRU)",
