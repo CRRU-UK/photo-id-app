@@ -45,8 +45,6 @@ class Project {
     const { version, directory, totalPhotos, photos, matched, discarded, created, lastModified } =
       data as ProjectBody;
 
-    console.debug("matched", matched);
-
     this.version = version;
     this.directory = directory;
     this.totalPhotos = totalPhotos;

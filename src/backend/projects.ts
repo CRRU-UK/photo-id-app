@@ -11,6 +11,7 @@ import {
   EXISTING_DATA_MESSAGE,
   EXISTING_DATA_BUTTONS,
   PROJECT_FILE_NAME,
+  MATCHED_STACKS,
 } from "@/constants";
 
 import { updateRecentProjects } from "./recents";
@@ -84,15 +85,13 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
   const now = new Date().toISOString();
 
   const defaultMatches = [];
-  for (let i = 0; i < 50; i += 1) {
+  for (let i = 0; i < MATCHED_STACKS; i += 1) {
     defaultMatches.push({
       id: String(i),
       left: [],
       right: [],
     });
   }
-
-  console.log("defaultMatches", defaultMatches);
 
   const data: ProjectBody = {
     version: "v1",

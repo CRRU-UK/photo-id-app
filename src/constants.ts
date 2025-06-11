@@ -28,3 +28,7 @@ export const PROJECT_FILE_NAME = "data.json";
 export const RECENT_PROJECTS_FILE_NAME = "recent-projects.json";
 
 export const MAX_RECENT_PROJECTS = 5;
+
+export const MATCHED_STACKS = 50;
+
+export const MATCHED_STACKS_PER_PAGE = 6;
