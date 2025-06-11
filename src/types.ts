@@ -8,9 +8,11 @@ export type PhotoStack = Set<Photo>;
 
 export type Match = {
   id: string;
-  left: Photo[];
-  right: Photo[];
+  left: PhotoStack;
+  right: PhotoStack;
 };
+
+export type Matches = Set<Match>;
 
 export type ProjectBody = {
   version: string;
@@ -28,4 +30,13 @@ export type RecentProject = {
   name: string;
   path: string;
   lastOpened: string;
+};
+
+export type DraggableStartData = {
+  stack: PhotoStack;
+  currentFile: Photo;
+};
+
+export type DraggableEndData = {
+  photos: PhotoStack;
 };

@@ -12,3 +12,9 @@ textarea,
 :focus {
   outline: none;
 }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  column-gap: var(--stack-gap-spacious);
+}

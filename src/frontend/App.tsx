@@ -1,16 +1,18 @@
 import type Photo from "@/models/Photo";
+import type { DraggableStartData, DraggableEndData, PhotoStack } from "../types";
 
 import { useState, useEffect } from "react";
 import { type DragStartEvent, type DragEndEvent, DragOverlay, DndContext } from "@dnd-kit/core";
-import { SplitPageLayout, Stack, Text, BranchName } from "@primer/react";
+import { SplitPageLayout, Stack as PrimerStack, Text, BranchName } from "@primer/react";
 import { FileDirectoryOpenFillIcon } from "@primer/octicons-react";
 
-import { DragAreas, SIDEBAR_WIDTHS } from "@/constants";
+import { SIDEBAR_WIDTHS, MATCHED_STACKS_PER_PAGE } from "@/constants";
 
 import Project from "@/models/Project";
 
 import MainSelection from "@/frontend/modules/MainSelection";
 import DiscardedSelection from "@/frontend/modules/DiscardedSelection";
+import RowSelection from "@/frontend/modules/RowSelection";
 import StartPage from "@/frontend/modules/StartPage";
 
 const DraggableImage = ({ photo }: { photo: Photo }) => (
@@ -31,19 +33,20 @@ const DraggableImage = ({ photo }: { photo: Photo }) => (
 const App = () => {
   const [project, setProject] = useState<Project | null>(null);
   const [draggingPhoto, setDraggingPhoto] = useState<Photo>(null);
+  const [draggingStackFrom, setDraggingStackFrom] = useState<PhotoStack>(null);
+  const [currentPage] = useState<number>(0);
 
-  const handleDragStart = (event: DragStartEvent) =>
-    setDraggingPhoto(event.active.data.current as Photo);
+  const handleDragStart = (event: DragStartEvent) => {
+    const { stack, currentFile } = event.active.data.current as unknown as DraggableStartData;
+    setDraggingStackFrom(stack);
+    setDraggingPhoto(currentFile);
+  };
 
   const handleDragEnd = (event: DragEndEvent) => {
-    const id = event.over?.id || null;
-
-    if (id === DragAreas.MainSelection) {
-      return project.addPhotoToSelection(draggingPhoto);
-    }
-
-    if (id === DragAreas.DiscardedSelection) {
-      return project.addPhotoToDiscarded(draggingPhoto);
+    const target = event.over || null;
+    if (target) {
+      const draggingStackTo = (target.data.current as DraggableEndData).photos;
+      return project.addPhotoToStack(draggingStackFrom, draggingStackTo, draggingPhoto);
     }
 
     setDraggingPhoto(null);
@@ -60,50 +63,62 @@ const App = () => {
     return <StartPage />;
   }
 
+  const matchedRows = Array.from(project.matched).slice(
+    currentPage * MATCHED_STACKS_PER_PAGE,
+    (currentPage + 1) * MATCHED_STACKS_PER_PAGE,
+  );
+
   return (
     <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
       <DragOverlay>{draggingPhoto ? <DraggableImage photo={draggingPhoto} /> : null}</DragOverlay>
 
-      <SplitPageLayout sx={{ backgroundColor: "var(--bgColor-default)", height: "100vh" }}>
-        <SplitPageLayout.Pane
-          position="start"
-          width={{
-            min: `${SIDEBAR_WIDTHS.MIN}px`,
-            max: `${SIDEBAR_WIDTHS.MAX}px`,
-            default: `${SIDEBAR_WIDTHS.DEFAULT}px`,
-          }}
-          sx={{ height: "100vh" }}
-          resizable
-        >
-          <Stack
-            direction="vertical"
-            align="start"
-            justify="space-between"
-            style={{ height: "100%" }}
+      <div style={{ backgroundColor: "var(--bgColor-default)" }}>
+        <SplitPageLayout>
+          <SplitPageLayout.Pane
+            position="start"
+            width={{
+              min: `${SIDEBAR_WIDTHS.MIN}px`,
+              max: `${SIDEBAR_WIDTHS.MAX}px`,
+              default: `${SIDEBAR_WIDTHS.DEFAULT}px`,
+            }}
+            resizable
+            sticky
+            style={{ minHeight: "100vh" }}
           >
-            {project && <MainSelection photos={project.photos} total={project.totalPhotos} />}
-            {project && <DiscardedSelection photos={project.discarded} />}
+            <PrimerStack
+              direction="vertical"
+              align="start"
+              justify="space-between"
+              style={{ height: "100%" }}
+            >
+              {project && <MainSelection photos={project.photos} total={project.totalPhotos} />}
+              {project && <DiscardedSelection photos={project.discarded} />}
 
-            {project?.directory && (
-              <div style={{ marginTop: "auto" }}>
-                <Text
-                  size="small"
-                  weight="light"
-                  sx={{ display: "block", color: "var(--fgColor-muted)" }}
-                >
-                  <FileDirectoryOpenFillIcon size="small" />
-                  Currently viewing:
-                </Text>
-                <BranchName>{project.directory}</BranchName>
-              </div>
-            )}
-          </Stack>
-        </SplitPageLayout.Pane>
+              {project?.directory && (
+                <div style={{ marginTop: "auto" }}>
+                  <Text
+                    size="small"
+                    weight="light"
+                    sx={{ display: "block", color: "var(--fgColor-muted)" }}
+                  >
+                    <FileDirectoryOpenFillIcon size="small" />
+                    Currently viewing:
+                  </Text>
+                  <BranchName>{project.directory}</BranchName>
+                </div>
+              )}
+            </PrimerStack>
+          </SplitPageLayout.Pane>
 
-        <SplitPageLayout.Content
-          sx={{ minHeight: "100vh", backgroundColor: "var(--bgColor-inset)" }}
-        ></SplitPageLayout.Content>
-      </SplitPageLayout>
+          <SplitPageLayout.Content>
+            <div className="grid">
+              {matchedRows.map((item) => (
+                <RowSelection key={item.id} match={item} />
+              ))}
+            </div>
+          </SplitPageLayout.Content>
+        </SplitPageLayout>
+      </div>
     </DndContext>
   );
 };
