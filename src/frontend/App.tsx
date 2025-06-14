@@ -3,10 +3,10 @@ import type { DraggableStartData, DraggableEndData, PhotoStack } from "../types"
 
 import { useState, useEffect } from "react";
 import { type DragStartEvent, type DragEndEvent, DragOverlay, DndContext } from "@dnd-kit/core";
-import { SplitPageLayout, Stack as PrimerStack, Text, BranchName } from "@primer/react";
-import { FileDirectoryOpenFillIcon } from "@primer/octicons-react";
+import { Stack as PrimerStack, Text, BranchName, UnderlineNav } from "@primer/react";
+import { FileDirectoryOpenFillIcon, PlusIcon } from "@primer/octicons-react";
 
-import { SIDEBAR_WIDTHS, MATCHED_STACKS_PER_PAGE } from "@/constants";
+import { MATCHED_STACKS_PER_PAGE } from "@/constants";
 
 import Project from "@/models/Project";
 
@@ -72,52 +72,51 @@ const App = () => {
     <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
       <DragOverlay>{draggingPhoto ? <DraggableImage photo={draggingPhoto} /> : null}</DragOverlay>
 
-      <div style={{ backgroundColor: "var(--bgColor-default)" }}>
-        <SplitPageLayout>
-          <SplitPageLayout.Pane
-            position="start"
-            width={{
-              min: `${SIDEBAR_WIDTHS.MIN}px`,
-              max: `${SIDEBAR_WIDTHS.MAX}px`,
-              default: `${SIDEBAR_WIDTHS.DEFAULT}px`,
-            }}
-            resizable
-            sticky
-            style={{ minHeight: "100vh" }}
+      <div className="main">
+        <div className="sidebar">
+          <PrimerStack
+            direction="vertical"
+            align="start"
+            justify="space-between"
+            style={{ height: "100%" }}
           >
-            <PrimerStack
-              direction="vertical"
-              align="start"
-              justify="space-between"
-              style={{ height: "100%" }}
-            >
-              {project && <MainSelection photos={project.photos} total={project.totalPhotos} />}
-              {project && <DiscardedSelection photos={project.discarded} />}
+            {project && <MainSelection photos={project.photos} total={project.totalPhotos} />}
+            {project && <DiscardedSelection photos={project.discarded} />}
 
-              {project?.directory && (
-                <div style={{ marginTop: "auto" }}>
-                  <Text
-                    size="small"
-                    weight="light"
-                    sx={{ display: "block", color: "var(--fgColor-muted)" }}
-                  >
-                    <FileDirectoryOpenFillIcon size="small" />
-                    Currently viewing:
-                  </Text>
-                  <BranchName>{project.directory}</BranchName>
-                </div>
-              )}
-            </PrimerStack>
-          </SplitPageLayout.Pane>
+            {project?.directory && (
+              <div style={{ marginTop: "auto" }}>
+                <Text
+                  size="small"
+                  weight="light"
+                  sx={{ display: "block", color: "var(--fgColor-muted)" }}
+                >
+                  <FileDirectoryOpenFillIcon size="small" />
+                  Currently viewing:
+                </Text>
+                <BranchName>{project.directory}</BranchName>
+              </div>
+            )}
+          </PrimerStack>
+        </div>
 
-          <SplitPageLayout.Content>
-            <div className="grid">
-              {matchedRows.map((item) => (
-                <RowSelection key={item.id} match={item} />
-              ))}
-            </div>
-          </SplitPageLayout.Content>
-        </SplitPageLayout>
+        <div className="content">
+          <UnderlineNav aria-label="blah">
+            <UnderlineNav.Item aria-current="page">A-F</UnderlineNav.Item>
+            <UnderlineNav.Item>G-L</UnderlineNav.Item>
+            <UnderlineNav.Item>M-R</UnderlineNav.Item>
+            <UnderlineNav.Item>S-X</UnderlineNav.Item>
+            <UnderlineNav.Item>Y-AC</UnderlineNav.Item>
+            <UnderlineNav.Item>
+              <PlusIcon />
+            </UnderlineNav.Item>
+          </UnderlineNav>
+
+          <div className="grid">
+            {matchedRows.map((item) => (
+              <RowSelection key={item.id} match={item} />
+            ))}
+          </div>
+        </div>
       </div>
     </DndContext>
   );

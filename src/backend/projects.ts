@@ -87,9 +87,9 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
   const defaultMatches = [];
   for (let i = 0; i < MATCHED_STACKS; i += 1) {
     defaultMatches.push({
-      id: String(i),
-      left: [],
-      right: [],
+      id: i,
+      left: { photos: [], name: "" },
+      right: { photos: [], name: "" },
     });
   }
 
@@ -106,6 +106,8 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
   };
 
   fs.writeFileSync(path.join(directory, PROJECT_FILE_NAME), JSON.stringify(data, null, 2), "utf8");
+
+  console.log("data", data);
 
   return sendData(mainWindow, data);
 };

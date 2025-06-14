@@ -29,7 +29,7 @@ class Project {
     this.directory = directory;
     this.totalPhotos = totalPhotos;
     this.photos = new Set(photos);
-    this.matched = matched;
+    this.matched = new Set(matched);
     this.discarded = new Set(discarded);
     this.created = new Date(created);
     this.lastModified = new Date(lastModified);
@@ -57,8 +57,14 @@ class Project {
 
     const matchedSets = matched.map(({ id, left, right }) => ({
       id,
-      left: new Set(left.map((file) => new Photo(file, directory))),
-      right: new Set(right.map((file) => new Photo(file, directory))),
+      left: {
+        name: left.name,
+        photos: new Set(left.photos.map((file) => new Photo(file, directory))),
+      },
+      right: {
+        name: right.name,
+        photos: new Set(right.photos.map((file) => new Photo(file, directory))),
+      },
     }));
     this.matched = new Set(matchedSets);
 
@@ -78,8 +84,14 @@ class Project {
       photos: Array.from(this.photos).map((item) => item.getFileName()),
       matched: Array.from(this.matched).map((item) => ({
         id: item.id,
-        left: Array.from(item.left).map((item) => item.getFileName()),
-        right: Array.from(item.right).map((item) => item.getFileName()),
+        left: {
+          photos: Array.from(item.left.photos).map((item) => item.getFileName()),
+          name: item.left.name,
+        },
+        right: {
+          photos: Array.from(item.right.photos).map((item) => item.getFileName()),
+          name: item.right.name,
+        },
       })),
       discarded: Array.from(this.discarded).map((item) => item.getFileName()),
       created: this.created.toISOString(),

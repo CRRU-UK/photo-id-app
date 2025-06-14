@@ -7,12 +7,6 @@ export const EXISTING_DATA_MESSAGE =
 
 export const EXISTING_DATA_BUTTONS = ["Cancel", "Open Existing Data", "Replace Existing Data"];
 
-export const SIDEBAR_WIDTHS = {
-  MIN: 300,
-  MAX: 500,
-  DEFAULT: 400,
-};
-
 export enum DragAreas {
   MainSelection = "main-selection",
   DiscardedSelection = "discarded-selection",
