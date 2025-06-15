@@ -8,7 +8,7 @@ import { BOX_HOVER_STYLES } from "@/constants";
 
 import Stack from "@/frontend/components/Stack";
 
-const alphabet = [...Array(26).keys()].map((n) => String.fromCharCode(97 + n));
+import { getAlphabetLetter } from "@/helpers";
 
 interface SelectionProps {
   id: number;
@@ -53,7 +53,7 @@ const Selection = ({ id, photos, side, name, onNameChange }: SelectionProps) => 
             color: "var(--fgColor-default)",
           }}
         >
-          {alphabet[id].toUpperCase()} <Label>{side}</Label>
+          {getAlphabetLetter(id)} <Label>{side}</Label>
         </Text>
         <TextInput
           value={name}

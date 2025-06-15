@@ -11,7 +11,7 @@ import {
   EXISTING_DATA_MESSAGE,
   EXISTING_DATA_BUTTONS,
   PROJECT_FILE_NAME,
-  MATCHED_STACKS,
+  INITIAL_MATCHED_STACKS,
 } from "@/constants";
 
 import { updateRecentProjects } from "./recents";
@@ -85,7 +85,7 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
   const now = new Date().toISOString();
 
   const defaultMatches = [];
-  for (let i = 0; i < MATCHED_STACKS; i += 1) {
+  for (let i = 0; i < INITIAL_MATCHED_STACKS; i += 1) {
     defaultMatches.push({
       id: i,
       left: { photos: [], name: "" },
@@ -106,8 +106,6 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
   };
 
   fs.writeFileSync(path.join(directory, PROJECT_FILE_NAME), JSON.stringify(data, null, 2), "utf8");
-
-  console.log("data", data);
 
   return sendData(mainWindow, data);
 };

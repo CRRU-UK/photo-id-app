@@ -4,7 +4,7 @@ import type { DraggableStartData, DraggableEndData, PhotoStack } from "../types"
 import { useState, useEffect } from "react";
 import { type DragStartEvent, type DragEndEvent, DragOverlay, DndContext } from "@dnd-kit/core";
 import { Stack as PrimerStack, Text, BranchName, UnderlineNav } from "@primer/react";
-import { FileDirectoryOpenFillIcon, PlusIcon } from "@primer/octicons-react";
+import { FileDirectoryOpenFillIcon } from "@primer/octicons-react";
 
 import { MATCHED_STACKS_PER_PAGE } from "@/constants";
 
@@ -14,6 +14,8 @@ import MainSelection from "@/frontend/modules/MainSelection";
 import DiscardedSelection from "@/frontend/modules/DiscardedSelection";
 import RowSelection from "@/frontend/modules/RowSelection";
 import StartPage from "@/frontend/modules/StartPage";
+
+import { getAlphabetLetter } from "@/helpers";
 
 const DraggableImage = ({ photo }: { photo: Photo }) => (
   <img
@@ -34,7 +36,7 @@ const App = () => {
   const [project, setProject] = useState<Project | null>(null);
   const [draggingPhoto, setDraggingPhoto] = useState<Photo>(null);
   const [draggingStackFrom, setDraggingStackFrom] = useState<PhotoStack>(null);
-  const [currentPage] = useState<number>(0);
+  const [currentPage, setCurrentPage] = useState<number>(0);
 
   const handleDragStart = (event: DragStartEvent) => {
     const { stack, currentFile } = event.active.data.current as unknown as DraggableStartData;
@@ -66,6 +68,23 @@ const App = () => {
   const matchedRows = Array.from(project.matched).slice(
     currentPage * MATCHED_STACKS_PER_PAGE,
     (currentPage + 1) * MATCHED_STACKS_PER_PAGE,
+  );
+
+  // TODO: Improve this?
+  const matchedPages = [...Array(Math.floor(project.matched.size / MATCHED_STACKS_PER_PAGE))].map(
+    (item, index) => {
+      const indexPage = Math.floor(index * MATCHED_STACKS_PER_PAGE);
+      return (
+        <UnderlineNav.Item
+          aria-current={index === currentPage ? "page" : undefined}
+          onClick={() => setCurrentPage(index)}
+          key={index}
+        >
+          {getAlphabetLetter(indexPage)}-
+          {getAlphabetLetter(indexPage + MATCHED_STACKS_PER_PAGE - 1)}
+        </UnderlineNav.Item>
+      );
+    },
   );
 
   return (
@@ -100,17 +119,10 @@ const App = () => {
         </div>
 
         <div className="content">
-          <UnderlineNav aria-label="blah">
-            <UnderlineNav.Item aria-current="page">A-F</UnderlineNav.Item>
-            <UnderlineNav.Item>G-L</UnderlineNav.Item>
-            <UnderlineNav.Item>M-R</UnderlineNav.Item>
-            <UnderlineNav.Item>S-X</UnderlineNav.Item>
-            <UnderlineNav.Item>Y-AC</UnderlineNav.Item>
-            <UnderlineNav.Item>
-              <PlusIcon />
-            </UnderlineNav.Item>
+          <UnderlineNav aria-label="Pages">
+            {matchedPages}
+            <UnderlineNav.Item>+</UnderlineNav.Item>
           </UnderlineNav>
-
           <div className="grid">
             {matchedRows.map((item) => (
               <RowSelection key={item.id} match={item} />
