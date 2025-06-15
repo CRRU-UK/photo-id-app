@@ -7,12 +7,6 @@ export const EXISTING_DATA_MESSAGE =
 
 export const EXISTING_DATA_BUTTONS = ["Cancel", "Open Existing Data", "Replace Existing Data"];
 
-export const SIDEBAR_WIDTHS = {
-  MIN: 300,
-  MAX: 500,
-  DEFAULT: 400,
-};
-
 export enum DragAreas {
   MainSelection = "main-selection",
   DiscardedSelection = "discarded-selection",
@@ -28,3 +22,7 @@ export const PROJECT_FILE_NAME = "data.json";
 export const RECENT_PROJECTS_FILE_NAME = "recent-projects.json";
 
 export const MAX_RECENT_PROJECTS = 5;
+
+export const INITIAL_MATCHED_STACKS = 50;
+
+export const MATCHED_STACKS_PER_PAGE = 6;

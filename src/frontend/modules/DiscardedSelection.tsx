@@ -14,6 +14,7 @@ export interface DiscardedSelectionProps {
 const DiscardedSelection = ({ photos }: DiscardedSelectionProps) => {
   const { isOver, setNodeRef: setDroppableNodeRef } = useDroppable({
     id: DragAreas.DiscardedSelection,
+    data: { photos },
   });
 
   return (

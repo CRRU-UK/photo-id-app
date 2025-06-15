@@ -1,4 +1,4 @@
-import type { Directory, Match, ProjectBody } from "@/types";
+import type { Directory, PhotoStack, Matches, ProjectBody } from "@/types";
 
 import Photo from "./Photo";
 
@@ -7,9 +7,9 @@ class Project {
   id?: string;
   directory?: Directory;
   totalPhotos?: number;
-  photos?: Set<Photo>;
-  matched?: Match[];
-  discarded?: Set<Photo>;
+  photos?: PhotoStack;
+  matched?: Matches;
+  discarded?: PhotoStack;
   created?: Date;
   lastModified?: Date;
 
@@ -18,9 +18,9 @@ class Project {
     id?: "",
     directory?: "",
     totalPhotos?: 0,
-    photos?: [],
-    matched?: [],
-    discarded?: [],
+    photos?: PhotoStack,
+    matched?: Matches,
+    discarded?: PhotoStack,
     created = new Date().toISOString(),
     lastModified = new Date().toISOString(),
   ) {
@@ -29,7 +29,7 @@ class Project {
     this.directory = directory;
     this.totalPhotos = totalPhotos;
     this.photos = new Set(photos);
-    this.matched = matched;
+    this.matched = new Set(matched);
     this.discarded = new Set(discarded);
     this.created = new Date(created);
     this.lastModified = new Date(lastModified);
@@ -55,15 +55,23 @@ class Project {
     const discardedSet = discarded.map((file) => new Photo(file, directory));
     this.discarded = new Set(discardedSet);
 
-    this.matched = matched.map(({ id, left, right }) => ({
+    const matchedSets = matched.map(({ id, left, right }) => ({
       id,
-      left: left.map((file) => new Photo(file, directory)),
-      right: right.map((file) => new Photo(file, directory)),
+      left: {
+        name: left.name,
+        photos: new Set(left.photos.map((file) => new Photo(file, directory))),
+      },
+      right: {
+        name: right.name,
+        photos: new Set(right.photos.map((file) => new Photo(file, directory))),
+      },
     }));
+    this.matched = new Set(matchedSets);
 
     this.created = new Date(created);
     this.lastModified = new Date(lastModified);
 
+    console.debug(this);
     return this;
   }
 
@@ -74,7 +82,17 @@ class Project {
       directory: this.directory,
       totalPhotos: this.totalPhotos,
       photos: Array.from(this.photos).map((item) => item.getFileName()),
-      matched: [], // Temporary
+      matched: Array.from(this.matched).map((item) => ({
+        id: item.id,
+        left: {
+          photos: Array.from(item.left.photos).map((item) => item.getFileName()),
+          name: item.left.name,
+        },
+        right: {
+          photos: Array.from(item.right.photos).map((item) => item.getFileName()),
+          name: item.right.name,
+        },
+      })),
       discarded: Array.from(this.discarded).map((item) => item.getFileName()),
       created: this.created.toISOString(),
       lastModified: this.lastModified.toISOString(),
@@ -89,25 +107,13 @@ class Project {
     window.electronAPI.saveProject(this.returnAsJSONString());
   }
 
-  public addPhotoToSelection(photo: Photo): this {
-    if (this.photos.has(photo)) {
+  public addPhotoToStack(from: PhotoStack, to: PhotoStack, photo: Photo): this {
+    if (to.has(photo)) {
       return this;
     }
 
-    this.photos.add(photo);
-    this.discarded.delete(photo);
-
-    this.save();
-    return this;
-  }
-
-  public addPhotoToDiscarded(photo: Photo): this {
-    if (this.discarded.has(photo)) {
-      return this;
-    }
-
-    this.photos.delete(photo);
-    this.discarded.add(photo);
+    from.delete(photo);
+    to.add(photo);
 
     this.save();
     return this;
