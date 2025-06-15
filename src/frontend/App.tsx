@@ -43,7 +43,7 @@ const App = () => {
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
-    const target = event.over || null;
+    const target = event.over ?? null;
     if (target) {
       const draggingStackTo = (target.data.current as DraggableEndData).photos;
       return project.addPhotoToStack(draggingStackFrom, draggingStackTo, draggingPhoto);

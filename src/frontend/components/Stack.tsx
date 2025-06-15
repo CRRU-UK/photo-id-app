@@ -20,7 +20,7 @@ const Stack = ({ photos }: StackProps) => {
     attributes,
     listeners,
   } = useDraggable({
-    id: currentFile?.getFileName() || null,
+    id: currentFile?.getFileName() ?? null,
     data: {
       stack: photos,
       currentFile,
