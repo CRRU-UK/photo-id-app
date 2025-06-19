@@ -3,7 +3,7 @@ import type { PhotoStack } from "@/types";
 import { useState, useEffect } from "react";
 import { useDraggable } from "@dnd-kit/core";
 
-import { Stack as StackComponent, CounterLabel, ButtonGroup, IconButton } from "@primer/react";
+import { Stack as PrimerStack, CounterLabel, ButtonGroup, IconButton } from "@primer/react";
 import { ChevronLeftIcon, ChevronRightIcon } from "@primer/octicons-react";
 
 export interface StackProps {
@@ -20,8 +20,11 @@ const Stack = ({ photos }: StackProps) => {
     attributes,
     listeners,
   } = useDraggable({
-    id: currentFile?.getFileName() || null,
-    data: currentFile,
+    id: currentFile?.getFileName() ?? null,
+    data: {
+      stack: photos,
+      currentFile,
+    },
     disabled: photos.size <= 0,
   });
 
@@ -59,7 +62,7 @@ const Stack = ({ photos }: StackProps) => {
         background: "var(--bgColor-emphasis)",
       }}
     >
-      <StackComponent
+      <PrimerStack
         direction="horizontal"
         align="center"
         justify="space-between"
@@ -93,7 +96,7 @@ const Stack = ({ photos }: StackProps) => {
             disabled={photos.size <= 1}
           />
         </ButtonGroup>
-      </StackComponent>
+      </PrimerStack>
 
       <div ref={setDraggableNodeRef} {...listeners} {...attributes}>
         {currentFile && (

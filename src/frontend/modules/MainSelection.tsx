@@ -20,7 +20,7 @@ const ProgressElements = ({ progress, total }: ProgressElementsProps) => (
     style={{ marginTop: "var(--stack-gap-normal)" }}
   >
     <Text size="small" weight="light" whiteSpace="nowrap" sx={{ color: "var(--fgColor-muted)" }}>
-      {progress} of {total}
+      {progress} of {total} assigned
     </Text>
     <ProgressBar
       progress={Math.floor((progress / total) * 100)}
@@ -37,7 +37,10 @@ export interface MainSelectionProps {
 }
 
 const MainSelection = ({ photos, total }: MainSelectionProps) => {
-  const { isOver, setNodeRef: setDroppableNodeRef } = useDroppable({ id: DragAreas.MainSelection });
+  const { isOver, setNodeRef: setDroppableNodeRef } = useDroppable({
+    id: DragAreas.MainSelection,
+    data: { photos },
+  });
 
   return (
     <div

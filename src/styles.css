@@ -12,3 +12,39 @@ textarea,
 :focus {
   outline: none;
 }
+
+.main {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  background: var(--bgColor-default);
+}
+
+.main > .sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  padding: var(--stack-gap-normal);
+  width: 380px;
+  height: 100%;
+  border-right: var(--borderWidth-default) var(--borderColor-muted) solid;
+  overflow: hidden;
+  overflow-y: scroll;
+}
+
+.main > .content {
+  position: fixed;
+  right: 0;
+  top: 0;
+  width: calc(100% - 380px);
+  height: 100%;
+  overflow: hidden;
+  overflow-y: scroll;
+}
+
+.main > .content > .grid {
+  padding: var(--stack-gap-normal);
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  column-gap: var(--stack-gap-spacious);
+}

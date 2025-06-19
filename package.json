@@ -19,6 +19,7 @@
     "package": "electron-forge package",
     "make": "electron-forge make",
     "publish": "electron-forge publish",
+    "changeset": "npx @changesets/cli",
     "test": "npm run test:linting && npm run test:types && npm run test:jest",
     "test:linting": "eslint . && prettier . --check",
     "test:types": "tsc --noEmit",
