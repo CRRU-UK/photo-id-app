@@ -1,9 +1,12 @@
-name: Create release
+name: Build and publish app
 
 on:
-  push:
-    branches:
-      - main
+  release:
+    types:
+      - published
+      - unpublished
+      - prereleased
+      - released
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
@@ -13,7 +16,11 @@ permissions:
 
 jobs:
   release:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+
+    runs-on: ${{ matrix.os }}
 
     steps:
       - uses: actions/checkout@v4.2.2
@@ -24,13 +31,6 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-
-      - name: Create release pull request
-        uses: changesets/action@v1.5.3
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          publish: npm run publish
 
       - name: Publish app
         run: npm run publish
