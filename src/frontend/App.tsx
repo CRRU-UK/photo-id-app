@@ -15,7 +15,7 @@ import DiscardedSelection from "@/frontend/modules/DiscardedSelection";
 import RowSelection from "@/frontend/modules/RowSelection";
 import StartPage from "@/frontend/modules/StartPage";
 
-import { getAlphabetLetter } from "@/helpers";
+import { getAlphabetLetter, chunkArray } from "@/helpers";
 
 const DraggableImage = ({ photo }: { photo: Photo }) => (
   <img
@@ -65,27 +65,27 @@ const App = () => {
     return <StartPage />;
   }
 
-  const matchedRows = Array.from(project.matched).slice(
+  const matchedArray = Array.from(project.matched);
+
+  const matchedRows = matchedArray.slice(
     currentPage * MATCHED_STACKS_PER_PAGE,
     (currentPage + 1) * MATCHED_STACKS_PER_PAGE,
   );
 
-  // TODO: Improve this?
-  const matchedPages = [...Array(Math.floor(project.matched.size / MATCHED_STACKS_PER_PAGE))].map(
-    (item, index) => {
-      const indexPage = Math.floor(index * MATCHED_STACKS_PER_PAGE);
-      return (
-        <UnderlineNav.Item
-          aria-current={index === currentPage ? "page" : undefined}
-          onClick={() => setCurrentPage(index)}
-          key={index}
-        >
-          {getAlphabetLetter(indexPage)}-
-          {getAlphabetLetter(indexPage + MATCHED_STACKS_PER_PAGE - 1)}
-        </UnderlineNav.Item>
-      );
-    },
-  );
+  const matchedPages = chunkArray(matchedArray, MATCHED_STACKS_PER_PAGE).map((item, index) => {
+    const first = item[0].id;
+    const last = item[item.length - 1].id;
+
+    return (
+      <UnderlineNav.Item
+        aria-current={index === currentPage ? "page" : undefined}
+        onClick={() => setCurrentPage(index)}
+        key={index}
+      >
+        {getAlphabetLetter(first)}-{getAlphabetLetter(last)}
+      </UnderlineNav.Item>
+    );
+  });
 
   return (
     <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
@@ -119,10 +119,7 @@ const App = () => {
         </div>
 
         <div className="content">
-          <UnderlineNav aria-label="Pages">
-            {matchedPages}
-            <UnderlineNav.Item>+</UnderlineNav.Item>
-          </UnderlineNav>
+          <UnderlineNav aria-label="Pages">{matchedPages}</UnderlineNav>
           <div className="grid">
             {matchedRows.map((item) => (
               <RowSelection key={item.id} match={item} />

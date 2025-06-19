@@ -87,7 +87,7 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
   const defaultMatches = [];
   for (let i = 0; i < INITIAL_MATCHED_STACKS; i += 1) {
     defaultMatches.push({
-      id: i,
+      id: i + 1,
       left: { photos: [], name: "" },
       right: { photos: [], name: "" },
     });
