@@ -24,10 +24,13 @@ jobs:
         with:
           node-version: 24
 
+      - name: Install changeset
+        run: npm install @changesets/cli
+
       - name: Create release pull request
         uses: changesets/action@v1.5.3
         env:
           GITHUB_TOKEN: ${{ secrets.PUBLISH_GITHUB_TOKEN }}
         with:
           title: Release
-          publish: npx --yes @changesets/cli publish
+          publish: npx changesets publish
