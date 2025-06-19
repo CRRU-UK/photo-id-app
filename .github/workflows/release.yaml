@@ -33,4 +33,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.PUBLISH_GITHUB_TOKEN }}
         with:
           title: Release
-          publish: npx changesets publish
+          publish: npx @changesets/cli publish
