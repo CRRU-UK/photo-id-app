@@ -31,7 +31,7 @@ const customConfigs = [
     files: ["**/*.{js,mjs,cjs,ts,jsx,tsx}"],
   },
   {
-    ignores: [".vite/", "coverage/"],
+    ignores: [".vite/", "coverage/", "*.gen.ts"],
   },
   {
     settings: {

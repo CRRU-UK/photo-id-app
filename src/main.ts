@@ -35,6 +35,32 @@ const createWindow = () => {
     mainWindow.loadFile(path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`));
   }
 
+  mainWindow.webContents.setWindowOpenHandler((options) => {
+    if (options.url.includes("/edit")) {
+      return {
+        action: "allow",
+        overrideBrowserWindowOptions: {
+          fullscreenable: false,
+          backgroundColor: "black",
+          webPreferences: {
+            nodeIntegration: true,
+            webSecurity: false,
+          },
+        },
+      };
+    }
+
+    return { action: "deny" };
+  });
+
+  mainWindow.webContents.on("did-create-window", (window) => {
+    window.webContents.once("dom-ready", () => {
+      if (!app.isPackaged) {
+        window.webContents.openDevTools();
+      }
+    });
+  });
+
   const menu = Menu.buildFromTemplate([
     {
       label: "File",
@@ -59,7 +85,9 @@ const createWindow = () => {
 
   Menu.setApplicationMenu(menu);
 
-  mainWindow.webContents.openDevTools();
+  if (!app.isPackaged) {
+    mainWindow.webContents.openDevTools();
+  }
 };
 
 app.on("ready", createWindow);
@@ -79,25 +107,25 @@ app.on("activate", () => {
 app.whenReady().then(() => {
   ipcMain.on("open-folder-prompt", (event) => {
     const webContents = event.sender;
-    const window = BrowserWindow.fromWebContents(webContents);
+    const window = BrowserWindow.fromWebContents(webContents) as BrowserWindow;
     handleOpenDirectoryPrompt(window);
   });
 
   ipcMain.on("open-file-prompt", (event) => {
     const webContents = event.sender;
-    const window = BrowserWindow.fromWebContents(webContents);
+    const window = BrowserWindow.fromWebContents(webContents) as BrowserWindow;
     handleOpenFilePrompt(window);
   });
 
   ipcMain.on("open-project-file", (event, file) => {
     const webContents = event.sender;
-    const window = BrowserWindow.fromWebContents(webContents);
+    const window = BrowserWindow.fromWebContents(webContents) as BrowserWindow;
     handleOpenProjectFile(window, file);
   });
 
   ipcMain.on("get-recent-projects", (event) => {
     const webContents = event.sender;
-    const window = BrowserWindow.fromWebContents(webContents);
+    const window = BrowserWindow.fromWebContents(webContents) as BrowserWindow;
     window.webContents.send("load-recent-projects", getRecentProjects());
   });
 

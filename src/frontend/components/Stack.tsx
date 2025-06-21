@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useDraggable } from "@dnd-kit/core";
 
 import { Stack as PrimerStack, CounterLabel, ButtonGroup, IconButton } from "@primer/react";
-import { ChevronLeftIcon, ChevronRightIcon } from "@primer/octicons-react";
+import { ImageIcon, ChevronLeftIcon, ChevronRightIcon } from "@primer/octicons-react";
 
 export interface StackProps {
   photos: PhotoStack;
@@ -32,6 +32,10 @@ const Stack = ({ photos }: StackProps) => {
     // This does not work?
     setCurrentIndex(0);
   }, [photos]);
+
+  const handleOpenEdit = () => {
+    window.open(`/edit?file=${currentFile.getFullPath()}`, "_blank");
+  };
 
   const handlePrev = () => {
     let newIndex = currentIndex - 1;
@@ -80,7 +84,19 @@ const Stack = ({ photos }: StackProps) => {
           </CounterLabel>
         )}
 
-        <ButtonGroup sx={{ marginLeft: "auto" }}>
+        <IconButton
+          icon={ImageIcon}
+          size="small"
+          aria-label="Edit photo"
+          onClick={(event) => {
+            event.preventDefault();
+            return handleOpenEdit();
+          }}
+          disabled={photos.size <= 0}
+          style={{ marginLeft: "auto" }}
+        />
+
+        <ButtonGroup>
           <IconButton
             icon={ChevronLeftIcon}
             size="small"
