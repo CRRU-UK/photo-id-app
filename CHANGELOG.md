@@ -1,5 +1,11 @@
 # photo-id
 
+## 0.0.6
+
+### Patch Changes
+
+- 58886bb: Update release tagging
+
 ## 0.0.5
 
 ### Patch Changes
