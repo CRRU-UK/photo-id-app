@@ -34,3 +34,4 @@ jobs:
         with:
           title: Release
           publish: npx @changesets/cli publish
+          version: npx @changesets/cli version && npm install --package-lock-only

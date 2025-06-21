@@ -1,6 +1,7 @@
 import type { RecentProject } from "@/types";
 
-import { useState, useEffect } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import {
   PageLayout,
   Heading,
@@ -14,7 +15,9 @@ import {
 } from "@primer/react";
 import { FileDirectoryIcon, FileIcon, HistoryIcon } from "@primer/octicons-react";
 
-import { version } from "../../../package.json";
+import { version } from "../../package.json";
+
+import Project from "@/models/Project";
 
 import logo from "@/frontend/img/logo.png";
 
@@ -58,7 +61,21 @@ const RecentProjectsList = ({ projects }: RecentProjectsProps) => {
     </Timeline>
   );
 };
-const StartPage = () => {
+
+const Index = () => {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    window.electronAPI.onLoadProject((data) => {
+      const project = new Project().loadFromJSON(data);
+
+      return navigate({
+        to: "/project",
+        state: { project },
+      });
+    });
+  });
+
   const [recentProjects, setRecentProjects] = useState<RecentProject[]>([]);
 
   const handleOpenProjectFolder = () => window.electronAPI.openProjectFolder();
@@ -144,4 +161,6 @@ const StartPage = () => {
   );
 };
 
-export default StartPage;
+export const Route = createFileRoute("/")({
+  component: Index,
+});
