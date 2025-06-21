@@ -1,5 +1,11 @@
 # photo-id
 
+## 0.0.5
+
+### Patch Changes
+
+- 5efa1ad: Fix changeset `publish` command
+
 ## 0.0.4
 
 ### Patch Changes
