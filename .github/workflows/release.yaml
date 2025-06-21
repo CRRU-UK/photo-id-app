@@ -34,4 +34,4 @@ jobs:
         with:
           title: Release
           version: npm run changesets:version
-          publish: npx @changesets/cli tag
+          publish: npm run changesets:tag

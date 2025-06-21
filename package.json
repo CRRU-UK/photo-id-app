@@ -21,6 +21,7 @@
     "publish": "electron-forge publish",
     "changesets:add": "npx @changesets/cli add",
     "changesets:version": "npx @changesets/cli version && npm install --package-lock-only",
+    "changesets:tag": "npx @changesets/cli tag && git push --follow-tags",
     "test": "npm run test:linting && npm run test:types && npm run test:jest",
     "test:linting": "eslint . && prettier . --check",
     "test:types": "tsc --noEmit",
