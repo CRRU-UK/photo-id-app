@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "target": "ESNext",
-    "module": "nodenext",
+    "module": "commonjs",
     "jsx": "react-jsx",
     "allowJs": true,
     "skipLibCheck": true,
@@ -10,7 +10,7 @@
     "sourceMap": true,
     "baseUrl": ".",
     "outDir": "dist",
-    "moduleResolution": "nodenext",
+    "moduleResolution": "node",
     "resolveJsonModule": true,
     "incremental": true,
     "strictNullChecks": true,
