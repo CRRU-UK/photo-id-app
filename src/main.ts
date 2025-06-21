@@ -107,26 +107,26 @@ app.on("activate", () => {
 app.whenReady().then(() => {
   ipcMain.on("open-folder-prompt", (event) => {
     const webContents = event.sender;
-    const window = BrowserWindow.fromWebContents(webContents);
-    handleOpenDirectoryPrompt(window!);
+    const window = BrowserWindow.fromWebContents(webContents) as BrowserWindow;
+    handleOpenDirectoryPrompt(window);
   });
 
   ipcMain.on("open-file-prompt", (event) => {
     const webContents = event.sender;
-    const window = BrowserWindow.fromWebContents(webContents);
-    handleOpenFilePrompt(window!);
+    const window = BrowserWindow.fromWebContents(webContents) as BrowserWindow;
+    handleOpenFilePrompt(window);
   });
 
   ipcMain.on("open-project-file", (event, file) => {
     const webContents = event.sender;
-    const window = BrowserWindow.fromWebContents(webContents);
-    handleOpenProjectFile(window!, file);
+    const window = BrowserWindow.fromWebContents(webContents) as BrowserWindow;
+    handleOpenProjectFile(window, file);
   });
 
   ipcMain.on("get-recent-projects", (event) => {
     const webContents = event.sender;
-    const window = BrowserWindow.fromWebContents(webContents);
-    window!.webContents.send("load-recent-projects", getRecentProjects());
+    const window = BrowserWindow.fromWebContents(webContents) as BrowserWindow;
+    window.webContents.send("load-recent-projects", getRecentProjects());
   });
 
   ipcMain.on("save-project", (event, data) => {

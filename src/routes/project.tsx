@@ -47,7 +47,11 @@ const Project = () => {
     const target = event.over ?? null;
     if (target) {
       const draggingStackTo = (target.data.current as DraggableEndData).photos;
-      return project.addPhotoToStack(draggingStackFrom!, draggingStackTo, draggingPhoto!);
+      return project.addPhotoToStack(
+        draggingStackFrom as PhotoStack,
+        draggingStackTo,
+        draggingPhoto as Photo,
+      );
     }
 
     setDraggingPhoto(null);
@@ -71,7 +75,7 @@ const Project = () => {
           event.preventDefault();
           return setCurrentPage(index);
         }}
-        key={index}
+        key={`${first}-${last}`}
       >
         {getAlphabetLetter(first)}-{getAlphabetLetter(last)}
       </UnderlineNav.Item>
