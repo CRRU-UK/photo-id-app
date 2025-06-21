@@ -1,5 +1,11 @@
 # photo-id
 
+## 0.0.3
+
+### Patch Changes
+
+- 5682cf7: Add router and basic window handling
+
 ## 0.0.2
 
 ### Patch Changes
