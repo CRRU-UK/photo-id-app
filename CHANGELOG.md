@@ -1,5 +1,11 @@
 # photo-id
 
+## 0.0.4
+
+### Patch Changes
+
+- 790ccc2: Update changeset releasing
+
 ## 0.0.3
 
 ### Patch Changes
