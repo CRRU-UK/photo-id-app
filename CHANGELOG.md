@@ -1,5 +1,11 @@
 # photo-id
 
+## 0.0.7
+
+### Patch Changes
+
+- 5a74dfc: Fix changesets tagging private packages
+
 ## 0.0.6
 
 ### Patch Changes
