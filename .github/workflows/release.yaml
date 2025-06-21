@@ -24,8 +24,8 @@ jobs:
         with:
           node-version: 24
 
-      - name: Install changeset
-        run: npm install @changesets/cli
+      - name: Install dependencies
+        run: npm ci
 
       - name: Create release pull request
         uses: changesets/action@v1.5.3
@@ -34,4 +34,4 @@ jobs:
         with:
           title: Release
           publish: npx @changesets/cli publish
-          version: npx @changesets/cli version && npm install --package-lock-only
+          version: npm run changeset:version
