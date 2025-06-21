@@ -1,19 +1,17 @@
 import type Photo from "@/models/Photo";
 import type { DraggableStartData, DraggableEndData, PhotoStack } from "../types";
 
-import { useState, useEffect } from "react";
+import { createFileRoute, useRouterState } from "@tanstack/react-router";
+import { useState } from "react";
 import { type DragStartEvent, type DragEndEvent, DragOverlay, DndContext } from "@dnd-kit/core";
 import { Stack as PrimerStack, Text, BranchName, UnderlineNav } from "@primer/react";
 import { FileDirectoryOpenFillIcon } from "@primer/octicons-react";
 
 import { MATCHED_STACKS_PER_PAGE } from "@/constants";
 
-import Project from "@/models/Project";
-
 import MainSelection from "@/frontend/modules/MainSelection";
 import DiscardedSelection from "@/frontend/modules/DiscardedSelection";
 import RowSelection from "@/frontend/modules/RowSelection";
-import StartPage from "@/frontend/modules/StartPage";
 
 import { getAlphabetLetter, chunkArray } from "@/helpers";
 
@@ -32,10 +30,11 @@ const DraggableImage = ({ photo }: { photo: Photo }) => (
   />
 );
 
-const App = () => {
-  const [project, setProject] = useState<Project | null>(null);
-  const [draggingPhoto, setDraggingPhoto] = useState<Photo>(null);
-  const [draggingStackFrom, setDraggingStackFrom] = useState<PhotoStack>(null);
+const Project = () => {
+  const { project } = useRouterState({ select: (state) => state.location.state });
+
+  const [draggingPhoto, setDraggingPhoto] = useState<Photo | null>(null);
+  const [draggingStackFrom, setDraggingStackFrom] = useState<PhotoStack | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(0);
 
   const handleDragStart = (event: DragStartEvent) => {
@@ -48,22 +47,11 @@ const App = () => {
     const target = event.over ?? null;
     if (target) {
       const draggingStackTo = (target.data.current as DraggableEndData).photos;
-      return project.addPhotoToStack(draggingStackFrom, draggingStackTo, draggingPhoto);
+      return project.addPhotoToStack(draggingStackFrom!, draggingStackTo, draggingPhoto!);
     }
 
     setDraggingPhoto(null);
   };
-
-  useEffect(() => {
-    window.electronAPI.onLoadProject((data) => {
-      const project = new Project().loadFromJSON(data);
-      setProject(project);
-    });
-  }, []);
-
-  if (!project) {
-    return <StartPage />;
-  }
 
   const matchedArray = Array.from(project.matched);
 
@@ -79,7 +67,10 @@ const App = () => {
     return (
       <UnderlineNav.Item
         aria-current={index === currentPage ? "page" : undefined}
-        onClick={() => setCurrentPage(index)}
+        onClick={(event) => {
+          event.preventDefault();
+          return setCurrentPage(index);
+        }}
         key={index}
       >
         {getAlphabetLetter(first)}-{getAlphabetLetter(last)}
@@ -131,4 +122,6 @@ const App = () => {
   );
 };
 
-export default App;
+export const Route = createFileRoute("/project")({
+  component: Project,
+});

@@ -3,26 +3,26 @@ import type { Directory, PhotoStack, Matches, ProjectBody } from "@/types";
 import Photo from "./Photo";
 
 class Project {
-  version?: string;
-  id?: string;
-  directory?: Directory;
-  totalPhotos?: number;
-  photos?: PhotoStack;
-  matched?: Matches;
-  discarded?: PhotoStack;
-  created?: Date;
-  lastModified?: Date;
+  version: string;
+  id: string;
+  directory: Directory;
+  totalPhotos: number;
+  photos: PhotoStack;
+  matched: Matches;
+  discarded: PhotoStack;
+  created: Date;
+  lastModified: Date;
 
   constructor(
-    version?: "v1",
-    id?: "",
-    directory?: "",
-    totalPhotos?: 0,
-    photos?: PhotoStack,
-    matched?: Matches,
-    discarded?: PhotoStack,
-    created = new Date().toISOString(),
-    lastModified = new Date().toISOString(),
+    version = "v1",
+    id = "",
+    directory = "",
+    totalPhotos = 0,
+    photos: PhotoStack = new Set(),
+    matched: Matches = new Set(),
+    discarded: PhotoStack = new Set(),
+    created: string = new Date().toISOString(),
+    lastModified: string = new Date().toISOString(),
   ) {
     this.version = version;
     this.id = id;
