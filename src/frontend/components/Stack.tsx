@@ -34,7 +34,7 @@ const Stack = ({ photos }: StackProps) => {
   }, [photos]);
 
   const handleOpenEdit = () => {
-    window.open(`/edit?file=${currentFile.getFullPath()}`, "modal");
+    window.open(`/edit?file=${currentFile.getFullPath()}`, "_blank");
   };
 
   const handlePrev = () => {
