@@ -1,12 +1,6 @@
 name: Build and publish app
 
 on:
-  release:
-    types:
-      - published
-      - unpublished
-      - prereleased
-      - released
   push:
     tags:
       - v*
