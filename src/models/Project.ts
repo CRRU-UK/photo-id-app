@@ -1,4 +1,4 @@
-import type { Directory, PhotoStack, Matches, ProjectBody } from "@/types";
+import type { Directory, PhotoStack, Matches, ProjectBody, PhotoBody } from "@/types";
 
 import Photo from "./Photo";
 
@@ -35,6 +35,18 @@ class Project {
     this.lastModified = new Date(lastModified);
   }
 
+  private mapPhotosToSet(photos: PhotoBody[]) {
+    const items = photos.map(({ photo, thumbnail }) => new Photo(this.directory, photo, thumbnail));
+    return new Set(items);
+  }
+
+  private mapPhotoStackToBody(photos: PhotoStack) {
+    return Array.from(photos).map((photo) => ({
+      photo: photo.getFileName(),
+      thumbnail: photo.thumbnail,
+    }));
+  }
+
   public loadFromJSON(json: ProjectBody | string): this {
     let data = json;
 
@@ -49,21 +61,19 @@ class Project {
     this.directory = directory;
     this.totalPhotos = totalPhotos;
 
-    const photosSet = photos.map((file) => new Photo(file, directory));
-    this.photos = new Set(photosSet);
+    this.photos = this.mapPhotosToSet(photos);
 
-    const discardedSet = discarded.map((file) => new Photo(file, directory));
-    this.discarded = new Set(discardedSet);
+    this.discarded = this.mapPhotosToSet(discarded);
 
     const matchedSets = matched.map(({ id, left, right }) => ({
       id,
       left: {
         name: left.name,
-        photos: new Set(left.photos.map((file) => new Photo(file, directory))),
+        photos: this.mapPhotosToSet(left.photos),
       },
       right: {
         name: right.name,
-        photos: new Set(right.photos.map((file) => new Photo(file, directory))),
+        photos: this.mapPhotosToSet(right.photos),
       },
     }));
     this.matched = new Set(matchedSets);
@@ -81,19 +91,19 @@ class Project {
       id: this.id,
       directory: this.directory,
       totalPhotos: this.totalPhotos,
-      photos: Array.from(this.photos).map((item) => item.getFileName()),
+      photos: this.mapPhotoStackToBody(this.photos),
       matched: Array.from(this.matched).map((item) => ({
         id: item.id,
         left: {
-          photos: Array.from(item.left.photos).map((item) => item.getFileName()),
+          photos: this.mapPhotoStackToBody(item.left.photos),
           name: item.left.name,
         },
         right: {
-          photos: Array.from(item.right.photos).map((item) => item.getFileName()),
+          photos: this.mapPhotoStackToBody(item.right.photos),
           name: item.right.name,
         },
       })),
-      discarded: Array.from(this.discarded).map((item) => item.getFileName()),
+      discarded: this.mapPhotoStackToBody(this.discarded),
       created: this.created.toISOString(),
       lastModified: this.lastModified.toISOString(),
     };

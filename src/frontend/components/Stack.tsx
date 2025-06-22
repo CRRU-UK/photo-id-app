@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useDraggable } from "@dnd-kit/core";
 
 import { Stack as PrimerStack, CounterLabel, ButtonGroup, IconButton } from "@primer/react";
-import { ImageIcon, ChevronLeftIcon, ChevronRightIcon } from "@primer/octicons-react";
+import { PencilIcon, ChevronLeftIcon, ChevronRightIcon } from "@primer/octicons-react";
 
 export interface StackProps {
   photos: PhotoStack;
@@ -34,7 +34,8 @@ const Stack = ({ photos }: StackProps) => {
   }, [photos]);
 
   const handleOpenEdit = () => {
-    window.open(`/edit?file=${currentFile.getFullPath()}`, "_blank");
+    const data = btoa(currentFile.getFullPath());
+    window.open(`/edit?data=${data}`, "_blank");
   };
 
   const handlePrev = () => {
@@ -85,7 +86,7 @@ const Stack = ({ photos }: StackProps) => {
         )}
 
         <IconButton
-          icon={ImageIcon}
+          icon={PencilIcon}
           size="small"
           aria-label="Edit photo"
           onClick={(event) => {
@@ -117,7 +118,7 @@ const Stack = ({ photos }: StackProps) => {
       <div ref={setDraggableNodeRef} {...listeners} {...attributes}>
         {currentFile && (
           <img
-            src={currentFile.getFullPath()}
+            src={currentFile.getThumbnailFullPath()}
             style={{
               cursor: "pointer",
               display: "block",
