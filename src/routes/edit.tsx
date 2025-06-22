@@ -1,32 +1,29 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState, useEffect } from "react";
+
+import ImageEditor from "@/frontend/modules/ImageEditor";
+
+const fetchLocalFile = async (url: string) => {
+  const response = await fetch(url);
+  const blob = await response.blob();
+  return new File([blob], "???", { type: blob.type || "image/*" });
+};
 
 const Edit = () => {
+  const [file, setFile] = useState<File | null>(null);
+
   const urlParams = new URLSearchParams(window.location.search);
   const data = atob(urlParams.get("data")!);
 
-  return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        width: "100vw",
-        height: "100vh",
-        padding: "var(--stack-gap-spacious)",
-      }}
-    >
-      <img
-        src={data}
-        style={{
-          display: "block",
-          width: "100%",
-          height: "100%",
-          objectFit: "contain",
-        }}
-        alt=""
-      />
-    </div>
-  );
+  useEffect(() => {
+    async function fetchData() {
+      const response = await fetchLocalFile(data);
+      setFile(response);
+    }
+    fetchData();
+  }, [data]);
+
+  return file && <ImageEditor image={file} />;
 };
 
 export const Route = createFileRoute("/edit")({
