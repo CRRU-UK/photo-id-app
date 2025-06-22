@@ -19,7 +19,7 @@ const ProgressElements = ({ progress, total }: ProgressElementsProps) => (
     gap="condensed"
     style={{ marginTop: "var(--stack-gap-normal)" }}
   >
-    <Text size="small" weight="light" whiteSpace="nowrap" sx={{ color: "var(--fgColor-muted)" }}>
+    <Text size="small" weight="light" sx={{ color: "var(--fgColor-muted)", whiteSpace: "nowrap" }}>
       {progress} of {total} assigned
     </Text>
     <ProgressBar
@@ -27,6 +27,7 @@ const ProgressElements = ({ progress, total }: ProgressElementsProps) => (
       width="100%"
       inline
       bg={progress >= total ? "success.emphasis" : "accent.emphasis"}
+      style={{ width: "100%" }}
     />
   </PrimerStack>
 );
