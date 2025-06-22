@@ -33,7 +33,6 @@ const createThumbnail = async (photo: string, directory: string): Promise<string
   const image: Sharp = sharp(path.join(directory, photo));
 
   const metadata = await image.metadata();
-
   const isLandscape = metadata.width >= metadata.height;
   const width = isLandscape ? THUMBNAIL_SIZE : null;
   const height = isLandscape ? null : THUMBNAIL_SIZE;

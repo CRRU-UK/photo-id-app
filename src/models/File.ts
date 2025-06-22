@@ -1,6 +1,6 @@
 import type { Directory, FileName } from "@/types";
 
-class Photo {
+class File {
   readonly directory;
   readonly name;
 
@@ -18,4 +18,4 @@ class Photo {
   }
 }
 
-export default Photo;
+export default File;

@@ -35,12 +35,12 @@ class Project {
     this.lastModified = new Date(lastModified);
   }
 
-  private mapPhotosToSet(photos: PhotoBody[]) {
-    const items = photos.map(({ photo, thumbnail }) => new Photo(this.directory, photo, thumbnail));
+  private mapPhotoBodyToStack(directory: Directory, photos: PhotoBody[]): PhotoStack {
+    const items = photos.map(({ photo, thumbnail }) => new Photo(directory, photo, thumbnail));
     return new Set(items);
   }
 
-  private mapPhotoStackToBody(photos: PhotoStack) {
+  private mapPhotoStackToBody(photos: PhotoStack): PhotoBody[] {
     return Array.from(photos).map((photo) => ({
       photo: photo.getFileName(),
       thumbnail: photo.thumbnail,
@@ -61,19 +61,19 @@ class Project {
     this.directory = directory;
     this.totalPhotos = totalPhotos;
 
-    this.photos = this.mapPhotosToSet(photos);
+    this.photos = this.mapPhotoBodyToStack(directory, photos);
 
-    this.discarded = this.mapPhotosToSet(discarded);
+    this.discarded = this.mapPhotoBodyToStack(directory, discarded);
 
     const matchedSets = matched.map(({ id, left, right }) => ({
       id,
       left: {
         name: left.name,
-        photos: this.mapPhotosToSet(left.photos),
+        photos: this.mapPhotoBodyToStack(directory, left.photos),
       },
       right: {
         name: right.name,
-        photos: this.mapPhotosToSet(right.photos),
+        photos: this.mapPhotoBodyToStack(directory, right.photos),
       },
     }));
     this.matched = new Set(matchedSets);
