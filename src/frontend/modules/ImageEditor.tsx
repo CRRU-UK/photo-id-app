@@ -11,15 +11,17 @@ import {
 } from "@primer/react";
 import { ZoomOutIcon, ZoomInIcon, CheckIcon, XIcon } from "@primer/octicons-react";
 
-import { DEFAULT_LINE_SIZES, DEFAULT_LINE_COLOR } from "@/constants";
+import { LINE_SIZES, DEFAULT_LINE_COLOR } from "@/constants";
 
 interface SliderProps {
   name: string;
   value: number;
+  min: number;
+  max: number;
   callback: React.Dispatch<React.SetStateAction<number>>;
 }
 
-const Slider = ({ name, value, callback }: SliderProps) => (
+const Slider = ({ name, value, min, max, callback }: SliderProps) => (
   <FormControl>
     <FormControl.Label>
       {name}
@@ -29,8 +31,8 @@ const Slider = ({ name, value, callback }: SliderProps) => (
     </FormControl.Label>
     <input
       type="range"
-      min="0"
-      max="200"
+      min={min}
+      max={max}
       value={value}
       onChange={(event) => callback(Number(event.target.value))}
     />
@@ -68,7 +70,7 @@ const ImageEditor = ({ image }: ImageEditorProps) => {
     resetFilters,
   } = usePhotoEditor({
     file: image,
-    defaultLineWidth: Number(DEFAULT_LINE_SIZES.NORMAL),
+    defaultLineWidth: Number(LINE_SIZES.NORMAL),
     defaultLineColor: DEFAULT_LINE_COLOR,
   });
 
@@ -81,10 +83,10 @@ const ImageEditor = ({ image }: ImageEditorProps) => {
     <div className="edit">
       <div className="toolbar">
         <Stack direction="horizontal" align="center">
-          <Slider name="Brightness" value={brightness} callback={setBrightness} />
-          <Slider name="Contrast" value={contrast} callback={setContrast} />
-          <Slider name="Saturation" value={saturate} callback={setSaturate} />
-          <Slider name="Grayscale" value={grayscale} callback={setGrayscale} />
+          <Slider name="Brightness" value={brightness} min={0} max={200} callback={setBrightness} />
+          <Slider name="Contrast" value={contrast} min={0} max={200} callback={setContrast} />
+          <Slider name="Saturation" value={saturate} min={0} max={200} callback={setSaturate} />
+          <Slider name="Grayscale" value={grayscale} min={0} max={100} callback={setGrayscale} />
         </Stack>
 
         <Stack
@@ -106,9 +108,9 @@ const ImageEditor = ({ image }: ImageEditorProps) => {
           <ToggleSwitch
             size="small"
             aria-labelledby="draw-toggle"
-            checked={mode === "draw"}
             statusLabelPosition="end"
-            onClick={(value) => setMode(value ? "draw" : "pan")}
+            checked={mode == "draw"}
+            onClick={() => setMode(mode === "pan" ? "draw" : "pan")}
           />
 
           <div className="color-picker">
@@ -126,18 +128,18 @@ const ImageEditor = ({ image }: ImageEditorProps) => {
             value={String(lineWidth)}
             onChange={(event) => setLineWidth(Number(event.target.value))}
           >
-            <Select.Option value={String(DEFAULT_LINE_SIZES.LIGHT)}>Light</Select.Option>
-            <Select.Option value={String(DEFAULT_LINE_SIZES.NORMAL)}>Normal</Select.Option>
-            <Select.Option value={String(DEFAULT_LINE_SIZES.HEAVY)}>Heavy</Select.Option>
+            <Select.Option value={String(LINE_SIZES.LIGHT)}>Light</Select.Option>
+            <Select.Option value={String(LINE_SIZES.NORMAL)}>Normal</Select.Option>
+            <Select.Option value={String(LINE_SIZES.HEAVY)}>Heavy</Select.Option>
           </Select>
         </Stack>
 
         <ButtonGroup style={{ marginLeft: "auto", marginRight: "auto" }}>
-          <Button leadingVisual={ZoomInIcon} size="small" onClick={handleZoomIn}>
-            Zoom In
-          </Button>
           <Button leadingVisual={ZoomOutIcon} size="small" onClick={handleZoomOut}>
             Zoom Out
+          </Button>
+          <Button leadingVisual={ZoomInIcon} size="small" onClick={handleZoomIn}>
+            Zoom In
           </Button>
         </ButtonGroup>
 

@@ -68,7 +68,7 @@ textarea,
   width: 100%;
   height: 60px;
   border-top: var(--borderWidth-default) var(--borderColor-muted) solid;
-  background: var(--bgColor-default);
+  background: var(--bgColor-muted);
 }
 
 .edit > .toolbar .color-picker {

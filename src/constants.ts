@@ -31,7 +31,7 @@ export const MATCHED_STACKS_PER_PAGE = 6;
 
 export const INITIAL_MATCHED_STACKS = 52;
 
-export enum DEFAULT_LINE_SIZES {
+export enum LINE_SIZES {
   LIGHT = 20,
   NORMAL = 100,
   HEAVY = 180,
