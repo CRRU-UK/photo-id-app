@@ -1,4 +1,4 @@
-import type { PhotoStack } from "@/types";
+import type { PhotoStack, EditWindowData } from "@/types";
 
 import { useState, useEffect } from "react";
 import { useDraggable } from "@dnd-kit/core";
@@ -34,8 +34,8 @@ const Stack = ({ photos }: StackProps) => {
   }, [photos]);
 
   const handleOpenEdit = () => {
-    const data = btoa(currentFile.getFullPath());
-    window.open(`/edit?data=${data}`, "_blank");
+    const data: EditWindowData = { name: currentFile.name, file: currentFile.getFullPath() };
+    window.open(`/edit?data=${btoa(JSON.stringify(data))}`, "_blank");
   };
 
   const handlePrev = () => {

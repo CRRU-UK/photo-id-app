@@ -61,3 +61,8 @@ export type DraggableStartData = {
 export type DraggableEndData = {
   photos: PhotoStack;
 };
+
+export type EditWindowData = {
+  name: string;
+  file: string;
+};
