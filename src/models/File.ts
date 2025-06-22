@@ -1,21 +1,21 @@
 import type { Directory, FileName } from "@/types";
 
-class Photo {
-  private readonly fileName;
-  private readonly filePath;
+class File {
+  readonly directory;
+  readonly name;
 
-  constructor(fileName: FileName, filePath: Directory) {
-    this.fileName = fileName;
-    this.filePath = filePath;
+  constructor(directory: Directory, name: FileName) {
+    this.directory = directory;
+    this.name = name;
   }
 
   public getFullPath() {
-    return ["file://", this.filePath, this.fileName].join("/");
+    return ["file://", this.directory, this.name].join("/");
   }
 
   public getFileName() {
-    return this.fileName;
+    return this.name;
   }
 }
 
-export default Photo;
+export default File;

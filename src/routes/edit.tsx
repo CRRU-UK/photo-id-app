@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 const Edit = () => {
   const urlParams = new URLSearchParams(window.location.search);
-  const file = urlParams.get("file");
+  const data = atob(urlParams.get("data")!);
 
   return (
     <div
@@ -16,7 +16,7 @@ const Edit = () => {
       }}
     >
       <img
-        src={file!}
+        src={data}
         style={{
           display: "block",
           width: "100%",

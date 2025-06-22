@@ -19,6 +19,10 @@ export const BOX_HOVER_STYLES = {
 
 export const PROJECT_FILE_NAME = "data.json";
 
+export const PROJECT_THUMBNAIL_DIRECTORY = ".thumbnails";
+
+export const THUMBNAIL_SIZE = 1000;
+
 export const RECENT_PROJECTS_FILE_NAME = "recent-projects.json";
 
 export const MAX_RECENT_PROJECTS = 5;

@@ -12,4 +12,9 @@ export default defineConfig({
       autoCodeSplitting: true,
     }),
   ],
+  build: {
+    rollupOptions: {
+      external: ["sharp"],
+    },
+  },
 });
