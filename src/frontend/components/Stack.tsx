@@ -12,6 +12,7 @@ export interface StackProps {
 
 const Stack = ({ photos }: StackProps) => {
   const [currentIndex, setCurrentIndex] = useState<number>(0);
+  const [currentTime, setCurrentTime] = useState<number>(new Date().getTime());
 
   const currentFile = Array.from(photos)[currentIndex % photos.size];
 
@@ -32,6 +33,16 @@ const Stack = ({ photos }: StackProps) => {
     // This does not work?
     setCurrentIndex(0);
   }, [photos]);
+
+  useEffect(() => {
+    window.electronAPI.onRefreshStackImages((name) => {
+      console.log(currentFile?.getFileName(), name);
+      if (currentFile?.getFileName() === name) {
+        console.log("refreshing image!");
+        setCurrentTime(new Date().getTime());
+      }
+    });
+  });
 
   const handleOpenEdit = () => {
     const data: EditWindowData = { name: currentFile.name, path: currentFile.getFullPath() };
@@ -118,7 +129,7 @@ const Stack = ({ photos }: StackProps) => {
       <div ref={setDraggableNodeRef} {...listeners} {...attributes}>
         {currentFile && (
           <img
-            src={`file://${currentFile.getFullPath()}`}
+            src={`file://${currentFile.getThumbnailFullPath()}?${currentTime}`}
             style={{
               cursor: "pointer",
               display: "block",

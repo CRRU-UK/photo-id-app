@@ -152,7 +152,8 @@ app.whenReady().then(() => {
     handleSaveProject(data);
   });
 
-  ipcMain.on("save-photo-file", (event, data: EditWindowData, photo: ArrayBuffer) => {
-    handleSavePhoto(data, photo);
+  ipcMain.on("save-photo-file", async (event, data: EditWindowData, photo: ArrayBuffer) => {
+    await handleSavePhoto(data, photo);
+    mainWindow.webContents.send("refresh-stack-images", data.name);
   });
 });

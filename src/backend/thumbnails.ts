@@ -5,9 +5,6 @@ import sharp, { type Sharp } from "sharp";
 import { PROJECT_THUMBNAIL_DIRECTORY, THUMBNAIL_SIZE } from "@/constants";
 
 const createThumbnail = async (photo: string, directory: string): Promise<string> => {
-  console.log("photo", photo);
-  console.log("directory", directory);
-
   const image: Sharp = sharp(path.join(directory, photo));
 
   const metadata = await image.metadata();

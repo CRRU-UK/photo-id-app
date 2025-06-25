@@ -13,6 +13,7 @@ export interface IElectronAPI {
   // Listeners (renderer)
   onLoadProject: (callback: (value: ProjectBody) => void) => void;
   onLoadRecentProjects: (callback: (value: RecentProjects) => void) => void;
+  onRefreshStackImages: (callback: (name: string) => void) => void;
 }
 
 declare global {
