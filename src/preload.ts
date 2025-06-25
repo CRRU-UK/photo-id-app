@@ -1,3 +1,5 @@
+import type { EditWindowData } from "@/types";
+
 import { contextBridge, ipcRenderer } from "electron";
 
 contextBridge.exposeInMainWorld("electronAPI", {
@@ -8,7 +10,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
   saveProject: (data: string) => ipcRenderer.send("save-project", data),
   getRecentProjects: () => ipcRenderer.send("get-recent-projects"),
   openEditWindow: (data: string) => ipcRenderer.send("open-edit-window", data),
-  savePhotoFile: (path: string, data: string) => ipcRenderer.send("save-photo-file", path, data),
+  savePhotoFile: (data: EditWindowData, photo: ArrayBuffer) =>
+    ipcRenderer.send("save-photo-file", data, photo),
 
   // Listeners (renderer)
   onLoadProject: (callback: (...params: unknown[]) => void) =>

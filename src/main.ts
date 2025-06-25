@@ -152,7 +152,7 @@ app.whenReady().then(() => {
     handleSaveProject(data);
   });
 
-  ipcMain.on("save-photo-file", (event, path: string, data: ArrayBuffer) => {
-    handleSavePhoto(path, data);
+  ipcMain.on("save-photo-file", (event, data: EditWindowData, photo: ArrayBuffer) => {
+    handleSavePhoto(data, photo);
   });
 });
