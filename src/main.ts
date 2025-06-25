@@ -119,8 +119,14 @@ app.whenReady().then(() => {
   });
 
   ipcMain.on("open-edit-window", (event, data: string) => {
+    const [x, y] = mainWindow.getPosition();
+
     const child = new BrowserWindow({
       show: false,
+      width: 1400,
+      height: 800,
+      x: x + 50,
+      y: y + 50,
       webPreferences: {
         preload: path.join(__dirname, "preload.js"),
         nodeIntegration: true,
