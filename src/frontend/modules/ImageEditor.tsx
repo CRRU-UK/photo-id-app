@@ -80,7 +80,7 @@ const ImageEditor = ({ data, image }: ImageEditorProps) => {
 
   const handleSave = async () => {
     const editedFile = await generateEditedFile();
-    const editedFileData = await readFileAsString(editedFile!);
+    const editedFileData = await readFileAsString(editedFile as File);
 
     window.electronAPI.savePhotoFile(data.path, editedFileData);
   };
@@ -119,8 +119,12 @@ const ImageEditor = ({ data, image }: ImageEditorProps) => {
             onClick={() => setMode(mode === "pan" ? "draw" : "pan")}
           />
 
-          <div className="color-picker">
-            <label htmlFor="line-color" style={{ backgroundColor: lineColor }} />
+          <div className="colour-picker">
+            <label
+              htmlFor="line-colour"
+              style={{ backgroundColor: lineColor }}
+              aria-label="Colour"
+            />
             <input
               id="line-color"
               type="color"
