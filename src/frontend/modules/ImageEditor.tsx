@@ -1,3 +1,5 @@
+import type { EditWindowData } from "@/types";
+
 import { usePhotoEditor } from "react-photo-editor";
 import {
   Stack,
@@ -12,6 +14,7 @@ import {
 import { ZoomOutIcon, ZoomInIcon, CheckIcon, XIcon } from "@primer/octicons-react";
 
 import { LINE_SIZES, DEFAULT_LINE_COLOR } from "@/constants";
+import { readFileAsString } from "@/helpers";
 
 interface SliderProps {
   name: string;
@@ -41,9 +44,10 @@ const Slider = ({ name, value, min, max, callback }: SliderProps) => (
 
 interface ImageEditorProps {
   image: File;
+  data: EditWindowData;
 }
 
-const ImageEditor = ({ image }: ImageEditorProps) => {
+const ImageEditor = ({ image, data }: ImageEditorProps) => {
   const {
     canvasRef,
     setBrightness,
@@ -76,7 +80,9 @@ const ImageEditor = ({ image }: ImageEditorProps) => {
 
   const handleSave = async () => {
     const editedFile = await generateEditedFile();
-    console.debug("editedFile", editedFile);
+    const editedFileData = await readFileAsString(editedFile!);
+
+    window.electronAPI.savePhotoFile(data.path, editedFileData);
   };
 
   return (

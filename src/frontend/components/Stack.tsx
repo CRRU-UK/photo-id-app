@@ -34,8 +34,8 @@ const Stack = ({ photos }: StackProps) => {
   }, [photos]);
 
   const handleOpenEdit = () => {
-    const data: EditWindowData = { name: currentFile.name, file: currentFile.getFullPath() };
-    window.open(`/edit?data=${btoa(JSON.stringify(data))}`, "_blank");
+    const data: EditWindowData = { name: currentFile.name, path: currentFile.getFullPath() };
+    window.electronAPI.openEditWindow(btoa(JSON.stringify(data)));
   };
 
   const handlePrev = () => {
@@ -118,7 +118,7 @@ const Stack = ({ photos }: StackProps) => {
       <div ref={setDraggableNodeRef} {...listeners} {...attributes}>
         {currentFile && (
           <img
-            src={currentFile.getThumbnailFullPath()}
+            src={`file://${currentFile.getThumbnailFullPath()}`}
             style={{
               cursor: "pointer",
               display: "block",

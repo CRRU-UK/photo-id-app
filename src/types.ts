@@ -64,5 +64,5 @@ export type DraggableEndData = {
 
 export type EditWindowData = {
   name: string;
-  file: string;
+  path: string;
 };

@@ -18,3 +18,14 @@ export const chunkArray = <T>(array: T[], size: number): T[][] => {
 
   return chunks;
 };
+
+export const readFileAsString = (file: File): Promise<ArrayBuffer> => {
+  return new Promise<ArrayBuffer>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      resolve(reader.result as ArrayBuffer);
+    };
+    reader.onerror = reject;
+    reader.readAsArrayBuffer(file);
+  });
+};

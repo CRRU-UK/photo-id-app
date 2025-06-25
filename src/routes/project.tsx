@@ -17,7 +17,7 @@ import { getAlphabetLetter, chunkArray } from "@/helpers";
 
 const DraggableImage = ({ photo }: { photo: Photo }) => (
   <img
-    src={photo.getFullPath()}
+    src={`file://${photo.getFullPath()}`}
     style={{
       opacity: 0.5,
       display: "block",
