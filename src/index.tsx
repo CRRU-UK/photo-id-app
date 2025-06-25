@@ -2,7 +2,7 @@ import type Project from "./models/Project";
 
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { RouterProvider, createRouter } from "@tanstack/react-router";
+import { RouterProvider, createHashHistory, createRouter } from "@tanstack/react-router";
 import { ThemeProvider, BaseStyles } from "@primer/react";
 import { routeTree } from "./routeTree.gen";
 
@@ -13,7 +13,8 @@ import "@primer/primitives/dist/css/functional/themes/dark.css";
 
 import "./styles.css";
 
-const router = createRouter({ routeTree });
+const memoryHistory = createHashHistory();
+const router = createRouter({ routeTree, history: memoryHistory });
 
 declare module "@tanstack/react-router" {
   interface Register {

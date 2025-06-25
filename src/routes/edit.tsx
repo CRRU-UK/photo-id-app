@@ -15,12 +15,14 @@ const Edit = () => {
   const [file, setFile] = useState<File | null>(null);
   const [data, setData] = useState<EditWindowData | null>(null);
 
-  const urlParams = new URLSearchParams(window.location.search);
-  const query = urlParams.get("data")!;
+  // For hash routing
+  const hash = window.location.hash.substring(1);
+  const queryString = hash.split("?")[1];
+  const queryValue = new URLSearchParams(queryString).get("data")!;
 
   useEffect(() => {
     async function fetchData() {
-      const parsedData: EditWindowData = JSON.parse(atob(query));
+      const parsedData: EditWindowData = JSON.parse(atob(queryValue));
       setData(parsedData);
 
       const response = await fetchLocalFile(parsedData);
@@ -28,7 +30,7 @@ const Edit = () => {
     }
 
     fetchData();
-  }, [query]);
+  }, [queryValue]);
 
   return file && data && <ImageEditor image={file} data={data} />;
 };

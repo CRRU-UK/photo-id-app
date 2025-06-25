@@ -21,6 +21,8 @@ if (started) {
   app.quit();
 }
 
+const basePath = path.join("file://", __dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`);
+
 let mainWindow: BrowserWindow;
 
 const createWindow = () => {
@@ -37,7 +39,7 @@ const createWindow = () => {
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
     mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
   } else {
-    mainWindow.loadFile(path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`));
+    mainWindow.loadURL(basePath);
   }
 
   mainWindow.webContents.on("did-create-window", (window) => {
@@ -135,10 +137,9 @@ app.whenReady().then(() => {
     const decoded = JSON.parse(atob(data)) as EditWindowData;
 
     if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
-      child.loadURL(`${MAIN_WINDOW_VITE_DEV_SERVER_URL}/edit?data=${data}`);
+      child.loadURL(`${MAIN_WINDOW_VITE_DEV_SERVER_URL}#/edit?data=${data}`);
     } else {
-      // ???
-      child.loadFile(path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/edit.html`));
+      child.loadURL(`${basePath}#/edit?data=${data}`);
     }
 
     child.once("ready-to-show", () => {
