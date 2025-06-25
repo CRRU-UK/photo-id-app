@@ -1,0 +1,33 @@
+import fs from "fs";
+import path from "path";
+import sharp, { type Sharp } from "sharp";
+
+import { PROJECT_THUMBNAIL_DIRECTORY, THUMBNAIL_SIZE } from "@/constants";
+
+const createThumbnail = async (photo: string, directory: string): Promise<string> => {
+  const image: Sharp = sharp(path.join(directory, photo));
+
+  const metadata = await image.metadata();
+  const isLandscape = metadata.width >= metadata.height;
+  const width = isLandscape ? THUMBNAIL_SIZE : null;
+  const height = isLandscape ? null : THUMBNAIL_SIZE;
+
+  const resizedBuffer = await image
+    .resize(width, height, {
+      fit: "inside",
+      withoutEnlargement: true,
+    })
+    .toBuffer();
+
+  const thumbnailDirectory = path.join(directory, PROJECT_THUMBNAIL_DIRECTORY);
+  if (!fs.existsSync(thumbnailDirectory)) {
+    await fs.mkdirSync(thumbnailDirectory);
+  }
+
+  const thumbnailPath = path.join(thumbnailDirectory, photo);
+  await fs.writeFileSync(thumbnailPath, resizedBuffer);
+
+  return path.join(PROJECT_THUMBNAIL_DIRECTORY, photo);
+};
+
+export { createThumbnail };

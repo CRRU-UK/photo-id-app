@@ -4,7 +4,6 @@ import fs from "fs";
 import path from "path";
 import crypto from "crypto";
 import { dialog } from "electron";
-import sharp, { type Sharp } from "sharp";
 
 import {
   DEFAULT_WINDOW_TITLE,
@@ -12,12 +11,11 @@ import {
   EXISTING_DATA_MESSAGE,
   EXISTING_DATA_BUTTONS,
   PROJECT_FILE_NAME,
-  PROJECT_THUMBNAIL_DIRECTORY,
-  THUMBNAIL_SIZE,
   INITIAL_MATCHED_STACKS,
 } from "@/constants";
 
-import { updateRecentProjects } from "./recents";
+import { createThumbnail } from "@/backend/thumbnails";
+import { updateRecentProjects } from "@/backend/recents";
 
 const sendData = (mainWindow: Electron.BrowserWindow, data: ProjectBody) => {
   mainWindow.setTitle(`${DEFAULT_WINDOW_TITLE} - ${data.directory}`);
@@ -27,32 +25,6 @@ const sendData = (mainWindow: Electron.BrowserWindow, data: ProjectBody) => {
     name: path.basename(data.directory),
     path: path.join(data.directory, PROJECT_FILE_NAME),
   });
-};
-
-const createThumbnail = async (photo: string, directory: string): Promise<string> => {
-  const image: Sharp = sharp(path.join(directory, photo));
-
-  const metadata = await image.metadata();
-  const isLandscape = metadata.width >= metadata.height;
-  const width = isLandscape ? THUMBNAIL_SIZE : null;
-  const height = isLandscape ? null : THUMBNAIL_SIZE;
-
-  const resizedBuffer = await image
-    .resize(width, height, {
-      fit: "inside",
-      withoutEnlargement: true,
-    })
-    .toBuffer();
-
-  const thumbnailDirectory = path.join(directory, PROJECT_THUMBNAIL_DIRECTORY);
-  if (!fs.existsSync(thumbnailDirectory)) {
-    await fs.mkdirSync(thumbnailDirectory);
-  }
-
-  const thumbnailPath = path.join(thumbnailDirectory, photo);
-  await fs.writeFileSync(thumbnailPath, resizedBuffer);
-
-  return path.join(PROJECT_THUMBNAIL_DIRECTORY, photo);
 };
 
 /**

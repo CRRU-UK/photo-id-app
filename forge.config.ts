@@ -11,7 +11,9 @@ import { FuseVersion, FuseV1Options } from "@electron/fuses";
 
 const config: ForgeConfig = {
   packagerConfig: {
-    asar: true,
+    asar: {
+      unpack: "**/node_modules/{sharp,@img}/**/*",
+    },
     icon: path.join(__dirname, "src", "assets", "icon"),
     executableName: "photo-id",
     ignore: [/^\/\.github/, /^\/public/, /^\/src/, /^\/temp/],

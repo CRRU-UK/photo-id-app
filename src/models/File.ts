@@ -10,7 +10,7 @@ class File {
   }
 
   public getFullPath() {
-    return ["file://", this.directory, this.name].join("/");
+    return [this.directory, this.name].join("/");
   }
 
   public getFileName() {

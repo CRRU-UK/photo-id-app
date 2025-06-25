@@ -12,7 +12,7 @@ class Photo extends File {
   }
 
   public getThumbnailFullPath() {
-    return ["file://", this.directory, this.thumbnail].join("/");
+    return [this.directory, this.thumbnail].join("/");
   }
 
   public getThumbnailFileName() {

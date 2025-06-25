@@ -1,32 +1,38 @@
+import type { EditWindowData } from "@/types";
+
 import { createFileRoute } from "@tanstack/react-router";
+import { useState, useEffect } from "react";
+
+import ImageEditor from "@/frontend/modules/ImageEditor";
+
+const fetchLocalFile = async (data: EditWindowData) => {
+  const response = await fetch(`file://${data.path}`);
+  const blob = await response.blob();
+  return new File([blob], data.name, { type: blob.type || "image/*" });
+};
 
 const Edit = () => {
-  const urlParams = new URLSearchParams(window.location.search);
-  const data = atob(urlParams.get("data")!);
+  const [data, setData] = useState<EditWindowData | null>(null);
+  const [file, setFile] = useState<File | null>(null);
 
-  return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        width: "100vw",
-        height: "100vh",
-        padding: "var(--stack-gap-spacious)",
-      }}
-    >
-      <img
-        src={data}
-        style={{
-          display: "block",
-          width: "100%",
-          height: "100%",
-          objectFit: "contain",
-        }}
-        alt=""
-      />
-    </div>
-  );
+  // For hash routing
+  const hash = window.location.hash.substring(1);
+  const queryString = hash.split("?")[1];
+  const queryValue = new URLSearchParams(queryString).get("data")!;
+
+  useEffect(() => {
+    async function fetchData() {
+      const parsedData: EditWindowData = JSON.parse(atob(queryValue));
+      setData(parsedData);
+
+      const response = await fetchLocalFile(parsedData);
+      setFile(response);
+    }
+
+    fetchData();
+  }, [queryValue]);
+
+  return data && file && <ImageEditor data={data} image={file} />;
 };
 
 export const Route = createFileRoute("/edit")({
