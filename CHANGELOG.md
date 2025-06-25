@@ -1,5 +1,13 @@
 # photo-id
 
+## 0.0.8
+
+### Patch Changes
+
+- d6a4e92: Add image editor
+- cf4713b: Fix progress bar on main selection
+- b0a2425: Add thumbnails
+
 ## 0.0.7
 
 ### Patch Changes
