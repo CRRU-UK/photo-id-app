@@ -43,11 +43,11 @@ const Slider = ({ name, value, min, max, callback }: SliderProps) => (
 );
 
 interface ImageEditorProps {
-  image: File;
   data: EditWindowData;
+  image: File;
 }
 
-const ImageEditor = ({ image, data }: ImageEditorProps) => {
+const ImageEditor = ({ data, image }: ImageEditorProps) => {
   const {
     canvasRef,
     setBrightness,

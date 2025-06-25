@@ -118,7 +118,7 @@ const Stack = ({ photos }: StackProps) => {
       <div ref={setDraggableNodeRef} {...listeners} {...attributes}>
         {currentFile && (
           <img
-            src={`file://${currentFile.getThumbnailFullPath()}`}
+            src={`file://${currentFile.getFullPath()}`}
             style={{
               cursor: "pointer",
               display: "block",

@@ -12,8 +12,8 @@ const fetchLocalFile = async (data: EditWindowData) => {
 };
 
 const Edit = () => {
-  const [file, setFile] = useState<File | null>(null);
   const [data, setData] = useState<EditWindowData | null>(null);
+  const [file, setFile] = useState<File | null>(null);
 
   // For hash routing
   const hash = window.location.hash.substring(1);
@@ -32,7 +32,7 @@ const Edit = () => {
     fetchData();
   }, [queryValue]);
 
-  return file && data && <ImageEditor image={file} data={data} />;
+  return data && file && <ImageEditor data={data} image={file} />;
 };
 
 export const Route = createFileRoute("/edit")({
