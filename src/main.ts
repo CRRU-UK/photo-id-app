@@ -7,6 +7,7 @@ import started from "electron-squirrel-startup";
 import { updateElectronApp } from "update-electron-app";
 
 import { DEFAULT_WINDOW_TITLE } from "@/constants";
+import { getMenu } from "@/backend/menu";
 import {
   handleOpenDirectoryPrompt,
   handleOpenFilePrompt,
@@ -59,28 +60,7 @@ const createMainWindow = () => {
     });
   });
 
-  const menu = Menu.buildFromTemplate([
-    {
-      label: "File",
-      submenu: [
-        {
-          label: "Open Project Folder",
-          accelerator: "CmdOrCtrl+O",
-          async click() {
-            handleOpenDirectoryPrompt(mainWindow);
-          },
-        },
-        {
-          label: "Open Project File",
-          accelerator: "CmdOrCtrl+Shift+O",
-          async click() {
-            handleOpenFilePrompt(mainWindow);
-          },
-        },
-      ],
-    },
-  ]);
-
+  const menu = Menu.buildFromTemplate(getMenu(mainWindow, true));
   Menu.setApplicationMenu(menu);
 
   if (!app.isPackaged) {
@@ -160,6 +140,8 @@ app.whenReady().then(() => {
         }),
       );
     }
+
+    editWindow.removeMenu();
 
     editWindow.once("ready-to-show", () => {
       editWindow.setTitle(`${DEFAULT_WINDOW_TITLE} - ${decoded.path}`);
