@@ -15,13 +15,13 @@ import {
 } from "@/constants";
 
 import { createPhotoThumbnail } from "@/backend/photos";
-import { updateRecentProjects } from "@/backend/recents";
+import { addRecentProject } from "@/backend/recents";
 
-const sendData = (mainWindow: Electron.BrowserWindow, data: ProjectBody) => {
+const sendData = async (mainWindow: Electron.BrowserWindow, data: ProjectBody) => {
   mainWindow.setTitle(`${DEFAULT_WINDOW_TITLE} - ${data.directory}`);
   mainWindow.webContents.send("load-project", data);
 
-  updateRecentProjects({
+  await addRecentProject({
     name: path.basename(data.directory),
     path: path.join(data.directory, PROJECT_FILE_NAME),
   });

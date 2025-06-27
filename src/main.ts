@@ -15,7 +15,7 @@ import {
   handleSaveProject,
 } from "@/backend/projects";
 import { savePhotoFromBuffer } from "@/backend/photos";
-import { getRecentProjects } from "@/backend/recents";
+import { getRecentProjects, removeRecentProject } from "@/backend/recents";
 
 updateElectronApp();
 
@@ -102,6 +102,14 @@ app.whenReady().then(() => {
   });
 
   ipcMain.on("get-recent-projects", (event) => {
+    const webContents = event.sender;
+    const window = BrowserWindow.fromWebContents(webContents) as BrowserWindow;
+    window.webContents.send("load-recent-projects", getRecentProjects());
+  });
+
+  ipcMain.on("remove-recent-project", (event, path) => {
+    removeRecentProject(path);
+
     const webContents = event.sender;
     const window = BrowserWindow.fromWebContents(webContents) as BrowserWindow;
     window.webContents.send("load-recent-projects", getRecentProjects());

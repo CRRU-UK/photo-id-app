@@ -2,70 +2,21 @@ import type { RecentProject } from "@/types";
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import {
-  PageLayout,
-  Heading,
-  Text,
-  BranchName,
-  Stack as PrimerStack,
-  Button,
-  Timeline,
-  Link,
-  RelativeTime,
-  Spinner,
-} from "@primer/react";
-import { FileDirectoryIcon, FileIcon, HistoryIcon } from "@primer/octicons-react";
+import { PageLayout, Heading, Text, BranchName, Stack as PrimerStack, Button } from "@primer/react";
+import { FileDirectoryIcon, FileIcon } from "@primer/octicons-react";
 
 import { version } from "../../package.json";
 
 import Project from "@/models/Project";
 
 import LoadingOverlay from "@/frontend/modules/LoadingOverlay";
+import RecentProjects from "@/frontend/modules/RecentProjects";
 import logo from "@/frontend/img/logo.png";
 
 import { PROJECT_FILE_NAME } from "@/constants";
 
-interface RecentProjectsProps {
-  projects: RecentProject[];
-}
-
-const RecentProjectsList = ({ projects }: RecentProjectsProps) => {
-  const handleOpenProjectFile = (path: string) => window.electronAPI.openRecentProject(path);
-
-  return (
-    <Timeline style={{ marginTop: "var(--stack-gap-spacious)" }}>
-      {projects.map((item) => (
-        <Timeline.Item key={item.path}>
-          <Timeline.Badge>
-            <HistoryIcon />
-          </Timeline.Badge>
-          <Timeline.Body>
-            <Link
-              href="#"
-              onClick={() => handleOpenProjectFile(item.path)}
-              sx={{
-                fontWeight: "bold",
-              }}
-            >
-              {item.name}
-            </Link>
-            <RelativeTime datetime={item.lastOpened} sx={{ ml: 2 }} />
-            <Text
-              weight="semibold"
-              size="small"
-              style={{ display: "block", fontFamily: "var(--fontStack-monospace)" }}
-            >
-              {item.path}
-            </Text>
-          </Timeline.Body>
-        </Timeline.Item>
-      ))}
-    </Timeline>
-  );
-};
-
 const Index = () => {
-  const [recentProjects, setRecentProjects] = useState<RecentProject[]>([]);
+  const [recentProjects, setRecentProjects] = useState<RecentProject[] | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
   const navigate = useNavigate();
@@ -165,16 +116,7 @@ const Index = () => {
             </Button>
           </PrimerStack>
 
-          {recentProjects.length > 0 ? (
-            <>
-              <Text>Or open a recent project:</Text>
-              <RecentProjectsList projects={recentProjects} />
-            </>
-          ) : (
-            <div style={{ paddingTop: "var(--stack-gap-spacious)", textAlign: "center" }}>
-              <Spinner size="small" />
-            </div>
-          )}
+          <RecentProjects projects={recentProjects} />
         </PageLayout.Content>
       </PageLayout>
     </>

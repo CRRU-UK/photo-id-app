@@ -9,6 +9,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
   openRecentProject: (path: string) => ipcRenderer.send("open-project-file", path),
   saveProject: (data: string) => ipcRenderer.send("save-project", data),
   getRecentProjects: () => ipcRenderer.send("get-recent-projects"),
+  removeRecentProject: (path: string) => ipcRenderer.send("remove-recent-project", path),
   openEditWindow: (data: string) => ipcRenderer.send("open-edit-window", data),
   savePhotoFile: (data: EditWindowData, photo: ArrayBuffer) =>
     ipcRenderer.send("save-photo-file", data, photo),
