@@ -17,12 +17,12 @@ import { getAlphabetLetter, chunkArray } from "@/helpers";
 
 const DraggableImage = ({ photo }: { photo: Photo }) => (
   <img
-    src={`file://${photo.getFullPath()}`}
+    src={`file://${photo.getThumbnailFullPath()}`}
     style={{
-      opacity: 0.5,
+      opacity: 0.7,
       display: "block",
-      width: "200px",
-      height: "auto",
+      width: "100%",
+      height: "100%",
       aspectRatio: "4/3",
       objectFit: "cover",
     }}
@@ -86,7 +86,7 @@ const Project = () => {
     <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
       <DragOverlay>{draggingPhoto ? <DraggableImage photo={draggingPhoto} /> : null}</DragOverlay>
 
-      <div className="main">
+      <div className="project">
         <div className="sidebar">
           <PrimerStack
             direction="vertical"
@@ -113,8 +113,11 @@ const Project = () => {
           </PrimerStack>
         </div>
 
+        <UnderlineNav aria-label="Pages" className="pages">
+          {matchedPages}
+        </UnderlineNav>
+
         <div className="content">
-          <UnderlineNav aria-label="Pages">{matchedPages}</UnderlineNav>
           <div className="grid">
             {matchedRows.map((item) => (
               <RowSelection key={item.id} match={item} />

@@ -13,14 +13,14 @@ textarea,
   outline: none;
 }
 
-.main {
+.project {
   position: relative;
   width: 100vw;
   height: 100vh;
   background: var(--bgColor-default);
 }
 
-.main > .sidebar {
+.project > .sidebar {
   position: fixed;
   left: 0;
   top: 0;
@@ -32,17 +32,27 @@ textarea,
   overflow-y: scroll;
 }
 
-.main > .content {
+.project > .pages {
+  z-index: 10;
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: calc(100% - 380px);
+  background: var(--bgColor-default);
+}
+
+.project > .content {
   position: fixed;
   right: 0;
   top: 0;
+  padding-top: 50px;
   width: calc(100% - 380px);
   height: 100%;
   overflow: hidden;
   overflow-y: scroll;
 }
 
-.main > .content > .grid {
+.project > .content > .grid {
   padding: var(--stack-gap-normal);
   display: grid;
   grid-template-columns: repeat(2, 1fr);
