@@ -14,7 +14,7 @@ import {
   INITIAL_MATCHED_STACKS,
 } from "@/constants";
 
-import { createThumbnail } from "@/backend/thumbnails";
+import { createPhotoThumbnail } from "@/backend/photos";
 import { updateRecentProjects } from "@/backend/recents";
 
 const sendData = (mainWindow: Electron.BrowserWindow, data: ProjectBody) => {
@@ -83,7 +83,9 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
     return true;
   });
 
-  const thumbnails = await Promise.all(photos.map((photo) => createThumbnail(photo, directory)));
+  const thumbnails = await Promise.all(
+    photos.map((photo) => createPhotoThumbnail(photo, directory)),
+  );
 
   const now = new Date().toISOString();
 

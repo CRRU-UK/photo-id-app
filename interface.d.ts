@@ -7,8 +7,8 @@ export interface IElectronAPI {
   openRecentProject: (path: string) => Promise<void>;
   saveProject: (data: string) => Promise<void>;
   getRecentProjects: () => Promise<void>;
-  savePhotoFile: (data: EditWindowData, photo: ArrayBuffer) => Promise<void>;
   openEditWindow: (data: string) => Promise<void>;
+  savePhotoFile: (data: EditWindowData, photo: ArrayBuffer) => Promise<void>;
 
   // Listeners (renderer)
   onLoadProject: (callback: (value: ProjectBody) => void) => void;

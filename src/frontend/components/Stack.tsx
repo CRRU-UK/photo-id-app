@@ -36,9 +36,7 @@ const Stack = ({ photos }: StackProps) => {
 
   useEffect(() => {
     window.electronAPI.onRefreshStackImages((name) => {
-      console.log(currentFile?.getFileName(), name);
       if (currentFile?.getFileName() === name) {
-        console.log("refreshing image!");
         setCurrentTime(new Date().getTime());
       }
     });

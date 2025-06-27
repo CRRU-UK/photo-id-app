@@ -12,7 +12,7 @@ import {
   handleOpenProjectFile,
   handleSaveProject,
 } from "@/backend/projects";
-import { handleSavePhoto } from "@/backend/photos";
+import { savePhotoFromBuffer } from "@/backend/photos";
 import { getRecentProjects } from "@/backend/recents";
 
 updateElectronApp();
@@ -159,7 +159,7 @@ app.whenReady().then(() => {
   });
 
   ipcMain.on("save-photo-file", async (event, data: EditWindowData, photo: ArrayBuffer) => {
-    await handleSavePhoto(data, photo);
+    await savePhotoFromBuffer(data, photo);
     mainWindow.webContents.send("refresh-stack-images", data.name);
   });
 });
