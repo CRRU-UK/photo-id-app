@@ -13,18 +13,17 @@ textarea,
   outline: none;
 }
 
-.main {
+.project {
   position: relative;
   width: 100vw;
   height: 100vh;
   background: var(--bgColor-default);
 }
 
-.main > .sidebar {
+.project > .sidebar {
   position: fixed;
   left: 0;
   top: 0;
-  padding: var(--stack-gap-normal);
   width: 380px;
   height: 100%;
   border-right: var(--borderWidth-default) var(--borderColor-muted) solid;
@@ -32,17 +31,27 @@ textarea,
   overflow-y: scroll;
 }
 
-.main > .content {
+.project > .pages {
+  z-index: 10;
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: calc(100% - 380px);
+  background: var(--bgColor-default);
+}
+
+.project > .content {
   position: fixed;
   right: 0;
   top: 0;
+  padding-top: 50px;
   width: calc(100% - 380px);
   height: 100%;
   overflow: hidden;
   overflow-y: scroll;
 }
 
-.main > .content > .grid {
+.project > .content > .grid {
   padding: var(--stack-gap-normal);
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -114,4 +123,26 @@ textarea,
 
 .edit > .canvas.draw {
   cursor: crosshair;
+}
+
+.loading {
+  z-index: 100;
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.loading > .text {
+  margin-top: 20px;
+  font-size: var(--text-title-size-medium);
+  font-weight: var(--base-text-weight-semibold);
+  font-family: var(--BaseStyles-fontFamily);
+  color: var(--BaseStyles-fgColor, var(--fgColor-default, var(--color-fg-default)));
 }

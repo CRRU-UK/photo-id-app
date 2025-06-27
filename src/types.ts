@@ -21,7 +21,7 @@ export type Match = {
 export type Matches = Set<Match>;
 
 export type PhotoBody = {
-  photo: string;
+  name: string;
   thumbnail: string;
 };
 

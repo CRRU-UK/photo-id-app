@@ -1,5 +1,7 @@
 import type { Directory, PhotoStack, Matches, ProjectBody, PhotoBody } from "@/types";
 
+import { PROJECT_STORAGE_NAME } from "@/constants";
+
 import Photo from "./Photo";
 
 class Project {
@@ -36,13 +38,13 @@ class Project {
   }
 
   private mapPhotoBodyToStack(directory: Directory, photos: PhotoBody[]): PhotoStack {
-    const items = photos.map(({ photo, thumbnail }) => new Photo(directory, photo, thumbnail));
+    const items = photos.map(({ name, thumbnail }) => new Photo(directory, name, thumbnail));
     return new Set(items);
   }
 
   private mapPhotoStackToBody(photos: PhotoStack): PhotoBody[] {
     return Array.from(photos).map((photo) => ({
-      photo: photo.getFileName(),
+      name: photo.getFileName(),
       thumbnail: photo.thumbnail,
     }));
   }
@@ -114,7 +116,10 @@ class Project {
 
   public save() {
     this.lastModified = new Date();
-    window.electronAPI.saveProject(this.returnAsJSONString());
+
+    const data = this.returnAsJSONString();
+    window.localStorage.setItem(PROJECT_STORAGE_NAME, data);
+    window.electronAPI.saveProject(data);
   }
 
   public addPhotoToStack(from: PhotoStack, to: PhotoStack, photo: Photo): this {

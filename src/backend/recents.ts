@@ -18,12 +18,15 @@ const getRecentProjects = (): RecentProject[] => {
   return JSON.parse(data);
 };
 
-interface UpdateRecentProjectsProps {
+const updateRecentProjects = (data: RecentProject[]) =>
+  fs.writeFileSync(recentProjectsFile, JSON.stringify(data, null, 2), "utf8");
+
+interface AddRecentProjectOptions {
   name: string;
   path: string;
 }
 
-const updateRecentProjects = ({ name, path }: UpdateRecentProjectsProps) => {
+const addRecentProject = ({ name, path }: AddRecentProjectOptions) => {
   const recentProjects = getRecentProjects();
 
   const lastProject = { name, path, lastOpened: new Date().toISOString() };
@@ -38,7 +41,15 @@ const updateRecentProjects = ({ name, path }: UpdateRecentProjectsProps) => {
     }, [] as RecentProject[])
     .slice(0, MAX_RECENT_PROJECTS);
 
-  fs.writeFileSync(recentProjectsFile, JSON.stringify(data, null, 2), "utf8");
+  return updateRecentProjects(data);
 };
 
-export { getRecentProjects, updateRecentProjects };
+const removeRecentProject = (path: string) => {
+  const recentProjects = getRecentProjects();
+
+  const updatedRecentProjects = recentProjects.filter((item) => item.path !== path);
+
+  return updateRecentProjects(updatedRecentProjects);
+};
+
+export { getRecentProjects, addRecentProject, removeRecentProject };

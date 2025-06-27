@@ -1,14 +1,15 @@
 import type Photo from "@/models/Photo";
 import type { DraggableStartData, DraggableEndData, PhotoStack } from "../types";
 
-import { createFileRoute, useRouterState } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useState, useEffect, useMemo } from "react";
 import { type DragStartEvent, type DragEndEvent, DragOverlay, DndContext } from "@dnd-kit/core";
-import { Stack as PrimerStack, Text, BranchName, UnderlineNav } from "@primer/react";
-import { FileDirectoryOpenFillIcon } from "@primer/octicons-react";
+import { Stack as PrimerStack, IconButton, UnderlineNav } from "@primer/react";
+import { ReplyIcon } from "@primer/octicons-react";
 
-import { MATCHED_STACKS_PER_PAGE } from "@/constants";
-
+import { PROJECT_STORAGE_NAME, MATCHED_STACKS_PER_PAGE } from "@/constants";
+import ProjectModel from "@/models/Project";
+import LoadingOverlay, { type LoadingOverlayProps } from "@/frontend/modules/LoadingOverlay";
 import MainSelection from "@/frontend/modules/MainSelection";
 import DiscardedSelection from "@/frontend/modules/DiscardedSelection";
 import RowSelection from "@/frontend/modules/RowSelection";
@@ -17,12 +18,12 @@ import { getAlphabetLetter, chunkArray } from "@/helpers";
 
 const DraggableImage = ({ photo }: { photo: Photo }) => (
   <img
-    src={`file://${photo.getFullPath()}`}
+    src={`file://${photo.getThumbnailFullPath()}`}
     style={{
-      opacity: 0.5,
+      opacity: 0.7,
       display: "block",
-      width: "200px",
-      height: "auto",
+      width: "100%",
+      height: "100%",
       aspectRatio: "4/3",
       objectFit: "cover",
     }}
@@ -30,12 +31,16 @@ const DraggableImage = ({ photo }: { photo: Photo }) => (
   />
 );
 
-const Project = () => {
-  const { project } = useRouterState({ select: (state) => state.location.state });
-
+const ProjectPage = () => {
   const [draggingPhoto, setDraggingPhoto] = useState<Photo | null>(null);
   const [draggingStackFrom, setDraggingStackFrom] = useState<PhotoStack | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(0);
+  const [loading, setLoading] = useState<LoadingOverlayProps>({ show: false });
+
+  const project = useMemo(() => {
+    const projectData = JSON.parse(localStorage.getItem(PROJECT_STORAGE_NAME) as string);
+    return new ProjectModel().loadFromJSON(projectData);
+  }, []);
 
   const handleDragStart = (event: DragStartEvent) => {
     const { stack, currentFile } = event.active.data.current as unknown as DraggableStartData;
@@ -56,6 +61,22 @@ const Project = () => {
 
     setDraggingPhoto(null);
   };
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    window.electronAPI.onLoading((show, text) => setLoading({ show, text }));
+
+    /**
+     * TODO: Fix this, buggy when navigating back and then to a project
+     */
+    window.electronAPI.onLoadProject((data) => {
+      localStorage.setItem(PROJECT_STORAGE_NAME, JSON.stringify(data));
+      window.location.reload();
+    });
+  });
+
+  const handleClose = () => navigate({ to: "/" });
 
   const matchedArray = Array.from(project.matched);
 
@@ -83,49 +104,52 @@ const Project = () => {
   });
 
   return (
-    <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-      <DragOverlay>{draggingPhoto ? <DraggableImage photo={draggingPhoto} /> : null}</DragOverlay>
+    <>
+      <LoadingOverlay show={loading.show} text={loading?.text} />
 
-      <div className="main">
-        <div className="sidebar">
-          <PrimerStack
-            direction="vertical"
-            align="start"
-            justify="space-between"
-            style={{ height: "100%" }}
-          >
-            {project && <MainSelection photos={project.photos} total={project.totalPhotos} />}
-            {project && <DiscardedSelection photos={project.discarded} />}
+      <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+        <DragOverlay>{draggingPhoto ? <DraggableImage photo={draggingPhoto} /> : null}</DragOverlay>
 
-            {project?.directory && (
+        <div className="project">
+          <div className="sidebar">
+            <PrimerStack
+              direction="vertical"
+              align="start"
+              justify="space-between"
+              padding="normal"
+              style={{ minHeight: "100%" }}
+            >
+              <MainSelection photos={project.photos} total={project.totalPhotos} />
+              <DiscardedSelection photos={project.discarded} />
+
               <div style={{ marginTop: "auto" }}>
-                <Text
-                  size="small"
-                  weight="light"
-                  sx={{ display: "block", color: "var(--fgColor-muted)" }}
-                >
-                  <FileDirectoryOpenFillIcon size="small" />
-                  Currently viewing:
-                </Text>
-                <BranchName>{project.directory}</BranchName>
+                <IconButton
+                  icon={ReplyIcon}
+                  variant="invisible"
+                  aria-label="Close project"
+                  onClick={() => handleClose()}
+                />
               </div>
-            )}
-          </PrimerStack>
-        </div>
+            </PrimerStack>
+          </div>
 
-        <div className="content">
-          <UnderlineNav aria-label="Pages">{matchedPages}</UnderlineNav>
-          <div className="grid">
-            {matchedRows.map((item) => (
-              <RowSelection key={item.id} match={item} />
-            ))}
+          <UnderlineNav aria-label="Pages" className="pages">
+            {matchedPages}
+          </UnderlineNav>
+
+          <div className="content">
+            <div className="grid">
+              {matchedRows.map((item) => (
+                <RowSelection key={item.id} match={item} />
+              ))}
+            </div>
           </div>
         </div>
-      </div>
-    </DndContext>
+      </DndContext>
+    </>
   );
 };
 
 export const Route = createFileRoute("/project")({
-  component: Project,
+  component: ProjectPage,
 });

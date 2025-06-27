@@ -7,6 +7,7 @@ import started from "electron-squirrel-startup";
 import { updateElectronApp } from "update-electron-app";
 
 import { DEFAULT_WINDOW_TITLE } from "@/constants";
+import { getMenu } from "@/backend/menu";
 import {
   handleOpenDirectoryPrompt,
   handleOpenFilePrompt,
@@ -14,7 +15,7 @@ import {
   handleSaveProject,
 } from "@/backend/projects";
 import { savePhotoFromBuffer } from "@/backend/photos";
-import { getRecentProjects } from "@/backend/recents";
+import { getRecentProjects, removeRecentProject } from "@/backend/recents";
 
 updateElectronApp();
 
@@ -26,7 +27,7 @@ const basePath = path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/inde
 
 let mainWindow: BrowserWindow;
 
-const createWindow = () => {
+const createMainWindow = () => {
   mainWindow = new BrowserWindow({
     width: 1400,
     height: 800,
@@ -36,6 +37,8 @@ const createWindow = () => {
       webSecurity: false,
     },
   });
+
+  mainWindow.maximize();
 
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
     mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
@@ -57,28 +60,7 @@ const createWindow = () => {
     });
   });
 
-  const menu = Menu.buildFromTemplate([
-    {
-      label: "File",
-      submenu: [
-        {
-          label: "Open Project Folder",
-          accelerator: "CmdOrCtrl+O",
-          async click() {
-            handleOpenDirectoryPrompt(mainWindow);
-          },
-        },
-        {
-          label: "Open Project File",
-          accelerator: "CmdOrCtrl+Shift+O",
-          async click() {
-            handleOpenFilePrompt(mainWindow);
-          },
-        },
-      ],
-    },
-  ]);
-
+  const menu = Menu.buildFromTemplate(getMenu(mainWindow));
   Menu.setApplicationMenu(menu);
 
   if (!app.isPackaged) {
@@ -86,7 +68,7 @@ const createWindow = () => {
   }
 };
 
-app.on("ready", createWindow);
+app.on("ready", createMainWindow);
 
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
@@ -96,7 +78,7 @@ app.on("window-all-closed", () => {
 
 app.on("activate", () => {
   if (BrowserWindow.getAllWindows().length === 0) {
-    createWindow();
+    createMainWindow();
   }
 });
 
@@ -125,15 +107,19 @@ app.whenReady().then(() => {
     window.webContents.send("load-recent-projects", getRecentProjects());
   });
 
-  ipcMain.on("open-edit-window", (event, data: string) => {
-    const [x, y] = mainWindow.getPosition();
+  ipcMain.on("remove-recent-project", (event, path) => {
+    removeRecentProject(path);
 
-    const child = new BrowserWindow({
+    const webContents = event.sender;
+    const window = BrowserWindow.fromWebContents(webContents) as BrowserWindow;
+    window.webContents.send("load-recent-projects", getRecentProjects());
+  });
+
+  ipcMain.on("open-edit-window", (event, data: string) => {
+    const editWindow = new BrowserWindow({
       show: false,
       width: 1400,
       height: 800,
-      x: x + 50,
-      y: y + 50,
       webPreferences: {
         preload: path.join(__dirname, "preload.js"),
         nodeIntegration: true,
@@ -144,15 +130,15 @@ app.whenReady().then(() => {
     });
 
     if (!app.isPackaged) {
-      child.webContents.openDevTools();
+      editWindow.webContents.openDevTools();
     }
 
     const decoded = JSON.parse(atob(data)) as EditWindowData;
 
     if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
-      child.loadURL(`${MAIN_WINDOW_VITE_DEV_SERVER_URL}?data=${data}#/edit`);
+      editWindow.loadURL(`${MAIN_WINDOW_VITE_DEV_SERVER_URL}?data=${data}#/edit`);
     } else {
-      child.loadURL(
+      editWindow.loadURL(
         url.format({
           protocol: "file",
           slashes: true,
@@ -163,9 +149,11 @@ app.whenReady().then(() => {
       );
     }
 
-    child.once("ready-to-show", () => {
-      child.setTitle(`${DEFAULT_WINDOW_TITLE} - ${decoded.path}`);
-      child.show();
+    editWindow.removeMenu();
+
+    editWindow.once("ready-to-show", () => {
+      editWindow.setTitle(`${DEFAULT_WINDOW_TITLE} - ${decoded.path}`);
+      editWindow.show();
     });
   });
 
@@ -176,5 +164,9 @@ app.whenReady().then(() => {
   ipcMain.on("save-photo-file", async (event, data: EditWindowData, photo: ArrayBuffer) => {
     await savePhotoFromBuffer(data, photo);
     mainWindow.webContents.send("refresh-stack-images", data.name);
+
+    const webContents = event.sender;
+    const editWindow = BrowserWindow.fromWebContents(webContents) as BrowserWindow;
+    editWindow.webContents.send("set-loading", false);
   });
 });
