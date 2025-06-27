@@ -11,7 +11,7 @@ const fetchLocalFile = async (data: EditWindowData) => {
   return new File([blob], data.name, { type: blob.type || "image/*" });
 };
 
-const Edit = () => {
+const EditPage = () => {
   const [data, setData] = useState<EditWindowData | null>(null);
   const [file, setFile] = useState<File | null>(null);
 
@@ -34,5 +34,5 @@ const Edit = () => {
 };
 
 export const Route = createFileRoute("/edit")({
-  component: Edit,
+  component: EditPage,
 });

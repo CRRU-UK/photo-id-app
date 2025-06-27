@@ -1,4 +1,5 @@
 import type Project from "./models/Project";
+import type { ProjectBody } from "./types";
 
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
@@ -23,7 +24,7 @@ declare module "@tanstack/react-router" {
     router: typeof router;
   }
   interface HistoryState {
-    project: Project;
+    project: Project | ProjectBody;
   }
 }
 

@@ -1,14 +1,14 @@
 import type Photo from "@/models/Photo";
 import type { DraggableStartData, DraggableEndData, PhotoStack } from "../types";
 
-import { createFileRoute, useRouterState } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute } from "@tanstack/react-router";
+import { useState, useMemo } from "react";
 import { type DragStartEvent, type DragEndEvent, DragOverlay, DndContext } from "@dnd-kit/core";
 import { Stack as PrimerStack, Text, BranchName, UnderlineNav } from "@primer/react";
 import { FileDirectoryOpenFillIcon } from "@primer/octicons-react";
 
-import { MATCHED_STACKS_PER_PAGE } from "@/constants";
-
+import { PROJECT_STORAGE_NAME, MATCHED_STACKS_PER_PAGE } from "@/constants";
+import ProjectModel from "@/models/Project";
 import MainSelection from "@/frontend/modules/MainSelection";
 import DiscardedSelection from "@/frontend/modules/DiscardedSelection";
 import RowSelection from "@/frontend/modules/RowSelection";
@@ -30,12 +30,20 @@ const DraggableImage = ({ photo }: { photo: Photo }) => (
   />
 );
 
-const Project = () => {
-  const { project } = useRouterState({ select: (state) => state.location.state });
-
+const ProjectPage = () => {
   const [draggingPhoto, setDraggingPhoto] = useState<Photo | null>(null);
   const [draggingStackFrom, setDraggingStackFrom] = useState<PhotoStack | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(0);
+
+  /**
+   * TODO: Review this, refreshing the page or opening the app after standby causes the state to
+   * serialize as an object. Even if a project is then initialized from the router state, it will
+   * revert to the initial version on subsequent refreshes (using useRouterState).
+   */
+  const project = useMemo(() => {
+    const projectData = JSON.parse(localStorage.getItem(PROJECT_STORAGE_NAME) as string);
+    return new ProjectModel().loadFromJSON(projectData);
+  }, []);
 
   const handleDragStart = (event: DragStartEvent) => {
     const { stack, currentFile } = event.active.data.current as unknown as DraggableStartData;
@@ -130,5 +138,5 @@ const Project = () => {
 };
 
 export const Route = createFileRoute("/project")({
-  component: Project,
+  component: ProjectPage,
 });

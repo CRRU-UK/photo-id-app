@@ -1,5 +1,7 @@
 import type { Directory, PhotoStack, Matches, ProjectBody, PhotoBody } from "@/types";
 
+import { PROJECT_STORAGE_NAME } from "@/constants";
+
 import Photo from "./Photo";
 
 class Project {
@@ -35,14 +37,20 @@ class Project {
     this.lastModified = new Date(lastModified);
   }
 
-  private mapPhotoBodyToStack(directory: Directory, photos: PhotoBody[]): PhotoStack {
-    const items = photos.map(({ photo, thumbnail }) => new Photo(directory, photo, thumbnail));
+  private mapPhotoBodyToStack(
+    directory: Directory,
+    photos: PhotoBody[] | Set<PhotoBody>,
+  ): PhotoStack {
+    const items = Array.from(photos).map(({ name, thumbnail }) => {
+      return new Photo(directory, name, thumbnail);
+    });
+
     return new Set(items);
   }
 
   private mapPhotoStackToBody(photos: PhotoStack): PhotoBody[] {
     return Array.from(photos).map((photo) => ({
-      photo: photo.getFileName(),
+      name: photo.getFileName(),
       thumbnail: photo.thumbnail,
     }));
   }
@@ -65,7 +73,7 @@ class Project {
 
     this.discarded = this.mapPhotoBodyToStack(directory, discarded);
 
-    const matchedSets = matched.map(({ id, left, right }) => ({
+    const matchedSets = Array.from(matched).map(({ id, left, right }) => ({
       id,
       left: {
         name: left.name,
@@ -114,7 +122,10 @@ class Project {
 
   public save() {
     this.lastModified = new Date();
-    window.electronAPI.saveProject(this.returnAsJSONString());
+
+    const data = this.returnAsJSONString();
+    window.localStorage.setItem(PROJECT_STORAGE_NAME, data);
+    window.electronAPI.saveProject(data);
   }
 
   public addPhotoToStack(from: PhotoStack, to: PhotoStack, photo: Photo): this {

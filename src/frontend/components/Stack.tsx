@@ -1,6 +1,6 @@
 import type { PhotoStack, EditWindowData } from "@/types";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo } from "react";
 import { useDraggable } from "@dnd-kit/core";
 
 import { Stack as PrimerStack, CounterLabel, ButtonGroup, IconButton } from "@primer/react";
@@ -144,4 +144,4 @@ const Stack = ({ photos }: StackProps) => {
   );
 };
 
-export default Stack;
+export default memo(Stack);

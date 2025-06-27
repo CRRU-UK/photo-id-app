@@ -21,7 +21,7 @@ export type Match = {
 export type Matches = Set<Match>;
 
 export type PhotoBody = {
-  photo: string;
+  name: string;
   thumbnail: string;
 };
 
@@ -30,19 +30,19 @@ export type ProjectBody = {
   id: string;
   directory: Directory;
   totalPhotos: number;
-  photos: PhotoBody[];
+  photos: PhotoBody[] | Set<PhotoBody>;
   matched: {
     id: number;
     left: {
-      photos: PhotoBody[];
+      photos: PhotoBody[] | Set<PhotoBody>;
       name: string;
     };
     right: {
-      photos: PhotoBody[];
+      photos: PhotoBody[] | Set<PhotoBody>;
       name: string;
     };
   }[];
-  discarded: PhotoBody[];
+  discarded: PhotoBody[] | Set<PhotoBody>;
   created: string;
   lastModified: string;
 };

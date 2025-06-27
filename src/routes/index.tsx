@@ -7,15 +7,13 @@ import { FileDirectoryIcon, FileIcon } from "@primer/octicons-react";
 
 import { version } from "../../package.json";
 
-import Project from "@/models/Project";
-
 import LoadingOverlay, { type LoadingOverlayProps } from "@/frontend/modules/LoadingOverlay";
 import RecentProjects from "@/frontend/modules/RecentProjects";
 import logo from "@/frontend/img/logo.png";
 
-import { PROJECT_FILE_NAME } from "@/constants";
+import { PROJECT_FILE_NAME, PROJECT_STORAGE_NAME } from "@/constants";
 
-const Index = () => {
+const IndexPage = () => {
   const [recentProjects, setRecentProjects] = useState<RecentProject[] | null>(null);
   const [loading, setLoading] = useState<LoadingOverlayProps>({ show: false });
 
@@ -24,11 +22,8 @@ const Index = () => {
     window.electronAPI.onLoading((show, text) => setLoading({ show, text }));
 
     window.electronAPI.onLoadProject((data) => {
-      const project = new Project().loadFromJSON(data);
-      return navigate({
-        to: "/project",
-        state: { project },
-      });
+      localStorage.setItem(PROJECT_STORAGE_NAME, JSON.stringify(data));
+      return navigate({ to: "/project" });
     });
   });
 
@@ -121,5 +116,5 @@ const Index = () => {
 };
 
 export const Route = createFileRoute("/")({
-  component: Index,
+  component: IndexPage,
 });

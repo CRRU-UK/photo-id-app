@@ -106,8 +106,8 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
     id: crypto.randomUUID(),
     directory,
     totalPhotos: photos.length,
-    photos: photos.map((photo, index) => ({
-      photo,
+    photos: photos.map((name, index) => ({
+      name,
       thumbnail: thumbnails[index],
     })),
     matched: defaultMatches,

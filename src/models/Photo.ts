@@ -5,8 +5,8 @@ import File from "./File";
 class Photo extends File {
   readonly thumbnail: string;
 
-  constructor(directory: Directory, file: FileName, thumbnail: FileName) {
-    super(directory, file);
+  constructor(directory: Directory, name: FileName, thumbnail: FileName) {
+    super(directory, name);
 
     this.thumbnail = thumbnail;
   }
