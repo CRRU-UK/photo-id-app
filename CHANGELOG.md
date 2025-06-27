@@ -1,5 +1,11 @@
 # photo-id
 
+## 0.0.9
+
+### Patch Changes
+
+- e8d29c4: Create new release
+
 ## 0.0.8
 
 ### Patch Changes
