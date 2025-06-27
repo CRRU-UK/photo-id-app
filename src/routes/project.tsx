@@ -2,13 +2,14 @@ import type Photo from "@/models/Photo";
 import type { DraggableStartData, DraggableEndData, PhotoStack } from "../types";
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { type DragStartEvent, type DragEndEvent, DragOverlay, DndContext } from "@dnd-kit/core";
 import { Stack as PrimerStack, IconButton, UnderlineNav } from "@primer/react";
 import { ReplyIcon } from "@primer/octicons-react";
 
 import { PROJECT_STORAGE_NAME, MATCHED_STACKS_PER_PAGE } from "@/constants";
 import ProjectModel from "@/models/Project";
+import LoadingOverlay, { type LoadingOverlayProps } from "@/frontend/modules/LoadingOverlay";
 import MainSelection from "@/frontend/modules/MainSelection";
 import DiscardedSelection from "@/frontend/modules/DiscardedSelection";
 import RowSelection from "@/frontend/modules/RowSelection";
@@ -34,6 +35,7 @@ const ProjectPage = () => {
   const [draggingPhoto, setDraggingPhoto] = useState<Photo | null>(null);
   const [draggingStackFrom, setDraggingStackFrom] = useState<PhotoStack | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(0);
+  const [loading, setLoading] = useState<LoadingOverlayProps>({ show: false });
 
   /**
    * TODO: Review this, refreshing the page or opening the app after standby causes the state to
@@ -42,6 +44,7 @@ const ProjectPage = () => {
    */
   const project = useMemo(() => {
     const projectData = JSON.parse(localStorage.getItem(PROJECT_STORAGE_NAME) as string);
+    console.log("projectData", projectData);
     return new ProjectModel().loadFromJSON(projectData);
   }, []);
 
@@ -66,6 +69,18 @@ const ProjectPage = () => {
   };
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    console.log("mounting...");
+
+    window.electronAPI.onLoading((show, text) => setLoading({ show, text }));
+
+    window.electronAPI.onLoadProject((data) => {
+      localStorage.setItem(PROJECT_STORAGE_NAME, JSON.stringify(data));
+      window.location.reload();
+    });
+  });
+
   const handleClose = () => navigate({ to: "/" });
 
   const matchedArray = Array.from(project.matched);
@@ -94,21 +109,24 @@ const ProjectPage = () => {
   });
 
   return (
-    <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-      <DragOverlay>{draggingPhoto ? <DraggableImage photo={draggingPhoto} /> : null}</DragOverlay>
+    <>
+      <LoadingOverlay show={loading.show} text={loading?.text} />
 
-      <div className="project">
-        <div className="sidebar">
-          <PrimerStack
-            direction="vertical"
-            align="start"
-            justify="space-between"
-            style={{ height: "100%" }}
-          >
-            {project && <MainSelection photos={project.photos} total={project.totalPhotos} />}
-            {project && <DiscardedSelection photos={project.discarded} />}
+      <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+        <DragOverlay>{draggingPhoto ? <DraggableImage photo={draggingPhoto} /> : null}</DragOverlay>
 
-            {project?.directory && (
+        <div className="project">
+          <div className="sidebar">
+            <PrimerStack
+              direction="vertical"
+              align="start"
+              justify="space-between"
+              padding="normal"
+              style={{ minHeight: "100%" }}
+            >
+              <MainSelection photos={project.photos} total={project.totalPhotos} />
+              <DiscardedSelection photos={project.discarded} />
+
               <div style={{ marginTop: "auto" }}>
                 <IconButton
                   icon={ReplyIcon}
@@ -117,23 +135,23 @@ const ProjectPage = () => {
                   onClick={() => handleClose()}
                 />
               </div>
-            )}
-          </PrimerStack>
-        </div>
+            </PrimerStack>
+          </div>
 
-        <UnderlineNav aria-label="Pages" className="pages">
-          {matchedPages}
-        </UnderlineNav>
+          <UnderlineNav aria-label="Pages" className="pages">
+            {matchedPages}
+          </UnderlineNav>
 
-        <div className="content">
-          <div className="grid">
-            {matchedRows.map((item) => (
-              <RowSelection key={item.id} match={item} />
-            ))}
+          <div className="content">
+            <div className="grid">
+              {matchedRows.map((item) => (
+                <RowSelection key={item.id} match={item} />
+              ))}
+            </div>
           </div>
         </div>
-      </div>
-    </DndContext>
+      </DndContext>
+    </>
   );
 };
 

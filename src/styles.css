@@ -24,7 +24,6 @@ textarea,
   position: fixed;
   left: 0;
   top: 0;
-  padding: var(--stack-gap-normal);
   width: 380px;
   height: 100%;
   border-right: var(--borderWidth-default) var(--borderColor-muted) solid;
