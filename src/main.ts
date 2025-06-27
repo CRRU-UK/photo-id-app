@@ -26,7 +26,7 @@ const basePath = path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/inde
 
 let mainWindow: BrowserWindow;
 
-const createWindow = () => {
+const createMainWindow = () => {
   mainWindow = new BrowserWindow({
     width: 1400,
     height: 800,
@@ -36,6 +36,8 @@ const createWindow = () => {
       webSecurity: false,
     },
   });
+
+  mainWindow.maximize();
 
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
     mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
@@ -86,7 +88,7 @@ const createWindow = () => {
   }
 };
 
-app.on("ready", createWindow);
+app.on("ready", createMainWindow);
 
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
@@ -96,7 +98,7 @@ app.on("window-all-closed", () => {
 
 app.on("activate", () => {
   if (BrowserWindow.getAllWindows().length === 0) {
-    createWindow();
+    createMainWindow();
   }
 });
 
@@ -128,7 +130,7 @@ app.whenReady().then(() => {
   ipcMain.on("open-edit-window", (event, data: string) => {
     const [x, y] = mainWindow.getPosition();
 
-    const child = new BrowserWindow({
+    const editWindow = new BrowserWindow({
       show: false,
       width: 1400,
       height: 800,
@@ -144,15 +146,15 @@ app.whenReady().then(() => {
     });
 
     if (!app.isPackaged) {
-      child.webContents.openDevTools();
+      editWindow.webContents.openDevTools();
     }
 
     const decoded = JSON.parse(atob(data)) as EditWindowData;
 
     if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
-      child.loadURL(`${MAIN_WINDOW_VITE_DEV_SERVER_URL}?data=${data}#/edit`);
+      editWindow.loadURL(`${MAIN_WINDOW_VITE_DEV_SERVER_URL}?data=${data}#/edit`);
     } else {
-      child.loadURL(
+      editWindow.loadURL(
         url.format({
           protocol: "file",
           slashes: true,
@@ -163,9 +165,9 @@ app.whenReady().then(() => {
       );
     }
 
-    child.once("ready-to-show", () => {
-      child.setTitle(`${DEFAULT_WINDOW_TITLE} - ${decoded.path}`);
-      child.show();
+    editWindow.once("ready-to-show", () => {
+      editWindow.setTitle(`${DEFAULT_WINDOW_TITLE} - ${decoded.path}`);
+      editWindow.show();
     });
   });
 
