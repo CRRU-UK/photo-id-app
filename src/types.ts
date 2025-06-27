@@ -30,19 +30,19 @@ export type ProjectBody = {
   id: string;
   directory: Directory;
   totalPhotos: number;
-  photos: PhotoBody[] | Set<PhotoBody>;
+  photos: PhotoBody[];
   matched: {
     id: number;
     left: {
-      photos: PhotoBody[] | Set<PhotoBody>;
+      photos: PhotoBody[];
       name: string;
     };
     right: {
-      photos: PhotoBody[] | Set<PhotoBody>;
+      photos: PhotoBody[];
       name: string;
     };
   }[];
-  discarded: PhotoBody[] | Set<PhotoBody>;
+  discarded: PhotoBody[];
   created: string;
   lastModified: string;
 };

@@ -17,11 +17,11 @@ import {
 import { createPhotoThumbnail } from "@/backend/photos";
 import { addRecentProject } from "@/backend/recents";
 
-const sendData = async (mainWindow: Electron.BrowserWindow, data: ProjectBody) => {
+const sendData = (mainWindow: Electron.BrowserWindow, data: ProjectBody) => {
   mainWindow.setTitle(`${DEFAULT_WINDOW_TITLE} - ${data.directory}`);
   mainWindow.webContents.send("load-project", data);
 
-  await addRecentProject({
+  addRecentProject({
     name: path.basename(data.directory),
     path: path.join(data.directory, PROJECT_FILE_NAME),
   });
@@ -147,7 +147,7 @@ const handleOpenFilePrompt = async (mainWindow: Electron.BrowserWindow) => {
 /**
  * Handles opening a recent project file.
  */
-const handleOpenProjectFile = async (mainWindow: Electron.BrowserWindow, file: string) => {
+const handleOpenProjectFile = (mainWindow: Electron.BrowserWindow, file: string) => {
   mainWindow.webContents.send("loading", true, "Opening project");
 
   const data = fs.readFileSync(file, "utf8");
@@ -157,7 +157,7 @@ const handleOpenProjectFile = async (mainWindow: Electron.BrowserWindow, file: s
 /**
  * Handles saving a project file.
  */
-const handleSaveProject = async (data: string) => {
+const handleSaveProject = (data: string) => {
   const { directory } = JSON.parse(data) as ProjectBody;
   fs.writeFileSync(path.join(directory, PROJECT_FILE_NAME), data, "utf8");
 };

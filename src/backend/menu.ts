@@ -4,7 +4,7 @@ import { app, shell } from "electron";
 
 import { handleOpenDirectoryPrompt, handleOpenFilePrompt } from "@/backend/projects";
 
-const getMenu = (mainWindow: BrowserWindow, withProjectOptions: boolean) => {
+const getMenu = (mainWindow: BrowserWindow) => {
   const isMac = process.platform === "darwin";
 
   const template: Electron.MenuItemConstructorOptions[] = [
@@ -29,24 +29,20 @@ const getMenu = (mainWindow: BrowserWindow, withProjectOptions: boolean) => {
     {
       label: "File",
       submenu: [
-        ...(withProjectOptions
-          ? [
-              {
-                label: "Open Project Folder",
-                accelerator: "CmdOrCtrl+O",
-                async click() {
-                  handleOpenDirectoryPrompt(mainWindow);
-                },
-              },
-              {
-                label: "Open Project File",
-                accelerator: "CmdOrCtrl+Shift+O",
-                async click() {
-                  handleOpenFilePrompt(mainWindow);
-                },
-              },
-            ]
-          : []),
+        {
+          label: "Open Project Folder",
+          accelerator: "CmdOrCtrl+O",
+          async click() {
+            handleOpenDirectoryPrompt(mainWindow);
+          },
+        },
+        {
+          label: "Open Project File",
+          accelerator: "CmdOrCtrl+Shift+O",
+          async click() {
+            handleOpenFilePrompt(mainWindow);
+          },
+        },
         isMac ? { role: "close" } : { role: "quit" },
       ],
     },

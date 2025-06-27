@@ -1,6 +1,3 @@
-import type Project from "./models/Project";
-import type { ProjectBody } from "./types";
-
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { RouterProvider, createHashHistory, createRouter } from "@tanstack/react-router";
@@ -22,9 +19,6 @@ const router = createRouter({ routeTree, history: memoryHistory });
 declare module "@tanstack/react-router" {
   interface Register {
     router: typeof router;
-  }
-  interface HistoryState {
-    project: Project | ProjectBody;
   }
 }
 

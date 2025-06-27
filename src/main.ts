@@ -60,7 +60,7 @@ const createMainWindow = () => {
     });
   });
 
-  const menu = Menu.buildFromTemplate(getMenu(mainWindow, true));
+  const menu = Menu.buildFromTemplate(getMenu(mainWindow));
   Menu.setApplicationMenu(menu);
 
   if (!app.isPackaged) {

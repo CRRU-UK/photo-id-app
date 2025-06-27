@@ -37,14 +37,8 @@ class Project {
     this.lastModified = new Date(lastModified);
   }
 
-  private mapPhotoBodyToStack(
-    directory: Directory,
-    photos: PhotoBody[] | Set<PhotoBody>,
-  ): PhotoStack {
-    const items = Array.from(photos).map(({ name, thumbnail }) => {
-      return new Photo(directory, name, thumbnail);
-    });
-
+  private mapPhotoBodyToStack(directory: Directory, photos: PhotoBody[]): PhotoStack {
+    const items = photos.map(({ name, thumbnail }) => new Photo(directory, name, thumbnail));
     return new Set(items);
   }
 
@@ -73,7 +67,7 @@ class Project {
 
     this.discarded = this.mapPhotoBodyToStack(directory, discarded);
 
-    const matchedSets = Array.from(matched).map(({ id, left, right }) => ({
+    const matchedSets = matched.map(({ id, left, right }) => ({
       id,
       left: {
         name: left.name,

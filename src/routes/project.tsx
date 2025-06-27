@@ -37,14 +37,8 @@ const ProjectPage = () => {
   const [currentPage, setCurrentPage] = useState<number>(0);
   const [loading, setLoading] = useState<LoadingOverlayProps>({ show: false });
 
-  /**
-   * TODO: Review this, refreshing the page or opening the app after standby causes the state to
-   * serialize as an object. Even if a project is then initialized from the router state, it will
-   * revert to the initial version on subsequent refreshes (using useRouterState).
-   */
   const project = useMemo(() => {
     const projectData = JSON.parse(localStorage.getItem(PROJECT_STORAGE_NAME) as string);
-    console.log("projectData", projectData);
     return new ProjectModel().loadFromJSON(projectData);
   }, []);
 
@@ -71,10 +65,11 @@ const ProjectPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    console.log("mounting...");
-
     window.electronAPI.onLoading((show, text) => setLoading({ show, text }));
 
+    /**
+     * TODO: Fix this, buggy when navigating back and then to a project
+     */
     window.electronAPI.onLoadProject((data) => {
       localStorage.setItem(PROJECT_STORAGE_NAME, JSON.stringify(data));
       window.location.reload();
