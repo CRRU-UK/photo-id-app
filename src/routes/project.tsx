@@ -1,11 +1,11 @@
 import type Photo from "@/models/Photo";
 import type { DraggableStartData, DraggableEndData, PhotoStack } from "../types";
 
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
 import { type DragStartEvent, type DragEndEvent, DragOverlay, DndContext } from "@dnd-kit/core";
-import { Stack as PrimerStack, Text, BranchName, UnderlineNav } from "@primer/react";
-import { FileDirectoryOpenFillIcon } from "@primer/octicons-react";
+import { Stack as PrimerStack, IconButton, UnderlineNav } from "@primer/react";
+import { ReplyIcon } from "@primer/octicons-react";
 
 import { PROJECT_STORAGE_NAME, MATCHED_STACKS_PER_PAGE } from "@/constants";
 import ProjectModel from "@/models/Project";
@@ -65,6 +65,9 @@ const ProjectPage = () => {
     setDraggingPhoto(null);
   };
 
+  const navigate = useNavigate();
+  const handleClose = () => navigate({ to: "/" });
+
   const matchedArray = Array.from(project.matched);
 
   const matchedRows = matchedArray.slice(
@@ -107,15 +110,12 @@ const ProjectPage = () => {
 
             {project?.directory && (
               <div style={{ marginTop: "auto" }}>
-                <Text
-                  size="small"
-                  weight="light"
-                  sx={{ display: "block", color: "var(--fgColor-muted)" }}
-                >
-                  <FileDirectoryOpenFillIcon size="small" />
-                  Currently viewing:
-                </Text>
-                <BranchName>{project.directory}</BranchName>
+                <IconButton
+                  icon={ReplyIcon}
+                  variant="invisible"
+                  aria-label="Close project"
+                  onClick={() => handleClose()}
+                />
               </div>
             )}
           </PrimerStack>
