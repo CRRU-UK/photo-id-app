@@ -132,9 +132,18 @@ textarea,
   left: 0;
   top: 0;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   width: 100%;
   height: 100%;
   background: rgba(0, 0, 0, 0.8);
+}
+
+.loading > .text {
+  margin-top: 20px;
+  font-size: var(--text-title-size-medium);
+  font-weight: var(--base-text-weight-semibold);
+  font-family: var(--BaseStyles-fontFamily);
+  color: var(--BaseStyles-fgColor, var(--fgColor-default, var(--color-fg-default)));
 }

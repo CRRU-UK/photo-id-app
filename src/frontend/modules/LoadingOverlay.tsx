@@ -1,17 +1,19 @@
 import { Spinner } from "@primer/react";
 
-interface LoadingOverlayProps {
-  active: boolean;
+export interface LoadingOverlayProps {
+  show: boolean;
+  text?: string;
 }
 
-const LoadingOverlay = ({ active }: LoadingOverlayProps) => {
-  if (!active) {
+const LoadingOverlay = ({ show, text }: LoadingOverlayProps) => {
+  if (!show) {
     return null;
   }
 
   return (
     <div className="loading">
       <Spinner size="large" />
+      {text && <span className="text">{text}</span>}
     </div>
   );
 };

@@ -16,7 +16,7 @@ import { ZoomOutIcon, ZoomInIcon, CheckIcon, XIcon } from "@primer/octicons-reac
 
 import { LINE_SIZES, DEFAULT_LINE_COLOR } from "@/constants";
 import { readFileAsString } from "@/helpers";
-import LoadingOverlay from "@/frontend/modules/LoadingOverlay";
+import LoadingOverlay, { type LoadingOverlayProps } from "@/frontend/modules/LoadingOverlay";
 
 interface SliderProps {
   name: string;
@@ -50,7 +50,7 @@ interface ImageEditorProps {
 }
 
 const ImageEditor = ({ data, image }: ImageEditorProps) => {
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<LoadingOverlayProps>({ show: false });
 
   const {
     canvasRef,
@@ -83,7 +83,7 @@ const ImageEditor = ({ data, image }: ImageEditorProps) => {
   });
 
   const handleSave = async () => {
-    setLoading(true);
+    setLoading({ show: true, text: "Saving photo" });
 
     const editedFile = await generateEditedFile();
     const editedFileData = await readFileAsString(editedFile as File);
@@ -92,12 +92,12 @@ const ImageEditor = ({ data, image }: ImageEditorProps) => {
   };
 
   useEffect(() => {
-    window.electronAPI.onLoading((isLoading) => setLoading(isLoading));
+    window.electronAPI.onLoading((show, text) => setLoading({ show, text }));
   });
 
   return (
     <>
-      <LoadingOverlay active={loading} />
+      <LoadingOverlay show={loading.show} text={loading?.text} />
 
       <div className="edit">
         <div className="toolbar">
@@ -123,8 +123,8 @@ const ImageEditor = ({ data, image }: ImageEditorProps) => {
             <Text
               id="captioned-toggle-label"
               sx={{
-                fontSize: "var(--text-body-size-medium, .875rem)",
-                fontWeight: "var(--base-text-weight-semibold, 600)",
+                fontSize: "var(--text-body-size-medium)",
+                fontWeight: "var(--base-text-weight-semibold)",
               }}
             >
               Draw

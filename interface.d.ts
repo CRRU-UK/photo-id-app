@@ -12,7 +12,7 @@ export interface IElectronAPI {
   savePhotoFile: (data: EditWindowData, photo: ArrayBuffer) => Promise<void>;
 
   // Listeners (renderer)
-  onLoading: (callback: (value: boolean) => void) => void;
+  onLoading: (callback: (show: boolean, text?: string) => void) => void;
   onLoadProject: (callback: (value: ProjectBody) => void) => void;
   onLoadRecentProjects: (callback: (value: RecentProjects) => void) => void;
   onRefreshStackImages: (callback: (name: string) => void) => void;

@@ -9,7 +9,7 @@ import { version } from "../../package.json";
 
 import Project from "@/models/Project";
 
-import LoadingOverlay from "@/frontend/modules/LoadingOverlay";
+import LoadingOverlay, { type LoadingOverlayProps } from "@/frontend/modules/LoadingOverlay";
 import RecentProjects from "@/frontend/modules/RecentProjects";
 import logo from "@/frontend/img/logo.png";
 
@@ -17,14 +17,11 @@ import { PROJECT_FILE_NAME } from "@/constants";
 
 const Index = () => {
   const [recentProjects, setRecentProjects] = useState<RecentProject[] | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<LoadingOverlayProps>({ show: false });
 
   const navigate = useNavigate();
   useEffect(() => {
-    window.electronAPI.onLoading((isLoading) => {
-      console.log("loading", loading);
-      setLoading(isLoading);
-    });
+    window.electronAPI.onLoading((show, text) => setLoading({ show, text }));
 
     window.electronAPI.onLoadProject((data) => {
       const project = new Project().loadFromJSON(data);
@@ -50,7 +47,7 @@ const Index = () => {
 
   return (
     <>
-      <LoadingOverlay active={loading} />
+      <LoadingOverlay show={loading.show} text={loading?.text} />
 
       <PageLayout
         sx={{
