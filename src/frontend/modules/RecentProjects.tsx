@@ -9,7 +9,7 @@ import {
   Spinner,
   IconButton,
 } from "@primer/react";
-import { HistoryIcon, XIcon } from "@primer/octicons-react";
+import { HistoryIcon, TrashIcon } from "@primer/octicons-react";
 
 interface RecentProjectsProps {
   projects: RecentProject[] | null;
@@ -74,9 +74,9 @@ const RecentProjectsList = ({ projects }: RecentProjectsListProps) => {
               </div>
 
               <IconButton
-                icon={XIcon}
+                icon={TrashIcon}
                 size="small"
-                variant="danger"
+                variant="invisible"
                 aria-label="Remove recent project"
                 onClick={() => handleRemoveRecentProject(item.path)}
               />
