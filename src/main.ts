@@ -167,6 +167,6 @@ app.whenReady().then(() => {
 
     const webContents = event.sender;
     const editWindow = BrowserWindow.fromWebContents(webContents) as BrowserWindow;
-    editWindow.webContents.send("loading", false);
+    editWindow.webContents.send("set-loading", false);
   });
 });

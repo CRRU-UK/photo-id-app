@@ -53,7 +53,7 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
 
     // Cancelled
     if (response === 0) {
-      mainWindow.webContents.send("loading", false);
+      mainWindow.webContents.send("set-loading", false);
       return;
     }
 
@@ -66,7 +66,7 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
     // Otherwise, create and open new project...
   }
 
-  mainWindow.webContents.send("loading", true, "Preparing project");
+  mainWindow.webContents.send("set-loading", true, "Preparing project");
 
   const photos = files.filter((fileName) => {
     // Filter directories
@@ -132,11 +132,11 @@ const handleOpenFilePrompt = async (mainWindow: Electron.BrowserWindow) => {
   });
 
   if (event.canceled) {
-    mainWindow.webContents.send("loading", false);
+    mainWindow.webContents.send("set-loading", false);
     return;
   }
 
-  mainWindow.webContents.send("loading", true, "Opening project");
+  mainWindow.webContents.send("set-loading", true, "Opening project");
 
   const [file] = event.filePaths;
 
@@ -148,7 +148,7 @@ const handleOpenFilePrompt = async (mainWindow: Electron.BrowserWindow) => {
  * Handles opening a recent project file.
  */
 const handleOpenProjectFile = (mainWindow: Electron.BrowserWindow, file: string) => {
-  mainWindow.webContents.send("loading", true, "Opening project");
+  mainWindow.webContents.send("set-loading", true, "Opening project");
 
   const data = fs.readFileSync(file, "utf8");
   return sendData(mainWindow, JSON.parse(data) as ProjectBody);
