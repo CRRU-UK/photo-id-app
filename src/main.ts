@@ -1,6 +1,7 @@
 import type { EditWindowData } from "@/types";
 
 import path from "path";
+import url from "url";
 import { app, BrowserWindow, ipcMain, Menu } from "electron";
 import started from "electron-squirrel-startup";
 import { updateElectronApp } from "update-electron-app";
@@ -21,7 +22,7 @@ if (started) {
   app.quit();
 }
 
-const basePath = path.join("file://", __dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`);
+const basePath = path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`);
 
 let mainWindow: BrowserWindow;
 
@@ -39,7 +40,13 @@ const createWindow = () => {
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
     mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
   } else {
-    mainWindow.loadURL(basePath);
+    mainWindow.loadURL(
+      url.format({
+        protocol: "file",
+        slashes: true,
+        pathname: basePath,
+      }),
+    );
   }
 
   mainWindow.webContents.on("did-create-window", (window) => {
@@ -143,9 +150,17 @@ app.whenReady().then(() => {
     const decoded = JSON.parse(atob(data)) as EditWindowData;
 
     if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
-      child.loadURL(`${MAIN_WINDOW_VITE_DEV_SERVER_URL}#/edit?data=${data}`);
+      child.loadURL(`${MAIN_WINDOW_VITE_DEV_SERVER_URL}?data=${data}#/edit`);
     } else {
-      child.loadURL(`${basePath}#/edit?data=${data}`);
+      child.loadURL(
+        url.format({
+          protocol: "file",
+          slashes: true,
+          pathname: basePath,
+          hash: "#/edit",
+          search: `?data=${data}`,
+        }),
+      );
     }
 
     child.once("ready-to-show", () => {

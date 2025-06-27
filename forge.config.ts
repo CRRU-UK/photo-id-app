@@ -60,7 +60,6 @@ const config: ForgeConfig = {
           name: "photo-id-app",
         },
         force: true,
-        prerelease: true,
         generateReleaseNotes: true,
       },
     },

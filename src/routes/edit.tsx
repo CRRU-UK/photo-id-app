@@ -16,9 +16,7 @@ const Edit = () => {
   const [file, setFile] = useState<File | null>(null);
 
   // For hash routing
-  const hash = window.location.hash.substring(1);
-  const queryString = hash.split("?")[1];
-  const queryValue = new URLSearchParams(queryString).get("data")!;
+  const queryValue = new URLSearchParams(window.location.search).get("data")!;
 
   useEffect(() => {
     async function fetchData() {
