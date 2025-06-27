@@ -1,5 +1,6 @@
 import type { EditWindowData } from "@/types";
 
+import { useState, useEffect } from "react";
 import { usePhotoEditor } from "react-photo-editor";
 import {
   Stack,
@@ -15,6 +16,7 @@ import { ZoomOutIcon, ZoomInIcon, CheckIcon, XIcon } from "@primer/octicons-reac
 
 import { LINE_SIZES, DEFAULT_LINE_COLOR } from "@/constants";
 import { readFileAsString } from "@/helpers";
+import LoadingOverlay from "@/frontend/modules/LoadingOverlay";
 
 interface SliderProps {
   name: string;
@@ -48,6 +50,8 @@ interface ImageEditorProps {
 }
 
 const ImageEditor = ({ data, image }: ImageEditorProps) => {
+  const [loading, setLoading] = useState<boolean>(false);
+
   const {
     canvasRef,
     setBrightness,
@@ -79,104 +83,120 @@ const ImageEditor = ({ data, image }: ImageEditorProps) => {
   });
 
   const handleSave = async () => {
+    setLoading(true);
+
     const editedFile = await generateEditedFile();
     const editedFileData = await readFileAsString(editedFile as File);
 
     window.electronAPI.savePhotoFile(data, editedFileData);
   };
 
+  useEffect(() => {
+    window.electronAPI.onLoading((isLoading) => setLoading(isLoading));
+  });
+
   return (
-    <div className="edit">
-      <div className="toolbar">
-        <Stack direction="horizontal" align="center">
-          <Slider name="Brightness" value={brightness} min={0} max={200} callback={setBrightness} />
-          <Slider name="Contrast" value={contrast} min={0} max={200} callback={setContrast} />
-          <Slider name="Saturation" value={saturate} min={0} max={200} callback={setSaturate} />
-          <Slider name="Grayscale" value={grayscale} min={0} max={100} callback={setGrayscale} />
-        </Stack>
+    <>
+      <LoadingOverlay active={loading} />
 
-        <Stack
-          direction="horizontal"
-          align="center"
-          gap="condensed"
-          sx={{ marginLeft: "auto", marginRight: "auto" }}
-        >
-          <Text
-            id="captioned-toggle-label"
-            sx={{
-              fontSize: "var(--text-body-size-medium, .875rem)",
-              fontWeight: "var(--base-text-weight-semibold, 600)",
-            }}
-          >
-            Draw
-          </Text>
-
-          <ToggleSwitch
-            size="small"
-            aria-labelledby="draw-toggle"
-            statusLabelPosition="end"
-            checked={mode == "draw"}
-            onClick={() => setMode(mode === "pan" ? "draw" : "pan")}
-          />
-
-          <div className="colour-picker">
-            <label
-              htmlFor="line-colour"
-              style={{ backgroundColor: lineColor }}
-              aria-label="Colour"
+      <div className="edit">
+        <div className="toolbar">
+          <Stack direction="horizontal" align="center">
+            <Slider
+              name="Brightness"
+              value={brightness}
+              min={0}
+              max={200}
+              callback={setBrightness}
             />
-            <input
-              id="line-color"
-              type="color"
-              value={lineColor}
-              onChange={(event) => setLineColor(event.target.value)}
-            />
-          </div>
+            <Slider name="Contrast" value={contrast} min={0} max={200} callback={setContrast} />
+            <Slider name="Saturation" value={saturate} min={0} max={200} callback={setSaturate} />
+            <Slider name="Grayscale" value={grayscale} min={0} max={100} callback={setGrayscale} />
+          </Stack>
 
-          <Select
-            size="small"
-            value={String(lineWidth)}
-            onChange={(event) => setLineWidth(Number(event.target.value))}
+          <Stack
+            direction="horizontal"
+            align="center"
+            gap="condensed"
+            sx={{ marginLeft: "auto", marginRight: "auto" }}
           >
-            <Select.Option value={String(LINE_SIZES.LIGHT)}>Light</Select.Option>
-            <Select.Option value={String(LINE_SIZES.NORMAL)}>Normal</Select.Option>
-            <Select.Option value={String(LINE_SIZES.HEAVY)}>Heavy</Select.Option>
-          </Select>
-        </Stack>
+            <Text
+              id="captioned-toggle-label"
+              sx={{
+                fontSize: "var(--text-body-size-medium, .875rem)",
+                fontWeight: "var(--base-text-weight-semibold, 600)",
+              }}
+            >
+              Draw
+            </Text>
 
-        <ButtonGroup style={{ marginLeft: "auto", marginRight: "auto" }}>
-          <Button leadingVisual={ZoomOutIcon} size="small" onClick={handleZoomOut}>
-            Zoom Out
+            <ToggleSwitch
+              size="small"
+              aria-labelledby="draw-toggle"
+              statusLabelPosition="end"
+              checked={mode == "draw"}
+              onClick={() => setMode(mode === "pan" ? "draw" : "pan")}
+            />
+
+            <div className="colour-picker">
+              <label
+                htmlFor="line-colour"
+                style={{ backgroundColor: lineColor }}
+                aria-label="Colour"
+              />
+              <input
+                id="line-color"
+                type="color"
+                value={lineColor}
+                onChange={(event) => setLineColor(event.target.value)}
+              />
+            </div>
+
+            <Select
+              size="small"
+              value={String(lineWidth)}
+              onChange={(event) => setLineWidth(Number(event.target.value))}
+            >
+              <Select.Option value={String(LINE_SIZES.LIGHT)}>Light</Select.Option>
+              <Select.Option value={String(LINE_SIZES.NORMAL)}>Normal</Select.Option>
+              <Select.Option value={String(LINE_SIZES.HEAVY)}>Heavy</Select.Option>
+            </Select>
+          </Stack>
+
+          <ButtonGroup style={{ marginLeft: "auto", marginRight: "auto" }}>
+            <Button leadingVisual={ZoomOutIcon} size="small" onClick={handleZoomOut}>
+              Zoom Out
+            </Button>
+            <Button leadingVisual={ZoomInIcon} size="small" onClick={handleZoomIn}>
+              Zoom In
+            </Button>
+          </ButtonGroup>
+
+          <Button
+            leadingVisual={XIcon}
+            size="small"
+            variant="danger"
+            onClick={resetFilters}
+            style={{ marginRight: "var(--stack-gap-normal)" }}
+          >
+            Reset
           </Button>
-          <Button leadingVisual={ZoomInIcon} size="small" onClick={handleZoomIn}>
-            Zoom In
+
+          <Button leadingVisual={CheckIcon} size="small" variant="primary" onClick={handleSave}>
+            Save
           </Button>
-        </ButtonGroup>
+        </div>
 
-        <Button
-          leadingVisual={XIcon}
-          size="small"
-          variant="danger"
-          onClick={resetFilters}
-          style={{ marginRight: "var(--stack-gap-normal)" }}
-        >
-          Reset
-        </Button>
-
-        <Button leadingVisual={CheckIcon} size="small" variant="primary" onClick={handleSave}>
-          Save
-        </Button>
+        <canvas
+          ref={canvasRef}
+          className={`canvas ${mode}`}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          onWheel={handleWheel}
+        />
       </div>
-
-      <canvas
-        ref={canvasRef}
-        className={`canvas ${mode}`}
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerUp}
-        onWheel={handleWheel}
-      />
-    </div>
+    </>
   );
 };
 

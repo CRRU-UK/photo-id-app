@@ -40,6 +40,8 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
     return;
   }
 
+  mainWindow.webContents.send("loading", true);
+
   const [directory] = event.filePaths;
 
   const files = fs.readdirSync(directory);
@@ -53,6 +55,7 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
 
     // Cancelled
     if (response === 0) {
+      mainWindow.webContents.send("loading", false);
       return;
     }
 
@@ -129,8 +132,11 @@ const handleOpenFilePrompt = async (mainWindow: Electron.BrowserWindow) => {
   });
 
   if (event.canceled) {
+    mainWindow.webContents.send("loading", false);
     return;
   }
+
+  mainWindow.webContents.send("loading", true);
 
   const [file] = event.filePaths;
 
@@ -142,6 +148,8 @@ const handleOpenFilePrompt = async (mainWindow: Electron.BrowserWindow) => {
  * Handles opening a recent project file.
  */
 const handleOpenProjectFile = async (mainWindow: Electron.BrowserWindow, file: string) => {
+  mainWindow.webContents.send("loading", true);
+
   const data = fs.readFileSync(file, "utf8");
   return sendData(mainWindow, JSON.parse(data) as ProjectBody);
 };

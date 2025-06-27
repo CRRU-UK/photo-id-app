@@ -128,14 +128,10 @@ app.whenReady().then(() => {
   });
 
   ipcMain.on("open-edit-window", (event, data: string) => {
-    const [x, y] = mainWindow.getPosition();
-
     const editWindow = new BrowserWindow({
       show: false,
       width: 1400,
       height: 800,
-      x: x + 50,
-      y: y + 50,
       webPreferences: {
         preload: path.join(__dirname, "preload.js"),
         nodeIntegration: true,
@@ -178,5 +174,9 @@ app.whenReady().then(() => {
   ipcMain.on("save-photo-file", async (event, data: EditWindowData, photo: ArrayBuffer) => {
     await savePhotoFromBuffer(data, photo);
     mainWindow.webContents.send("refresh-stack-images", data.name);
+
+    const webContents = event.sender;
+    const editWindow = BrowserWindow.fromWebContents(webContents) as BrowserWindow;
+    editWindow.webContents.send("loading", false);
   });
 });

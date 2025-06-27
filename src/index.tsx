@@ -10,6 +10,7 @@ import "@primer/primitives/dist/css/functional/size/border.css";
 import "@primer/primitives/dist/css/functional/size/size.css";
 import "@primer/primitives/dist/css/functional/themes/light.css";
 import "@primer/primitives/dist/css/functional/themes/dark.css";
+import "@primer/primitives/dist/css/base/motion/motion.css";
 
 import "./styles.css";
 
