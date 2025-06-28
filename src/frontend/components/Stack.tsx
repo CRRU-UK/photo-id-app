@@ -27,6 +27,7 @@ const Stack = ({ photos }: StackProps) => {
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [currentTime, setCurrentTime] = useState<number>(new Date().getTime());
   const [actionsOpen, setActionsOpen] = useState<boolean>(false);
+  const [revertingPhoto, setRevertingPhoto] = useState<boolean>(false);
 
   const currentFile = Array.from(photos)[currentIndex % photos.size];
 
@@ -53,6 +54,9 @@ const Stack = ({ photos }: StackProps) => {
       if (currentFile?.getFileName() === name) {
         setCurrentTime(new Date().getTime());
       }
+
+      setActionsOpen(false);
+      setRevertingPhoto(false);
     });
   });
 
@@ -67,6 +71,8 @@ const Stack = ({ photos }: StackProps) => {
   };
 
   const handleRevertPhoto = () => {
+    setRevertingPhoto(true);
+
     const data: RevertPhotoData = {
       directory: currentFile.directory,
       name: currentFile.getFileName(),
@@ -74,9 +80,6 @@ const Stack = ({ photos }: StackProps) => {
     };
 
     window.electronAPI.revertPhotoFile(data);
-
-    // TODO: Show loader on action menu and remove after callback
-    setActionsOpen(false);
   };
 
   const handlePrev = () => {
@@ -165,13 +168,14 @@ const Stack = ({ photos }: StackProps) => {
               <ActionList>
                 <ActionList.Item
                   variant="danger"
-                  disabled={photos.size <= 0}
+                  disabled={photos.size <= 0 || revertingPhoto}
+                  loading={revertingPhoto}
                   onClick={() => handleRevertPhoto()}
                 >
                   <ActionList.LeadingVisual>
                     <UndoIcon />
                   </ActionList.LeadingVisual>
-                  Revert to original
+                  {revertingPhoto ? "Reverting..." : "Revert to original"}
                 </ActionList.Item>
               </ActionList>
             </ActionMenu.Overlay>

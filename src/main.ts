@@ -177,11 +177,8 @@ app.whenReady().then(() => {
   });
 
   ipcMain.on("revert-photo-file", async (event, data: RevertPhotoData) => {
-    mainWindow.webContents.send("set-loading", true, "Reverting photo");
-
     await revertPhotoToOriginal(data);
 
     mainWindow.webContents.send("refresh-stack-images", data.name);
-    mainWindow.webContents.send("set-loading", false);
   });
 });
