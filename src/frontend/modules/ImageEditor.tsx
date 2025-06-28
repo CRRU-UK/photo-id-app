@@ -135,7 +135,7 @@ const ImageEditor = ({ data, image }: ImageEditorProps) => {
               aria-label="Colour"
             />
             <input
-              id="line-color"
+              id="line-colour"
               type="color"
               value={lineColor}
               onChange={(event) => setLineColor(event.target.value)}

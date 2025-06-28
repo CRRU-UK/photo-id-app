@@ -80,11 +80,11 @@ textarea,
   background: var(--bgColor-muted);
 }
 
-.edit > .toolbar .color-picker {
+.edit > .toolbar .colour-picker {
   position: relative;
 }
 
-.edit > .toolbar .color-picker > label {
+.edit > .toolbar .colour-picker > label {
   display: block;
   width: 30px;
   height: 30px;
@@ -92,7 +92,7 @@ textarea,
   border-radius: 50%;
 }
 
-.edit > .toolbar .color-picker > input {
+.edit > .toolbar .colour-picker > input {
   position: absolute;
   left: 0;
   top: 0;
