@@ -7,7 +7,7 @@ import LoadingOverlay, { type LoadingOverlayProps } from "@/frontend/modules/Loa
 import ImageEditor from "@/frontend/modules/ImageEditor";
 
 const fetchLocalFile = async (data: EditWindowData) => {
-  const response = await fetch(`file://${data.path}`);
+  const response = await fetch(`file://${data.directory}/${data.edited}`);
   const blob = await response.blob();
   return new File([blob], data.name, { type: blob.type || "image/*" });
 };

@@ -10,6 +10,7 @@ export interface IElectronAPI {
   getRecentProjects: () => Promise<void>;
   openEditWindow: (data: string) => Promise<void>;
   savePhotoFile: (data: EditWindowData, photo: ArrayBuffer) => Promise<void>;
+  exportMatches: (data: string) => Promise<void>;
 
   // Listeners (renderer)
   onLoading: (callback: (show: boolean, text?: string) => void) => void;

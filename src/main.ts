@@ -13,6 +13,7 @@ import {
   handleOpenFilePrompt,
   handleOpenProjectFile,
   handleSaveProject,
+  handleExportMatches,
 } from "@/backend/projects";
 import { savePhotoFromBuffer } from "@/backend/photos";
 import { getRecentProjects, removeRecentProject } from "@/backend/recents";
@@ -152,16 +153,23 @@ app.whenReady().then(() => {
     editWindow.removeMenu();
 
     editWindow.once("ready-to-show", () => {
-      editWindow.setTitle(`${DEFAULT_WINDOW_TITLE} - ${decoded.path}`);
+      editWindow.setTitle(`${DEFAULT_WINDOW_TITLE} - ${decoded.directory}/${decoded.name}`);
       editWindow.show();
     });
   });
 
-  ipcMain.on("save-project", (event, data) => {
+  ipcMain.on("save-project", (event, data: string) => {
     handleSaveProject(data);
   });
 
+  ipcMain.on("export-matches", async (event, data: string) => {
+    await handleExportMatches(data);
+    mainWindow.webContents.send("set-loading", false);
+  });
+
   ipcMain.on("save-photo-file", async (event, data: EditWindowData, photo: ArrayBuffer) => {
+    console.log("data", data);
+
     await savePhotoFromBuffer(data, photo);
     mainWindow.webContents.send("refresh-stack-images", data.name);
 
