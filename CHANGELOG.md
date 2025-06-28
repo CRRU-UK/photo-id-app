@@ -1,5 +1,11 @@
 # photo-id
 
+## 0.0.10
+
+### Patch Changes
+
+- b3e57bb: UI updates
+
 ## 0.0.9
 
 ### Patch Changes

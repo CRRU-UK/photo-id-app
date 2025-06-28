@@ -16,6 +16,7 @@ import { ZoomOutIcon, ZoomInIcon, CheckIcon, XIcon } from "@primer/octicons-reac
 
 import { LINE_SIZES, DEFAULT_LINE_COLOR } from "@/constants";
 import { readFileAsString } from "@/helpers";
+import LoadingOverlay, { type LoadingOverlayProps } from "@/frontend/modules/LoadingOverlay";
 
 interface SliderProps {
   name: string;
