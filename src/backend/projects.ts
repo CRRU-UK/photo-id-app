@@ -3,7 +3,7 @@ import type { ProjectBody } from "@/types";
 import fs from "fs";
 import path from "path";
 import crypto from "crypto";
-import { dialog } from "electron";
+import { app, dialog } from "electron";
 
 import {
   DEFAULT_WINDOW_TITLE,
@@ -29,6 +29,9 @@ const sendData = (mainWindow: Electron.BrowserWindow, data: ProjectBody) => {
   });
 };
 
+const homePath = app.getPath("home");
+const desktopPath = path.resolve(homePath, "Desktop");
+
 /**
  * Handles opening, filtering, and processing a project folder.
  */
@@ -36,6 +39,7 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
   const event = await dialog.showOpenDialog({
     title: "Open Project Folder",
     properties: ["openDirectory"],
+    defaultPath: desktopPath,
   });
 
   if (event.canceled) {
@@ -137,6 +141,7 @@ const handleOpenFilePrompt = async (mainWindow: Electron.BrowserWindow) => {
     title: "Open Project File",
     properties: ["openFile"],
     filters: [{ name: "Projects", extensions: ["json"] }],
+    defaultPath: desktopPath,
   });
 
   if (event.canceled) {
