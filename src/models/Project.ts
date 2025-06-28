@@ -139,7 +139,6 @@ class Project {
 
   public exportMatches(): this {
     const data = this.returnAsJSONString();
-    window.localStorage.setItem(PROJECT_STORAGE_NAME, data);
     window.electronAPI.exportMatches(data);
 
     return this;

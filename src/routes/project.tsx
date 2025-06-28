@@ -87,7 +87,7 @@ const ProjectPage = () => {
 
   const handleExport = () => {
     setActionsOpen(false);
-    setLoading({ show: true, text: "Renaming matches" });
+    setLoading({ show: true, text: "Exporting matches" });
     project.exportMatches();
   };
 
@@ -156,7 +156,7 @@ const ProjectPage = () => {
                         <ActionList.LeadingVisual>
                           <FileMovedIcon />
                         </ActionList.LeadingVisual>
-                        Rename matches
+                        Export matches
                       </ActionList.Item>
                     </ActionList>
                   </ActionMenu.Overlay>

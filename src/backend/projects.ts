@@ -11,6 +11,7 @@ import {
   EXISTING_DATA_MESSAGE,
   EXISTING_DATA_BUTTONS,
   PROJECT_FILE_NAME,
+  PROJECT_EXPORT_DIRECTORY,
   INITIAL_MATCHED_STACKS,
 } from "@/constants";
 import { getAlphabetLetter } from "@/helpers";
@@ -43,7 +44,7 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
 
   const [directory] = event.filePaths;
 
-  const files = fs.readdirSync(directory);
+  const files = await fs.promises.readdir(directory);
 
   if (files.includes(PROJECT_FILE_NAME)) {
     const { response } = await dialog.showMessageBox({
@@ -60,7 +61,7 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
 
     // Pre-existing project
     if (response === 1) {
-      const data = fs.readFileSync(path.join(directory, PROJECT_FILE_NAME), "utf8");
+      const data = await fs.promises.readFile(path.join(directory, PROJECT_FILE_NAME), "utf8");
       return sendData(mainWindow, JSON.parse(data) as ProjectBody);
     }
 
@@ -119,7 +120,11 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
     lastModified: now,
   };
 
-  fs.writeFileSync(path.join(directory, PROJECT_FILE_NAME), JSON.stringify(data, null, 2), "utf8");
+  await fs.promises.writeFile(
+    path.join(directory, PROJECT_FILE_NAME),
+    JSON.stringify(data, null, 2),
+    "utf8",
+  );
 
   return sendData(mainWindow, data);
 };
@@ -143,26 +148,26 @@ const handleOpenFilePrompt = async (mainWindow: Electron.BrowserWindow) => {
 
   const [file] = event.filePaths;
 
-  const data = fs.readFileSync(file, "utf8");
+  const data = await fs.promises.readFile(file, "utf8");
   return sendData(mainWindow, JSON.parse(data) as ProjectBody);
 };
 
 /**
  * Handles opening a recent project file.
  */
-const handleOpenProjectFile = (mainWindow: Electron.BrowserWindow, file: string) => {
+const handleOpenProjectFile = async (mainWindow: Electron.BrowserWindow, file: string) => {
   mainWindow.webContents.send("set-loading", true, "Opening project");
 
-  const data = fs.readFileSync(file, "utf8");
+  const data = await fs.promises.readFile(file, "utf8");
   return sendData(mainWindow, JSON.parse(data) as ProjectBody);
 };
 
 /**
  * Handles saving a project file.
  */
-const handleSaveProject = (data: string) => {
+const handleSaveProject = async (data: string) => {
   const { directory } = JSON.parse(data) as ProjectBody;
-  fs.writeFileSync(path.join(directory, PROJECT_FILE_NAME), data, "utf8");
+  await fs.promises.writeFile(path.join(directory, PROJECT_FILE_NAME), data, "utf8");
 };
 
 /**
@@ -171,21 +176,33 @@ const handleSaveProject = (data: string) => {
 const handleExportMatches = async (mainWindow: Electron.BrowserWindow, data: string) => {
   const project = JSON.parse(data) as ProjectBody;
 
-  for (const match of project.matched) {
-    const matchID = getAlphabetLetter(match.id);
-
-    for (const leftPhoto of match.left.photos) {
-      const prepend = `${match.left.name || matchID}L`;
-      console.log("renaming", leftPhoto.name, "to", `${prepend}_${leftPhoto.name}`);
-    }
-
-    for (const rightPhoto of match.right.photos) {
-      const prepend = `${match.right.name || matchID}R`;
-      console.log("renaming", rightPhoto.name, "to", `${prepend}_${rightPhoto.name}`);
+  const exportsDirectory = path.join(project.directory, PROJECT_EXPORT_DIRECTORY);
+  if (!fs.existsSync(exportsDirectory)) {
+    await fs.promises.mkdir(exportsDirectory);
+  } else {
+    // Empty exports folder
+    for (const file of await fs.promises.readdir(exportsDirectory)) {
+      await fs.promises.unlink(path.join(exportsDirectory, file));
     }
   }
 
-  return sendData(mainWindow, JSON.parse(data) as ProjectBody);
+  for (const match of project.matched) {
+    const matchID = getAlphabetLetter(match.id);
+
+    for (const photo of match.left.photos) {
+      const exportedName = `${match.left.name || matchID.padStart(2, "0")}L_${photo.name}`;
+      const originalPath = path.join(project.directory, photo.edited);
+      const exportedPath = path.join(exportsDirectory, exportedName);
+      await fs.promises.copyFile(originalPath, exportedPath);
+    }
+
+    for (const photo of match.right.photos) {
+      const exportedName = `${match.right.name || matchID.padStart(2, "0")}R_${photo.name}`;
+      const originalPath = path.join(project.directory, photo.edited);
+      const exportedPath = path.join(exportsDirectory, exportedName);
+      await fs.promises.copyFile(originalPath, exportedPath);
+    }
+  }
 };
 
 export {
