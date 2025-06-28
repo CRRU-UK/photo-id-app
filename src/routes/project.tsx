@@ -36,6 +36,7 @@ const ProjectPage = () => {
   const [draggingStackFrom, setDraggingStackFrom] = useState<PhotoStack | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(0);
   const [loading, setLoading] = useState<LoadingOverlayProps>({ show: false });
+  const [isCopying, setIsCopying] = useState<boolean>(false);
 
   const project = useMemo(() => {
     const projectData = JSON.parse(localStorage.getItem(PROJECT_STORAGE_NAME) as string);
@@ -48,15 +49,16 @@ const ProjectPage = () => {
     setDraggingPhoto(currentFile);
   };
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  const handleDragEnd = async (event: DragEndEvent) => {
     const target = event.over ?? null;
     if (target) {
       const draggingStackTo = (target.data.current as DraggableEndData).photos;
-      return project.addPhotoToStack(
-        draggingStackFrom as PhotoStack,
-        draggingStackTo,
-        draggingPhoto as Photo,
-      );
+
+      if (isCopying) {
+        await project.copyPhotoToStack(draggingStackTo, draggingPhoto!);
+      } else {
+        project.addPhotoToStack(draggingStackFrom!, draggingStackTo, draggingPhoto!);
+      }
     }
 
     setDraggingPhoto(null);
@@ -74,7 +76,18 @@ const ProjectPage = () => {
       localStorage.setItem(PROJECT_STORAGE_NAME, JSON.stringify(data));
       window.location.reload();
     });
+
+    document.addEventListener("keyup", () => setIsCopying(false));
+    document.addEventListener("keydown", (event) => setIsCopying(event.ctrlKey || event.altKey));
   });
+
+  useEffect(() => {
+    console.log("draggingPhoto", draggingPhoto);
+    if (draggingPhoto && isCopying) {
+      return document.body.classList.add("copying");
+    }
+    return document.body.classList.remove("copying");
+  }, [draggingPhoto, isCopying]);
 
   const handleClose = () => navigate({ to: "/" });
 
@@ -110,7 +123,7 @@ const ProjectPage = () => {
       <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
         <DragOverlay>{draggingPhoto ? <DraggableImage photo={draggingPhoto} /> : null}</DragOverlay>
 
-        <div className="project">
+        <div className={`project ${isCopying ? "copying" : ""}`}>
           <div className="sidebar">
             <PrimerStack
               direction="vertical"

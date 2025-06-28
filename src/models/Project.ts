@@ -133,6 +133,15 @@ class Project {
     this.save();
     return this;
   }
+
+  public async copyPhotoToStack(to: PhotoStack, photo: Photo): Promise<this> {
+    await window.electronAPI.copyPhotoFile(photo.getFullPath());
+
+    to.add(photo);
+
+    this.save();
+    return this;
+  }
 }
 
 export default Project;
