@@ -1,4 +1,4 @@
-import type { EditWindowData } from "@/types";
+import type { EditWindowData, RevertPhotoData } from "@/types";
 
 import fs from "fs";
 import path from "path";
@@ -50,16 +50,22 @@ const createPhotoThumbnail = async (
     .toBuffer();
 
   const thumbnailDirectory = path.join(projectDirectory, PROJECT_THUMBNAIL_DIRECTORY);
-  console.log("thumbnailDirectory", thumbnailDirectory);
   if (!fs.existsSync(thumbnailDirectory)) {
     fs.mkdirSync(thumbnailDirectory);
   }
 
   const thumbnailPath = path.join(thumbnailDirectory, sourcePhotoName);
-  console.log("thumbnailPath", thumbnailPath);
   fs.writeFileSync(thumbnailPath, thumbnailData);
 
   return path.join(PROJECT_THUMBNAIL_DIRECTORY, sourcePhotoName);
 };
 
-export { savePhotoFromBuffer, createPhotoEditsCopy, createPhotoThumbnail };
+const revertPhotoToOriginal = async (data: RevertPhotoData) => {
+  const originalPath = path.join(data.directory, data.name);
+  const editsPath = path.join(data.directory, data.edited);
+
+  await fs.promises.copyFile(originalPath, editsPath);
+  await createPhotoThumbnail(data.name, data.directory);
+};
+
+export { savePhotoFromBuffer, createPhotoEditsCopy, createPhotoThumbnail, revertPhotoToOriginal };

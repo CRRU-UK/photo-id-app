@@ -59,6 +59,7 @@ const Selection = ({ id, photos, side, name, onNameChange }: SelectionProps) => 
           value={name}
           onChange={(event) => onNameChange(event.target.value)}
           size="small"
+          style={{ maxWidth: "80px" }}
         />
       </PrimerStack>
       <Stack photos={photos} />
