@@ -38,13 +38,16 @@ class Project {
   }
 
   private mapPhotoBodyToStack(directory: Directory, photos: PhotoBody[]): PhotoStack {
-    const items = photos.map(({ name, thumbnail }) => new Photo(directory, name, thumbnail));
+    const items = photos.map(
+      ({ name, edited, thumbnail }) => new Photo(directory, name, edited, thumbnail),
+    );
     return new Set(items);
   }
 
   private mapPhotoStackToBody(photos: PhotoStack): PhotoBody[] {
     return Array.from(photos).map((photo) => ({
       name: photo.getFileName(),
+      edited: photo.edited,
       thumbnail: photo.thumbnail,
     }));
   }
@@ -131,6 +134,14 @@ class Project {
     to.add(photo);
 
     this.save();
+    return this;
+  }
+
+  public exportMatches(): this {
+    const data = this.returnAsJSONString();
+    window.localStorage.setItem(PROJECT_STORAGE_NAME, data);
+    window.electronAPI.exportMatches(data);
+
     return this;
   }
 }

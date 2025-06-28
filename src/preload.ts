@@ -13,6 +13,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
   openEditWindow: (data: string) => ipcRenderer.send("open-edit-window", data),
   savePhotoFile: (data: EditWindowData, photo: ArrayBuffer) =>
     ipcRenderer.send("save-photo-file", data, photo),
+  exportMatches: (data: string) => ipcRenderer.send("export-matches", data),
 
   // Listeners (renderer)
   onLoading: (callback: (...params: unknown[]) => void) =>

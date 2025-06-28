@@ -13,8 +13,9 @@ import {
   PROJECT_FILE_NAME,
   INITIAL_MATCHED_STACKS,
 } from "@/constants";
+import { getAlphabetLetter } from "@/helpers";
 
-import { createPhotoThumbnail } from "@/backend/photos";
+import { createPhotoEditsCopy, createPhotoThumbnail } from "@/backend/photos";
 import { addRecentProject } from "@/backend/recents";
 
 const sendData = (mainWindow: Electron.BrowserWindow, data: ProjectBody) => {
@@ -86,9 +87,10 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
     return true;
   });
 
-  const thumbnails = await Promise.all(
-    photos.map((photo) => createPhotoThumbnail(photo, directory)),
-  );
+  const [edited, thumbnails] = await Promise.all([
+    Promise.all(photos.map((photo) => createPhotoEditsCopy(photo, directory))),
+    Promise.all(photos.map((photo) => createPhotoThumbnail(photo, directory))),
+  ]);
 
   const now = new Date().toISOString();
 
@@ -108,6 +110,7 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
     totalPhotos: photos.length,
     photos: photos.map((name, index) => ({
       name,
+      edited: edited[index],
       thumbnail: thumbnails[index],
     })),
     matched: defaultMatches,
@@ -162,9 +165,33 @@ const handleSaveProject = (data: string) => {
   fs.writeFileSync(path.join(directory, PROJECT_FILE_NAME), data, "utf8");
 };
 
+/**
+ * Handles exporting matches.
+ */
+const handleExportMatches = async (mainWindow: Electron.BrowserWindow, data: string) => {
+  const project = JSON.parse(data) as ProjectBody;
+
+  for (const match of project.matched) {
+    const matchID = getAlphabetLetter(match.id);
+
+    for (const leftPhoto of match.left.photos) {
+      const prepend = `${match.left.name || matchID}L`;
+      console.log("renaming", leftPhoto.name, "to", `${prepend}_${leftPhoto.name}`);
+    }
+
+    for (const rightPhoto of match.right.photos) {
+      const prepend = `${match.right.name || matchID}R`;
+      console.log("renaming", rightPhoto.name, "to", `${prepend}_${rightPhoto.name}`);
+    }
+  }
+
+  return sendData(mainWindow, JSON.parse(data) as ProjectBody);
+};
+
 export {
   handleOpenDirectoryPrompt,
   handleOpenFilePrompt,
   handleOpenProjectFile,
   handleSaveProject,
+  handleExportMatches,
 };

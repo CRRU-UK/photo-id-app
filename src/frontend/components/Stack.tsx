@@ -43,7 +43,13 @@ const Stack = ({ photos }: StackProps) => {
   });
 
   const handleOpenEdit = () => {
-    const data: EditWindowData = { name: currentFile.name, path: currentFile.getFullPath() };
+    const data: EditWindowData = {
+      directory: currentFile.directory,
+      name: currentFile.getFileName(),
+      edited: currentFile.getEditedFileName(),
+      thumbnail: currentFile.getThumbnailFileName(),
+    };
+    console.log("data", data);
     window.electronAPI.openEditWindow(btoa(JSON.stringify(data)));
   };
 

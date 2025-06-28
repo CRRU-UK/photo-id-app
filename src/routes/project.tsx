@@ -4,8 +4,14 @@ import type { DraggableStartData, DraggableEndData, PhotoStack } from "../types"
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect, useMemo } from "react";
 import { type DragStartEvent, type DragEndEvent, DragOverlay, DndContext } from "@dnd-kit/core";
-import { Stack as PrimerStack, IconButton, UnderlineNav } from "@primer/react";
-import { ReplyIcon } from "@primer/octicons-react";
+import {
+  Stack as PrimerStack,
+  ActionMenu,
+  ActionList,
+  IconButton,
+  UnderlineNav,
+} from "@primer/react";
+import { ReplyIcon, FileMovedIcon } from "@primer/octicons-react";
 
 import { PROJECT_STORAGE_NAME, MATCHED_STACKS_PER_PAGE } from "@/constants";
 import ProjectModel from "@/models/Project";
@@ -36,6 +42,7 @@ const ProjectPage = () => {
   const [draggingStackFrom, setDraggingStackFrom] = useState<PhotoStack | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(0);
   const [loading, setLoading] = useState<LoadingOverlayProps>({ show: false });
+  const [actionsOpen, setActionsOpen] = useState<boolean>(false);
 
   const project = useMemo(() => {
     const projectData = JSON.parse(localStorage.getItem(PROJECT_STORAGE_NAME) as string);
@@ -77,6 +84,12 @@ const ProjectPage = () => {
   });
 
   const handleClose = () => navigate({ to: "/" });
+
+  const handleExport = () => {
+    setActionsOpen(false);
+    setLoading({ show: true, text: "Renaming matches" });
+    project.exportMatches();
+  };
 
   const matchedArray = Array.from(project.matched);
 
@@ -122,14 +135,33 @@ const ProjectPage = () => {
               <MainSelection photos={project.photos} total={project.totalPhotos} />
               <DiscardedSelection photos={project.discarded} />
 
-              <div style={{ marginTop: "auto" }}>
+              <PrimerStack
+                direction="horizontal"
+                align="start"
+                justify="space-between"
+                style={{ marginTop: "auto", width: "100%" }}
+              >
                 <IconButton
                   icon={ReplyIcon}
                   variant="invisible"
                   aria-label="Close project"
                   onClick={() => handleClose()}
                 />
-              </div>
+
+                <ActionMenu open={actionsOpen} onOpenChange={setActionsOpen}>
+                  <ActionMenu.Button>Actions</ActionMenu.Button>
+                  <ActionMenu.Overlay>
+                    <ActionList>
+                      <ActionList.Item onSelect={() => handleExport()}>
+                        <ActionList.LeadingVisual>
+                          <FileMovedIcon />
+                        </ActionList.LeadingVisual>
+                        Rename matches
+                      </ActionList.Item>
+                    </ActionList>
+                  </ActionMenu.Overlay>
+                </ActionMenu>
+              </PrimerStack>
             </PrimerStack>
           </div>
 
