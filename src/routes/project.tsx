@@ -11,7 +11,7 @@ import {
   IconButton,
   UnderlineNav,
 } from "@primer/react";
-import { ReplyIcon, FileMovedIcon } from "@primer/octicons-react";
+import { ReplyIcon, ThreeBarsIcon, FileMovedIcon } from "@primer/octicons-react";
 
 import { PROJECT_STORAGE_NAME, MATCHED_STACKS_PER_PAGE } from "@/constants";
 import ProjectModel from "@/models/Project";
@@ -149,7 +149,7 @@ const ProjectPage = () => {
                 />
 
                 <ActionMenu open={actionsOpen} onOpenChange={setActionsOpen}>
-                  <ActionMenu.Button>Actions</ActionMenu.Button>
+                  <ActionMenu.Button leadingVisual={ThreeBarsIcon}>Actions</ActionMenu.Button>
                   <ActionMenu.Overlay>
                     <ActionList>
                       <ActionList.Item onSelect={() => handleExport()}>
