@@ -3,6 +3,7 @@ import type { EditWindowData } from "@/types";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 
+import LoadingOverlay, { type LoadingOverlayProps } from "@/frontend/modules/LoadingOverlay";
 import ImageEditor from "@/frontend/modules/ImageEditor";
 
 const fetchLocalFile = async (data: EditWindowData) => {
@@ -12,6 +13,7 @@ const fetchLocalFile = async (data: EditWindowData) => {
 };
 
 const EditPage = () => {
+  const [loading, setLoading] = useState<LoadingOverlayProps>({ show: true });
   const [data, setData] = useState<EditWindowData | null>(null);
   const [file, setFile] = useState<File | null>(null);
 
@@ -25,12 +27,19 @@ const EditPage = () => {
 
       const response = await fetchLocalFile(parsedData);
       setFile(response);
+
+      setLoading({ show: false });
     }
 
     fetchData();
   }, [queryValue]);
 
-  return data && file && <ImageEditor data={data} image={file} />;
+  return (
+    <>
+      <LoadingOverlay show={loading.show} />
+      {data && file && <ImageEditor data={data} image={file} />}
+    </>
+  );
 };
 
 export const Route = createFileRoute("/edit")({
