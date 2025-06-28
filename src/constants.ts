@@ -21,7 +21,11 @@ export const PROJECT_FILE_NAME = "data.json";
 
 export const PROJECT_STORAGE_NAME = "currentProject";
 
+export const PROJECT_EDITS_DIRECTORY = ".edits";
+
 export const PROJECT_THUMBNAIL_DIRECTORY = ".thumbnails";
+
+export const PROJECT_EXPORT_DIRECTORY = "matched";
 
 export const THUMBNAIL_SIZE = 1000;
 
@@ -29,14 +33,14 @@ export const RECENT_PROJECTS_FILE_NAME = "recent-projects.json";
 
 export const MAX_RECENT_PROJECTS = 5;
 
-export const MATCHED_STACKS_PER_PAGE = 6;
+export const MATCHED_STACKS_PER_PAGE = 8;
 
 export const INITIAL_MATCHED_STACKS = 52;
 
 export enum LINE_SIZES {
-  LIGHT = 20,
-  NORMAL = 100,
-  HEAVY = 180,
+  LIGHT = 10,
+  NORMAL = 20,
+  HEAVY = 50,
 }
 
-export const DEFAULT_LINE_COLOR = "#FFFFFF";
+export const DEFAULT_LINE_COLOR = "#FF0000";

@@ -38,13 +38,16 @@ class Project {
   }
 
   private mapPhotoBodyToStack(directory: Directory, photos: PhotoBody[]): PhotoStack {
-    const items = photos.map(({ name, thumbnail }) => new Photo(directory, name, thumbnail));
+    const items = photos.map(
+      ({ name, edited, thumbnail }) => new Photo(directory, name, edited, thumbnail),
+    );
     return new Set(items);
   }
 
   private mapPhotoStackToBody(photos: PhotoStack): PhotoBody[] {
     return Array.from(photos).map((photo) => ({
       name: photo.getFileName(),
+      edited: photo.edited,
       thumbnail: photo.thumbnail,
     }));
   }
@@ -134,12 +137,20 @@ class Project {
     return this;
   }
 
-  public async copyPhotoToStack(to: PhotoStack, photo: Photo): Promise<this> {
-    await window.electronAPI.copyPhotoFile(photo.getFullPath());
+  public async duplicatePhotoToStack(to: PhotoStack, photo: Photo): Promise<this> {
+    await window.electronAPI.duplicatePhotoFile(photo.getFullPath());
 
     to.add(photo);
 
     this.save();
+
+    return this;
+  }
+
+  public exportMatches(): this {
+    const data = this.returnAsJSONString();
+    window.electronAPI.exportMatches(data);
+
     return this;
   }
 }

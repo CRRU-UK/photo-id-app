@@ -22,6 +22,7 @@ export type Matches = Set<Match>;
 
 export type PhotoBody = {
   name: string;
+  edited: string;
   thumbnail: string;
 };
 
@@ -63,6 +64,14 @@ export type DraggableEndData = {
 };
 
 export type EditWindowData = {
+  directory: string;
   name: string;
-  path: string;
+  edited: string;
+  thumbnail: string;
+};
+
+export type RevertPhotoData = {
+  directory: string;
+  name: string;
+  edited: string;
 };

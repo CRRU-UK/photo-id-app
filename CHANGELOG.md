@@ -1,5 +1,21 @@
 # photo-id
 
+## 0.1.1
+
+### Patch Changes
+
+- 118ae03: Add ability to revert photo to original
+
+## 0.1.0
+
+### Minor Changes
+
+- 99f4e16: Add match exporting and refactor photo handling
+
+### Patch Changes
+
+- 218585b: Update edit page loading button
+
 ## 0.0.10
 
 ### Patch Changes

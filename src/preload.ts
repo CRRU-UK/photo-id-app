@@ -1,4 +1,4 @@
-import type { EditWindowData } from "@/types";
+import type { EditWindowData, RevertPhotoData } from "@/types";
 
 import { contextBridge, ipcRenderer } from "electron";
 
@@ -13,6 +13,9 @@ contextBridge.exposeInMainWorld("electronAPI", {
   openEditWindow: (data: string) => ipcRenderer.send("open-edit-window", data),
   savePhotoFile: (data: EditWindowData, photo: ArrayBuffer) =>
     ipcRenderer.send("save-photo-file", data, photo),
+  duplicatePhotoFile: (data: any) => ipcRenderer.send("duplicate-photo-file", data),
+  revertPhotoFile: (data: RevertPhotoData) => ipcRenderer.send("revert-photo-file", data),
+  exportMatches: (data: string) => ipcRenderer.send("export-matches", data),
 
   // Listeners (renderer)
   onLoading: (callback: (...params: unknown[]) => void) =>

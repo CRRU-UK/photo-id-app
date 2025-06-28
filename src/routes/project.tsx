@@ -4,8 +4,14 @@ import type { DraggableStartData, DraggableEndData, PhotoStack } from "../types"
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect, useMemo } from "react";
 import { type DragStartEvent, type DragEndEvent, DragOverlay, DndContext } from "@dnd-kit/core";
-import { Stack as PrimerStack, IconButton, UnderlineNav } from "@primer/react";
-import { ReplyIcon } from "@primer/octicons-react";
+import {
+  Stack as PrimerStack,
+  ActionMenu,
+  ActionList,
+  IconButton,
+  UnderlineNav,
+} from "@primer/react";
+import { ReplyIcon, ThreeBarsIcon, FileMovedIcon } from "@primer/octicons-react";
 
 import { PROJECT_STORAGE_NAME, MATCHED_STACKS_PER_PAGE } from "@/constants";
 import ProjectModel from "@/models/Project";
@@ -37,6 +43,7 @@ const ProjectPage = () => {
   const [currentPage, setCurrentPage] = useState<number>(0);
   const [loading, setLoading] = useState<LoadingOverlayProps>({ show: false });
   const [isCopying, setIsCopying] = useState<boolean>(false);
+  const [actionsOpen, setActionsOpen] = useState<boolean>(false);
 
   const project = useMemo(() => {
     const projectData = JSON.parse(localStorage.getItem(PROJECT_STORAGE_NAME) as string);
@@ -55,7 +62,7 @@ const ProjectPage = () => {
       const draggingStackTo = (target.data.current as DraggableEndData).photos;
 
       if (isCopying) {
-        await project.copyPhotoToStack(draggingStackTo, draggingPhoto!);
+        await project.duplicatePhotoToStack(draggingStackTo, draggingPhoto!);
       } else {
         project.addPhotoToStack(draggingStackFrom!, draggingStackTo, draggingPhoto!);
       }
@@ -90,6 +97,12 @@ const ProjectPage = () => {
   }, [draggingPhoto, isCopying]);
 
   const handleClose = () => navigate({ to: "/" });
+
+  const handleExport = () => {
+    setActionsOpen(false);
+    setLoading({ show: true, text: "Exporting matches" });
+    project.exportMatches();
+  };
 
   const matchedArray = Array.from(project.matched);
 
@@ -135,14 +148,33 @@ const ProjectPage = () => {
               <MainSelection photos={project.photos} total={project.totalPhotos} />
               <DiscardedSelection photos={project.discarded} />
 
-              <div style={{ marginTop: "auto" }}>
+              <PrimerStack
+                direction="horizontal"
+                align="start"
+                justify="space-between"
+                style={{ marginTop: "auto", width: "100%" }}
+              >
                 <IconButton
                   icon={ReplyIcon}
                   variant="invisible"
                   aria-label="Close project"
                   onClick={() => handleClose()}
                 />
-              </div>
+
+                <ActionMenu open={actionsOpen} onOpenChange={setActionsOpen}>
+                  <ActionMenu.Button leadingVisual={ThreeBarsIcon}>Actions</ActionMenu.Button>
+                  <ActionMenu.Overlay>
+                    <ActionList>
+                      <ActionList.Item onSelect={() => handleExport()}>
+                        <ActionList.LeadingVisual>
+                          <FileMovedIcon />
+                        </ActionList.LeadingVisual>
+                        Export matches
+                      </ActionList.Item>
+                    </ActionList>
+                  </ActionMenu.Overlay>
+                </ActionMenu>
+              </PrimerStack>
             </PrimerStack>
           </div>
 

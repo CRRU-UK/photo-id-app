@@ -1,4 +1,4 @@
-import type { EditWindowData } from "@/types";
+import type { EditWindowData, RevertPhotoData } from "@/types";
 
 import path from "path";
 import url from "url";
@@ -13,8 +13,9 @@ import {
   handleOpenFilePrompt,
   handleOpenProjectFile,
   handleSaveProject,
+  handleExportMatches,
 } from "@/backend/projects";
-import { savePhotoFromBuffer } from "@/backend/photos";
+import { savePhotoFromBuffer, revertPhotoToOriginal } from "@/backend/photos";
 import { getRecentProjects, removeRecentProject } from "@/backend/recents";
 
 updateElectronApp();
@@ -153,13 +154,18 @@ app.whenReady().then(() => {
     editWindow.removeMenu();
 
     editWindow.once("ready-to-show", () => {
-      editWindow.setTitle(`${DEFAULT_WINDOW_TITLE} - ${decoded.path}`);
+      editWindow.setTitle(`${DEFAULT_WINDOW_TITLE} - ${decoded.directory}/${decoded.name}`);
       editWindow.show();
     });
   });
 
-  ipcMain.on("save-project", (event, data) => {
+  ipcMain.on("save-project", (event, data: string) => {
     handleSaveProject(data);
+  });
+
+  ipcMain.on("export-matches", async (event, data: string) => {
+    await handleExportMatches(data);
+    mainWindow.webContents.send("set-loading", false);
   });
 
   ipcMain.on("save-photo-file", async (event, data: EditWindowData, photo: ArrayBuffer) => {
@@ -169,5 +175,11 @@ app.whenReady().then(() => {
     const webContents = event.sender;
     const editWindow = BrowserWindow.fromWebContents(webContents) as BrowserWindow;
     editWindow.webContents.send("set-loading", false);
+  });
+
+  ipcMain.on("revert-photo-file", async (event, data: RevertPhotoData) => {
+    await revertPhotoToOriginal(data);
+
+    mainWindow.webContents.send("refresh-stack-images", data.name);
   });
 });
