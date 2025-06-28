@@ -16,7 +16,6 @@ import { ZoomOutIcon, ZoomInIcon, CheckIcon, XIcon } from "@primer/octicons-reac
 
 import { LINE_SIZES, DEFAULT_LINE_COLOR } from "@/constants";
 import { readFileAsString } from "@/helpers";
-import LoadingOverlay, { type LoadingOverlayProps } from "@/frontend/modules/LoadingOverlay";
 
 interface SliderProps {
   name: string;
@@ -50,7 +49,7 @@ interface ImageEditorProps {
 }
 
 const ImageEditor = ({ data, image }: ImageEditorProps) => {
-  const [loading, setLoading] = useState<LoadingOverlayProps>({ show: false });
+  const [saving, setSaving] = useState<boolean>(false);
 
   const {
     canvasRef,
@@ -83,7 +82,7 @@ const ImageEditor = ({ data, image }: ImageEditorProps) => {
   });
 
   const handleSave = async () => {
-    setLoading({ show: true, text: "Saving photo" });
+    setSaving(true);
 
     const editedFile = await generateEditedFile();
     const editedFileData = await readFileAsString(editedFile as File);
@@ -92,13 +91,11 @@ const ImageEditor = ({ data, image }: ImageEditorProps) => {
   };
 
   useEffect(() => {
-    window.electronAPI.onLoading((show, text) => setLoading({ show, text }));
+    window.electronAPI.onLoading((show) => setSaving(show));
   });
 
   return (
     <>
-      <LoadingOverlay show={loading.show} text={loading?.text} />
-
       <div className="edit">
         <div className="toolbar">
           <Stack direction="horizontal" align="center">
@@ -182,7 +179,14 @@ const ImageEditor = ({ data, image }: ImageEditorProps) => {
             Reset
           </Button>
 
-          <Button leadingVisual={CheckIcon} size="small" variant="primary" onClick={handleSave}>
+          <Button
+            leadingVisual={CheckIcon}
+            size="small"
+            variant="primary"
+            loading={saving}
+            disabled={saving}
+            onClick={handleSave}
+          >
             Save
           </Button>
         </div>
