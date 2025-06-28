@@ -69,3 +69,9 @@ export type EditWindowData = {
   edited: string;
   thumbnail: string;
 };
+
+export type RevertPhotoData = {
+  directory: string;
+  name: string;
+  edited: string;
+};

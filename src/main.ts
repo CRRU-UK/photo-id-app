@@ -1,4 +1,4 @@
-import type { EditWindowData } from "@/types";
+import type { EditWindowData, RevertPhotoData } from "@/types";
 
 import path from "path";
 import url from "url";
@@ -15,7 +15,7 @@ import {
   handleSaveProject,
   handleExportMatches,
 } from "@/backend/projects";
-import { savePhotoFromBuffer } from "@/backend/photos";
+import { savePhotoFromBuffer, revertPhotoToOriginal } from "@/backend/photos";
 import { getRecentProjects, removeRecentProject } from "@/backend/recents";
 
 updateElectronApp();
@@ -168,13 +168,20 @@ app.whenReady().then(() => {
   });
 
   ipcMain.on("save-photo-file", async (event, data: EditWindowData, photo: ArrayBuffer) => {
-    console.log("data", data);
-
     await savePhotoFromBuffer(data, photo);
     mainWindow.webContents.send("refresh-stack-images", data.name);
 
     const webContents = event.sender;
     const editWindow = BrowserWindow.fromWebContents(webContents) as BrowserWindow;
     editWindow.webContents.send("set-loading", false);
+  });
+
+  ipcMain.on("revert-photo-file", async (event, data: RevertPhotoData) => {
+    mainWindow.webContents.send("set-loading", true, "Reverting photo");
+
+    await revertPhotoToOriginal(data);
+
+    mainWindow.webContents.send("refresh-stack-images", data.name);
+    mainWindow.webContents.send("set-loading", false);
   });
 });

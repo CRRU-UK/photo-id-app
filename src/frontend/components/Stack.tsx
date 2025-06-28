@@ -1,10 +1,23 @@
-import type { PhotoStack, EditWindowData } from "@/types";
+import type { PhotoStack, EditWindowData, RevertPhotoData } from "@/types";
 
 import { useState, useEffect, memo } from "react";
 import { useDraggable } from "@dnd-kit/core";
 
-import { Stack as PrimerStack, CounterLabel, ButtonGroup, IconButton } from "@primer/react";
-import { PencilIcon, ChevronLeftIcon, ChevronRightIcon } from "@primer/octicons-react";
+import {
+  Stack as PrimerStack,
+  CounterLabel,
+  ButtonGroup,
+  IconButton,
+  ActionMenu,
+  ActionList,
+} from "@primer/react";
+import {
+  PencilIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  TriangleDownIcon,
+  UndoIcon,
+} from "@primer/octicons-react";
 
 export interface StackProps {
   photos: PhotoStack;
@@ -13,6 +26,7 @@ export interface StackProps {
 const Stack = ({ photos }: StackProps) => {
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [currentTime, setCurrentTime] = useState<number>(new Date().getTime());
+  const [actionsOpen, setActionsOpen] = useState<boolean>(false);
 
   const currentFile = Array.from(photos)[currentIndex % photos.size];
 
@@ -49,8 +63,20 @@ const Stack = ({ photos }: StackProps) => {
       edited: currentFile.getEditedFileName(),
       thumbnail: currentFile.getThumbnailFileName(),
     };
-    console.log("data", data);
     window.electronAPI.openEditWindow(btoa(JSON.stringify(data)));
+  };
+
+  const handleRevertPhoto = () => {
+    const data: RevertPhotoData = {
+      directory: currentFile.directory,
+      name: currentFile.getFileName(),
+      edited: currentFile.getEditedFileName(),
+    };
+
+    window.electronAPI.revertPhotoFile(data);
+
+    // TODO: Show loader on action menu and remove after callback
+    setActionsOpen(false);
   };
 
   const handlePrev = () => {
@@ -72,45 +98,85 @@ const Stack = ({ photos }: StackProps) => {
   };
 
   return (
-    <div
-      style={{
-        position: "relative",
-        width: "100%",
-        height: "auto",
-        aspectRatio: "4/3",
-        objectFit: "cover",
-        background: "var(--bgColor-emphasis)",
-      }}
-    >
+    <>
+      <div
+        style={{
+          position: "relative",
+          width: "100%",
+          height: "auto",
+          aspectRatio: "4/3",
+          objectFit: "cover",
+          background: "var(--bgColor-emphasis)",
+        }}
+      >
+        <div ref={setDraggableNodeRef} {...listeners} {...attributes}>
+          {currentFile && (
+            <img
+              src={`file://${currentFile.getThumbnailFullPath()}?${currentTime}`}
+              style={{
+                cursor: "pointer",
+                display: "block",
+                width: "100%",
+                height: "auto",
+                aspectRatio: "4/3",
+                objectFit: "cover",
+              }}
+              alt=""
+            />
+          )}
+        </div>
+      </div>
+
       <PrimerStack
         direction="horizontal"
         align="center"
         justify="space-between"
-        padding="condensed"
-        style={{
-          width: "100%",
-          position: "absolute",
-          left: "0",
-          bottom: "0",
-        }}
+        style={{ marginTop: "var(--stack-gap-normal)" }}
       >
-        {photos.size > 0 && (
-          <CounterLabel scheme="primary">
-            {currentIndex + 1} / {photos.size}
-          </CounterLabel>
-        )}
+        <PrimerStack direction="horizontal" align="center" justify="space-between">
+          {photos.size > 0 && (
+            <CounterLabel scheme="secondary">
+              {currentIndex + 1} / {photos.size}
+            </CounterLabel>
+          )}
+        </PrimerStack>
 
-        <IconButton
-          icon={PencilIcon}
-          size="small"
-          aria-label="Edit photo"
-          onClick={(event) => {
-            event.preventDefault();
-            return handleOpenEdit();
-          }}
-          disabled={photos.size <= 0}
-          style={{ marginLeft: "auto" }}
-        />
+        <ButtonGroup style={{ marginLeft: "auto" }}>
+          <IconButton
+            icon={PencilIcon}
+            size="small"
+            aria-label="Edit photo"
+            onClick={(event) => {
+              event.preventDefault();
+              return handleOpenEdit();
+            }}
+            disabled={photos.size <= 0}
+          >
+            Edit
+          </IconButton>
+          <ActionMenu open={actionsOpen} onOpenChange={setActionsOpen}>
+            <ActionMenu.Button
+              aria-label="More options"
+              icon={TriangleDownIcon}
+              size="small"
+              disabled={photos.size <= 0}
+            />
+            <ActionMenu.Overlay>
+              <ActionList>
+                <ActionList.Item
+                  variant="danger"
+                  disabled={photos.size <= 0}
+                  onClick={() => handleRevertPhoto()}
+                >
+                  <ActionList.LeadingVisual>
+                    <UndoIcon />
+                  </ActionList.LeadingVisual>
+                  Revert to original
+                </ActionList.Item>
+              </ActionList>
+            </ActionMenu.Overlay>
+          </ActionMenu>
+        </ButtonGroup>
 
         <ButtonGroup>
           <IconButton
@@ -129,24 +195,7 @@ const Stack = ({ photos }: StackProps) => {
           />
         </ButtonGroup>
       </PrimerStack>
-
-      <div ref={setDraggableNodeRef} {...listeners} {...attributes}>
-        {currentFile && (
-          <img
-            src={`file://${currentFile.getThumbnailFullPath()}?${currentTime}`}
-            style={{
-              cursor: "pointer",
-              display: "block",
-              width: "100%",
-              height: "auto",
-              aspectRatio: "4/3",
-              objectFit: "cover",
-            }}
-            alt=""
-          />
-        )}
-      </div>
-    </div>
+    </>
   );
 };
 
