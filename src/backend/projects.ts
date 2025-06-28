@@ -173,7 +173,7 @@ const handleSaveProject = async (data: string) => {
 /**
  * Handles exporting matches.
  */
-const handleExportMatches = async (mainWindow: Electron.BrowserWindow, data: string) => {
+const handleExportMatches = async (data: string) => {
   const project = JSON.parse(data) as ProjectBody;
 
   const exportsDirectory = path.join(project.directory, PROJECT_EXPORT_DIRECTORY);

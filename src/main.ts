@@ -163,7 +163,7 @@ app.whenReady().then(() => {
   });
 
   ipcMain.on("export-matches", async (event, data: string) => {
-    await handleExportMatches(mainWindow, data);
+    await handleExportMatches(data);
     mainWindow.webContents.send("set-loading", false);
   });
 
