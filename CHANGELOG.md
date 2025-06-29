@@ -1,5 +1,13 @@
 # photo-id
 
+## 0.1.3
+
+### Patch Changes
+
+- ae94ae0: Add loader to export button
+- bc5dffd: Fix export renaming
+- b55517f: Change match order
+
 ## 0.1.2
 
 ### Patch Changes
