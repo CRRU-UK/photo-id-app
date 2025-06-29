@@ -57,8 +57,7 @@ body.copying *:hover {
 
 .project > .content > .grid {
   padding: var(--stack-gap-normal);
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  column-count: 2;
   column-gap: var(--stack-gap-spacious);
 }
 
