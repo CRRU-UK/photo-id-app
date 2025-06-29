@@ -38,7 +38,6 @@ const createMainWindow = () => {
       nodeIntegration: true,
       webSecurity: false,
     },
-    roundedCorners: false,
   });
 
   mainWindow.maximize();
