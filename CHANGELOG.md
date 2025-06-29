@@ -1,5 +1,11 @@
 # photo-id
 
+## 0.1.2
+
+### Patch Changes
+
+- d308d0b: Add ability to duplicate photos between stacks
+
 ## 0.1.1
 
 ### Patch Changes
