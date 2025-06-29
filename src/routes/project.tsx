@@ -95,7 +95,6 @@ const ProjectPage = () => {
   });
 
   useEffect(() => {
-    console.log("draggingPhoto", draggingPhoto);
     if (draggingPhoto && isCopying) {
       return document.body.classList.add("copying");
     }
