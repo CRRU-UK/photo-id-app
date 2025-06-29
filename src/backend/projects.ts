@@ -195,14 +195,24 @@ const handleExportMatches = async (data: string) => {
     const matchID = getAlphabetLetter(match.id);
 
     for (const photo of match.left.photos) {
-      const exportedName = `${match.left.name.padStart(3, "0").toUpperCase() || matchID}L_${photo.name}`;
+      let photoName = matchID;
+      if (match.left.name !== "") {
+        photoName = match.left.name.padStart(3, "0");
+      }
+
+      const exportedName = `${photoName.toUpperCase()}L_${photo.name}`;
       const originalPath = path.join(project.directory, photo.edited);
       const exportedPath = path.join(exportsDirectory, exportedName);
       await fs.promises.copyFile(originalPath, exportedPath);
     }
 
     for (const photo of match.right.photos) {
-      const exportedName = `${match.right.name.padStart(3, "0").toUpperCase() || matchID}R_${photo.name}`;
+      let photoName = matchID;
+      if (match.right.name !== "") {
+        photoName = match.right.name.padStart(3, "0");
+      }
+
+      const exportedName = `${photoName.toUpperCase()}R_${photo.name}`;
       const originalPath = path.join(project.directory, photo.edited);
       const exportedPath = path.join(exportsDirectory, exportedName);
       await fs.promises.copyFile(originalPath, exportedPath);
