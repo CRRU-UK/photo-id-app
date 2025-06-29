@@ -1,4 +1,4 @@
-import type { EditWindowData, RevertPhotoData } from "@/types";
+import type { EditWindowData, RevertPhotoData, DuplicatePhotoData } from "@/types";
 
 import { contextBridge, ipcRenderer } from "electron";
 
@@ -14,7 +14,6 @@ contextBridge.exposeInMainWorld("electronAPI", {
   savePhotoFile: (data: EditWindowData, photo: ArrayBuffer) =>
     ipcRenderer.send("save-photo-file", data, photo),
   revertPhotoFile: (data: RevertPhotoData) => ipcRenderer.send("revert-photo-file", data),
-
   exportMatches: (data: string) => ipcRenderer.send("export-matches", data),
 
   // Listeners (renderer)
@@ -26,4 +25,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ipcRenderer.on("load-recent-projects", (_event, value) => callback(value)),
   onRefreshStackImages: (callback: (...params: unknown[]) => void) =>
     ipcRenderer.on("refresh-stack-images", (_event, value) => callback(value)),
+
+  // Listeners (renderer) - new
+  duplicatePhotoFile: (data: DuplicatePhotoData) =>
+    ipcRenderer.invoke("duplicate-photo-file", data),
 });

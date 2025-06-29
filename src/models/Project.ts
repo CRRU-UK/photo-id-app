@@ -137,6 +137,23 @@ class Project {
     return this;
   }
 
+  public async duplicatePhotoToStack(to: PhotoStack, photo: Photo): Promise<this> {
+    const result = await window.electronAPI.duplicatePhotoFile({
+      directory: photo.directory,
+      name: photo.getFileName(),
+      edited: photo.getEditedFileName(),
+      thumbnail: photo.getThumbnailFileName(),
+    });
+
+    to.add(new Photo(result.directory, result.name, result.edited, result.thumbnail));
+
+    this.totalPhotos += 1;
+
+    this.save();
+
+    return this;
+  }
+
   public exportMatches(): this {
     const data = this.returnAsJSONString();
     window.electronAPI.exportMatches(data);

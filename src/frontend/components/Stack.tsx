@@ -1,6 +1,6 @@
 import type { PhotoStack, EditWindowData, RevertPhotoData } from "@/types";
 
-import { useState, useEffect, memo } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useDraggable } from "@dnd-kit/core";
 
 import {
@@ -44,10 +44,19 @@ const Stack = ({ photos }: StackProps) => {
     disabled: photos.size <= 0,
   });
 
+  const firstUpdate = useRef<number>(photos.size);
   useEffect(() => {
-    // This does not work?
-    setCurrentIndex(0);
-  }, [photos]);
+    if (firstUpdate.current === photos.size) {
+      return;
+    }
+
+    // Move stack to latest photo when adding
+    if (firstUpdate.current < photos.size) {
+      setCurrentIndex(photos.size - 1);
+    }
+
+    firstUpdate.current = photos.size;
+  }, [photos.size, currentIndex]);
 
   useEffect(() => {
     window.electronAPI.onRefreshStackImages((name) => {
@@ -203,4 +212,4 @@ const Stack = ({ photos }: StackProps) => {
   );
 };
 
-export default memo(Stack);
+export default Stack;

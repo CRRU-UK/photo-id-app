@@ -24,7 +24,7 @@ import { getAlphabetLetter, chunkArray } from "@/helpers";
 
 const DraggableImage = ({ photo }: { photo: Photo }) => (
   <img
-    src={`file://${photo.getThumbnailFullPath()}`}
+    src={`file://${photo.getThumbnailFullPath()}?${new Date().getTime()}`}
     style={{
       opacity: 0.7,
       display: "block",
@@ -42,6 +42,7 @@ const ProjectPage = () => {
   const [draggingStackFrom, setDraggingStackFrom] = useState<PhotoStack | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(0);
   const [loading, setLoading] = useState<LoadingOverlayProps>({ show: false });
+  const [isCopying, setIsCopying] = useState<boolean>(false);
   const [actionsOpen, setActionsOpen] = useState<boolean>(false);
 
   const project = useMemo(() => {
@@ -55,15 +56,22 @@ const ProjectPage = () => {
     setDraggingPhoto(currentFile);
   };
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  const handleDragEnd = async (event: DragEndEvent) => {
     const target = event.over ?? null;
     if (target) {
       const draggingStackTo = (target.data.current as DraggableEndData).photos;
-      return project.addPhotoToStack(
-        draggingStackFrom as PhotoStack,
-        draggingStackTo,
-        draggingPhoto as Photo,
-      );
+
+      if (isCopying) {
+        setLoading({ show: true, text: "Duplicating photo" });
+        await project.duplicatePhotoToStack(draggingStackTo, draggingPhoto as Photo);
+        setLoading({ show: false });
+      } else {
+        project.addPhotoToStack(
+          draggingStackFrom as PhotoStack,
+          draggingStackTo,
+          draggingPhoto as Photo,
+        );
+      }
     }
 
     setDraggingPhoto(null);
@@ -81,7 +89,17 @@ const ProjectPage = () => {
       localStorage.setItem(PROJECT_STORAGE_NAME, JSON.stringify(data));
       window.location.reload();
     });
+
+    document.addEventListener("keyup", () => setIsCopying(false));
+    document.addEventListener("keydown", (event) => setIsCopying(event.ctrlKey || event.altKey));
   });
+
+  useEffect(() => {
+    if (draggingPhoto && isCopying) {
+      return document.body.classList.add("copying");
+    }
+    return document.body.classList.remove("copying");
+  }, [draggingPhoto, isCopying]);
 
   const handleClose = () => navigate({ to: "/" });
 
@@ -123,7 +141,7 @@ const ProjectPage = () => {
       <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
         <DragOverlay>{draggingPhoto ? <DraggableImage photo={draggingPhoto} /> : null}</DragOverlay>
 
-        <div className="project">
+        <div className={`project ${isCopying ? "copying" : ""}`}>
           <div className="sidebar">
             <PrimerStack
               direction="vertical"

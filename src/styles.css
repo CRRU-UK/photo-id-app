@@ -20,6 +20,10 @@ textarea,
   background: var(--bgColor-default);
 }
 
+body.copying *:hover {
+  cursor: copy !important;
+}
+
 .project > .sidebar {
   position: fixed;
   left: 0;

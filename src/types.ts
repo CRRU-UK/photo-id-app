@@ -75,3 +75,10 @@ export type RevertPhotoData = {
   name: string;
   edited: string;
 };
+
+export type DuplicatePhotoData = {
+  directory: string;
+  name: string;
+  edited: string;
+  thumbnail: string;
+};
