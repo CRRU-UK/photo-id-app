@@ -14,7 +14,6 @@ contextBridge.exposeInMainWorld("electronAPI", {
   savePhotoFile: (data: EditWindowData, photo: ArrayBuffer) =>
     ipcRenderer.send("save-photo-file", data, photo),
   revertPhotoFile: (data: RevertPhotoData) => ipcRenderer.send("revert-photo-file", data),
-  exportMatches: (data: string) => ipcRenderer.send("export-matches", data),
 
   // Listeners (renderer)
   onLoading: (callback: (...params: unknown[]) => void) =>
@@ -27,6 +26,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ipcRenderer.on("refresh-stack-images", (_event, value) => callback(value)),
 
   // Listeners (renderer) - new
-  duplicatePhotoFile: (data: DuplicatePhotoData) =>
+  duplicatePhotoFile: (data: DuplicatePhotoData): Promise<DuplicatePhotoData> =>
     ipcRenderer.invoke("duplicate-photo-file", data),
+  exportMatches: (data: string): Promise<void> => ipcRenderer.invoke("export-matches", data),
 });

@@ -44,6 +44,7 @@ const ProjectPage = () => {
   const [loading, setLoading] = useState<LoadingOverlayProps>({ show: false });
   const [isCopying, setIsCopying] = useState<boolean>(false);
   const [actionsOpen, setActionsOpen] = useState<boolean>(false);
+  const [exporting, setExporting] = useState<boolean>(false);
 
   const project = useMemo(() => {
     const projectData = JSON.parse(localStorage.getItem(PROJECT_STORAGE_NAME) as string);
@@ -103,10 +104,13 @@ const ProjectPage = () => {
 
   const handleClose = () => navigate({ to: "/" });
 
-  const handleExport = () => {
+  const handleExport = async () => {
+    setExporting(true);
+
+    await project.exportMatches();
+
     setActionsOpen(false);
-    setLoading({ show: true, text: "Exporting matches" });
-    project.exportMatches();
+    setExporting(false);
   };
 
   const matchedArray = Array.from(project.matched);
@@ -170,11 +174,15 @@ const ProjectPage = () => {
                   <ActionMenu.Button leadingVisual={ThreeBarsIcon}>Actions</ActionMenu.Button>
                   <ActionMenu.Overlay>
                     <ActionList>
-                      <ActionList.Item onSelect={() => handleExport()}>
+                      <ActionList.Item
+                        disabled={exporting}
+                        loading={exporting}
+                        onClick={() => handleExport()}
+                      >
                         <ActionList.LeadingVisual>
                           <FileMovedIcon />
                         </ActionList.LeadingVisual>
-                        Export matches
+                        {exporting ? "Exporting..." : "Export matches"}
                       </ActionList.Item>
                     </ActionList>
                   </ActionMenu.Overlay>
