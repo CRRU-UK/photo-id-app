@@ -63,10 +63,14 @@ const ProjectPage = () => {
 
       if (isCopying) {
         setLoading({ show: true, text: "Duplicating photo" });
-        await project.duplicatePhotoToStack(draggingStackTo, draggingPhoto!);
+        await project.duplicatePhotoToStack(draggingStackTo, draggingPhoto as Photo);
         setLoading({ show: false });
       } else {
-        project.addPhotoToStack(draggingStackFrom!, draggingStackTo, draggingPhoto!);
+        project.addPhotoToStack(
+          draggingStackFrom as PhotoStack,
+          draggingStackTo,
+          draggingPhoto as Photo,
+        );
       }
     }
 
