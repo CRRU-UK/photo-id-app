@@ -24,7 +24,7 @@ import { getAlphabetLetter, chunkArray } from "@/helpers";
 
 const DraggableImage = ({ photo }: { photo: Photo }) => (
   <img
-    src={`file://${photo.getThumbnailFullPath()}`}
+    src={`file://${photo.getThumbnailFullPath()}?${new Date().getTime()}`}
     style={{
       opacity: 0.7,
       display: "block",
@@ -62,7 +62,9 @@ const ProjectPage = () => {
       const draggingStackTo = (target.data.current as DraggableEndData).photos;
 
       if (isCopying) {
+        setLoading({ show: true, text: "Duplicating photo" });
         await project.duplicatePhotoToStack(draggingStackTo, draggingPhoto!);
+        setLoading({ show: false });
       } else {
         project.addPhotoToStack(draggingStackFrom!, draggingStackTo, draggingPhoto!);
       }

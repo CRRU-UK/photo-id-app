@@ -1,4 +1,4 @@
-import type { EditWindowData, RevertPhotoData } from "@/types";
+import type { EditWindowData, RevertPhotoData, DuplicatePhotoData } from "@/types";
 
 import path from "path";
 import url from "url";
@@ -14,6 +14,7 @@ import {
   handleOpenProjectFile,
   handleSaveProject,
   handleExportMatches,
+  handleDuplicatePhotoFile,
 } from "@/backend/projects";
 import { savePhotoFromBuffer, revertPhotoToOriginal } from "@/backend/photos";
 import { getRecentProjects, removeRecentProject } from "@/backend/recents";
@@ -181,5 +182,10 @@ app.whenReady().then(() => {
     await revertPhotoToOriginal(data);
 
     mainWindow.webContents.send("refresh-stack-images", data.name);
+  });
+
+  ipcMain.handle("duplicate-photo-file", async (event, data: DuplicatePhotoData) => {
+    const result = await handleDuplicatePhotoFile(data);
+    return result;
   });
 });

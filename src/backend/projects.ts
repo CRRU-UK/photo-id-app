@@ -1,4 +1,4 @@
-import type { ProjectBody } from "@/types";
+import type { ProjectBody, DuplicatePhotoData } from "@/types";
 
 import fs from "fs";
 import path from "path";
@@ -210,10 +210,53 @@ const handleExportMatches = async (data: string) => {
   }
 };
 
+/**
+ * Duplicates the original, edited, and thumbnail versions of a photo a returns the new filenames.
+ */
+const handleDuplicatePhotoFile = async (data: DuplicatePhotoData): Promise<DuplicatePhotoData> => {
+  const originalPath = path.join(data.directory, data.name);
+  const editedPath = path.join(data.directory, data.edited);
+  const thumbnailPath = path.join(data.directory, data.thumbnail);
+
+  const time = new Date().getTime();
+
+  const originalExtension = path.extname(data.name);
+  const newOriginalPath = data.name.replace(
+    originalExtension,
+    `_duplicate_${time}${originalExtension}`,
+  );
+
+  const editedExtension = path.extname(data.edited);
+  const newEditedPath = data.edited.replace(
+    editedExtension,
+    `_duplicate_${time}${editedExtension}`,
+  );
+
+  const thumbnailExtension = path.extname(data.thumbnail);
+  const newThumbnailPath = data.thumbnail.replace(
+    thumbnailExtension,
+    `_duplicate_${time}${thumbnailExtension}`,
+  );
+
+  await Promise.all([
+    fs.promises.copyFile(originalPath, path.join(data.directory, newOriginalPath)),
+    fs.promises.copyFile(editedPath, path.join(data.directory, newEditedPath)),
+    fs.promises.copyFile(thumbnailPath, path.join(data.directory, newThumbnailPath)),
+  ]);
+
+  return {
+    directory: data.directory,
+    name: newOriginalPath,
+    edited: newEditedPath,
+    thumbnail: newThumbnailPath,
+  };
+};
+
 export {
   handleOpenDirectoryPrompt,
   handleOpenFilePrompt,
   handleOpenProjectFile,
   handleSaveProject,
   handleExportMatches,
+  handleDuplicatePhotoFile,
 };
