@@ -154,9 +154,9 @@ class Project {
     return this;
   }
 
-  public exportMatches(): this {
+  public async exportMatches(): Promise<this> {
     const data = this.returnAsJSONString();
-    window.electronAPI.exportMatches(data);
+    await window.electronAPI.exportMatches(data);
 
     return this;
   }

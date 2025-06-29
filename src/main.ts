@@ -1,12 +1,12 @@
-import type { EditWindowData, RevertPhotoData, DuplicatePhotoData } from "@/types";
+import type { EditWindowData, RevertPhotoData, DuplicatePhotoData, ProjectBody } from "@/types";
 
 import path from "path";
 import url from "url";
-import { app, BrowserWindow, ipcMain, Menu } from "electron";
+import { app, BrowserWindow, ipcMain, Menu, shell } from "electron";
 import started from "electron-squirrel-startup";
 import { updateElectronApp } from "update-electron-app";
 
-import { DEFAULT_WINDOW_TITLE } from "@/constants";
+import { DEFAULT_WINDOW_TITLE, PROJECT_EXPORT_DIRECTORY } from "@/constants";
 import { getMenu } from "@/backend/menu";
 import {
   handleOpenDirectoryPrompt,
@@ -163,9 +163,12 @@ app.whenReady().then(() => {
     handleSaveProject(data);
   });
 
-  ipcMain.on("export-matches", async (event, data: string) => {
+  ipcMain.handle("export-matches", async (event, data: string) => {
+    const projectData: ProjectBody = JSON.parse(data);
+
     await handleExportMatches(data);
-    mainWindow.webContents.send("set-loading", false);
+
+    shell.openPath(path.join(projectData.directory, PROJECT_EXPORT_DIRECTORY));
   });
 
   ipcMain.on("save-photo-file", async (event, data: EditWindowData, photo: ArrayBuffer) => {
