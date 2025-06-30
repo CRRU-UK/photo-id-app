@@ -10,10 +10,10 @@ export interface IElectronAPI {
   // Invocations (main and renderer)
   getRecentProjects: () => Promise<RecentProject[]>;
   removeRecentProject: (path: string) => Promise<RecentProject[]>;
-  duplicatePhotoFile: (data: DuplicatePhotoData) => Promise<DuplicatePhotoData>;
   exportMatches: (data: string) => Promise<void>;
   savePhotoFile: (data: EditWindowData, photo: ArrayBuffer) => Promise<void>;
   revertPhotoFile: (data: RevertPhotoData) => Promise<void>;
+  duplicatePhotoFile: (data: DuplicatePhotoData) => Promise<DuplicatePhotoData>;
 
   // Methods (renderer-to-main)
   openProjectFolder: () => void;

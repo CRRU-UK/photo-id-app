@@ -10,14 +10,14 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ipcRenderer.invoke(IPC_EVENTS.GET_RECENT_PROJECTS),
   removeRecentProject: (path: string): Promise<RecentProject[]> =>
     ipcRenderer.invoke(IPC_EVENTS.REMOVE_RECENT_PROJECT, path),
-  duplicatePhotoFile: (data: DuplicatePhotoData): Promise<DuplicatePhotoData> =>
-    ipcRenderer.invoke(IPC_EVENTS.DUPLICATE_PHOTO_FILE, data),
   exportMatches: (data: string): Promise<void> =>
     ipcRenderer.invoke(IPC_EVENTS.EXPORT_MATCHES, data),
   savePhotoFile: (data: EditWindowData, photo: ArrayBuffer): Promise<void> =>
     ipcRenderer.invoke(IPC_EVENTS.SAVE_PHOTO_FILE, data, photo),
   revertPhotoFile: (data: RevertPhotoData): Promise<void> =>
     ipcRenderer.invoke(IPC_EVENTS.REVERT_PHOTO_FILE, data),
+  duplicatePhotoFile: (data: DuplicatePhotoData): Promise<DuplicatePhotoData> =>
+    ipcRenderer.invoke(IPC_EVENTS.DUPLICATE_PHOTO_FILE, data),
 
   // Methods (renderer-to-main)
   openProjectFolder: () => ipcRenderer.send(IPC_EVENTS.OPEN_FOLDER),
