@@ -1,13 +1,11 @@
-import type { PhotoBody, ProjectBody, RecentProject } from "@/types";
-
-import path from "path";
-import url from "url";
 import { app, BrowserWindow, ipcMain, Menu, shell } from "electron";
 import started from "electron-squirrel-startup";
+import path from "path";
 import { updateElectronApp } from "update-electron-app";
+import url from "url";
 
-import { IPC_EVENTS, DEFAULT_WINDOW_TITLE, PROJECT_EXPORT_DIRECTORY } from "@/constants";
 import { getMenu } from "@/backend/menu";
+import { savePhotoFromBuffer, revertPhotoToOriginal } from "@/backend/photos";
 import {
   handleOpenDirectoryPrompt,
   handleOpenFilePrompt,
@@ -16,8 +14,9 @@ import {
   handleExportMatches,
   handleDuplicatePhotoFile,
 } from "@/backend/projects";
-import { savePhotoFromBuffer, revertPhotoToOriginal } from "@/backend/photos";
 import { getRecentProjects, removeRecentProject } from "@/backend/recents";
+import { IPC_EVENTS, DEFAULT_WINDOW_TITLE, PROJECT_EXPORT_DIRECTORY } from "@/constants";
+import type { PhotoBody, ProjectBody, RecentProject } from "@/types";
 
 updateElectronApp();
 

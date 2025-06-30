@@ -1,16 +1,15 @@
-import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
-import { RouterProvider, createHashHistory, createRouter } from "@tanstack/react-router";
-import { ThemeProvider, BaseStyles } from "@primer/react";
-import { routeTree } from "./routeTree.gen";
-
-import "@primer/primitives/dist/css/primitives.css";
+import "@primer/primitives/dist/css/base/motion/motion.css";
 import "@primer/primitives/dist/css/functional/size/border.css";
 import "@primer/primitives/dist/css/functional/size/size.css";
-import "@primer/primitives/dist/css/functional/themes/light.css";
 import "@primer/primitives/dist/css/functional/themes/dark.css";
-import "@primer/primitives/dist/css/base/motion/motion.css";
+import "@primer/primitives/dist/css/functional/themes/light.css";
+import "@primer/primitives/dist/css/primitives.css";
+import { ThemeProvider, BaseStyles } from "@primer/react";
+import { RouterProvider, createHashHistory, createRouter } from "@tanstack/react-router";
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
 
+import { routeTree } from "./routeTree.gen";
 import "./styles.css";
 
 const memoryHistory = createHashHistory();

@@ -1,5 +1,4 @@
 import type { BrowserWindow } from "electron";
-
 import { app, shell } from "electron";
 
 import { handleOpenDirectoryPrompt, handleOpenFilePrompt } from "@/backend/projects";

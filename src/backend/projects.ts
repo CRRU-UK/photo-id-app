@@ -1,10 +1,10 @@
-import type { ProjectBody, PhotoBody } from "@/types";
-
-import fs from "fs";
-import path from "path";
 import crypto from "crypto";
 import { app, dialog } from "electron";
+import fs from "fs";
+import path from "path";
 
+import { createPhotoEditsCopy, createPhotoThumbnail } from "@/backend/photos";
+import { addRecentProject } from "@/backend/recents";
 import {
   IPC_EVENTS,
   DEFAULT_WINDOW_TITLE,
@@ -16,9 +16,7 @@ import {
   INITIAL_MATCHED_STACKS,
 } from "@/constants";
 import { getAlphabetLetter } from "@/helpers";
-
-import { createPhotoEditsCopy, createPhotoThumbnail } from "@/backend/photos";
-import { addRecentProject } from "@/backend/recents";
+import type { ProjectBody, PhotoBody } from "@/types";
 
 const sendData = (mainWindow: Electron.BrowserWindow, data: ProjectBody) => {
   mainWindow.setTitle(`${DEFAULT_WINDOW_TITLE} - ${data.directory}`);

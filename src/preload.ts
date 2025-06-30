@@ -1,8 +1,7 @@
-import type { PhotoBody, RecentProject } from "@/types";
-
 import { contextBridge, ipcRenderer } from "electron";
 
 import { IPC_EVENTS } from "@/constants";
+import type { PhotoBody, RecentProject } from "@/types";
 
 contextBridge.exposeInMainWorld("electronAPI", {
   // Invocations (main and renderer)

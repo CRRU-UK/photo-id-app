@@ -1,11 +1,9 @@
-import type { PhotoStack } from "@/types";
-
 import { useDroppable } from "@dnd-kit/core";
 import { Stack as PrimerStack, Text, ProgressBar } from "@primer/react";
 
 import { DragAreas, BOX_HOVER_STYLES } from "@/constants";
-
 import Stack from "@/frontend/components/Stack";
+import type { PhotoStack } from "@/types";
 
 interface ProgressElementsProps {
   progress: number;
