@@ -17,7 +17,7 @@ const getRecentProjects = async (): Promise<RecentProject[]> => {
   }
 
   const data = await fs.promises.readFile(recentProjectsFile, "utf8");
-  return JSON.parse(data);
+  return JSON.parse(data) as RecentProject[];
 };
 
 /**

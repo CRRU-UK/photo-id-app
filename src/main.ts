@@ -28,7 +28,7 @@ const basePath = path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/inde
 
 let mainWindow: BrowserWindow;
 
-const createMainWindow = () => {
+const createMainWindow = async () => {
   mainWindow = new BrowserWindow({
     width: 1400,
     height: 800,
@@ -42,9 +42,9 @@ const createMainWindow = () => {
   mainWindow.maximize();
 
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
-    mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
+    await mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
   } else {
-    mainWindow.loadURL(
+    await mainWindow.loadURL(
       url.format({
         protocol: "file",
         slashes: true,
@@ -77,9 +77,9 @@ app.on("window-all-closed", () => {
   }
 });
 
-app.on("activate", () => {
+app.on("activate", async () => {
   if (BrowserWindow.getAllWindows().length === 0) {
-    createMainWindow();
+    await createMainWindow();
   }
 });
 
@@ -96,7 +96,7 @@ app.whenReady().then(() => {
     await handleOpenFilePrompt(window);
   });
 
-  ipcMain.on(IPC_EVENTS.OPEN_PROJECT_FILE, async (event, file) => {
+  ipcMain.on(IPC_EVENTS.OPEN_PROJECT_FILE, async (event, file: string) => {
     const webContents = event.sender;
     const window = BrowserWindow.fromWebContents(webContents) as BrowserWindow;
     await handleOpenProjectFile(window, file);
@@ -109,7 +109,7 @@ app.whenReady().then(() => {
 
   ipcMain.handle(
     IPC_EVENTS.REMOVE_RECENT_PROJECT,
-    async (event, path): Promise<RecentProject[]> => {
+    async (event, path: string): Promise<RecentProject[]> => {
       const result = await removeRecentProject(path);
       return result;
     },
@@ -161,7 +161,7 @@ app.whenReady().then(() => {
   });
 
   ipcMain.handle(IPC_EVENTS.EXPORT_MATCHES, async (event, data: string): Promise<void> => {
-    const projectData: ProjectBody = JSON.parse(data);
+    const projectData = JSON.parse(data) as ProjectBody;
 
     await handleExportMatches(data);
 

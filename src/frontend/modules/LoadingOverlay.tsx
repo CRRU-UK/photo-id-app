@@ -1,11 +1,8 @@
 import { Spinner } from "@primer/react";
 
-export interface LoadingOverlayProps {
-  show: boolean;
-  text?: string;
-}
+import { LoadingData } from "@/types";
 
-const LoadingOverlay = ({ show, text }: LoadingOverlayProps) => {
+const LoadingOverlay = ({ show, text }: LoadingData) => {
   if (!show) {
     return null;
   }

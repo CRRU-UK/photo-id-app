@@ -63,3 +63,8 @@ export type DraggableStartData = {
 export type DraggableEndData = {
   photos: PhotoStack;
 };
+
+export type LoadingData = {
+  show: boolean;
+  text?: string;
+};

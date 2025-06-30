@@ -56,7 +56,7 @@ class Project {
     let data = json;
 
     if (typeof json === "string") {
-      data = JSON.parse(json);
+      data = JSON.parse(json) as ProjectBody;
     }
 
     const { version, directory, totalPhotos, photos, matched, discarded, created, lastModified } =

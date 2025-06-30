@@ -1,4 +1,4 @@
-import type { ProjectBody, PhotoBody, RecentProject } from "./src/types";
+import type { ProjectBody, PhotoBody, RecentProject, LoadingData } from "./src/types";
 
 export interface IElectronAPI {
   // Invocations (main and renderer)
@@ -17,7 +17,7 @@ export interface IElectronAPI {
   openEditWindow: (data: PhotoBody) => void;
 
   // Listeners (main-to-renderer)
-  onLoading: (callback: (show: boolean, text?: string) => void) => void;
+  onLoading: (callback: (data: LoadingData) => void) => void;
   onLoadProject: (callback: (value: ProjectBody) => void) => void;
   onRefreshStackImages: (callback: (name: string) => void) => void;
 }

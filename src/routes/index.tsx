@@ -5,17 +5,18 @@ import { useEffect, useState } from "react";
 
 import { PROJECT_FILE_NAME, PROJECT_STORAGE_NAME } from "@/constants";
 import logo from "@/frontend/img/logo.png";
-import LoadingOverlay, { type LoadingOverlayProps } from "@/frontend/modules/LoadingOverlay";
+import LoadingOverlay from "@/frontend/modules/LoadingOverlay";
 import RecentProjects from "@/frontend/modules/RecentProjects";
+import { LoadingData } from "@/types";
 
 import { version } from "../../package.json";
 
 const IndexPage = () => {
-  const [loading, setLoading] = useState<LoadingOverlayProps>({ show: false });
+  const [loading, setLoading] = useState<LoadingData>({ show: false });
 
   const navigate = useNavigate();
   useEffect(() => {
-    window.electronAPI.onLoading((show, text) => setLoading({ show, text }));
+    window.electronAPI.onLoading((data) => setLoading(data));
 
     window.electronAPI.onLoadProject((data) => {
       localStorage.setItem(PROJECT_STORAGE_NAME, JSON.stringify(data));
@@ -56,7 +57,7 @@ const IndexPage = () => {
                 width: "100px",
                 height: "auto",
               }}
-              src={logo}
+              src={logo as string}
               alt=""
             />
 

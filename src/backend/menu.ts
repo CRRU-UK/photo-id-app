@@ -31,14 +31,14 @@ const getMenu = (mainWindow: BrowserWindow) => {
         {
           label: "Open Project Folder",
           accelerator: "CmdOrCtrl+O",
-          async click() {
+          click() {
             handleOpenDirectoryPrompt(mainWindow);
           },
         },
         {
           label: "Open Project File",
           accelerator: "CmdOrCtrl+Shift+O",
-          async click() {
+          click() {
             handleOpenFilePrompt(mainWindow);
           },
         },

@@ -1,27 +1,64 @@
-import pluginJS from "@eslint/js";
-import pluginJest from "eslint-plugin-jest";
-import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
-import pluginReact from "eslint-plugin-react";
-import pluginReactHooks from "eslint-plugin-react-hooks";
+import eslint from "@eslint/js";
+import vitest from "@vitest/eslint-plugin";
+import prettier from "eslint-plugin-prettier/recommended";
+import react from "eslint-plugin-react";
+import reactHooks from "eslint-plugin-react-hooks";
 import globals from "globals";
-import pluginTS from "typescript-eslint";
+import tseslint from "typescript-eslint";
 
 const recommendedConfigs = [
-  pluginJS.configs.recommended,
-  ...pluginTS.configs.recommended,
-  pluginReact.configs.flat.recommended,
-  pluginJest.configs["flat/recommended"],
-
-  // Custom config until packages support flat configs
+  eslint.configs.recommended,
+  tseslint.configs.recommendedTypeChecked,
+  react.configs.flat.recommended,
+  {
+    plugins: {
+      tseslint,
+    },
+    languageOptions: {
+      parserOptions: {
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+    rules: {
+      "@typescript-eslint/no-misused-promises": [
+        "error",
+        {
+          checksVoidReturn: false,
+        },
+      ],
+      "@typescript-eslint/no-floating-promises": "off",
+    },
+  },
+  {
+    files: ["**/*.test.ts", "**/*.test.tsx"],
+    plugins: {
+      vitest,
+    },
+    rules: {
+      ...vitest.configs.all.rules,
+      "vitest/prefer-expect-assertions": ["off"],
+    },
+    settings: {
+      vitest: {
+        typecheck: true,
+      },
+    },
+    languageOptions: {
+      globals: {
+        ...vitest.environments.env.globals,
+      },
+    },
+  },
   {
     files: ["src/**/*.{js,ts,jsx,tsx}"],
     plugins: {
-      "react-hooks": pluginReactHooks,
+      "react-hooks": reactHooks,
     },
     rules: {
       "react/react-in-jsx-scope": "off",
       "react/prop-types": "off",
-      ...pluginReactHooks.configs.recommended.rules,
+      ...reactHooks.configs.recommended.rules,
     },
   },
 ];
@@ -50,4 +87,4 @@ const customConfigs = [
   },
 ];
 
-export default [...recommendedConfigs, ...customConfigs, eslintPluginPrettierRecommended];
+export default tseslint.config(...[...recommendedConfigs, ...customConfigs, prettier]);

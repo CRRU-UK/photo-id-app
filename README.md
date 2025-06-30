@@ -24,7 +24,7 @@
 
 Source code for the Photo ID app. The app is a research tool used in photo-identification methodologies for longitudinal mark-recapture studies. It allows for the organisation, categorisation, and matching of photographs containing unique identification markings (e.g. cetacean dorsal fins). It also includes tools for editing and visually filtering photographs to improve marking identification confidence.
 
-The app is built in Electron, TypeScript, Jest, React, and [Primer](https://primer.style).
+The app is built in Electron, TypeScript, Vitest, React, and [Primer](https://primer.style).
 
 ## Overview
 
@@ -60,8 +60,8 @@ Below are the NPM commands that can be used for development:
 | `package`         | Builds and packages the app.                                     |
 | `make`            | Builds app distributables.                                       |
 | `publish`         | Publishes the app.                                               |
-| `test`            | Runs `test:linting`, `test:types`, and `test:jest` sequentially. |
+| `test`            | Runs `test:linting`, `test:types`, and `test:unit` sequentially. |
 | `test:linting`    | Runs ESLint and Prettier tests.                                  |
 | `test:types`      | Runs TypeScript tests.                                           |
-| `test:jest`       | Runs unit and integration tests and generates a coverage report. |
-| `test:jest:watch` | Same as `test:jest` but runs it in watch mode.                   |
+| `test:unit`       | Runs unit tests and generates a coverage report.                 |
+| `test:unit:watch` | Same as `test:unit` but runs it in watch mode.                   |
