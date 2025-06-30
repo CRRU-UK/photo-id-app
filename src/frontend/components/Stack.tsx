@@ -16,7 +16,7 @@ import {
 } from "@primer/react";
 import { useState, useEffect, useRef } from "react";
 
-import type { PhotoStack, PhotoBody } from "@/types";
+import type { PhotoStack, EditData, PhotoBody } from "@/types";
 
 export interface StackProps {
   photos: PhotoStack;
@@ -24,7 +24,6 @@ export interface StackProps {
 
 const Stack = ({ photos }: StackProps) => {
   const [currentIndex, setCurrentIndex] = useState<number>(0);
-  const [currentTime, setCurrentTime] = useState<number>(new Date().getTime());
   const [actionsOpen, setActionsOpen] = useState<boolean>(false);
   const [revertingPhoto, setRevertingPhoto] = useState<boolean>(false);
 
@@ -57,20 +56,11 @@ const Stack = ({ photos }: StackProps) => {
     firstUpdate.current = photos.size;
   }, [photos.size, currentIndex]);
 
-  useEffect(() => {
-    window.electronAPI.onRefreshStackImages((name) => {
-      if (currentFile?.getFileName() === name) {
-        setCurrentTime(new Date().getTime());
-      }
-    });
-  });
-
   const handleOpenEdit = () => {
-    const data: PhotoBody = {
+    const data: EditData = {
       directory: currentFile.directory,
       name: currentFile.getFileName(),
       edited: currentFile.getEditedFileName(),
-      thumbnail: currentFile.getThumbnailFileName(),
     };
 
     window.electronAPI.openEditWindow(data);
@@ -83,7 +73,7 @@ const Stack = ({ photos }: StackProps) => {
       directory: currentFile.directory,
       name: currentFile.getFileName(),
       edited: currentFile.getEditedFileName(),
-      thumbnail: currentFile.getThumbnailFileName(),
+      thumbnail: currentFile.getThumbnailData(),
     };
 
     await window.electronAPI.revertPhotoFile(data);
@@ -125,7 +115,7 @@ const Stack = ({ photos }: StackProps) => {
         <div ref={setDraggableNodeRef} {...listeners} {...attributes}>
           {currentFile && (
             <img
-              src={`file://${currentFile.getThumbnailFullPath()}?${currentTime}`}
+              src={currentFile.getThumbnailData()}
               style={{
                 cursor: "pointer",
                 display: "block",

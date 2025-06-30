@@ -14,6 +14,7 @@ import {
   PROJECT_FILE_NAME,
   PROJECT_EXPORT_DIRECTORY,
   INITIAL_MATCHED_STACKS,
+  PROJECT_EDITS_DIRECTORY,
 } from "@/constants";
 import { getAlphabetLetter } from "@/helpers";
 import type { ProjectBody, PhotoBody } from "@/types";
@@ -89,6 +90,11 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
 
     return true;
   });
+
+  const editsDirectory = path.join(directory, PROJECT_EDITS_DIRECTORY);
+  if (!fs.existsSync(editsDirectory)) {
+    await fs.promises.mkdir(editsDirectory);
+  }
 
   const [edited, thumbnails] = await Promise.all([
     Promise.all(photos.map((photo) => createPhotoEditsCopy(photo, directory))),
@@ -222,41 +228,32 @@ const handleExportMatches = async (data: string) => {
  * Duplicates the original, edited, and thumbnail versions of a photo a returns the new filenames.
  */
 const handleDuplicatePhotoFile = async (data: PhotoBody): Promise<PhotoBody> => {
-  const originalPath = path.join(data.directory, data.name);
-  const editedPath = path.join(data.directory, data.edited);
-  const thumbnailPath = path.join(data.directory, data.thumbnail);
-
   const time = new Date().getTime();
 
+  const originalPath = path.join(data.directory, data.name);
   const originalExtension = path.extname(data.name);
   const newOriginalPath = data.name.replace(
     originalExtension,
     `_duplicate_${time}${originalExtension}`,
   );
 
+  const editedPath = path.join(data.directory, data.edited);
   const editedExtension = path.extname(data.edited);
   const newEditedPath = data.edited.replace(
     editedExtension,
     `_duplicate_${time}${editedExtension}`,
   );
 
-  const thumbnailExtension = path.extname(data.thumbnail);
-  const newThumbnailPath = data.thumbnail.replace(
-    thumbnailExtension,
-    `_duplicate_${time}${thumbnailExtension}`,
-  );
-
   await Promise.all([
     fs.promises.copyFile(originalPath, path.join(data.directory, newOriginalPath)),
     fs.promises.copyFile(editedPath, path.join(data.directory, newEditedPath)),
-    fs.promises.copyFile(thumbnailPath, path.join(data.directory, newThumbnailPath)),
   ]);
 
   return {
     directory: data.directory,
     name: newOriginalPath,
     edited: newEditedPath,
-    thumbnail: newThumbnailPath,
+    thumbnail: data.thumbnail,
   };
 };
 

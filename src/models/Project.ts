@@ -47,8 +47,8 @@ class Project {
     return Array.from(photos).map((photo) => ({
       directory: photo.directory,
       name: photo.getFileName(),
-      edited: photo.edited,
-      thumbnail: photo.thumbnail,
+      edited: photo.getEditedFileName(),
+      thumbnail: photo.getThumbnailData(),
     }));
   }
 
@@ -142,7 +142,7 @@ class Project {
       directory: photo.directory,
       name: photo.getFileName(),
       edited: photo.getEditedFileName(),
-      thumbnail: photo.getThumbnailFileName(),
+      thumbnail: photo.getThumbnailData(),
     });
 
     to.add(new Photo(result.directory, result.name, result.edited, result.thumbnail));
@@ -157,6 +157,30 @@ class Project {
   public async exportMatches(): Promise<this> {
     const data = this.returnAsJSONString();
     await window.electronAPI.exportMatches(data);
+
+    return this;
+  }
+
+  public updatePhotoData({ name, thumbnail }: PhotoBody): this {
+    for (const photo of this.photos) {
+      console.log("photo.getFileName()", photo.getFileName());
+      console.log("name", name);
+
+      if (photo.getFileName() === name) {
+        console.log("Updating thumbnail for", name);
+        photo.setThumbnailData(thumbnail);
+        this.save();
+        return this;
+      }
+    }
+
+    for (const photo of this.discarded) {
+      if (photo.getFileName() === name) {
+        photo.setThumbnailData(thumbnail);
+        this.save();
+        return this;
+      }
+    }
 
     return this;
   }

@@ -27,6 +27,12 @@ export type PhotoBody = {
   thumbnail: FileName;
 };
 
+export type EditData = {
+  directory: Directory;
+  name: FileName;
+  edited: FileName;
+};
+
 export type ProjectBody = {
   version: string;
   id: string;

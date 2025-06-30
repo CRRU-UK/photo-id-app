@@ -3,10 +3,10 @@ import type { Directory, FileName } from "@/types";
 import File from "./File";
 
 class Photo extends File {
-  readonly edited: string;
-  readonly thumbnail: string;
+  private edited: string;
+  private thumbnail: string;
 
-  constructor(directory: Directory, name: FileName, edited: FileName, thumbnail: FileName) {
+  constructor(directory: Directory, name: FileName, edited: FileName, thumbnail: string) {
     super(directory, name);
 
     this.edited = edited;
@@ -21,12 +21,13 @@ class Photo extends File {
     return this.edited;
   }
 
-  public getThumbnailFullPath() {
-    return [this.directory, this.thumbnail].join("/");
+  public getThumbnailData() {
+    return this.thumbnail;
   }
 
-  public getThumbnailFileName() {
-    return this.thumbnail;
+  public setThumbnailData(thumbnail: string) {
+    this.thumbnail = thumbnail;
+    return this;
   }
 }
 

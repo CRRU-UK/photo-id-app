@@ -28,7 +28,7 @@ import type {
 
 const DraggableImage = ({ photo }: { photo: Photo }) => (
   <img
-    src={`file://${photo.getThumbnailFullPath()}?${new Date().getTime()}`}
+    src={photo.getThumbnailData()}
     style={{
       opacity: 0.7,
       display: "block",
@@ -56,6 +56,12 @@ const ProjectPage = () => {
     ) as ProjectBody;
     return new ProjectModel().loadFromJSON(projectData);
   }, []);
+
+  useEffect(() => {
+    window.electronAPI.onUpdatePhotoData((data) => {
+      project.updatePhotoData(data).save();
+    });
+  });
 
   const handleDragStart = (event: DragStartEvent) => {
     const { stack, currentFile } = event.active.data.current as unknown as DraggableStartData;

@@ -3,9 +3,9 @@ import { useState, useEffect } from "react";
 
 import ImageEditor from "@/frontend/modules/ImageEditor";
 import LoadingOverlay from "@/frontend/modules/LoadingOverlay";
-import type { PhotoBody, LoadingData } from "@/types";
+import type { EditData, LoadingData } from "@/types";
 
-const fetchLocalFile = async (data: PhotoBody) => {
+const fetchLocalFile = async (data: EditData) => {
   const response = await fetch(`file://${data.directory}/${data.edited}`);
   const blob = await response.blob();
   return new File([blob], data.name, { type: blob.type || "image/*" });
@@ -13,7 +13,7 @@ const fetchLocalFile = async (data: PhotoBody) => {
 
 const EditPage = () => {
   const [loading, setLoading] = useState<LoadingData>({ show: true });
-  const [data, setData] = useState<PhotoBody | null>(null);
+  const [data, setData] = useState<EditData | null>(null);
   const [file, setFile] = useState<File | null>(null);
 
   // For hash routing
@@ -21,7 +21,7 @@ const EditPage = () => {
 
   useEffect(() => {
     async function fetchData() {
-      const parsedData = JSON.parse(atob(queryValue)) as PhotoBody;
+      const parsedData = JSON.parse(atob(queryValue)) as EditData;
       setData(parsedData);
 
       const response = await fetchLocalFile(parsedData);
