@@ -31,5 +31,5 @@ jobs:
       - name: Test types
         run: npm run test:types
 
-      - name: Test jest
-        run: npm run test:jest
+      - name: Run unit tests
+        run: npm run test:unit

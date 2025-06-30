@@ -1,3 +1,5 @@
+import { describe, it, expect } from "vitest";
+
 import { getAlphabetLetter, chunkArray } from "./helpers";
 
 describe("getAlphabetLetter", () => {

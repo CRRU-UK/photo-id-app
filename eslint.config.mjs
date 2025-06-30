@@ -1,5 +1,5 @@
 import pluginJS from "@eslint/js";
-import pluginJest from "eslint-plugin-jest";
+import pluginVitest from "@vitest/eslint-plugin";
 import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
 import pluginReact from "eslint-plugin-react";
 import pluginReactHooks from "eslint-plugin-react-hooks";
@@ -10,7 +10,15 @@ const recommendedConfigs = [
   pluginJS.configs.recommended,
   ...pluginTS.configs.recommended,
   pluginReact.configs.flat.recommended,
-  pluginJest.configs["flat/recommended"],
+  {
+    files: ["**/*.test.ts", "**/*.test.tsx"], // or any other pattern
+    plugins: {
+      vitest: pluginVitest,
+    },
+    rules: {
+      ...pluginVitest.configs.recommended.rules,
+    },
+  },
 
   // Custom config until packages support flat configs
   {
