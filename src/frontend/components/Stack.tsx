@@ -1,4 +1,4 @@
-import type { PhotoStack, EditWindowData, RevertPhotoData } from "@/types";
+import type { PhotoStack, PhotoBody } from "@/types";
 
 import { useState, useEffect, useRef } from "react";
 import { useDraggable } from "@dnd-kit/core";
@@ -67,22 +67,24 @@ const Stack = ({ photos }: StackProps) => {
   });
 
   const handleOpenEdit = () => {
-    const data: EditWindowData = {
+    const data: PhotoBody = {
       directory: currentFile.directory,
       name: currentFile.getFileName(),
       edited: currentFile.getEditedFileName(),
       thumbnail: currentFile.getThumbnailFileName(),
     };
-    window.electronAPI.openEditWindow(btoa(JSON.stringify(data)));
+
+    window.electronAPI.openEditWindow(data);
   };
 
   const handleRevertPhoto = async () => {
     setRevertingPhoto(true);
 
-    const data: RevertPhotoData = {
+    const data: PhotoBody = {
       directory: currentFile.directory,
       name: currentFile.getFileName(),
       edited: currentFile.getEditedFileName(),
+      thumbnail: currentFile.getThumbnailFileName(),
     };
 
     await window.electronAPI.revertPhotoFile(data);

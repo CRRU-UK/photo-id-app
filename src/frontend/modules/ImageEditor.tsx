@@ -1,4 +1,4 @@
-import type { EditWindowData } from "@/types";
+import type { PhotoBody } from "@/types";
 
 import { useState, useEffect } from "react";
 import { usePhotoEditor } from "react-photo-editor";
@@ -44,7 +44,7 @@ const Slider = ({ name, value, min, max, callback }: SliderProps) => (
 );
 
 interface ImageEditorProps {
-  data: EditWindowData;
+  data: PhotoBody;
   image: File;
 }
 

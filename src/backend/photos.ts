@@ -1,4 +1,4 @@
-import type { EditWindowData, RevertPhotoData } from "@/types";
+import type { PhotoBody } from "@/types";
 
 import fs from "fs";
 import path from "path";
@@ -6,7 +6,7 @@ import sharp, { type Sharp } from "sharp";
 
 import { PROJECT_EDITS_DIRECTORY, PROJECT_THUMBNAIL_DIRECTORY, THUMBNAIL_SIZE } from "@/constants";
 
-const savePhotoFromBuffer = async (data: EditWindowData, photoData: ArrayBuffer) => {
+const savePhotoFromBuffer = async (data: PhotoBody, photoData: ArrayBuffer) => {
   const editedPath = path.join(data.directory, data.edited);
   const buffer = Buffer.from(photoData);
   fs.writeFileSync(editedPath, buffer, "utf8");
@@ -60,7 +60,7 @@ const createPhotoThumbnail = async (
   return path.join(PROJECT_THUMBNAIL_DIRECTORY, sourcePhotoName);
 };
 
-const revertPhotoToOriginal = async (data: RevertPhotoData) => {
+const revertPhotoToOriginal = async (data: PhotoBody) => {
   const originalPath = path.join(data.directory, data.name);
   const editsPath = path.join(data.directory, data.edited);
 

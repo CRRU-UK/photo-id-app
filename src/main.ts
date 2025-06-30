@@ -1,10 +1,4 @@
-import type {
-  EditWindowData,
-  RevertPhotoData,
-  DuplicatePhotoData,
-  ProjectBody,
-  RecentProject,
-} from "@/types";
+import type { PhotoBody, ProjectBody, RecentProject } from "@/types";
 
 import path from "path";
 import url from "url";
@@ -91,22 +85,22 @@ app.on("activate", () => {
 });
 
 app.whenReady().then(() => {
-  ipcMain.on(IPC_EVENTS.OPEN_FOLDER, (event) => {
+  ipcMain.on(IPC_EVENTS.OPEN_FOLDER, async (event) => {
     const webContents = event.sender;
     const window = BrowserWindow.fromWebContents(webContents) as BrowserWindow;
-    handleOpenDirectoryPrompt(window);
+    await handleOpenDirectoryPrompt(window);
   });
 
-  ipcMain.on(IPC_EVENTS.OPEN_FILE, (event) => {
+  ipcMain.on(IPC_EVENTS.OPEN_FILE, async (event) => {
     const webContents = event.sender;
     const window = BrowserWindow.fromWebContents(webContents) as BrowserWindow;
-    handleOpenFilePrompt(window);
+    await handleOpenFilePrompt(window);
   });
 
   ipcMain.on(IPC_EVENTS.OPEN_PROJECT_FILE, async (event, file) => {
     const webContents = event.sender;
     const window = BrowserWindow.fromWebContents(webContents) as BrowserWindow;
-    handleOpenProjectFile(window, file);
+    await handleOpenProjectFile(window, file);
   });
 
   ipcMain.handle(IPC_EVENTS.GET_RECENT_PROJECTS, async (): Promise<RecentProject[]> => {
@@ -122,7 +116,7 @@ app.whenReady().then(() => {
     },
   );
 
-  ipcMain.on(IPC_EVENTS.OPEN_EDIT_WINDOW, (event, data: string): void => {
+  ipcMain.on(IPC_EVENTS.OPEN_EDIT_WINDOW, (event, data: PhotoBody): void => {
     const editWindow = new BrowserWindow({
       show: false,
       width: 1400,
@@ -140,10 +134,9 @@ app.whenReady().then(() => {
       editWindow.webContents.openDevTools();
     }
 
-    const decoded = JSON.parse(atob(data)) as EditWindowData;
-
+    const encodedData = btoa(JSON.stringify(data));
     if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
-      editWindow.loadURL(`${MAIN_WINDOW_VITE_DEV_SERVER_URL}?data=${data}#/edit`);
+      editWindow.loadURL(`${MAIN_WINDOW_VITE_DEV_SERVER_URL}?data=${encodedData}#/edit`);
     } else {
       editWindow.loadURL(
         url.format({
@@ -151,7 +144,7 @@ app.whenReady().then(() => {
           slashes: true,
           pathname: basePath,
           hash: "#/edit",
-          search: `?data=${data}`,
+          search: `?data=${encodedData}`,
         }),
       );
     }
@@ -159,7 +152,7 @@ app.whenReady().then(() => {
     editWindow.removeMenu();
 
     editWindow.once("ready-to-show", () => {
-      editWindow.setTitle(`${DEFAULT_WINDOW_TITLE} - ${decoded.directory}/${decoded.name}`);
+      editWindow.setTitle(`${DEFAULT_WINDOW_TITLE} - ${data.directory}/${data.name}`);
       editWindow.show();
     });
   });
@@ -178,23 +171,20 @@ app.whenReady().then(() => {
 
   ipcMain.handle(
     IPC_EVENTS.SAVE_PHOTO_FILE,
-    async (event, data: EditWindowData, photo: ArrayBuffer): Promise<void> => {
+    async (event, data: PhotoBody, photo: ArrayBuffer): Promise<void> => {
       await savePhotoFromBuffer(data, photo);
 
       mainWindow.webContents.send(IPC_EVENTS.REFRESH_STACK_IMAGES, data.name);
     },
   );
 
-  ipcMain.handle(
-    IPC_EVENTS.REVERT_PHOTO_FILE,
-    async (event, data: RevertPhotoData): Promise<void> => {
-      await revertPhotoToOriginal(data);
+  ipcMain.handle(IPC_EVENTS.REVERT_PHOTO_FILE, async (event, data: PhotoBody): Promise<void> => {
+    await revertPhotoToOriginal(data);
 
-      mainWindow.webContents.send(IPC_EVENTS.REFRESH_STACK_IMAGES, data.name);
-    },
-  );
+    mainWindow.webContents.send(IPC_EVENTS.REFRESH_STACK_IMAGES, data.name);
+  });
 
-  ipcMain.handle(IPC_EVENTS.DUPLICATE_PHOTO_FILE, async (event, data: DuplicatePhotoData) => {
+  ipcMain.handle(IPC_EVENTS.DUPLICATE_PHOTO_FILE, async (event, data: PhotoBody) => {
     const result = await handleDuplicatePhotoFile(data);
     return result;
   });

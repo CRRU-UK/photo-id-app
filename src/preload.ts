@@ -1,4 +1,4 @@
-import type { EditWindowData, RevertPhotoData, DuplicatePhotoData, RecentProject } from "@/types";
+import type { PhotoBody, RecentProject } from "@/types";
 
 import { contextBridge, ipcRenderer } from "electron";
 
@@ -12,11 +12,11 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ipcRenderer.invoke(IPC_EVENTS.REMOVE_RECENT_PROJECT, path),
   exportMatches: (data: string): Promise<void> =>
     ipcRenderer.invoke(IPC_EVENTS.EXPORT_MATCHES, data),
-  savePhotoFile: (data: EditWindowData, photo: ArrayBuffer): Promise<void> =>
+  savePhotoFile: (data: PhotoBody, photo: ArrayBuffer): Promise<void> =>
     ipcRenderer.invoke(IPC_EVENTS.SAVE_PHOTO_FILE, data, photo),
-  revertPhotoFile: (data: RevertPhotoData): Promise<void> =>
+  revertPhotoFile: (data: PhotoBody): Promise<void> =>
     ipcRenderer.invoke(IPC_EVENTS.REVERT_PHOTO_FILE, data),
-  duplicatePhotoFile: (data: DuplicatePhotoData): Promise<DuplicatePhotoData> =>
+  duplicatePhotoFile: (data: PhotoBody): Promise<PhotoBody> =>
     ipcRenderer.invoke(IPC_EVENTS.DUPLICATE_PHOTO_FILE, data),
 
   // Methods (renderer-to-main)
@@ -24,7 +24,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
   openProjectFile: () => ipcRenderer.send(IPC_EVENTS.OPEN_FILE),
   openRecentProject: (path: string) => ipcRenderer.send(IPC_EVENTS.OPEN_PROJECT_FILE, path),
   saveProject: (data: string) => ipcRenderer.send(IPC_EVENTS.SAVE_PROJECT, data),
-  openEditWindow: (data: string) => ipcRenderer.send(IPC_EVENTS.OPEN_EDIT_WINDOW, data),
+  openEditWindow: (data: PhotoBody) => ipcRenderer.send(IPC_EVENTS.OPEN_EDIT_WINDOW, data),
 
   // Listeners (main-to-renderer)
   onLoading: (callback: (...params: unknown[]) => void) =>

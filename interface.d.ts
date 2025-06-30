@@ -1,26 +1,20 @@
-import type {
-  ProjectBody,
-  EditWindowData,
-  RevertPhotoData,
-  DuplicatePhotoData,
-  RecentProject,
-} from "./src/types";
+import type { ProjectBody, PhotoBody, PhotoBody, PhotoBody, RecentProject } from "./src/types";
 
 export interface IElectronAPI {
   // Invocations (main and renderer)
   getRecentProjects: () => Promise<RecentProject[]>;
   removeRecentProject: (path: string) => Promise<RecentProject[]>;
   exportMatches: (data: string) => Promise<void>;
-  savePhotoFile: (data: EditWindowData, photo: ArrayBuffer) => Promise<void>;
-  revertPhotoFile: (data: RevertPhotoData) => Promise<void>;
-  duplicatePhotoFile: (data: DuplicatePhotoData) => Promise<DuplicatePhotoData>;
+  savePhotoFile: (data: PhotoBody, photo: ArrayBuffer) => Promise<void>;
+  revertPhotoFile: (data: PhotoBody) => Promise<void>;
+  duplicatePhotoFile: (data: PhotoBody) => Promise<PhotoBody>;
 
   // Methods (renderer-to-main)
   openProjectFolder: () => void;
   openProjectFile: () => void;
   openRecentProject: (path: string) => void;
   saveProject: (data: string) => void;
-  openEditWindow: (data: string) => void;
+  openEditWindow: (data: PhotoBody) => void;
 
   // Listeners (main-to-renderer)
   onLoading: (callback: (show: boolean, text?: string) => void) => void;

@@ -1,4 +1,4 @@
-import type { EditWindowData } from "@/types";
+import type { PhotoBody } from "@/types";
 
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 import LoadingOverlay, { type LoadingOverlayProps } from "@/frontend/modules/LoadingOverlay";
 import ImageEditor from "@/frontend/modules/ImageEditor";
 
-const fetchLocalFile = async (data: EditWindowData) => {
+const fetchLocalFile = async (data: PhotoBody) => {
   const response = await fetch(`file://${data.directory}/${data.edited}`);
   const blob = await response.blob();
   return new File([blob], data.name, { type: blob.type || "image/*" });
@@ -14,7 +14,7 @@ const fetchLocalFile = async (data: EditWindowData) => {
 
 const EditPage = () => {
   const [loading, setLoading] = useState<LoadingOverlayProps>({ show: true });
-  const [data, setData] = useState<EditWindowData | null>(null);
+  const [data, setData] = useState<PhotoBody | null>(null);
   const [file, setFile] = useState<File | null>(null);
 
   // For hash routing
@@ -22,7 +22,7 @@ const EditPage = () => {
 
   useEffect(() => {
     async function fetchData() {
-      const parsedData: EditWindowData = JSON.parse(atob(queryValue));
+      const parsedData: PhotoBody = JSON.parse(atob(queryValue));
       setData(parsedData);
 
       const response = await fetchLocalFile(parsedData);

@@ -1,4 +1,4 @@
-import type { ProjectBody, DuplicatePhotoData } from "@/types";
+import type { ProjectBody, PhotoBody } from "@/types";
 
 import fs from "fs";
 import path from "path";
@@ -60,7 +60,6 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
 
     // Cancelled
     if (response === 0) {
-      mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, false);
       return;
     }
 
@@ -115,6 +114,7 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
     directory,
     totalPhotos: photos.length,
     photos: photos.map((name, index) => ({
+      directory,
       name,
       edited: edited[index],
       thumbnail: thumbnails[index],
@@ -146,7 +146,6 @@ const handleOpenFilePrompt = async (mainWindow: Electron.BrowserWindow) => {
   });
 
   if (event.canceled) {
-    mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, false);
     return;
   }
 
@@ -224,7 +223,7 @@ const handleExportMatches = async (data: string) => {
 /**
  * Duplicates the original, edited, and thumbnail versions of a photo a returns the new filenames.
  */
-const handleDuplicatePhotoFile = async (data: DuplicatePhotoData): Promise<DuplicatePhotoData> => {
+const handleDuplicatePhotoFile = async (data: PhotoBody): Promise<PhotoBody> => {
   const originalPath = path.join(data.directory, data.name);
   const editedPath = path.join(data.directory, data.edited);
   const thumbnailPath = path.join(data.directory, data.thumbnail);
