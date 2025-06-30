@@ -27,7 +27,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
 
   // Listeners (main-to-renderer)
   onLoading: (callback: (...params: unknown[]) => void) =>
-    ipcRenderer.on(IPC_EVENTS.SET_LOADING, (_event, ...value) => callback(...value)),
+    ipcRenderer.on(IPC_EVENTS.SET_LOADING, (_event, value) => callback(value)),
   onLoadProject: (callback: (...params: unknown[]) => void) =>
     ipcRenderer.on(IPC_EVENTS.LOAD_PROJECT, (_event, value) => callback(value)),
   onRefreshStackImages: (callback: (...params: unknown[]) => void) =>

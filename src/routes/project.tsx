@@ -12,14 +12,19 @@ import { useState, useEffect, useMemo } from "react";
 
 import { PROJECT_STORAGE_NAME, MATCHED_STACKS_PER_PAGE } from "@/constants";
 import DiscardedSelection from "@/frontend/modules/DiscardedSelection";
-import LoadingOverlay, { type LoadingOverlayProps } from "@/frontend/modules/LoadingOverlay";
+import LoadingOverlay from "@/frontend/modules/LoadingOverlay";
 import MainSelection from "@/frontend/modules/MainSelection";
 import RowSelection from "@/frontend/modules/RowSelection";
 import { getAlphabetLetter, chunkArray } from "@/helpers";
 import type Photo from "@/models/Photo";
 import ProjectModel from "@/models/Project";
-
-import type { DraggableStartData, DraggableEndData, PhotoStack } from "../types";
+import type {
+  DraggableStartData,
+  DraggableEndData,
+  PhotoStack,
+  ProjectBody,
+  LoadingData,
+} from "@/types";
 
 const DraggableImage = ({ photo }: { photo: Photo }) => (
   <img
@@ -40,13 +45,15 @@ const ProjectPage = () => {
   const [draggingPhoto, setDraggingPhoto] = useState<Photo | null>(null);
   const [draggingStackFrom, setDraggingStackFrom] = useState<PhotoStack | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(0);
-  const [loading, setLoading] = useState<LoadingOverlayProps>({ show: false });
+  const [loading, setLoading] = useState<LoadingData>({ show: false });
   const [isCopying, setIsCopying] = useState<boolean>(false);
   const [actionsOpen, setActionsOpen] = useState<boolean>(false);
   const [exporting, setExporting] = useState<boolean>(false);
 
   const project = useMemo(() => {
-    const projectData = JSON.parse(localStorage.getItem(PROJECT_STORAGE_NAME) as string);
+    const projectData = JSON.parse(
+      localStorage.getItem(PROJECT_STORAGE_NAME) as string,
+    ) as ProjectBody;
     return new ProjectModel().loadFromJSON(projectData);
   }, []);
 
@@ -80,7 +87,7 @@ const ProjectPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    window.electronAPI.onLoading((show, text) => setLoading({ show, text }));
+    window.electronAPI.onLoading((data) => setLoading(data));
 
     /**
      * TODO: Fix this, buggy when navigating back and then to a project

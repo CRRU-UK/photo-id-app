@@ -70,7 +70,7 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
     // Otherwise, create and open new project...
   }
 
-  mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, true, "Preparing project");
+  mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, { show: true, text: "Preparing project" });
 
   const photos = files.filter((fileName) => {
     // Filter directories
@@ -147,7 +147,7 @@ const handleOpenFilePrompt = async (mainWindow: Electron.BrowserWindow) => {
     return;
   }
 
-  mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, true, "Opening project");
+  mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, { show: true, text: "Opening project" });
 
   const [file] = event.filePaths;
 
@@ -159,7 +159,7 @@ const handleOpenFilePrompt = async (mainWindow: Electron.BrowserWindow) => {
  * Handles opening a recent project file.
  */
 const handleOpenProjectFile = async (mainWindow: Electron.BrowserWindow, file: string) => {
-  mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, true, "Opening project");
+  mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, { show: true, text: "Opening project" });
 
   const data = await fs.promises.readFile(file, "utf8");
   return sendData(mainWindow, JSON.parse(data) as ProjectBody);

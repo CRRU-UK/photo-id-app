@@ -9,7 +9,7 @@ import {
   Text,
   Select,
 } from "@primer/react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { usePhotoEditor } from "react-photo-editor";
 
 import { LINE_SIZES, DEFAULT_LINE_COLOR } from "@/constants";
@@ -90,10 +90,6 @@ const ImageEditor = ({ data, image }: ImageEditorProps) => {
 
     setSaving(false);
   };
-
-  useEffect(() => {
-    window.electronAPI.onLoading((show) => setSaving(show));
-  });
 
   return (
     <div className="edit">

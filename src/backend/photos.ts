@@ -19,13 +19,13 @@ const createPhotoEditsCopy = async (
 ): Promise<string> => {
   const editsDirectory = path.join(projectDirectory, PROJECT_EDITS_DIRECTORY);
   if (!fs.existsSync(editsDirectory)) {
-    fs.mkdirSync(editsDirectory);
+    await fs.promises.mkdir(editsDirectory);
   }
 
   const originalPath = path.join(projectDirectory, originalPhotoName);
   const editsPath = path.join(projectDirectory, PROJECT_EDITS_DIRECTORY, originalPhotoName);
 
-  fs.copyFileSync(originalPath, editsPath);
+  await fs.promises.copyFile(originalPath, editsPath);
 
   return path.join(PROJECT_EDITS_DIRECTORY, originalPhotoName);
 };
