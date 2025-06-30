@@ -46,6 +46,7 @@ class Project {
 
   private mapPhotoStackToBody(photos: PhotoStack): PhotoBody[] {
     return Array.from(photos).map((photo) => ({
+      directory: photo.directory,
       name: photo.getFileName(),
       edited: photo.edited,
       thumbnail: photo.thumbnail,

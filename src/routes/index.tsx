@@ -1,5 +1,3 @@
-import type { RecentProject } from "@/types";
-
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { PageLayout, Heading, Text, BranchName, Stack as PrimerStack, Button } from "@primer/react";
@@ -14,7 +12,6 @@ import logo from "@/frontend/img/logo.png";
 import { PROJECT_FILE_NAME, PROJECT_STORAGE_NAME } from "@/constants";
 
 const IndexPage = () => {
-  const [recentProjects, setRecentProjects] = useState<RecentProject[] | null>(null);
   const [loading, setLoading] = useState<LoadingOverlayProps>({ show: false });
 
   const navigate = useNavigate();
@@ -27,18 +24,9 @@ const IndexPage = () => {
     });
   });
 
-  const handleOpenProjectFolder = () => {
-    window.electronAPI.openProjectFolder();
-  };
+  const handleOpenProjectFolder = () => window.electronAPI.openProjectFolder();
 
-  const handleOpenFilePrompt = () => {
-    window.electronAPI.openProjectFile();
-  };
-
-  useEffect(() => {
-    window.electronAPI.getRecentProjects();
-    window.electronAPI.onLoadRecentProjects((data) => setRecentProjects(data));
-  }, []);
+  const handleOpenFilePrompt = () => window.electronAPI.openProjectFile();
 
   return (
     <>
@@ -108,7 +96,7 @@ const IndexPage = () => {
             </Button>
           </PrimerStack>
 
-          <RecentProjects projects={recentProjects} />
+          <RecentProjects />
         </PageLayout.Content>
       </PageLayout>
     </>

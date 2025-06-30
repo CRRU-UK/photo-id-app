@@ -1,4 +1,4 @@
-import type { ProjectBody, DuplicatePhotoData } from "@/types";
+import type { ProjectBody, PhotoBody } from "@/types";
 
 import fs from "fs";
 import path from "path";
@@ -6,6 +6,7 @@ import crypto from "crypto";
 import { app, dialog } from "electron";
 
 import {
+  IPC_EVENTS,
   DEFAULT_WINDOW_TITLE,
   PHOTO_FILE_EXTENSIONS,
   EXISTING_DATA_MESSAGE,
@@ -21,7 +22,7 @@ import { addRecentProject } from "@/backend/recents";
 
 const sendData = (mainWindow: Electron.BrowserWindow, data: ProjectBody) => {
   mainWindow.setTitle(`${DEFAULT_WINDOW_TITLE} - ${data.directory}`);
-  mainWindow.webContents.send("load-project", data);
+  mainWindow.webContents.send(IPC_EVENTS.LOAD_PROJECT, data);
 
   addRecentProject({
     name: path.basename(data.directory),
@@ -59,7 +60,6 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
 
     // Cancelled
     if (response === 0) {
-      mainWindow.webContents.send("set-loading", false);
       return;
     }
 
@@ -72,7 +72,7 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
     // Otherwise, create and open new project...
   }
 
-  mainWindow.webContents.send("set-loading", true, "Preparing project");
+  mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, true, "Preparing project");
 
   const photos = files.filter((fileName) => {
     // Filter directories
@@ -114,6 +114,7 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
     directory,
     totalPhotos: photos.length,
     photos: photos.map((name, index) => ({
+      directory,
       name,
       edited: edited[index],
       thumbnail: thumbnails[index],
@@ -145,11 +146,10 @@ const handleOpenFilePrompt = async (mainWindow: Electron.BrowserWindow) => {
   });
 
   if (event.canceled) {
-    mainWindow.webContents.send("set-loading", false);
     return;
   }
 
-  mainWindow.webContents.send("set-loading", true, "Opening project");
+  mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, true, "Opening project");
 
   const [file] = event.filePaths;
 
@@ -161,7 +161,7 @@ const handleOpenFilePrompt = async (mainWindow: Electron.BrowserWindow) => {
  * Handles opening a recent project file.
  */
 const handleOpenProjectFile = async (mainWindow: Electron.BrowserWindow, file: string) => {
-  mainWindow.webContents.send("set-loading", true, "Opening project");
+  mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, true, "Opening project");
 
   const data = await fs.promises.readFile(file, "utf8");
   return sendData(mainWindow, JSON.parse(data) as ProjectBody);
@@ -223,7 +223,7 @@ const handleExportMatches = async (data: string) => {
 /**
  * Duplicates the original, edited, and thumbnail versions of a photo a returns the new filenames.
  */
-const handleDuplicatePhotoFile = async (data: DuplicatePhotoData): Promise<DuplicatePhotoData> => {
+const handleDuplicatePhotoFile = async (data: PhotoBody): Promise<PhotoBody> => {
   const originalPath = path.join(data.directory, data.name);
   const editedPath = path.join(data.directory, data.edited);
   const thumbnailPath = path.join(data.directory, data.thumbnail);

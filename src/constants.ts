@@ -1,3 +1,26 @@
+export enum IPC_EVENTS {
+  // Projects
+  OPEN_FOLDER = "project:openFolderPrompt",
+  OPEN_FILE = "project:openFilePrompt",
+  OPEN_PROJECT_FILE = "project:openProjectFile",
+  GET_RECENT_PROJECTS = "project:getRecentProjects",
+  REMOVE_RECENT_PROJECT = "project:removeRecentProject",
+  SAVE_PROJECT = "project:saveProject",
+  LOAD_PROJECT = "project:loadProject",
+  LOAD_RECENT_PROJECTS = "project:loadRecentProjects",
+  REFRESH_STACK_IMAGES = "project:refreshStackImages",
+
+  // Photos
+  SAVE_PHOTO_FILE = "photos:savePhotoFile",
+  REVERT_PHOTO_FILE = "photos:revertPhotoFile",
+  DUPLICATE_PHOTO_FILE = "photos:duplicatePhotoFile",
+  EXPORT_MATCHES = "photos:exportMatches",
+
+  // UI
+  SET_LOADING = "ui:setLoading",
+  OPEN_EDIT_WINDOW = "edit:openEditWindow",
+}
+
 export const DEFAULT_WINDOW_TITLE = "Photo ID";
 
 export const PHOTO_FILE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".tiff"];
