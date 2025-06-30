@@ -87,7 +87,9 @@ const ImageEditor = ({ data, image }: ImageEditorProps) => {
     const editedFile = await generateEditedFile();
     const editedFileData = await readFileAsString(editedFile as File);
 
-    window.electronAPI.savePhotoFile(data, editedFileData);
+    await window.electronAPI.savePhotoFile(data, editedFileData);
+
+    setSaving(false);
   };
 
   useEffect(() => {

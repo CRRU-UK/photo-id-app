@@ -24,13 +24,9 @@ const IndexPage = () => {
     });
   });
 
-  const handleOpenProjectFolder = () => {
-    window.electronAPI.openProjectFolder();
-  };
+  const handleOpenProjectFolder = () => window.electronAPI.openProjectFolder();
 
-  const handleOpenFilePrompt = () => {
-    window.electronAPI.openProjectFile();
-  };
+  const handleOpenFilePrompt = () => window.electronAPI.openProjectFile();
 
   return (
     <>

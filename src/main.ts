@@ -122,7 +122,7 @@ app.whenReady().then(() => {
     },
   );
 
-  ipcMain.on(IPC_EVENTS.OPEN_EDIT_WINDOW, (event, data: string) => {
+  ipcMain.on(IPC_EVENTS.OPEN_EDIT_WINDOW, (event, data: string): void => {
     const editWindow = new BrowserWindow({
       show: false,
       width: 1400,
@@ -164,11 +164,11 @@ app.whenReady().then(() => {
     });
   });
 
-  ipcMain.on(IPC_EVENTS.SAVE_PROJECT, (event, data: string) => {
-    handleSaveProject(data);
+  ipcMain.on(IPC_EVENTS.SAVE_PROJECT, async (event, data: string): Promise<void> => {
+    await handleSaveProject(data);
   });
 
-  ipcMain.handle(IPC_EVENTS.EXPORT_MATCHES, async (event, data: string) => {
+  ipcMain.handle(IPC_EVENTS.EXPORT_MATCHES, async (event, data: string): Promise<void> => {
     const projectData: ProjectBody = JSON.parse(data);
 
     await handleExportMatches(data);
@@ -176,23 +176,23 @@ app.whenReady().then(() => {
     shell.openPath(path.join(projectData.directory, PROJECT_EXPORT_DIRECTORY));
   });
 
-  ipcMain.on(
+  ipcMain.handle(
     IPC_EVENTS.SAVE_PHOTO_FILE,
-    async (event, data: EditWindowData, photo: ArrayBuffer) => {
+    async (event, data: EditWindowData, photo: ArrayBuffer): Promise<void> => {
       await savePhotoFromBuffer(data, photo);
-      mainWindow.webContents.send(IPC_EVENTS.REFRESH_STACK_IMAGES, data.name);
 
-      const webContents = event.sender;
-      const editWindow = BrowserWindow.fromWebContents(webContents) as BrowserWindow;
-      editWindow.webContents.send(IPC_EVENTS.SET_LOADING, false);
+      mainWindow.webContents.send(IPC_EVENTS.REFRESH_STACK_IMAGES, data.name);
     },
   );
 
-  ipcMain.on(IPC_EVENTS.REVERT_PHOTO_FILE, async (event, data: RevertPhotoData) => {
-    await revertPhotoToOriginal(data);
+  ipcMain.handle(
+    IPC_EVENTS.REVERT_PHOTO_FILE,
+    async (event, data: RevertPhotoData): Promise<void> => {
+      await revertPhotoToOriginal(data);
 
-    mainWindow.webContents.send(IPC_EVENTS.REFRESH_STACK_IMAGES, data.name);
-  });
+      mainWindow.webContents.send(IPC_EVENTS.REFRESH_STACK_IMAGES, data.name);
+    },
+  );
 
   ipcMain.handle(IPC_EVENTS.DUPLICATE_PHOTO_FILE, async (event, data: DuplicatePhotoData) => {
     const result = await handleDuplicatePhotoFile(data);

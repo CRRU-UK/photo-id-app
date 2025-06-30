@@ -63,9 +63,6 @@ const Stack = ({ photos }: StackProps) => {
       if (currentFile?.getFileName() === name) {
         setCurrentTime(new Date().getTime());
       }
-
-      setActionsOpen(false);
-      setRevertingPhoto(false);
     });
   });
 
@@ -79,7 +76,7 @@ const Stack = ({ photos }: StackProps) => {
     window.electronAPI.openEditWindow(btoa(JSON.stringify(data)));
   };
 
-  const handleRevertPhoto = () => {
+  const handleRevertPhoto = async () => {
     setRevertingPhoto(true);
 
     const data: RevertPhotoData = {
@@ -88,7 +85,10 @@ const Stack = ({ photos }: StackProps) => {
       edited: currentFile.getEditedFileName(),
     };
 
-    window.electronAPI.revertPhotoFile(data);
+    await window.electronAPI.revertPhotoFile(data);
+
+    setActionsOpen(false);
+    setRevertingPhoto(false);
   };
 
   const handlePrev = () => {
