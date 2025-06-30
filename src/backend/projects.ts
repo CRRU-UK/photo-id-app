@@ -14,6 +14,8 @@ import {
   PROJECT_FILE_NAME,
   PROJECT_EXPORT_DIRECTORY,
   INITIAL_MATCHED_STACKS,
+  PROJECT_EDITS_DIRECTORY,
+  PROJECT_THUMBNAIL_DIRECTORY,
 } from "@/constants";
 import { getAlphabetLetter } from "@/helpers";
 import type { ProjectBody, PhotoBody } from "@/types";
@@ -89,6 +91,16 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
 
     return true;
   });
+
+  const editsDirectory = path.join(directory, PROJECT_EDITS_DIRECTORY);
+  if (!fs.existsSync(editsDirectory)) {
+    await fs.promises.mkdir(editsDirectory);
+  }
+
+  const thumbnailDirectory = path.join(directory, PROJECT_THUMBNAIL_DIRECTORY);
+  if (!fs.existsSync(thumbnailDirectory)) {
+    await fs.promises.mkdir(thumbnailDirectory);
+  }
 
   const [edited, thumbnails] = await Promise.all([
     Promise.all(photos.map((photo) => createPhotoEditsCopy(photo, directory))),
