@@ -17,11 +17,6 @@ const createPhotoEditsCopy = async (
   originalPhotoName: string,
   projectDirectory: string,
 ): Promise<string> => {
-  const editsDirectory = path.join(projectDirectory, PROJECT_EDITS_DIRECTORY);
-  if (!fs.existsSync(editsDirectory)) {
-    await fs.promises.mkdir(editsDirectory);
-  }
-
   const originalPath = path.join(projectDirectory, originalPhotoName);
   const editsPath = path.join(projectDirectory, PROJECT_EDITS_DIRECTORY, originalPhotoName);
 
@@ -49,10 +44,6 @@ const createPhotoThumbnail = async (
     .toBuffer();
 
   const thumbnailDirectory = path.join(projectDirectory, PROJECT_THUMBNAIL_DIRECTORY);
-  if (!fs.existsSync(thumbnailDirectory)) {
-    fs.mkdirSync(thumbnailDirectory);
-  }
-
   const thumbnailPath = path.join(thumbnailDirectory, sourcePhotoName);
   fs.writeFileSync(thumbnailPath, thumbnailData);
 
