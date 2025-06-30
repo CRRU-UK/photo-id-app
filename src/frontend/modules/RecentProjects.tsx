@@ -1,5 +1,6 @@
 import type { RecentProject } from "@/types";
 
+import { useState, useEffect } from "react";
 import {
   Text,
   Stack as PrimerStack,
@@ -11,12 +12,29 @@ import {
 } from "@primer/react";
 import { HistoryIcon, TrashIcon } from "@primer/octicons-react";
 
-interface RecentProjectsProps {
-  projects: RecentProject[] | null;
-}
+const RecentProjects = () => {
+  const [recentProjects, setRecentProjects] = useState<RecentProject[] | null>(null);
 
-const RecentProjects = ({ projects }: RecentProjectsProps) => {
-  if (projects === null) {
+  useEffect(() => {
+    window.electronAPI.getRecentProjects();
+
+    async function getRecentProjects() {
+      const data = await window.electronAPI.getRecentProjects();
+      console.log("getRecentProjects", "data", data);
+      setRecentProjects(data);
+    }
+
+    getRecentProjects();
+  }, []);
+
+  const handleRemoveRecentProject = async (path: string): Promise<void> => {
+    console.log("handleRemoveRecentProject", "path", path);
+    const data = await window.electronAPI.removeRecentProject(path);
+    console.log("handleRemoveRecentProject", "data", data);
+    setRecentProjects(data);
+  };
+
+  if (recentProjects === null) {
     return (
       <div style={{ paddingTop: "var(--stack-gap-spacious)", textAlign: "center" }}>
         <Spinner size="small" />
@@ -24,11 +42,11 @@ const RecentProjects = ({ projects }: RecentProjectsProps) => {
     );
   }
 
-  if (projects.length > 0) {
+  if (recentProjects.length > 0) {
     return (
       <>
         <Text>Or open a recent project:</Text>
-        <RecentProjectsList projects={projects} />
+        <RecentProjectsList projects={recentProjects} onRemove={handleRemoveRecentProject} />
       </>
     );
   }
@@ -38,11 +56,11 @@ const RecentProjects = ({ projects }: RecentProjectsProps) => {
 
 interface RecentProjectsListProps {
   projects: RecentProject[];
+  onRemove: (path: string) => Promise<void>;
 }
 
-const RecentProjectsList = ({ projects }: RecentProjectsListProps) => {
+const RecentProjectsList = ({ projects, onRemove }: RecentProjectsListProps) => {
   const handleOpenProjectFile = (path: string) => window.electronAPI.openRecentProject(path);
-  const handleRemoveRecentProject = (path: string) => window.electronAPI.removeRecentProject(path);
 
   return (
     <Timeline style={{ marginTop: "var(--stack-gap-spacious)" }}>
@@ -78,7 +96,7 @@ const RecentProjectsList = ({ projects }: RecentProjectsListProps) => {
                 size="small"
                 variant="invisible"
                 aria-label="Remove recent project"
-                onClick={() => handleRemoveRecentProject(item.path)}
+                onClick={() => onRemove(item.path)}
               />
             </PrimerStack>
           </Timeline.Body>

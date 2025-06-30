@@ -1,4 +1,10 @@
-import type { EditWindowData, RevertPhotoData, DuplicatePhotoData, ProjectBody } from "@/types";
+import type {
+  EditWindowData,
+  RevertPhotoData,
+  DuplicatePhotoData,
+  ProjectBody,
+  RecentProject,
+} from "@/types";
 
 import path from "path";
 import url from "url";
@@ -6,7 +12,7 @@ import { app, BrowserWindow, ipcMain, Menu, shell } from "electron";
 import started from "electron-squirrel-startup";
 import { updateElectronApp } from "update-electron-app";
 
-import { DEFAULT_WINDOW_TITLE, PROJECT_EXPORT_DIRECTORY } from "@/constants";
+import { IPC_EVENTS, DEFAULT_WINDOW_TITLE, PROJECT_EXPORT_DIRECTORY } from "@/constants";
 import { getMenu } from "@/backend/menu";
 import {
   handleOpenDirectoryPrompt,
@@ -85,39 +91,38 @@ app.on("activate", () => {
 });
 
 app.whenReady().then(() => {
-  ipcMain.on("open-folder-prompt", (event) => {
+  ipcMain.on(IPC_EVENTS.OPEN_FOLDER, (event) => {
     const webContents = event.sender;
     const window = BrowserWindow.fromWebContents(webContents) as BrowserWindow;
     handleOpenDirectoryPrompt(window);
   });
 
-  ipcMain.on("open-file-prompt", (event) => {
+  ipcMain.on(IPC_EVENTS.OPEN_FILE, (event) => {
     const webContents = event.sender;
     const window = BrowserWindow.fromWebContents(webContents) as BrowserWindow;
     handleOpenFilePrompt(window);
   });
 
-  ipcMain.on("open-project-file", (event, file) => {
+  ipcMain.on(IPC_EVENTS.OPEN_PROJECT_FILE, async (event, file) => {
     const webContents = event.sender;
     const window = BrowserWindow.fromWebContents(webContents) as BrowserWindow;
     handleOpenProjectFile(window, file);
   });
 
-  ipcMain.on("get-recent-projects", (event) => {
-    const webContents = event.sender;
-    const window = BrowserWindow.fromWebContents(webContents) as BrowserWindow;
-    window.webContents.send("load-recent-projects", getRecentProjects());
+  ipcMain.handle(IPC_EVENTS.GET_RECENT_PROJECTS, async (): Promise<RecentProject[]> => {
+    const result = await getRecentProjects();
+    return result;
   });
 
-  ipcMain.on("remove-recent-project", (event, path) => {
-    removeRecentProject(path);
+  ipcMain.handle(
+    IPC_EVENTS.REMOVE_RECENT_PROJECT,
+    async (event, path): Promise<RecentProject[]> => {
+      const result = await removeRecentProject(path);
+      return result;
+    },
+  );
 
-    const webContents = event.sender;
-    const window = BrowserWindow.fromWebContents(webContents) as BrowserWindow;
-    window.webContents.send("load-recent-projects", getRecentProjects());
-  });
-
-  ipcMain.on("open-edit-window", (event, data: string) => {
+  ipcMain.on(IPC_EVENTS.OPEN_EDIT_WINDOW, (event, data: string) => {
     const editWindow = new BrowserWindow({
       show: false,
       width: 1400,
@@ -159,11 +164,11 @@ app.whenReady().then(() => {
     });
   });
 
-  ipcMain.on("save-project", (event, data: string) => {
+  ipcMain.on(IPC_EVENTS.SAVE_PROJECT, (event, data: string) => {
     handleSaveProject(data);
   });
 
-  ipcMain.handle("export-matches", async (event, data: string) => {
+  ipcMain.handle(IPC_EVENTS.EXPORT_MATCHES, async (event, data: string) => {
     const projectData: ProjectBody = JSON.parse(data);
 
     await handleExportMatches(data);
@@ -171,22 +176,25 @@ app.whenReady().then(() => {
     shell.openPath(path.join(projectData.directory, PROJECT_EXPORT_DIRECTORY));
   });
 
-  ipcMain.on("save-photo-file", async (event, data: EditWindowData, photo: ArrayBuffer) => {
-    await savePhotoFromBuffer(data, photo);
-    mainWindow.webContents.send("refresh-stack-images", data.name);
+  ipcMain.on(
+    IPC_EVENTS.SAVE_PHOTO_FILE,
+    async (event, data: EditWindowData, photo: ArrayBuffer) => {
+      await savePhotoFromBuffer(data, photo);
+      mainWindow.webContents.send(IPC_EVENTS.REFRESH_STACK_IMAGES, data.name);
 
-    const webContents = event.sender;
-    const editWindow = BrowserWindow.fromWebContents(webContents) as BrowserWindow;
-    editWindow.webContents.send("set-loading", false);
-  });
+      const webContents = event.sender;
+      const editWindow = BrowserWindow.fromWebContents(webContents) as BrowserWindow;
+      editWindow.webContents.send(IPC_EVENTS.SET_LOADING, false);
+    },
+  );
 
-  ipcMain.on("revert-photo-file", async (event, data: RevertPhotoData) => {
+  ipcMain.on(IPC_EVENTS.REVERT_PHOTO_FILE, async (event, data: RevertPhotoData) => {
     await revertPhotoToOriginal(data);
 
-    mainWindow.webContents.send("refresh-stack-images", data.name);
+    mainWindow.webContents.send(IPC_EVENTS.REFRESH_STACK_IMAGES, data.name);
   });
 
-  ipcMain.handle("duplicate-photo-file", async (event, data: DuplicatePhotoData) => {
+  ipcMain.handle(IPC_EVENTS.DUPLICATE_PHOTO_FILE, async (event, data: DuplicatePhotoData) => {
     const result = await handleDuplicatePhotoFile(data);
     return result;
   });
