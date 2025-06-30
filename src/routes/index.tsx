@@ -1,15 +1,14 @@
+import { FileDirectoryIcon, FileIcon } from "@primer/octicons-react";
+import { PageLayout, Heading, Text, BranchName, Stack as PrimerStack, Button } from "@primer/react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { PageLayout, Heading, Text, BranchName, Stack as PrimerStack, Button } from "@primer/react";
-import { FileDirectoryIcon, FileIcon } from "@primer/octicons-react";
-
-import { version } from "../../package.json";
-
-import LoadingOverlay, { type LoadingOverlayProps } from "@/frontend/modules/LoadingOverlay";
-import RecentProjects from "@/frontend/modules/RecentProjects";
-import logo from "@/frontend/img/logo.png";
 
 import { PROJECT_FILE_NAME, PROJECT_STORAGE_NAME } from "@/constants";
+import logo from "@/frontend/img/logo.png";
+import LoadingOverlay, { type LoadingOverlayProps } from "@/frontend/modules/LoadingOverlay";
+import RecentProjects from "@/frontend/modules/RecentProjects";
+
+import { version } from "../../package.json";
 
 const IndexPage = () => {
   const [loading, setLoading] = useState<LoadingOverlayProps>({ show: false });

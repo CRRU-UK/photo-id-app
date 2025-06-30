@@ -1,8 +1,11 @@
-import type { PhotoStack, PhotoBody } from "@/types";
-
-import { useState, useEffect, useRef } from "react";
 import { useDraggable } from "@dnd-kit/core";
-
+import {
+  PencilIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  TriangleDownIcon,
+  UndoIcon,
+} from "@primer/octicons-react";
 import {
   Stack as PrimerStack,
   CounterLabel,
@@ -11,13 +14,9 @@ import {
   ActionMenu,
   ActionList,
 } from "@primer/react";
-import {
-  PencilIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  TriangleDownIcon,
-  UndoIcon,
-} from "@primer/octicons-react";
+import { useState, useEffect, useRef } from "react";
+
+import type { PhotoStack, PhotoBody } from "@/types";
 
 export interface StackProps {
   photos: PhotoStack;

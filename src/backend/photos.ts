@@ -1,10 +1,9 @@
-import type { PhotoBody } from "@/types";
-
 import fs from "fs";
 import path from "path";
 import sharp, { type Sharp } from "sharp";
 
 import { PROJECT_EDITS_DIRECTORY, PROJECT_THUMBNAIL_DIRECTORY, THUMBNAIL_SIZE } from "@/constants";
+import type { PhotoBody } from "@/types";
 
 const savePhotoFromBuffer = async (data: PhotoBody, photoData: ArrayBuffer) => {
   const editedPath = path.join(data.directory, data.edited);

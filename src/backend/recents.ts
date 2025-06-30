@@ -1,10 +1,9 @@
-import type { RecentProject } from "@/types";
-
+import { app } from "electron";
 import fs from "fs";
 import path from "path";
-import { app } from "electron";
 
 import { RECENT_PROJECTS_FILE_NAME, MAX_RECENT_PROJECTS } from "@/constants";
+import type { RecentProject } from "@/types";
 
 const userDataPath = app.getPath("userData");
 const recentProjectsFile = path.join(userDataPath, RECENT_PROJECTS_FILE_NAME);

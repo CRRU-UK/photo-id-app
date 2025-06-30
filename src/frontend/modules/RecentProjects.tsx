@@ -1,6 +1,4 @@
-import type { RecentProject } from "@/types";
-
-import { useState, useEffect } from "react";
+import { HistoryIcon, TrashIcon } from "@primer/octicons-react";
 import {
   Text,
   Stack as PrimerStack,
@@ -10,7 +8,9 @@ import {
   Spinner,
   IconButton,
 } from "@primer/react";
-import { HistoryIcon, TrashIcon } from "@primer/octicons-react";
+import { useState, useEffect } from "react";
+
+import type { RecentProject } from "@/types";
 
 const RecentProjects = () => {
   const [recentProjects, setRecentProjects] = useState<RecentProject[] | null>(null);

@@ -1,14 +1,11 @@
-import type { Match, PhotoStack } from "@/types";
-
-import { useState, useEffect } from "react";
 import { useDroppable } from "@dnd-kit/core";
 import { Stack as PrimerStack, Text, Label, TextInput } from "@primer/react";
+import { useState, useEffect } from "react";
 
 import { BOX_HOVER_STYLES } from "@/constants";
-
 import Stack from "@/frontend/components/Stack";
-
 import { getAlphabetLetter } from "@/helpers";
+import type { Match, PhotoStack } from "@/types";
 
 interface SelectionProps {
   id: number;

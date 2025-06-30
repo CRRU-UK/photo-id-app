@@ -1,10 +1,10 @@
-import globals from "globals";
 import pluginJS from "@eslint/js";
-import pluginTS from "typescript-eslint";
-import pluginReact from "eslint-plugin-react";
-import pluginReactHooks from "eslint-plugin-react-hooks";
 import pluginJest from "eslint-plugin-jest";
 import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
+import pluginReact from "eslint-plugin-react";
+import pluginReactHooks from "eslint-plugin-react-hooks";
+import globals from "globals";
+import pluginTS from "typescript-eslint";
 
 const recommendedConfigs = [
   pluginJS.configs.recommended,
