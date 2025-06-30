@@ -55,6 +55,7 @@
     "@electron/fuses": "^1.8.0",
     "@tanstack/router-plugin": "^1.123.0",
     "@testing-library/jest-dom": "^6.6.3",
+    "@trivago/prettier-plugin-sort-imports": "^5.2.2",
     "@types/electron-squirrel-startup": "^1.0.2",
     "@types/jest": "^30.0.0",
     "@types/react": "^19.1.8",

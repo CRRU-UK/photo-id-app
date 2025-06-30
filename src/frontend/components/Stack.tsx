@@ -1,8 +1,11 @@
-import type { PhotoStack, EditWindowData, RevertPhotoData } from "@/types";
-
-import { useState, useEffect, useRef } from "react";
 import { useDraggable } from "@dnd-kit/core";
-
+import {
+  PencilIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  TriangleDownIcon,
+  UndoIcon,
+} from "@primer/octicons-react";
 import {
   Stack as PrimerStack,
   CounterLabel,
@@ -11,13 +14,9 @@ import {
   ActionMenu,
   ActionList,
 } from "@primer/react";
-import {
-  PencilIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  TriangleDownIcon,
-  UndoIcon,
-} from "@primer/octicons-react";
+import { useState, useEffect, useRef } from "react";
+
+import type { PhotoStack, PhotoBody } from "@/types";
 
 export interface StackProps {
   photos: PhotoStack;
@@ -63,32 +62,34 @@ const Stack = ({ photos }: StackProps) => {
       if (currentFile?.getFileName() === name) {
         setCurrentTime(new Date().getTime());
       }
-
-      setActionsOpen(false);
-      setRevertingPhoto(false);
     });
   });
 
   const handleOpenEdit = () => {
-    const data: EditWindowData = {
+    const data: PhotoBody = {
       directory: currentFile.directory,
       name: currentFile.getFileName(),
       edited: currentFile.getEditedFileName(),
       thumbnail: currentFile.getThumbnailFileName(),
     };
-    window.electronAPI.openEditWindow(btoa(JSON.stringify(data)));
+
+    window.electronAPI.openEditWindow(data);
   };
 
-  const handleRevertPhoto = () => {
+  const handleRevertPhoto = async () => {
     setRevertingPhoto(true);
 
-    const data: RevertPhotoData = {
+    const data: PhotoBody = {
       directory: currentFile.directory,
       name: currentFile.getFileName(),
       edited: currentFile.getEditedFileName(),
+      thumbnail: currentFile.getThumbnailFileName(),
     };
 
-    window.electronAPI.revertPhotoFile(data);
+    await window.electronAPI.revertPhotoFile(data);
+
+    setActionsOpen(false);
+    setRevertingPhoto(false);
   };
 
   const handlePrev = () => {

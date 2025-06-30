@@ -1,33 +1,44 @@
-import type { RecentProject } from "@/types";
-
+import { app } from "electron";
 import fs from "fs";
 import path from "path";
-import { app } from "electron";
 
 import { RECENT_PROJECTS_FILE_NAME, MAX_RECENT_PROJECTS } from "@/constants";
+import type { RecentProject } from "@/types";
 
 const userDataPath = app.getPath("userData");
 const recentProjectsFile = path.join(userDataPath, RECENT_PROJECTS_FILE_NAME);
 
-const getRecentProjects = (): RecentProject[] => {
+/**
+ * Gets a list of recent projects from the internal file.
+ */
+const getRecentProjects = async (): Promise<RecentProject[]> => {
   if (!fs.existsSync(recentProjectsFile)) {
     return [];
   }
 
-  const data = fs.readFileSync(recentProjectsFile, "utf8");
+  const data = await fs.promises.readFile(recentProjectsFile, "utf8");
   return JSON.parse(data);
 };
 
-const updateRecentProjects = (data: RecentProject[]) =>
-  fs.writeFileSync(recentProjectsFile, JSON.stringify(data, null, 2), "utf8");
+/**
+ * Writes the recent projects to the internal file.
+ */
+const updateRecentProjects = async (data: RecentProject[]) =>
+  fs.promises.writeFile(recentProjectsFile, JSON.stringify(data, null, 2), "utf8");
 
 interface AddRecentProjectOptions {
   name: string;
   path: string;
 }
 
-const addRecentProject = ({ name, path }: AddRecentProjectOptions) => {
-  const recentProjects = getRecentProjects();
+/**
+ * Adds a recent project to the current list and returns the updated list.
+ */
+const addRecentProject = async ({
+  name,
+  path,
+}: AddRecentProjectOptions): Promise<RecentProject[]> => {
+  const recentProjects = await getRecentProjects();
 
   const lastProject = { name, path, lastOpened: new Date().toISOString() };
 
@@ -41,15 +52,22 @@ const addRecentProject = ({ name, path }: AddRecentProjectOptions) => {
     }, [] as RecentProject[])
     .slice(0, MAX_RECENT_PROJECTS);
 
-  return updateRecentProjects(data);
+  await updateRecentProjects(data);
+
+  return data;
 };
 
-const removeRecentProject = (path: string) => {
-  const recentProjects = getRecentProjects();
+/**
+ * Removes a recent project from the current list and returns the updated list.
+ */
+const removeRecentProject = async (path: string): Promise<RecentProject[]> => {
+  const recentProjects = await getRecentProjects();
 
   const updatedRecentProjects = recentProjects.filter((item) => item.path !== path);
 
-  return updateRecentProjects(updatedRecentProjects);
+  await updateRecentProjects(updatedRecentProjects);
+
+  return updatedRecentProjects;
 };
 
 export { getRecentProjects, addRecentProject, removeRecentProject };

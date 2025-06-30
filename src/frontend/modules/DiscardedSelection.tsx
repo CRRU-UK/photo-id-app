@@ -1,11 +1,9 @@
-import type { PhotoStack } from "@/types";
-
 import { useDroppable } from "@dnd-kit/core";
 import { Text } from "@primer/react";
 
 import { DragAreas, BOX_HOVER_STYLES } from "@/constants";
-
 import Stack from "@/frontend/components/Stack";
+import type { PhotoStack } from "@/types";
 
 export interface DiscardedSelectionProps {
   photos: PhotoStack;

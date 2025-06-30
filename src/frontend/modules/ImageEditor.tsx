@@ -1,7 +1,4 @@
-import type { EditWindowData } from "@/types";
-
-import { useState, useEffect } from "react";
-import { usePhotoEditor } from "react-photo-editor";
+import { ZoomOutIcon, ZoomInIcon, CheckIcon, XIcon } from "@primer/octicons-react";
 import {
   Stack,
   ToggleSwitch,
@@ -12,10 +9,12 @@ import {
   Text,
   Select,
 } from "@primer/react";
-import { ZoomOutIcon, ZoomInIcon, CheckIcon, XIcon } from "@primer/octicons-react";
+import { useState, useEffect } from "react";
+import { usePhotoEditor } from "react-photo-editor";
 
 import { LINE_SIZES, DEFAULT_LINE_COLOR } from "@/constants";
 import { readFileAsString } from "@/helpers";
+import type { PhotoBody } from "@/types";
 
 interface SliderProps {
   name: string;
@@ -44,7 +43,7 @@ const Slider = ({ name, value, min, max, callback }: SliderProps) => (
 );
 
 interface ImageEditorProps {
-  data: EditWindowData;
+  data: PhotoBody;
   image: File;
 }
 
@@ -87,7 +86,9 @@ const ImageEditor = ({ data, image }: ImageEditorProps) => {
     const editedFile = await generateEditedFile();
     const editedFileData = await readFileAsString(editedFile as File);
 
-    window.electronAPI.savePhotoFile(data, editedFileData);
+    await window.electronAPI.savePhotoFile(data, editedFileData);
+
+    setSaving(false);
   };
 
   useEffect(() => {

@@ -21,9 +21,10 @@ export type Match = {
 export type Matches = Set<Match>;
 
 export type PhotoBody = {
-  name: string;
-  edited: string;
-  thumbnail: string;
+  directory: Directory;
+  name: FileName;
+  edited: FileName;
+  thumbnail: FileName;
 };
 
 export type ProjectBody = {
@@ -61,24 +62,4 @@ export type DraggableStartData = {
 
 export type DraggableEndData = {
   photos: PhotoStack;
-};
-
-export type EditWindowData = {
-  directory: string;
-  name: string;
-  edited: string;
-  thumbnail: string;
-};
-
-export type RevertPhotoData = {
-  directory: string;
-  name: string;
-  edited: string;
-};
-
-export type DuplicatePhotoData = {
-  directory: string;
-  name: string;
-  edited: string;
-  thumbnail: string;
 };
