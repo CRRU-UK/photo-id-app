@@ -20,7 +20,6 @@ const RecentProjects = () => {
 
     async function getRecentProjects() {
       const data = await window.electronAPI.getRecentProjects();
-      console.log("getRecentProjects", "data", data);
       setRecentProjects(data);
     }
 
