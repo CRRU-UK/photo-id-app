@@ -37,10 +37,9 @@ const createPhotoThumbnail = async (
   sourcePhotoName: string,
   projectDirectory: string,
 ): Promise<string> => {
-  const file = path.join(projectDirectory, PROJECT_EDITS_DIRECTORY, sourcePhotoName);
+  const file = path.join(projectDirectory, sourcePhotoName);
 
-  console.log("sourcePhotoName", sourcePhotoName);
-  console.log("projectDirectory", projectDirectory);
+  console.log("file", file);
 
   const image: Sharp = sharp(file);
 

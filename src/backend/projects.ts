@@ -96,10 +96,10 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
     await fs.promises.mkdir(editsDirectory);
   }
 
-  const [edited, thumbnails] = await Promise.all([
-    Promise.all(photos.map((photo) => createPhotoEditsCopy(photo, directory))),
-    Promise.all(photos.map((photo) => createPhotoThumbnail(photo, directory))),
-  ]);
+  const edited = await Promise.all(photos.map((photo) => createPhotoEditsCopy(photo, directory)));
+  const thumbnails = await Promise.all(
+    photos.map((photo) => createPhotoThumbnail(photo, directory)),
+  );
 
   const now = new Date().toISOString();
 
