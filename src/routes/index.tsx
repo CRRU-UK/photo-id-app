@@ -1,5 +1,5 @@
 import { FileDirectoryIcon, FileIcon } from "@primer/octicons-react";
-import { PageLayout, Heading, Text, BranchName, Stack as PrimerStack, Button } from "@primer/react";
+import { BranchName, Button, Heading, PageLayout, Stack as PrimerStack, Text } from "@primer/react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 

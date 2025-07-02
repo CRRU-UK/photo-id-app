@@ -1,8 +1,8 @@
+import { BOX_HOVER_STYLES, DragAreas } from "@/constants";
+import Stack from "@/frontend/components/Stack";
 import { useDroppable } from "@dnd-kit/core";
 import { Text } from "@primer/react";
 
-import { DragAreas, BOX_HOVER_STYLES } from "@/constants";
-import Stack from "@/frontend/components/Stack";
 import type { PhotoStack } from "@/types";
 
 export interface DiscardedSelectionProps {

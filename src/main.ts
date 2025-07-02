@@ -5,17 +5,17 @@ import { updateElectronApp } from "update-electron-app";
 import url from "url";
 
 import { getMenu } from "@/backend/menu";
-import { savePhotoFromBuffer, revertPhotoToOriginal } from "@/backend/photos";
+import { revertPhotoToOriginal, savePhotoFromBuffer } from "@/backend/photos";
 import {
+  handleDuplicatePhotoFile,
+  handleExportMatches,
   handleOpenDirectoryPrompt,
   handleOpenFilePrompt,
   handleOpenProjectFile,
   handleSaveProject,
-  handleExportMatches,
-  handleDuplicatePhotoFile,
 } from "@/backend/projects";
 import { getRecentProjects, removeRecentProject } from "@/backend/recents";
-import { IPC_EVENTS, DEFAULT_WINDOW_TITLE, PROJECT_EXPORT_DIRECTORY } from "@/constants";
+import { DEFAULT_WINDOW_TITLE, IPC_EVENTS, PROJECT_EXPORT_DIRECTORY } from "@/constants";
 import type { PhotoBody, ProjectBody, RecentProject } from "@/types";
 
 updateElectronApp();

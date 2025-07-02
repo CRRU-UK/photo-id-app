@@ -58,4 +58,4 @@ const revertPhotoToOriginal = async (data: PhotoBody) => {
   await createPhotoThumbnail(data.name, data.directory);
 };
 
-export { savePhotoFromBuffer, createPhotoEditsCopy, createPhotoThumbnail, revertPhotoToOriginal };
+export { createPhotoEditsCopy, createPhotoThumbnail, revertPhotoToOriginal, savePhotoFromBuffer };

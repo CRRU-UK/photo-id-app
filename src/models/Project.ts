@@ -1,5 +1,5 @@
 import { PROJECT_STORAGE_NAME } from "@/constants";
-import type { Directory, PhotoStack, Matches, ProjectBody, PhotoBody } from "@/types";
+import type { Directory, Matches, PhotoBody, PhotoStack, ProjectBody } from "@/types";
 
 import Photo from "./Photo";
 

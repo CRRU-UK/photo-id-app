@@ -6,19 +6,19 @@ import path from "path";
 import { createPhotoEditsCopy, createPhotoThumbnail } from "@/backend/photos";
 import { addRecentProject } from "@/backend/recents";
 import {
-  IPC_EVENTS,
   DEFAULT_WINDOW_TITLE,
-  PHOTO_FILE_EXTENSIONS,
-  EXISTING_DATA_MESSAGE,
   EXISTING_DATA_BUTTONS,
-  PROJECT_FILE_NAME,
-  PROJECT_EXPORT_DIRECTORY,
+  EXISTING_DATA_MESSAGE,
   INITIAL_MATCHED_STACKS,
+  IPC_EVENTS,
+  PHOTO_FILE_EXTENSIONS,
   PROJECT_EDITS_DIRECTORY,
+  PROJECT_EXPORT_DIRECTORY,
+  PROJECT_FILE_NAME,
   PROJECT_THUMBNAIL_DIRECTORY,
 } from "@/constants";
 import { getAlphabetLetter } from "@/helpers";
-import type { ProjectBody, PhotoBody } from "@/types";
+import type { PhotoBody, ProjectBody } from "@/types";
 
 const sendData = (mainWindow: Electron.BrowserWindow, data: ProjectBody) => {
   mainWindow.setTitle(`${DEFAULT_WINDOW_TITLE} - ${data.directory}`);
@@ -273,10 +273,10 @@ const handleDuplicatePhotoFile = async (data: PhotoBody): Promise<PhotoBody> => 
 };
 
 export {
+  handleDuplicatePhotoFile,
+  handleExportMatches,
   handleOpenDirectoryPrompt,
   handleOpenFilePrompt,
   handleOpenProjectFile,
   handleSaveProject,
-  handleExportMatches,
-  handleDuplicatePhotoFile,
 };

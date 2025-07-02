@@ -1,6 +1,6 @@
 import { useDroppable } from "@dnd-kit/core";
-import { Stack as PrimerStack, Text, Label, TextInput } from "@primer/react";
-import { useState, useEffect } from "react";
+import { Label, Stack as PrimerStack, Text, TextInput } from "@primer/react";
+import { useEffect, useState } from "react";
 
 import { BOX_HOVER_STYLES } from "@/constants";
 import Stack from "@/frontend/components/Stack";
