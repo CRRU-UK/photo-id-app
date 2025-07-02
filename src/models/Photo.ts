@@ -3,8 +3,8 @@ import type { Directory, FileName } from "@/types";
 import File from "./File";
 
 class Photo extends File {
-  private edited: string;
-  private thumbnail: string;
+  edited: string;
+  thumbnail: string;
 
   constructor(directory: Directory, name: FileName, edited: FileName, thumbnail: string) {
     super(directory, name);

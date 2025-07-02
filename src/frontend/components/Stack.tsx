@@ -116,6 +116,7 @@ const Stack = ({ photos }: StackProps) => {
           {currentFile && (
             <img
               src={currentFile.getThumbnailData()}
+              key={currentFile.getThumbnailData()}
               style={{
                 cursor: "pointer",
                 display: "block",

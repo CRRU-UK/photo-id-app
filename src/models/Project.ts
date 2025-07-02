@@ -8,6 +8,7 @@ class Project {
   id: string;
   directory: Directory;
   totalPhotos: number;
+  allPhotos: PhotoStack;
   photos: PhotoStack;
   matched: Matches;
   discarded: PhotoStack;
@@ -19,6 +20,7 @@ class Project {
     id = "",
     directory = "",
     totalPhotos = 0,
+    allPhotos: PhotoStack = new Set(),
     photos: PhotoStack = new Set(),
     matched: Matches = new Set(),
     discarded: PhotoStack = new Set(),
@@ -29,6 +31,7 @@ class Project {
     this.id = id;
     this.directory = directory;
     this.totalPhotos = totalPhotos;
+    this.allPhotos = new Set(photos);
     this.photos = new Set(photos);
     this.matched = new Set(matched);
     this.discarded = new Set(discarded);
@@ -40,6 +43,7 @@ class Project {
     const items = photos.map(
       ({ name, edited, thumbnail }) => new Photo(directory, name, edited, thumbnail),
     );
+    items.forEach((photo) => this.allPhotos.add(photo));
     return new Set(items);
   }
 
@@ -162,25 +166,13 @@ class Project {
   }
 
   public updatePhotoData({ name, thumbnail }: PhotoBody): this {
-    for (const photo of this.photos) {
-      console.log("photo.getFileName()", photo.getFileName());
-      console.log("name", name);
+    const photo = Array.from(this.allPhotos).find((photo) => photo.getFileName() === name);
 
-      if (photo.getFileName() === name) {
-        console.log("Updating thumbnail for", name);
-        photo.setThumbnailData(thumbnail);
-        this.save();
-        return this;
-      }
-    }
+    console.log("photo found! current data:", photo?.getThumbnailData());
+    console.log("new data:", thumbnail);
 
-    for (const photo of this.discarded) {
-      if (photo.getFileName() === name) {
-        photo.setThumbnailData(thumbnail);
-        this.save();
-        return this;
-      }
-    }
+    photo!.setThumbnailData(thumbnail);
+    this.save();
 
     return this;
   }

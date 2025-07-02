@@ -58,9 +58,7 @@ const ProjectPage = () => {
   }, []);
 
   useEffect(() => {
-    window.electronAPI.onUpdatePhotoData((data) => {
-      project.updatePhotoData(data).save();
-    });
+    window.electronAPI.onUpdatePhotoData((data) => project.updatePhotoData(data));
   });
 
   const handleDragStart = (event: DragStartEvent) => {

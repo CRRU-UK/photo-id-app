@@ -13,7 +13,7 @@ const savePhotoFromBuffer = async (data: EditData, photoData: ArrayBuffer): Prom
   const buffer = Buffer.from(photoData);
   fs.writeFileSync(editedPath, buffer, "utf8");
 
-  const thumbnail = await createPhotoThumbnail(data.name, data.directory);
+  const thumbnail = await createPhotoThumbnail(data.edited, data.directory);
 
   return { directory, name, edited, thumbnail };
 };
