@@ -1,14 +1,14 @@
 import { HistoryIcon, TrashIcon } from "@primer/octicons-react";
 import {
-  Text,
-  Stack as PrimerStack,
-  Timeline,
+  IconButton,
   Link,
+  Stack as PrimerStack,
   RelativeTime,
   Spinner,
-  IconButton,
+  Text,
+  Timeline,
 } from "@primer/react";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import type { RecentProject } from "@/types";
 

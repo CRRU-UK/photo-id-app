@@ -2,7 +2,7 @@ import { app } from "electron";
 import fs from "fs";
 import path from "path";
 
-import { RECENT_PROJECTS_FILE_NAME, MAX_RECENT_PROJECTS } from "@/constants";
+import { MAX_RECENT_PROJECTS, RECENT_PROJECTS_FILE_NAME } from "@/constants";
 import type { RecentProject } from "@/types";
 
 const userDataPath = app.getPath("userData");
@@ -70,4 +70,4 @@ const removeRecentProject = async (path: string): Promise<RecentProject[]> => {
   return updatedRecentProjects;
 };
 
-export { getRecentProjects, addRecentProject, removeRecentProject };
+export { addRecentProject, getRecentProjects, removeRecentProject };

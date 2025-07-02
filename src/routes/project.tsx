@@ -1,29 +1,29 @@
-import { type DragStartEvent, type DragEndEvent, DragOverlay, DndContext } from "@dnd-kit/core";
-import { ReplyIcon, ThreeBarsIcon, FileMovedIcon } from "@primer/octicons-react";
+import { DndContext, type DragEndEvent, DragOverlay, type DragStartEvent } from "@dnd-kit/core";
+import { FileMovedIcon, ReplyIcon, ThreeBarsIcon } from "@primer/octicons-react";
 import {
-  Stack as PrimerStack,
-  ActionMenu,
   ActionList,
+  ActionMenu,
   IconButton,
+  Stack as PrimerStack,
   UnderlineNav,
 } from "@primer/react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState, useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-import { PROJECT_STORAGE_NAME, MATCHED_STACKS_PER_PAGE } from "@/constants";
+import { MATCHED_STACKS_PER_PAGE, PROJECT_STORAGE_NAME } from "@/constants";
 import DiscardedSelection from "@/frontend/modules/DiscardedSelection";
 import LoadingOverlay from "@/frontend/modules/LoadingOverlay";
 import MainSelection from "@/frontend/modules/MainSelection";
 import RowSelection from "@/frontend/modules/RowSelection";
-import { getAlphabetLetter, chunkArray } from "@/helpers";
+import { chunkArray, getAlphabetLetter } from "@/helpers";
 import type Photo from "@/models/Photo";
 import ProjectModel from "@/models/Project";
 import type {
-  DraggableStartData,
   DraggableEndData,
+  DraggableStartData,
+  LoadingData,
   PhotoStack,
   ProjectBody,
-  LoadingData,
 } from "@/types";
 
 const DraggableImage = ({ photo }: { photo: Photo }) => (

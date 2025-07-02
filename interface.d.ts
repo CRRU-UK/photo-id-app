@@ -1,4 +1,4 @@
-import type { ProjectBody, PhotoBody, RecentProject, LoadingData } from "./src/types";
+import type { LoadingData, PhotoBody, ProjectBody, RecentProject } from "./src/types";
 
 export interface IElectronAPI {
   // Invocations (main and renderer)

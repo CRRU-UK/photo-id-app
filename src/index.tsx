@@ -4,7 +4,7 @@ import "@primer/primitives/dist/css/functional/size/size.css";
 import "@primer/primitives/dist/css/functional/themes/dark.css";
 import "@primer/primitives/dist/css/functional/themes/light.css";
 import "@primer/primitives/dist/css/primitives.css";
-import { ThemeProvider, BaseStyles } from "@primer/react";
+import { BaseStyles, ThemeProvider } from "@primer/react";
 import { RouterProvider, createHashHistory, createRouter } from "@tanstack/react-router";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";

@@ -1,18 +1,18 @@
-import { ZoomOutIcon, ZoomInIcon, CheckIcon, XIcon } from "@primer/octicons-react";
+import { CheckIcon, XIcon, ZoomInIcon, ZoomOutIcon } from "@primer/octicons-react";
 import {
-  Stack,
-  ToggleSwitch,
-  ButtonGroup,
   Button,
+  ButtonGroup,
   FormControl,
   Label,
-  Text,
   Select,
+  Stack,
+  Text,
+  ToggleSwitch,
 } from "@primer/react";
 import { useState } from "react";
 import { usePhotoEditor } from "react-photo-editor";
 
-import { LINE_SIZES, DEFAULT_LINE_COLOR } from "@/constants";
+import { DEFAULT_LINE_COLOR, LINE_SIZES } from "@/constants";
 import { readFileAsString } from "@/helpers";
 import type { PhotoBody } from "@/types";
 
