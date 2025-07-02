@@ -67,6 +67,7 @@
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^5.2.0",
     "prettier": "3.6.2",
+    "prettier-plugin-organize-imports": "^4.1.0",
     "react-photo-editor": "^3.0.0",
     "ts-node": "^10.9.2",
     "typescript": "~5.8.3",
