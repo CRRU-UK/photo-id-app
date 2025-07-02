@@ -16,7 +16,7 @@ import {
 } from "@/backend/projects";
 import { getRecentProjects, removeRecentProject } from "@/backend/recents";
 import { IPC_EVENTS, DEFAULT_WINDOW_TITLE, PROJECT_EXPORT_DIRECTORY } from "@/constants";
-import type { PhotoBody, ProjectBody, RecentProject } from "@/types";
+import type { EditData, PhotoBody, ProjectBody, RecentProject } from "@/types";
 
 updateElectronApp();
 
@@ -115,7 +115,7 @@ app.whenReady().then(() => {
     },
   );
 
-  ipcMain.on(IPC_EVENTS.OPEN_EDIT_WINDOW, (event, data: PhotoBody): void => {
+  ipcMain.on(IPC_EVENTS.OPEN_EDIT_WINDOW, (event, data: EditData): void => {
     const editWindow = new BrowserWindow({
       show: false,
       width: 1400,
@@ -170,17 +170,17 @@ app.whenReady().then(() => {
 
   ipcMain.handle(
     IPC_EVENTS.SAVE_PHOTO_FILE,
-    async (event, data: PhotoBody, photo: ArrayBuffer): Promise<void> => {
-      await savePhotoFromBuffer(data, photo);
+    async (event, data: EditData, photo: ArrayBuffer): Promise<void> => {
+      const newData = await savePhotoFromBuffer(data, photo);
+      mainWindow.webContents.send(IPC_EVENTS.UPDATE_PHOTO_DATA, newData);
 
-      mainWindow.webContents.send(IPC_EVENTS.REFRESH_STACK_IMAGES, data.name);
+      // update project data here?????
     },
   );
 
-  ipcMain.handle(IPC_EVENTS.REVERT_PHOTO_FILE, async (event, data: PhotoBody): Promise<void> => {
-    await revertPhotoToOriginal(data);
-
-    mainWindow.webContents.send(IPC_EVENTS.REFRESH_STACK_IMAGES, data.name);
+  ipcMain.handle(IPC_EVENTS.REVERT_PHOTO_FILE, async (event, data: EditData): Promise<void> => {
+    const newData = await revertPhotoToOriginal(data);
+    mainWindow.webContents.send(IPC_EVENTS.UPDATE_PHOTO_DATA, newData);
   });
 
   ipcMain.handle(IPC_EVENTS.DUPLICATE_PHOTO_FILE, async (event, data: PhotoBody) => {

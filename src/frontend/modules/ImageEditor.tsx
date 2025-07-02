@@ -14,7 +14,7 @@ import { usePhotoEditor } from "react-photo-editor";
 
 import { LINE_SIZES, DEFAULT_LINE_COLOR } from "@/constants";
 import { readFileAsString } from "@/helpers";
-import type { PhotoBody } from "@/types";
+import type { EditData } from "@/types";
 
 interface SliderProps {
   name: string;
@@ -43,7 +43,7 @@ const Slider = ({ name, value, min, max, callback }: SliderProps) => (
 );
 
 interface ImageEditorProps {
-  data: PhotoBody;
+  data: EditData;
   image: File;
 }
 

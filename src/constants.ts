@@ -8,10 +8,10 @@ export enum IPC_EVENTS {
   SAVE_PROJECT = "project:saveProject",
   LOAD_PROJECT = "project:loadProject",
   LOAD_RECENT_PROJECTS = "project:loadRecentProjects",
-  REFRESH_STACK_IMAGES = "project:refreshStackImages",
 
   // Photos
   SAVE_PHOTO_FILE = "photos:savePhotoFile",
+  UPDATE_PHOTO_DATA = "project:updatePhotoData",
   REVERT_PHOTO_FILE = "photos:revertPhotoFile",
   DUPLICATE_PHOTO_FILE = "photos:duplicatePhotoFile",
   EXPORT_MATCHES = "photos:exportMatches",

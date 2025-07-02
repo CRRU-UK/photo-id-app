@@ -5,7 +5,7 @@ export interface IElectronAPI {
   getRecentProjects: () => Promise<RecentProject[]>;
   removeRecentProject: (path: string) => Promise<RecentProject[]>;
   exportMatches: (data: string) => Promise<void>;
-  savePhotoFile: (data: PhotoBody, photo: ArrayBuffer) => Promise<void>;
+  savePhotoFile: (data: EditData, photo: ArrayBuffer) => Promise<void>;
   revertPhotoFile: (data: PhotoBody) => Promise<void>;
   duplicatePhotoFile: (data: PhotoBody) => Promise<PhotoBody>;
 
@@ -14,12 +14,12 @@ export interface IElectronAPI {
   openProjectFile: () => void;
   openRecentProject: (path: string) => void;
   saveProject: (data: string) => void;
-  openEditWindow: (data: PhotoBody) => void;
+  openEditWindow: (data: EditData) => void;
 
   // Listeners (main-to-renderer)
   onLoading: (callback: (data: LoadingData) => void) => void;
   onLoadProject: (callback: (value: ProjectBody) => void) => void;
-  onRefreshStackImages: (callback: (name: string) => void) => void;
+  onUpdatePhotoData: (callback: (data: PhotoBody) => void) => void;
 }
 
 declare global {

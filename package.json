@@ -35,6 +35,7 @@
     "@primer/react": "^37.26.0",
     "@tanstack/react-router": "^1.123.0",
     "electron-squirrel-startup": "^1.0.1",
+    "mime": "^4.0.7",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "sharp": "^0.34.2",

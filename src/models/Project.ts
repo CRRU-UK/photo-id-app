@@ -8,6 +8,7 @@ class Project {
   id: string;
   directory: Directory;
   totalPhotos: number;
+  allPhotos: PhotoStack;
   photos: PhotoStack;
   matched: Matches;
   discarded: PhotoStack;
@@ -19,6 +20,7 @@ class Project {
     id = "",
     directory = "",
     totalPhotos = 0,
+    allPhotos: PhotoStack = new Set(),
     photos: PhotoStack = new Set(),
     matched: Matches = new Set(),
     discarded: PhotoStack = new Set(),
@@ -29,6 +31,7 @@ class Project {
     this.id = id;
     this.directory = directory;
     this.totalPhotos = totalPhotos;
+    this.allPhotos = new Set(photos);
     this.photos = new Set(photos);
     this.matched = new Set(matched);
     this.discarded = new Set(discarded);
@@ -40,6 +43,7 @@ class Project {
     const items = photos.map(
       ({ name, edited, thumbnail }) => new Photo(directory, name, edited, thumbnail),
     );
+    items.forEach((photo) => this.allPhotos.add(photo));
     return new Set(items);
   }
 
@@ -47,8 +51,8 @@ class Project {
     return Array.from(photos).map((photo) => ({
       directory: photo.directory,
       name: photo.getFileName(),
-      edited: photo.edited,
-      thumbnail: photo.thumbnail,
+      edited: photo.getEditedFileName(),
+      thumbnail: photo.getThumbnailData(),
     }));
   }
 
@@ -142,7 +146,7 @@ class Project {
       directory: photo.directory,
       name: photo.getFileName(),
       edited: photo.getEditedFileName(),
-      thumbnail: photo.getThumbnailFileName(),
+      thumbnail: photo.getThumbnailData(),
     });
 
     to.add(new Photo(result.directory, result.name, result.edited, result.thumbnail));
@@ -157,6 +161,18 @@ class Project {
   public async exportMatches(): Promise<this> {
     const data = this.returnAsJSONString();
     await window.electronAPI.exportMatches(data);
+
+    return this;
+  }
+
+  public updatePhotoData({ name, thumbnail }: PhotoBody): this {
+    const photo = Array.from(this.allPhotos).find((photo) => photo.getFileName() === name);
+
+    console.log("photo found! current data:", photo?.getThumbnailData());
+    console.log("new data:", thumbnail);
+
+    photo!.setThumbnailData(thumbnail);
+    this.save();
 
     return this;
   }
