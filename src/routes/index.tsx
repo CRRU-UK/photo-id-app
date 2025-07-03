@@ -75,13 +75,13 @@ const IndexPage = () => {
           <PrimerStack direction="horizontal" style={{ marginBottom: "var(--stack-gap-spacious)" }}>
             <Button
               onClick={() => handleOpenProjectFolder()}
-              variant="default"
+              variant="primary"
               size="large"
               block
               leadingVisual={FileDirectoryIcon}
               sx={{ mt: 4 }}
             >
-              Open Project Folder
+              Start New Project
             </Button>
 
             <Button
