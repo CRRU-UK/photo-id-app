@@ -1,5 +1,15 @@
 # photo-id
 
+## 0.1.4
+
+### Patch Changes
+
+- 1728568: Use Vitest
+- 28e2ee9: Fix async directory checks
+- 51e07c1: Update import linting
+- 181aae6: Update prettier config
+- 98a3def: Refactor IPC
+
 ## 0.1.3
 
 ### Patch Changes
