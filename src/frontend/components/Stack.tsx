@@ -122,7 +122,12 @@ const Stack = ({ photos }: StackProps) => {
           background: "var(--bgColor-emphasis)",
         }}
       >
-        <div ref={setDraggableNodeRef} {...listeners} {...attributes}>
+        <div
+          ref={setDraggableNodeRef}
+          {...listeners}
+          {...attributes}
+          onDoubleClick={handleOpenEdit}
+        >
           {currentFile && (
             <img
               src={`file://${currentFile.getThumbnailFullPath()}?${currentTime}`}
@@ -167,7 +172,7 @@ const Stack = ({ photos }: StackProps) => {
           >
             Edit
           </IconButton>
-          <ActionMenu open={actionsOpen} onOpenChange={setActionsOpen}>
+          <ActionMenu open={actionsOpen} onOpenChange={handleOpenEdit}>
             <ActionMenu.Button
               aria-label="More options"
               icon={TriangleDownIcon}
@@ -180,7 +185,7 @@ const Stack = ({ photos }: StackProps) => {
                   variant="danger"
                   disabled={photos.size <= 0 || revertingPhoto}
                   loading={revertingPhoto}
-                  onClick={() => handleRevertPhoto()}
+                  onClick={handleRevertPhoto}
                 >
                   <ActionList.LeadingVisual>
                     <UndoIcon />
@@ -197,14 +202,14 @@ const Stack = ({ photos }: StackProps) => {
             icon={ChevronLeftIcon}
             size="small"
             aria-label=""
-            onClick={() => handlePrev()}
+            onClick={handlePrev}
             disabled={photos.size <= 1}
           />
           <IconButton
             icon={ChevronRightIcon}
             size="small"
             aria-label=""
-            onClick={() => handleNext()}
+            onClick={handleNext}
             disabled={photos.size <= 1}
           />
         </ButtonGroup>
