@@ -127,7 +127,6 @@ const Stack = ({ photos }: StackProps) => {
           {...listeners}
           {...attributes}
           onDoubleClick={handleOpenEdit}
-          role="img"
         >
           {currentFile && (
             <img
