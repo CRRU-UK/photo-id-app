@@ -1,4 +1,12 @@
-import { DndContext, type DragEndEvent, DragOverlay, type DragStartEvent } from "@dnd-kit/core";
+import {
+  DndContext,
+  type DragEndEvent,
+  DragOverlay,
+  type DragStartEvent,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
 import { FileMovedIcon, ReplyIcon, ThreeBarsIcon } from "@primer/octicons-react";
 import {
   ActionList,
@@ -144,11 +152,15 @@ const ProjectPage = () => {
     );
   });
 
+  const pointerSensor = useSensor(PointerSensor, { activationConstraint: { distance: 5 } });
+
+  const sensors = useSensors(pointerSensor);
+
   return (
     <>
       <LoadingOverlay show={loading.show} text={loading?.text} />
 
-      <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+      <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
         <DragOverlay>{draggingPhoto ? <DraggableImage photo={draggingPhoto} /> : null}</DragOverlay>
 
         <div className={`project ${isCopying ? "copying" : ""}`}>
