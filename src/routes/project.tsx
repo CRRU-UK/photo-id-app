@@ -62,9 +62,9 @@ const ProjectPage = () => {
   }, []);
 
   const handleDragStart = (event: DragStartEvent) => {
-    const { collection, currentFile } = event.active.data.current as unknown as DraggableStartData;
+    const { collection, currentPhoto } = event.active.data.current as unknown as DraggableStartData;
     setDraggingCollectionFrom(collection);
-    setDraggingPhoto(currentFile);
+    setDraggingPhoto(currentPhoto);
   };
 
   const handleDragEnd = async (event: DragEndEvent) => {

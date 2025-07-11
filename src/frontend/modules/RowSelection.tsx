@@ -1,12 +1,13 @@
 import { useDroppable } from "@dnd-kit/core";
 import { Label, Stack as PrimerStack, Text, TextInput } from "@primer/react";
+import { useEffect, useState } from "react";
+
+import type Collection from "@/models/Collection";
+import type { Match } from "@/types";
 
 import { BOX_HOVER_STYLES } from "@/constants";
 import Stack from "@/frontend/components/Stack";
 import { getAlphabetLetter } from "@/helpers";
-import type { Match } from "@/types";
-
-import type Collection from "@/models/Collection";
 
 interface SelectionProps {
   id: number;
@@ -15,6 +16,12 @@ interface SelectionProps {
 }
 
 const Selection = ({ id, side, collection }: SelectionProps) => {
+  const [selectionName, setSelectionName] = useState<string>(collection.name || "");
+
+  useEffect(() => {
+    collection.setName(selectionName);
+  }, [collection, selectionName]);
+
   const { isOver, setNodeRef: setDroppableNodeRef } = useDroppable({
     id: `${id}-${side}`,
     data: { collection },
@@ -51,7 +58,12 @@ const Selection = ({ id, side, collection }: SelectionProps) => {
         >
           {getAlphabetLetter(id)} <Label>{side}</Label>
         </Text>
-        <TextInput value="" onChange={() => {}} size="small" style={{ maxWidth: "80px" }} />
+        <TextInput
+          defaultValue={selectionName}
+          onBlur={(event) => setSelectionName(event.target.value)}
+          size="small"
+          style={{ maxWidth: "80px" }}
+        />
       </PrimerStack>
       <Stack collection={collection} />
     </div>
@@ -62,7 +74,6 @@ interface RowSelectionProps {
   match: Match;
 }
 
-// TODO: Save project on name changes
 const RowSelection = ({ match }: RowSelectionProps) => {
   return (
     <div style={{ marginBottom: "var(--stack-gap-spacious)" }}>

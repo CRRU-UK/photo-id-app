@@ -52,7 +52,7 @@ export type RecentProject = {
 
 export type DraggableStartData = {
   collection: Collection;
-  currentFile: Photo;
+  currentPhoto: Photo;
 };
 
 export type DraggableEndData = {

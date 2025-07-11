@@ -19,19 +19,20 @@ class Stack {
     this.name = name;
     this.index = index;
     this.photos = photos;
-
     this.project = project;
   }
 
   addPhoto(photo: Photo): this {
     this.photos.add(photo);
-    // this.project.save();
+
+    this.project.save();
     return this;
   }
 
   removePhoto(photo: Photo): this {
     this.photos.delete(photo);
-    // this.project.save();
+
+    this.project.save();
     return this;
   }
 
@@ -39,19 +40,32 @@ class Stack {
     return this.photos.has(photo);
   }
 
-  getCurrentPhoto(): Photo | undefined {
+  getCurrentPhoto(): Photo {
     return Array.from(this.photos)[this.index];
   }
 
-  increaseIndex(): this {
-    this.index = (this.index + 1) % this.photos.size;
-    // this.project.save();
-    return this;
+  setPreviousPhoto(): Photo {
+    let newIndex = (this.index - 1) % this.photos.size;
+    if (this.index < 0) {
+      newIndex = this.photos.size - 1;
+    }
+    this.index = newIndex;
+
+    this.project.save();
+    return this.getCurrentPhoto();
   }
 
-  decreaseIndex(): this {
-    this.index = (this.index - 1) % this.photos.size;
-    // this.project.save();
+  setNextPhoto(): Photo {
+    this.index = (this.index + 1) % this.photos.size;
+
+    this.project.save();
+    return this.getCurrentPhoto();
+  }
+
+  setName(name: string): this {
+    this.name = name;
+
+    this.project.save();
     return this;
   }
 }

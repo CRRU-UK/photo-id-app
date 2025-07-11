@@ -14,9 +14,10 @@ import {
   IconButton,
   Stack as PrimerStack,
 } from "@primer/react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 import type Collection from "@/models/Collection";
+import type Photo from "@/models/Photo";
 import type { PhotoBody } from "@/types";
 
 interface StackProps {
@@ -24,43 +25,53 @@ interface StackProps {
 }
 
 const Stack = ({ collection }: StackProps) => {
-  const [currentIndex, setCurrentIndex] = useState<number>(collection.index);
+  const [currentPhoto, setCurrentPhoto] = useState<Photo>(collection.getCurrentPhoto());
   const [currentTime, setCurrentTime] = useState<number>(new Date().getTime());
   const [actionsOpen, setActionsOpen] = useState<boolean>(false);
   const [revertingPhoto, setRevertingPhoto] = useState<boolean>(false);
-
-  const currentFile = Array.from(collection.photos)[currentIndex % collection.photos.size];
 
   const {
     setNodeRef: setDraggableNodeRef,
     attributes,
     listeners,
   } = useDraggable({
-    id: currentFile?.getFileName() ?? null,
+    id: currentPhoto?.getFileName() ?? null,
     data: {
       collection,
-      currentFile,
+      currentPhoto,
     },
     disabled: collection.photos.size <= 0,
   });
 
-  const firstUpdate = useRef<number>(collection.photos.size);
+  // const firstUpdate = useRef<number>(collection.photos.size);
+  // useEffect(() => {
+  //   if (firstUpdate.current === collection.photos.size) {
+  //     return;
+  //   }
+
+  //   // Move stack to latest photo when adding
+  //   // if (firstUpdate.current < collection.photos.size) {
+  //   //   setCurrentIndex(collection.photos.size - 1);
+  //   // }
+
+  //   firstUpdate.current = collection.photos.size;
+  // }, [collection]);
+
   useEffect(() => {
-    if (firstUpdate.current === collection.photos.size) {
-      return;
-    }
+    console.log("collection changed:", collection);
+  }, [collection]);
 
-    // Move stack to latest photo when adding
-    if (firstUpdate.current < collection.photos.size) {
-      setCurrentIndex(collection.photos.size - 1);
-    }
+  useEffect(() => {
+    console.log("index changed:", collection.index);
+  }, [collection.index]);
 
-    firstUpdate.current = collection.photos.size;
-  }, [collection, currentIndex]);
+  useEffect(() => {
+    console.log("size changed:", collection.photos.size);
+  }, [collection.photos.size]);
 
   useEffect(() => {
     window.electronAPI.onRefreshStackImages((name) => {
-      if (currentFile?.getFileName() === name) {
+      if (currentPhoto?.getFileName() === name) {
         setCurrentTime(new Date().getTime());
       }
     });
@@ -68,10 +79,10 @@ const Stack = ({ collection }: StackProps) => {
 
   const handleOpenEdit = () => {
     const data: PhotoBody = {
-      directory: currentFile.directory,
-      name: currentFile.getFileName(),
-      edited: currentFile.getEditedFileName(),
-      thumbnail: currentFile.getThumbnailFileName(),
+      directory: currentPhoto.directory,
+      name: currentPhoto.getFileName(),
+      edited: currentPhoto.getEditedFileName(),
+      thumbnail: currentPhoto.getThumbnailFileName(),
     };
 
     window.electronAPI.openEditWindow(data);
@@ -81,10 +92,10 @@ const Stack = ({ collection }: StackProps) => {
     setRevertingPhoto(true);
 
     const data: PhotoBody = {
-      directory: currentFile.directory,
-      name: currentFile.getFileName(),
-      edited: currentFile.getEditedFileName(),
-      thumbnail: currentFile.getThumbnailFileName(),
+      directory: currentPhoto.directory,
+      name: currentPhoto.getFileName(),
+      edited: currentPhoto.getEditedFileName(),
+      thumbnail: currentPhoto.getThumbnailFileName(),
     };
 
     await window.electronAPI.revertPhotoFile(data);
@@ -93,23 +104,8 @@ const Stack = ({ collection }: StackProps) => {
     setRevertingPhoto(false);
   };
 
-  const handlePrev = () => {
-    let newIndex = currentIndex - 1;
-    if (newIndex < 0) {
-      newIndex = collection.photos.size - 1;
-    }
-
-    return setCurrentIndex(newIndex);
-  };
-
-  const handleNext = () => {
-    let newIndex = currentIndex + 1;
-    if (newIndex >= collection.photos.size) {
-      newIndex = 0;
-    }
-
-    return setCurrentIndex(newIndex);
-  };
+  const handlePrev = () => setCurrentPhoto(collection.setPreviousPhoto());
+  const handleNext = () => setCurrentPhoto(collection.setNextPhoto());
 
   return (
     <>
@@ -129,9 +125,9 @@ const Stack = ({ collection }: StackProps) => {
           {...attributes}
           onDoubleClick={handleOpenEdit}
         >
-          {currentFile && (
+          {currentPhoto && (
             <img
-              src={`file://${currentFile.getThumbnailFullPath()}?${currentTime}`}
+              src={`file://${currentPhoto.getThumbnailFullPath()}?${currentTime}`}
               style={{
                 cursor: "pointer",
                 display: "block",
@@ -155,7 +151,7 @@ const Stack = ({ collection }: StackProps) => {
         <PrimerStack direction="horizontal" align="center" justify="space-between">
           {collection.photos.size > 0 && (
             <CounterLabel scheme="secondary">
-              {currentIndex + 1} / {collection.photos.size}
+              {collection.index + 1} / {collection.photos.size}
             </CounterLabel>
           )}
         </PrimerStack>
