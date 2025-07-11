@@ -1,24 +1,23 @@
 import { useDroppable } from "@dnd-kit/core";
 import { Label, Stack as PrimerStack, Text, TextInput } from "@primer/react";
-import { useEffect, useState } from "react";
 
 import { BOX_HOVER_STYLES } from "@/constants";
 import Stack from "@/frontend/components/Stack";
 import { getAlphabetLetter } from "@/helpers";
-import type { Match, PhotoStack } from "@/types";
+import type { Match } from "@/types";
+
+import type Collection from "@/models/Collection";
 
 interface SelectionProps {
   id: number;
   side: string;
-  photos: PhotoStack;
-  name: string;
-  onNameChange: React.Dispatch<React.SetStateAction<string>>;
+  collection: Collection;
 }
 
-const Selection = ({ id, photos, side, name, onNameChange }: SelectionProps) => {
+const Selection = ({ id, side, collection }: SelectionProps) => {
   const { isOver, setNodeRef: setDroppableNodeRef } = useDroppable({
     id: `${id}-${side}`,
-    data: { photos },
+    data: { collection },
   });
 
   return (
@@ -52,14 +51,9 @@ const Selection = ({ id, photos, side, name, onNameChange }: SelectionProps) => 
         >
           {getAlphabetLetter(id)} <Label>{side}</Label>
         </Text>
-        <TextInput
-          value={name}
-          onChange={(event) => onNameChange(event.target.value)}
-          size="small"
-          style={{ maxWidth: "80px" }}
-        />
+        <TextInput value="" onChange={() => {}} size="small" style={{ maxWidth: "80px" }} />
       </PrimerStack>
-      <Stack photos={photos} />
+      <Stack collection={collection} />
     </div>
   );
 };
@@ -70,34 +64,11 @@ interface RowSelectionProps {
 
 // TODO: Save project on name changes
 const RowSelection = ({ match }: RowSelectionProps) => {
-  const [leftName, setLeftName] = useState<string>(match.left.name);
-  const [rightName, setRightName] = useState<string>(match.right.name);
-
-  useEffect(() => {
-    match.left.name = leftName;
-  }, [match.left, leftName]);
-
-  useEffect(() => {
-    match.right.name = rightName;
-  }, [match.right, rightName]);
-
   return (
     <div style={{ marginBottom: "var(--stack-gap-spacious)" }}>
       <PrimerStack direction="horizontal">
-        <Selection
-          id={match.id}
-          side="Left"
-          photos={match.left.photos}
-          name={leftName}
-          onNameChange={setLeftName}
-        />
-        <Selection
-          id={match.id}
-          side="Right"
-          photos={match.right.photos}
-          name={rightName}
-          onNameChange={setRightName}
-        />
+        <Selection id={match.id} side="Left" collection={match.left} />
+        <Selection id={match.id} side="Right" collection={match.right} />
       </PrimerStack>
     </div>
   );

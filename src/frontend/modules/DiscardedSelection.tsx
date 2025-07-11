@@ -3,16 +3,16 @@ import Stack from "@/frontend/components/Stack";
 import { useDroppable } from "@dnd-kit/core";
 import { Text } from "@primer/react";
 
-import type { PhotoStack } from "@/types";
+import type Collection from "@/models/Collection";
 
 export interface DiscardedSelectionProps {
-  photos: PhotoStack;
+  collection: Collection;
 }
 
-const DiscardedSelection = ({ photos }: DiscardedSelectionProps) => {
+const DiscardedSelection = ({ collection }: DiscardedSelectionProps) => {
   const { isOver, setNodeRef: setDroppableNodeRef } = useDroppable({
     id: DragAreas.DiscardedSelection,
-    data: { photos },
+    data: { collection },
   });
 
   return (
@@ -41,7 +41,7 @@ const DiscardedSelection = ({ photos }: DiscardedSelectionProps) => {
         Discarded Photos
       </Text>
 
-      <Stack photos={photos} />
+      <Stack collection={collection} />
     </div>
   );
 };

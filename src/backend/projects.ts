@@ -113,8 +113,8 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
   for (let i = 0; i < INITIAL_MATCHED_STACKS; i += 1) {
     defaultMatches.push({
       id: i + 1,
-      left: { photos: [], name: "" },
-      right: { photos: [], name: "" },
+      left: { name: "", index: 0, photos: [] },
+      right: { name: "", index: 0, photos: [] },
     });
   }
 
@@ -123,14 +123,20 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
     id: crypto.randomUUID(),
     directory,
     totalPhotos: photos.length,
-    photos: photos.map((name, index) => ({
-      directory,
-      name,
-      edited: edited[index],
-      thumbnail: thumbnails[index],
-    })),
+    unassigned: {
+      photos: photos.map((name, index) => ({
+        directory,
+        name,
+        edited: edited[index],
+        thumbnail: thumbnails[index],
+      })),
+      index: 0,
+    },
+    discarded: {
+      photos: [],
+      index: 0,
+    },
     matched: defaultMatches,
-    discarded: [],
     created: now,
     lastModified: now,
   };

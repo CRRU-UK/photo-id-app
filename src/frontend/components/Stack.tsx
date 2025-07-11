@@ -16,19 +16,20 @@ import {
 } from "@primer/react";
 import { useEffect, useRef, useState } from "react";
 
-import type { PhotoBody, PhotoStack } from "@/types";
+import type Collection from "@/models/Collection";
+import type { PhotoBody } from "@/types";
 
-export interface StackProps {
-  photos: PhotoStack;
+interface StackProps {
+  collection: Collection;
 }
 
-const Stack = ({ photos }: StackProps) => {
-  const [currentIndex, setCurrentIndex] = useState<number>(0);
+const Stack = ({ collection }: StackProps) => {
+  const [currentIndex, setCurrentIndex] = useState<number>(collection.index);
   const [currentTime, setCurrentTime] = useState<number>(new Date().getTime());
   const [actionsOpen, setActionsOpen] = useState<boolean>(false);
   const [revertingPhoto, setRevertingPhoto] = useState<boolean>(false);
 
-  const currentFile = Array.from(photos)[currentIndex % photos.size];
+  const currentFile = Array.from(collection.photos)[currentIndex % collection.photos.size];
 
   const {
     setNodeRef: setDraggableNodeRef,
@@ -37,25 +38,25 @@ const Stack = ({ photos }: StackProps) => {
   } = useDraggable({
     id: currentFile?.getFileName() ?? null,
     data: {
-      stack: photos,
+      collection,
       currentFile,
     },
-    disabled: photos.size <= 0,
+    disabled: collection.photos.size <= 0,
   });
 
-  const firstUpdate = useRef<number>(photos.size);
+  const firstUpdate = useRef<number>(collection.photos.size);
   useEffect(() => {
-    if (firstUpdate.current === photos.size) {
+    if (firstUpdate.current === collection.photos.size) {
       return;
     }
 
     // Move stack to latest photo when adding
-    if (firstUpdate.current < photos.size) {
-      setCurrentIndex(photos.size - 1);
+    if (firstUpdate.current < collection.photos.size) {
+      setCurrentIndex(collection.photos.size - 1);
     }
 
-    firstUpdate.current = photos.size;
-  }, [photos.size, currentIndex]);
+    firstUpdate.current = collection.photos.size;
+  }, [collection, currentIndex]);
 
   useEffect(() => {
     window.electronAPI.onRefreshStackImages((name) => {
@@ -95,7 +96,7 @@ const Stack = ({ photos }: StackProps) => {
   const handlePrev = () => {
     let newIndex = currentIndex - 1;
     if (newIndex < 0) {
-      newIndex = photos.size - 1;
+      newIndex = collection.photos.size - 1;
     }
 
     return setCurrentIndex(newIndex);
@@ -103,7 +104,7 @@ const Stack = ({ photos }: StackProps) => {
 
   const handleNext = () => {
     let newIndex = currentIndex + 1;
-    if (newIndex >= photos.size) {
+    if (newIndex >= collection.photos.size) {
       newIndex = 0;
     }
 
@@ -152,9 +153,9 @@ const Stack = ({ photos }: StackProps) => {
         style={{ marginTop: "var(--stack-gap-normal)" }}
       >
         <PrimerStack direction="horizontal" align="center" justify="space-between">
-          {photos.size > 0 && (
+          {collection.photos.size > 0 && (
             <CounterLabel scheme="secondary">
-              {currentIndex + 1} / {photos.size}
+              {currentIndex + 1} / {collection.photos.size}
             </CounterLabel>
           )}
         </PrimerStack>
@@ -168,7 +169,7 @@ const Stack = ({ photos }: StackProps) => {
               event.preventDefault();
               return handleOpenEdit();
             }}
-            disabled={photos.size <= 0}
+            disabled={collection.photos.size <= 0}
           >
             Edit
           </IconButton>
@@ -177,13 +178,13 @@ const Stack = ({ photos }: StackProps) => {
               aria-label="More options"
               icon={TriangleDownIcon}
               size="small"
-              disabled={photos.size <= 0}
+              disabled={collection.photos.size <= 0}
             />
             <ActionMenu.Overlay>
               <ActionList>
                 <ActionList.Item
                   variant="danger"
-                  disabled={photos.size <= 0 || revertingPhoto}
+                  disabled={collection.photos.size <= 0 || revertingPhoto}
                   loading={revertingPhoto}
                   onClick={handleRevertPhoto}
                 >
@@ -203,14 +204,14 @@ const Stack = ({ photos }: StackProps) => {
             size="small"
             aria-label=""
             onClick={handlePrev}
-            disabled={photos.size <= 1}
+            disabled={collection.photos.size <= 1}
           />
           <IconButton
             icon={ChevronRightIcon}
             size="small"
             aria-label=""
             onClick={handleNext}
-            disabled={photos.size <= 1}
+            disabled={collection.photos.size <= 1}
           />
         </ButtonGroup>
       </PrimerStack>
