@@ -25,7 +25,7 @@ interface StackProps {
 }
 
 const Stack = ({ collection }: StackProps) => {
-  const [currentPhoto, setCurrentPhoto] = useState<Photo>(collection.getCurrentPhoto());
+  const [currentPhoto, setCurrentPhoto] = useState<Photo | null>(collection.getCurrentPhoto());
   const [currentTime, setCurrentTime] = useState<number>(new Date().getTime());
   const [actionsOpen, setActionsOpen] = useState<boolean>(false);
   const [revertingPhoto, setRevertingPhoto] = useState<boolean>(false);
@@ -35,39 +35,14 @@ const Stack = ({ collection }: StackProps) => {
     attributes,
     listeners,
   } = useDraggable({
-    id: currentPhoto?.getFileName() ?? null,
-    data: {
-      collection,
-      currentPhoto,
-    },
+    id: currentPhoto?.getFileName() ?? "",
+    data: { collection, currentPhoto },
     disabled: collection.photos.size <= 0,
   });
 
-  // const firstUpdate = useRef<number>(collection.photos.size);
-  // useEffect(() => {
-  //   if (firstUpdate.current === collection.photos.size) {
-  //     return;
-  //   }
-
-  //   // Move stack to latest photo when adding
-  //   // if (firstUpdate.current < collection.photos.size) {
-  //   //   setCurrentIndex(collection.photos.size - 1);
-  //   // }
-
-  //   firstUpdate.current = collection.photos.size;
-  // }, [collection]);
-
   useEffect(() => {
-    console.log("collection changed:", collection);
-  }, [collection]);
-
-  useEffect(() => {
-    console.log("index changed:", collection.index);
-  }, [collection.index]);
-
-  useEffect(() => {
-    console.log("size changed:", collection.photos.size);
-  }, [collection.photos.size]);
+    setCurrentPhoto(collection.getCurrentPhoto());
+  }, [collection, collection.photos.size]);
 
   useEffect(() => {
     window.electronAPI.onRefreshStackImages((name) => {
@@ -79,10 +54,10 @@ const Stack = ({ collection }: StackProps) => {
 
   const handleOpenEdit = () => {
     const data: PhotoBody = {
-      directory: currentPhoto.directory,
-      name: currentPhoto.getFileName(),
-      edited: currentPhoto.getEditedFileName(),
-      thumbnail: currentPhoto.getThumbnailFileName(),
+      directory: currentPhoto!.directory,
+      name: currentPhoto!.getFileName(),
+      edited: currentPhoto!.getEditedFileName(),
+      thumbnail: currentPhoto!.getThumbnailFileName(),
     };
 
     window.electronAPI.openEditWindow(data);
@@ -104,8 +79,15 @@ const Stack = ({ collection }: StackProps) => {
     setRevertingPhoto(false);
   };
 
-  const handlePrev = () => setCurrentPhoto(collection.setPreviousPhoto());
-  const handleNext = () => setCurrentPhoto(collection.setNextPhoto());
+  const handlePrev = () => {
+    collection.setPreviousPhoto();
+    setCurrentPhoto(collection.getCurrentPhoto());
+  };
+
+  const handleNext = () => {
+    collection.setNextPhoto();
+    setCurrentPhoto(collection.getCurrentPhoto());
+  };
 
   return (
     <>
@@ -154,6 +136,7 @@ const Stack = ({ collection }: StackProps) => {
               {collection.index + 1} / {collection.photos.size}
             </CounterLabel>
           )}
+          index: {collection.index}
         </PrimerStack>
 
         <ButtonGroup style={{ marginLeft: "auto" }}>

@@ -25,14 +25,17 @@ class Stack {
   addPhoto(photo: Photo): this {
     this.photos.add(photo);
 
+    // Move stack to latest photo when adding
+    this.index = this.photos.size - 1;
+
     this.project.save();
     return this;
   }
 
   removePhoto(photo: Photo): this {
     this.photos.delete(photo);
+    this.setPreviousPhoto();
 
-    this.project.save();
     return this;
   }
 
@@ -40,26 +43,35 @@ class Stack {
     return this.photos.has(photo);
   }
 
-  getCurrentPhoto(): Photo {
+  getCurrentPhoto(): Photo | null {
+    if (this.photos.size === 0) {
+      return null;
+    }
+
     return Array.from(this.photos)[this.index];
   }
 
-  setPreviousPhoto(): Photo {
+  setPreviousPhoto(): this {
+    console.log("this.index ?????????????????", this.index);
+    console.log("this.photos.size ?????????????????", this.photos.size);
+
     let newIndex = (this.index - 1) % this.photos.size;
-    if (this.index < 0) {
+    if (newIndex < 0) {
       newIndex = this.photos.size - 1;
     }
     this.index = newIndex;
 
+    console.log("newIndex ?????????????????", newIndex);
+
     this.project.save();
-    return this.getCurrentPhoto();
+    return this;
   }
 
-  setNextPhoto(): Photo {
+  setNextPhoto(): this {
     this.index = (this.index + 1) % this.photos.size;
 
     this.project.save();
-    return this.getCurrentPhoto();
+    return this;
   }
 
   setName(name: string): this {
