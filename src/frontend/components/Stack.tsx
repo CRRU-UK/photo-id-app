@@ -25,7 +25,7 @@ interface StackProps {
 }
 
 const Stack = ({ collection }: StackProps) => {
-  const [currentPhoto, setCurrentPhoto] = useState<Photo | null>(collection.getCurrentPhoto());
+  const [currentPhoto, setCurrentPhoto] = useState<Photo | null>(null);
   const [currentTime, setCurrentTime] = useState<number>(new Date().getTime());
   const [actionsOpen, setActionsOpen] = useState<boolean>(false);
   const [revertingPhoto, setRevertingPhoto] = useState<boolean>(false);

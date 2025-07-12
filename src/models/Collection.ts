@@ -44,8 +44,6 @@ class Stack {
   }
 
   getCurrentPhoto(): Photo | null {
-    console.log("this gets called constantly while dragging");
-
     if (this.photos.size === 0) {
       return null;
     }
@@ -54,16 +52,11 @@ class Stack {
   }
 
   setPreviousPhoto(): this {
-    console.log("this.index ?????????????????", this.index);
-    console.log("this.photos.size ?????????????????", this.photos.size);
-
     let newIndex = (this.index - 1) % this.photos.size;
     if (newIndex < 0) {
       newIndex = this.photos.size - 1;
     }
     this.index = newIndex;
-
-    console.log("newIndex ?????????????????", newIndex);
 
     this.project.save();
     return this;
