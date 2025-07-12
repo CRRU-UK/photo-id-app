@@ -3,6 +3,8 @@ import { app, dialog } from "electron";
 import fs from "fs";
 import path from "path";
 
+import type { CollectionBody, PhotoBody, ProjectBody } from "@/types";
+
 import { createPhotoEditsCopy, createPhotoThumbnail } from "@/backend/photos";
 import { addRecentProject } from "@/backend/recents";
 import {
@@ -18,7 +20,6 @@ import {
   PROJECT_THUMBNAIL_DIRECTORY,
 } from "@/constants";
 import { getAlphabetLetter } from "@/helpers";
-import type { PhotoBody, ProjectBody } from "@/types";
 
 const sendData = (mainWindow: Electron.BrowserWindow, data: ProjectBody) => {
   mainWindow.setTitle(`${DEFAULT_WINDOW_TITLE} - ${data.directory}`);
@@ -207,13 +208,11 @@ const handleExportMatches = async (data: string) => {
     }
   }
 
-  for (const match of project.matched) {
-    const matchID = getAlphabetLetter(match.id);
-
-    for (const photo of match.left.photos) {
-      let photoName = matchID;
-      if (match.left.name && match.left.name !== "") {
-        photoName = match.left.name.padStart(3, "0");
+  const handleSide = async (id: string, side: CollectionBody) => {
+    for (const photo of side.photos) {
+      let photoName = id;
+      if (side.name && side.name !== "") {
+        photoName = side.name.padStart(3, "0");
       }
 
       const exportedName = `${photoName.toUpperCase()}L_${photo.name}`;
@@ -221,18 +220,11 @@ const handleExportMatches = async (data: string) => {
       const exportedPath = path.join(exportsDirectory, exportedName);
       await fs.promises.copyFile(originalPath, exportedPath);
     }
+  };
 
-    for (const photo of match.right.photos) {
-      let photoName = matchID;
-      if (match.right.name && match.right.name !== "") {
-        photoName = match.right.name.padStart(3, "0");
-      }
-
-      const exportedName = `${photoName.toUpperCase()}R_${photo.name}`;
-      const originalPath = path.join(project.directory, photo.edited);
-      const exportedPath = path.join(exportsDirectory, exportedName);
-      await fs.promises.copyFile(originalPath, exportedPath);
-    }
+  for (const match of project.matched) {
+    const matchID = getAlphabetLetter(match.id);
+    await Promise.all([handleSide(matchID, match.left), handleSide(matchID, match.right)]);
   }
 };
 
