@@ -158,7 +158,9 @@ const ProjectPage = () => {
       <LoadingOverlay show={loading.show} text={loading?.text} />
 
       <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-        <DragOverlay>{draggingPhoto ? <DraggableImage photo={draggingPhoto} /> : null}</DragOverlay>
+        <DragOverlay dropAnimation={null}>
+          {draggingPhoto ? <DraggableImage photo={draggingPhoto} /> : null}
+        </DragOverlay>
 
         <div className={`project ${isCopying ? "copying" : ""}`}>
           <div className="sidebar">
