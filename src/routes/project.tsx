@@ -112,8 +112,7 @@ const ProjectPage = () => {
     return document.body.classList.remove("copying");
   }, [draggingPhoto, isCopying]);
 
-  useEffect(() => {
-    console.log("changed -------->", "project.unassigned.index", project.unassigned.index);
+  useEffect(() => {\
   }, [project.unassigned.index]);
 
   const handleClose = () => navigate({ to: "/" });
