@@ -1,5 +1,15 @@
 # photo-id
 
+## 0.2.0
+
+### Minor Changes
+
+- 3065042: Selected photos in stacks are now retained when opening a project
+
+### Patch Changes
+
+- 2aba323: Double-clicking an image now opens it in the editor
+
 ## 0.1.4
 
 ### Patch Changes
