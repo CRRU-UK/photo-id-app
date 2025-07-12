@@ -27,9 +27,7 @@ const RecentProjects = () => {
   }, []);
 
   const handleRemoveRecentProject = async (path: string): Promise<void> => {
-    console.log("handleRemoveRecentProject", "path", path);
     const data = await window.electronAPI.removeRecentProject(path);
-    console.log("handleRemoveRecentProject", "data", data);
     setRecentProjects(data);
   };
 

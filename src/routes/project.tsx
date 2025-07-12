@@ -18,21 +18,17 @@ import {
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 
+import type Collection from "@/models/Collection";
+import type Photo from "@/models/Photo";
+import type { DraggableEndData, DraggableStartData, LoadingData, ProjectBody } from "@/types";
+
 import { MATCHED_STACKS_PER_PAGE, PROJECT_STORAGE_NAME } from "@/constants";
 import DiscardedSelection from "@/frontend/modules/DiscardedSelection";
 import LoadingOverlay from "@/frontend/modules/LoadingOverlay";
 import MainSelection from "@/frontend/modules/MainSelection";
 import RowSelection from "@/frontend/modules/RowSelection";
 import { chunkArray, getAlphabetLetter } from "@/helpers";
-import type Photo from "@/models/Photo";
 import ProjectModel from "@/models/Project";
-import type {
-  DraggableEndData,
-  DraggableStartData,
-  LoadingData,
-  PhotoStack,
-  ProjectBody,
-} from "@/types";
 
 const DraggableImage = ({ photo }: { photo: Photo }) => (
   <img
@@ -51,7 +47,7 @@ const DraggableImage = ({ photo }: { photo: Photo }) => (
 
 const ProjectPage = () => {
   const [draggingPhoto, setDraggingPhoto] = useState<Photo | null>(null);
-  const [draggingStackFrom, setDraggingStackFrom] = useState<PhotoStack | null>(null);
+  const [draggingCollectionFrom, setDraggingCollectionFrom] = useState<Collection | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(0);
   const [loading, setLoading] = useState<LoadingData>({ show: false });
   const [isCopying, setIsCopying] = useState<boolean>(false);
@@ -66,24 +62,24 @@ const ProjectPage = () => {
   }, []);
 
   const handleDragStart = (event: DragStartEvent) => {
-    const { stack, currentFile } = event.active.data.current as unknown as DraggableStartData;
-    setDraggingStackFrom(stack);
-    setDraggingPhoto(currentFile);
+    const { collection, currentPhoto } = event.active.data.current as unknown as DraggableStartData;
+    setDraggingCollectionFrom(collection);
+    setDraggingPhoto(currentPhoto);
   };
 
   const handleDragEnd = async (event: DragEndEvent) => {
     const target = event.over ?? null;
     if (target) {
-      const draggingStackTo = (target.data.current as DraggableEndData).photos;
+      const draggingCollectionTo = (target.data.current as DraggableEndData).collection;
 
       if (isCopying) {
         setLoading({ show: true, text: "Duplicating photo" });
-        await project.duplicatePhotoToStack(draggingStackTo, draggingPhoto as Photo);
+        await project.duplicatePhotoToStack(draggingCollectionTo, draggingPhoto as Photo);
         setLoading({ show: false });
       } else {
         project.addPhotoToStack(
-          draggingStackFrom as PhotoStack,
-          draggingStackTo,
+          draggingCollectionFrom as Collection,
+          draggingCollectionTo,
           draggingPhoto as Photo,
         );
       }
@@ -115,6 +111,8 @@ const ProjectPage = () => {
     }
     return document.body.classList.remove("copying");
   }, [draggingPhoto, isCopying]);
+
+  useEffect(() => {}, [project.unassigned.index]);
 
   const handleClose = () => navigate({ to: "/" });
 
@@ -171,8 +169,8 @@ const ProjectPage = () => {
               padding="normal"
               style={{ minHeight: "100%" }}
             >
-              <MainSelection photos={project.photos} total={project.totalPhotos} />
-              <DiscardedSelection photos={project.discarded} />
+              <MainSelection collection={project.unassigned} total={project.totalPhotos} />
+              <DiscardedSelection collection={project.discarded} />
 
               <PrimerStack
                 direction="horizontal"

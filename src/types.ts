@@ -1,21 +1,16 @@
+import type Collection from "@/models/Collection";
 import type Photo from "@/models/Photo";
 
 export type Directory = string;
 
 export type FileName = string;
 
-export type PhotoStack = Set<Photo>;
+export type PhotoSet = Set<Photo>;
 
 export type Match = {
   id: number;
-  left: {
-    name: string;
-    photos: PhotoStack;
-  };
-  right: {
-    name: string;
-    photos: PhotoStack;
-  };
+  left: Collection;
+  right: Collection;
 };
 
 export type Matches = Set<Match>;
@@ -27,24 +22,24 @@ export type PhotoBody = {
   thumbnail: FileName;
 };
 
+export type CollectionBody = {
+  name?: string;
+  index: number;
+  photos: PhotoBody[];
+};
+
 export type ProjectBody = {
   version: string;
   id: string;
   directory: Directory;
   totalPhotos: number;
-  photos: PhotoBody[];
+  unassigned: CollectionBody;
+  discarded: CollectionBody;
   matched: {
     id: number;
-    left: {
-      photos: PhotoBody[];
-      name: string;
-    };
-    right: {
-      photos: PhotoBody[];
-      name: string;
-    };
+    left: CollectionBody;
+    right: CollectionBody;
   }[];
-  discarded: PhotoBody[];
   created: string;
   lastModified: string;
 };
@@ -56,12 +51,12 @@ export type RecentProject = {
 };
 
 export type DraggableStartData = {
-  stack: PhotoStack;
-  currentFile: Photo;
+  collection: Collection;
+  currentPhoto: Photo;
 };
 
 export type DraggableEndData = {
-  photos: PhotoStack;
+  collection: Collection;
 };
 
 export type LoadingData = {

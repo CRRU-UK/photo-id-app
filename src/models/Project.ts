@@ -1,6 +1,7 @@
 import { PROJECT_STORAGE_NAME } from "@/constants";
-import type { Directory, Matches, PhotoBody, PhotoStack, ProjectBody } from "@/types";
+import type { CollectionBody, Directory, Matches, ProjectBody } from "@/types";
 
+import Collection from "./Collection";
 import Photo from "./Photo";
 
 class Project {
@@ -8,9 +9,9 @@ class Project {
   id: string;
   directory: Directory;
   totalPhotos: number;
-  photos: PhotoStack;
+  unassigned: Collection;
+  discarded: Collection;
   matched: Matches;
-  discarded: PhotoStack;
   created: Date;
   lastModified: Date;
 
@@ -19,9 +20,9 @@ class Project {
     id = "",
     directory = "",
     totalPhotos = 0,
-    photos: PhotoStack = new Set(),
+    unassigned = new Collection({ photos: new Set(), index: 0 }, this),
+    discarded = new Collection({ photos: new Set(), index: 0 }, this),
     matched: Matches = new Set(),
-    discarded: PhotoStack = new Set(),
     created: string = new Date().toISOString(),
     lastModified: string = new Date().toISOString(),
   ) {
@@ -29,27 +30,33 @@ class Project {
     this.id = id;
     this.directory = directory;
     this.totalPhotos = totalPhotos;
-    this.photos = new Set(photos);
+    this.unassigned = unassigned;
+    this.discarded = discarded;
     this.matched = new Set(matched);
-    this.discarded = new Set(discarded);
     this.created = new Date(created);
     this.lastModified = new Date(lastModified);
   }
 
-  private mapPhotoBodyToStack(directory: Directory, photos: PhotoBody[]): PhotoStack {
-    const items = photos.map(
+  private mapPhotoBodyToCollection(directory: Directory, collection: CollectionBody): Collection {
+    const photos = collection.photos.map(
       ({ name, edited, thumbnail }) => new Photo(directory, name, edited, thumbnail),
     );
-    return new Set(items);
+
+    return new Collection(
+      { photos: new Set(photos), index: collection.index, name: collection.name },
+      this,
+    );
   }
 
-  private mapPhotoStackToBody(photos: PhotoStack): PhotoBody[] {
-    return Array.from(photos).map((photo) => ({
+  private mapCollectionToBody(collection: Collection): CollectionBody {
+    const photos = Array.from(collection.photos).map((photo) => ({
       directory: photo.directory,
       name: photo.getFileName(),
       edited: photo.edited,
       thumbnail: photo.thumbnail,
     }));
+
+    return { photos, index: collection.index, name: collection.name };
   }
 
   public loadFromJSON(json: ProjectBody | string): this {
@@ -59,27 +66,28 @@ class Project {
       data = JSON.parse(json) as ProjectBody;
     }
 
-    const { version, directory, totalPhotos, photos, matched, discarded, created, lastModified } =
-      data as ProjectBody;
+    const {
+      version,
+      directory,
+      totalPhotos,
+      unassigned,
+      matched,
+      discarded,
+      created,
+      lastModified,
+    } = data as ProjectBody;
 
     this.version = version;
     this.directory = directory;
     this.totalPhotos = totalPhotos;
 
-    this.photos = this.mapPhotoBodyToStack(directory, photos);
-
-    this.discarded = this.mapPhotoBodyToStack(directory, discarded);
+    this.unassigned = this.mapPhotoBodyToCollection(directory, unassigned);
+    this.discarded = this.mapPhotoBodyToCollection(directory, discarded);
 
     const matchedSets = matched.map(({ id, left, right }) => ({
       id,
-      left: {
-        name: left.name,
-        photos: this.mapPhotoBodyToStack(directory, left.photos),
-      },
-      right: {
-        name: right.name,
-        photos: this.mapPhotoBodyToStack(directory, right.photos),
-      },
+      left: this.mapPhotoBodyToCollection(directory, left),
+      right: this.mapPhotoBodyToCollection(directory, right),
     }));
     this.matched = new Set(matchedSets);
 
@@ -96,19 +104,13 @@ class Project {
       id: this.id,
       directory: this.directory,
       totalPhotos: this.totalPhotos,
-      photos: this.mapPhotoStackToBody(this.photos),
+      unassigned: this.mapCollectionToBody(this.unassigned),
+      discarded: this.mapCollectionToBody(this.discarded),
       matched: Array.from(this.matched).map((item) => ({
         id: item.id,
-        left: {
-          photos: this.mapPhotoStackToBody(item.left.photos),
-          name: item.left.name,
-        },
-        right: {
-          photos: this.mapPhotoStackToBody(item.right.photos),
-          name: item.right.name,
-        },
+        left: this.mapCollectionToBody(item.left),
+        right: this.mapCollectionToBody(item.right),
       })),
-      discarded: this.mapPhotoStackToBody(this.discarded),
       created: this.created.toISOString(),
       lastModified: this.lastModified.toISOString(),
     };
@@ -125,19 +127,19 @@ class Project {
     window.electronAPI.saveProject(data);
   }
 
-  public addPhotoToStack(from: PhotoStack, to: PhotoStack, photo: Photo): this {
-    if (to.has(photo)) {
+  public addPhotoToStack(from: Collection, to: Collection, photo: Photo): this {
+    if (to.hasPhoto(photo)) {
       return this;
     }
 
-    from.delete(photo);
-    to.add(photo);
+    from.removePhoto(photo);
+    to.addPhoto(photo);
 
     this.save();
     return this;
   }
 
-  public async duplicatePhotoToStack(to: PhotoStack, photo: Photo): Promise<this> {
+  public async duplicatePhotoToStack(to: Collection, photo: Photo): Promise<this> {
     const result = await window.electronAPI.duplicatePhotoFile({
       directory: photo.directory,
       name: photo.getFileName(),
@@ -145,7 +147,7 @@ class Project {
       thumbnail: photo.getThumbnailFileName(),
     });
 
-    to.add(new Photo(result.directory, result.name, result.edited, result.thumbnail));
+    to.addPhoto(new Photo(result.directory, result.name, result.edited, result.thumbnail));
 
     this.totalPhotos += 1;
 

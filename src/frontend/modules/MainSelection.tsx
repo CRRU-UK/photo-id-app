@@ -1,9 +1,10 @@
+import type Collection from "@/models/Collection";
+
 import { useDroppable } from "@dnd-kit/core";
 import { Stack as PrimerStack, ProgressBar, Text } from "@primer/react";
 
 import { BOX_HOVER_STYLES, DragAreas } from "@/constants";
 import Stack from "@/frontend/components/Stack";
-import type { PhotoStack } from "@/types";
 
 interface ProgressElementsProps {
   progress: number;
@@ -31,14 +32,14 @@ const ProgressElements = ({ progress, total }: ProgressElementsProps) => (
 );
 
 export interface MainSelectionProps {
-  photos: PhotoStack;
+  collection: Collection;
   total: number;
 }
 
-const MainSelection = ({ photos, total }: MainSelectionProps) => {
+const MainSelection = ({ collection, total }: MainSelectionProps) => {
   const { isOver, setNodeRef: setDroppableNodeRef } = useDroppable({
     id: DragAreas.MainSelection,
-    data: { photos },
+    data: { collection },
   });
 
   return (
@@ -67,9 +68,11 @@ const MainSelection = ({ photos, total }: MainSelectionProps) => {
         Unassigned Photos
       </Text>
 
-      <Stack photos={photos} />
+      <Stack collection={collection} />
 
-      {photos && <ProgressElements progress={total - photos.size} total={total} />}
+      {collection.photos && (
+        <ProgressElements progress={total - collection.photos.size} total={total} />
+      )}
     </div>
   );
 };
