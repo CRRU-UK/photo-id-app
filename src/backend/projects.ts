@@ -212,7 +212,7 @@ const handleExportMatches = async (data: string) => {
 
     for (const photo of match.left.photos) {
       let photoName = matchID;
-      if (match.left.name !== "") {
+      if (match.left.name && match.left.name !== "") {
         photoName = match.left.name.padStart(3, "0");
       }
 
@@ -224,7 +224,7 @@ const handleExportMatches = async (data: string) => {
 
     for (const photo of match.right.photos) {
       let photoName = matchID;
-      if (match.right.name !== "") {
+      if (match.right.name && match.right.name !== "") {
         photoName = match.right.name.padStart(3, "0");
       }
 
