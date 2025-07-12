@@ -67,10 +67,10 @@ const Stack = ({ collection }: StackProps) => {
     setRevertingPhoto(true);
 
     const data: PhotoBody = {
-      directory: currentPhoto.directory,
-      name: currentPhoto.getFileName(),
-      edited: currentPhoto.getEditedFileName(),
-      thumbnail: currentPhoto.getThumbnailFileName(),
+      directory: currentPhoto!.directory,
+      name: currentPhoto!.getFileName(),
+      edited: currentPhoto!.getEditedFileName(),
+      thumbnail: currentPhoto!.getThumbnailFileName(),
     };
 
     await window.electronAPI.revertPhotoFile(data);
@@ -136,7 +136,6 @@ const Stack = ({ collection }: StackProps) => {
               {collection.index + 1} / {collection.photos.size}
             </CounterLabel>
           )}
-          index: {collection.index}
         </PrimerStack>
 
         <ButtonGroup style={{ marginLeft: "auto" }}>
@@ -152,7 +151,7 @@ const Stack = ({ collection }: StackProps) => {
           >
             Edit
           </IconButton>
-          <ActionMenu open={actionsOpen} onOpenChange={handleOpenEdit}>
+          <ActionMenu open={actionsOpen} onOpenChange={setActionsOpen}>
             <ActionMenu.Button
               aria-label="More options"
               icon={TriangleDownIcon}

@@ -44,6 +44,8 @@ class Stack {
   }
 
   getCurrentPhoto(): Photo | null {
+    console.log("this gets called constantly while dragging");
+
     if (this.photos.size === 0) {
       return null;
     }
