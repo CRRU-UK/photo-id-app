@@ -50,7 +50,7 @@ export const PROJECT_THUMBNAIL_DIRECTORY = ".thumbnails";
 
 export const PROJECT_EXPORT_DIRECTORY = "matched";
 
-export const THUMBNAIL_SIZE = 1000;
+export const THUMBNAIL_SIZE = 500;
 
 export const RECENT_PROJECTS_FILE_NAME = "recent-projects.json";
 
