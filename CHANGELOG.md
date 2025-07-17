@@ -1,5 +1,11 @@
 # photo-id
 
+## 0.2.1
+
+### Patch Changes
+
+- 2df6288: Fixed exporting "L" and "R" labels in filenames
+
 ## 0.2.0
 
 ### Minor Changes
