@@ -6,6 +6,7 @@ export const getAlphabetLetter = (index: number): string => {
     result = String.fromCharCode((index % 26) + 65) + result;
     index = Math.floor(index / 26);
   }
+
   return result;
 };
 

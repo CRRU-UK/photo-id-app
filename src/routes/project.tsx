@@ -17,10 +17,14 @@ import type { DraggableEndData, DraggableStartData, LoadingData, ProjectBody } f
 
 import { MATCHED_STACKS_PER_PAGE, PROJECT_STORAGE_NAME } from "@/constants";
 
+import ProjectContext from "@/contexts/ProjectContext";
+
 import LoadingOverlay from "@/frontend/modules/LoadingOverlay";
 import RowSelection from "@/frontend/modules/RowSelection";
 import Sidebar from "@/frontend/modules/Sidebar";
+
 import { chunkArray, getAlphabetLetter } from "@/helpers";
+
 import ProjectModel from "@/models/Project";
 
 const DraggableImage = ({ photo }: { photo: Photo }) => (
@@ -135,7 +139,7 @@ const ProjectPage = () => {
   const sensors = useSensors(pointerSensor);
 
   return (
-    <>
+    <ProjectContext value={project}>
       <LoadingOverlay show={loading.show} text={loading?.text} />
 
       <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
@@ -144,7 +148,7 @@ const ProjectPage = () => {
         </DragOverlay>
 
         <div className={`project ${isCopying ? "copying" : ""}`}>
-          <Sidebar project={project} />
+          <Sidebar />
 
           <UnderlineNav aria-label="Pages" className="pages">
             {matchedPages}
@@ -159,7 +163,7 @@ const ProjectPage = () => {
           </div>
         </div>
       </DndContext>
-    </>
+    </ProjectContext>
   );
 };
 

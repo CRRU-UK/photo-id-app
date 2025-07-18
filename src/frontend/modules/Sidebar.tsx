@@ -1,18 +1,15 @@
 import { FileMovedIcon, ReplyIcon, ThreeBarsIcon } from "@primer/octicons-react";
 import { ActionList, ActionMenu, IconButton, Stack as PrimerStack } from "@primer/react";
 import { useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useContext, useState } from "react";
 
+import ProjectContext from "@/contexts/ProjectContext";
 import DiscardedSelection from "@/frontend/modules/DiscardedSelection";
 import MainSelection from "@/frontend/modules/MainSelection";
-import ProjectModel from "@/models/Project";
 
-interface SidebarProps {
-  project: ProjectModel;
-}
+const Sidebar = () => {
+  const project = useContext(ProjectContext);
 
-// TODO: use context for project
-const Sidebar = ({ project }: SidebarProps) => {
   const [actionsOpen, setActionsOpen] = useState<boolean>(false);
   const [exporting, setExporting] = useState<boolean>(false);
 
