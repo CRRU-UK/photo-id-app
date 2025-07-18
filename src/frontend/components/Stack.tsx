@@ -48,22 +48,24 @@ const Stack = observer(({ collection }: StackProps) => {
   const [actionsOpen, setActionsOpen] = useState<boolean>(false);
   const [revertingPhoto, setRevertingPhoto] = useState<boolean>(false);
 
+  const currentPhoto = collection.currentPhoto;
+
   const {
     setNodeRef: setDraggableNodeRef,
     attributes,
     listeners,
   } = useDraggable({
-    id: collection.currentPhoto?.fileName ?? "",
-    data: { collection, currentPhoto: collection.currentPhoto },
+    id: currentPhoto?.fileName ?? "",
+    data: { collection, currentPhoto: currentPhoto },
     disabled: collection.photos.size <= 0,
   });
 
   const handleOpenEdit = () => {
     const data: PhotoBody = {
-      directory: collection.currentPhoto!.directory,
-      name: collection.currentPhoto!.fileName,
-      edited: collection.currentPhoto!.editedFileName,
-      thumbnail: collection.currentPhoto!.thumbnailFileName,
+      directory: currentPhoto!.directory,
+      name: currentPhoto!.fileName,
+      edited: currentPhoto!.editedFileName,
+      thumbnail: currentPhoto!.thumbnailFileName,
     };
 
     window.electronAPI.openEditWindow(data);
@@ -73,10 +75,10 @@ const Stack = observer(({ collection }: StackProps) => {
     setRevertingPhoto(true);
 
     const data: PhotoBody = {
-      directory: collection.currentPhoto!.directory,
-      name: collection.currentPhoto!.fileName,
-      edited: collection.currentPhoto!.editedFileName,
-      thumbnail: collection.currentPhoto!.thumbnailFileName,
+      directory: currentPhoto!.directory,
+      name: currentPhoto!.fileName,
+      edited: currentPhoto!.editedFileName,
+      thumbnail: currentPhoto!.thumbnailFileName,
     };
 
     await window.electronAPI.revertPhotoFile(data);
@@ -106,7 +108,7 @@ const Stack = observer(({ collection }: StackProps) => {
           {...attributes}
           onDoubleClick={handleOpenEdit}
         >
-          {collection?.currentPhoto && <StackImage photo={collection.currentPhoto} />}
+          {collection?.currentPhoto && <StackImage photo={currentPhoto!} />}
         </div>
       </div>
 
