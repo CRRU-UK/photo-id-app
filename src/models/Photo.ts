@@ -4,20 +4,19 @@ import { action, computed, makeObservable, observable } from "mobx";
 
 class Photo {
   readonly directory;
-  readonly name;
-  readonly edited: string;
-  readonly thumbnail: string;
+  private readonly name: string;
+  private readonly edited: string;
+  private readonly thumbnail: string;
   version: number;
-
-  foo: string;
 
   constructor(directory: Directory, name: FileName, edited: FileName, thumbnail: FileName) {
     makeObservable(this, {
-      version: observable,
-      getThumbnailFileName: observable,
+      fileName: computed,
+      editedFileName: computed,
+      thumbnailFileName: computed,
       thumbnailFullPath: computed,
       refreshThumbnail: action,
-      foo: observable,
+      version: observable,
     });
 
     this.directory = directory;
@@ -26,25 +25,18 @@ class Photo {
     this.thumbnail = thumbnail;
 
     this.version = 0;
-
-    const path = [this.directory, this.thumbnail].join("/");
-    this.foo = `${path}?${this.version}`;
   }
 
-  public getFullPath() {
-    return [this.directory, this.name].join("/");
-  }
-
-  public getFileName() {
+  get fileName() {
     return this.name;
   }
 
-  public getEditedFullPath(): string {
-    return [this.directory, this.edited].join("/");
+  get editedFileName(): string {
+    return this.edited;
   }
 
-  public getEditedFileName(): string {
-    return this.edited;
+  get thumbnailFileName(): string {
+    return this.thumbnail;
   }
 
   get thumbnailFullPath(): string {
@@ -52,17 +44,7 @@ class Photo {
     return `${path}?${this.version}`;
   }
 
-  public getThumbnailFullPath(): string {
-    const path = [this.directory, this.thumbnail].join("/");
-    return `${path}?${this.version}`;
-  }
-
-  public getThumbnailFileName(): string {
-    return this.thumbnail;
-  }
-
   public refreshThumbnail(): void {
-    console.log("updating thumbnail");
     this.version++;
   }
 }

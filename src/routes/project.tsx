@@ -33,7 +33,7 @@ import ProjectModel from "@/models/Project";
 
 const DraggableImage = ({ photo }: { photo: Photo }) => (
   <img
-    src={`file://${photo.getThumbnailFullPath()}`}
+    src={`file://${photo.thumbnailFullPath}`}
     style={{
       opacity: 0.7,
       display: "block",
@@ -63,7 +63,7 @@ const ProjectPage = () => {
   }, []);
 
   useEffect(() => {
-    window.electronAPI.onRefreshStackImages((name) => project.refreshThumbnail(name));
+    window.electronAPI.onUpdateThumbnail((name) => project.refreshThumbnail(name));
   });
 
   const handleDragStart = (event: DragStartEvent) => {
@@ -77,11 +77,6 @@ const ProjectPage = () => {
 
     if (target) {
       const draggingCollectionTo = (target.data.current as DraggableEndData).collection;
-
-      if (target?.data?.current === draggingCollectionFrom) {
-        console.log("Dragging to same collection");
-        return;
-      }
 
       if (isCopying) {
         setLoading({ show: true, text: "Duplicating photo" });

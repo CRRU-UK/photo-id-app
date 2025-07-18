@@ -25,22 +25,20 @@ interface StackImageProps {
   photo: Photo;
 }
 
-const StackImage = observer(({ photo }: StackImageProps) => {
-  return (
-    <img
-      src={`file://${photo.getThumbnailFullPath()}?${photo.version}`}
-      style={{
-        cursor: "pointer",
-        display: "block",
-        width: "100%",
-        height: "auto",
-        aspectRatio: "4/3",
-        objectFit: "cover",
-      }}
-      alt=""
-    />
-  );
-});
+const StackImage = observer(({ photo }: StackImageProps) => (
+  <img
+    src={`file://${photo.thumbnailFullPath}`}
+    style={{
+      cursor: "pointer",
+      display: "block",
+      width: "100%",
+      height: "auto",
+      aspectRatio: "4/3",
+      objectFit: "cover",
+    }}
+    alt=""
+  />
+));
 
 interface StackProps {
   collection: Collection;
@@ -56,7 +54,7 @@ const Stack = ({ collection }: StackProps) => {
     attributes,
     listeners,
   } = useDraggable({
-    id: currentPhoto?.getFileName() ?? "",
+    id: currentPhoto?.fileName ?? "",
     data: { collection, currentPhoto },
     disabled: collection.photos.size <= 0,
   });
@@ -68,9 +66,9 @@ const Stack = ({ collection }: StackProps) => {
   const handleOpenEdit = () => {
     const data: PhotoBody = {
       directory: currentPhoto!.directory,
-      name: currentPhoto!.getFileName(),
-      edited: currentPhoto!.getEditedFileName(),
-      thumbnail: currentPhoto!.getThumbnailFileName(),
+      name: currentPhoto!.fileName,
+      edited: currentPhoto!.editedFileName,
+      thumbnail: currentPhoto!.thumbnailFileName,
     };
 
     window.electronAPI.openEditWindow(data);
@@ -81,9 +79,9 @@ const Stack = ({ collection }: StackProps) => {
 
     const data: PhotoBody = {
       directory: currentPhoto!.directory,
-      name: currentPhoto!.getFileName(),
-      edited: currentPhoto!.getEditedFileName(),
-      thumbnail: currentPhoto!.getThumbnailFileName(),
+      name: currentPhoto!.fileName,
+      edited: currentPhoto!.editedFileName,
+      thumbnail: currentPhoto!.thumbnailFileName,
     };
 
     await window.electronAPI.revertPhotoFile(data);

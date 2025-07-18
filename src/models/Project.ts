@@ -35,16 +35,14 @@ class Project {
     this.created = new Date();
     this.lastModified = new Date();
 
-    console.log("New project intalisized");
-    console.log("data", data);
-
     if (data) {
+      console.log("Loading data from json:", data);
       this.loadFromJSON(data);
     }
   }
 
   refreshThumbnail(name: string) {
-    const photo = Array.from(this.allPhotos).find((photo) => photo.name === name);
+    const photo = Array.from(this.allPhotos).find((photo) => photo.fileName === name);
 
     if (!photo) {
       return console.error("Unable to find photo with name:", name);
@@ -69,9 +67,9 @@ class Project {
   private mapCollectionToBody(collection: Collection): CollectionBody {
     const photos = Array.from(collection.photos).map((photo) => ({
       directory: photo.directory,
-      name: photo.getFileName(),
-      edited: photo.edited,
-      thumbnail: photo.thumbnail,
+      name: photo.fileName,
+      edited: photo.editedFileName,
+      thumbnail: photo.thumbnailFileName,
     }));
 
     return { photos, index: collection.index, name: collection.name };
@@ -103,7 +101,7 @@ class Project {
     this.created = new Date(created);
     this.lastModified = new Date(lastModified);
 
-    console.debug("load from json", this);
+    console.debug("loading project from json data:", this);
     return this;
   }
 
@@ -150,9 +148,9 @@ class Project {
   public async duplicatePhotoToStack(to: Collection, photo: Photo): Promise<this> {
     const result = await window.electronAPI.duplicatePhotoFile({
       directory: photo.directory,
-      name: photo.getFileName(),
-      edited: photo.getEditedFileName(),
-      thumbnail: photo.getThumbnailFileName(),
+      name: photo.fileName,
+      edited: photo.editedFileName,
+      thumbnail: photo.thumbnailFileName,
     });
 
     const newPhoto = new Photo(result.directory, result.name, result.edited, result.thumbnail);
