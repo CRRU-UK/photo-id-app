@@ -2,6 +2,7 @@ import { Spinner } from "@primer/react";
 
 import { LoadingData } from "@/types";
 
+// TODO: Move to provider
 const LoadingOverlay = ({ show, text }: LoadingData) => {
   if (!show) {
     return null;

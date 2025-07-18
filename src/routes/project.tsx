@@ -7,15 +7,8 @@ import {
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
-import { FileMovedIcon, ReplyIcon, ThreeBarsIcon } from "@primer/octicons-react";
-import {
-  ActionList,
-  ActionMenu,
-  IconButton,
-  Stack as PrimerStack,
-  UnderlineNav,
-} from "@primer/react";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { UnderlineNav } from "@primer/react";
+import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 
 import type Collection from "@/models/Collection";
@@ -24,10 +17,9 @@ import type { DraggableEndData, DraggableStartData, LoadingData, ProjectBody } f
 
 import { MATCHED_STACKS_PER_PAGE, PROJECT_STORAGE_NAME } from "@/constants";
 
-import DiscardedSelection from "@/frontend/modules/DiscardedSelection";
 import LoadingOverlay from "@/frontend/modules/LoadingOverlay";
-import MainSelection from "@/frontend/modules/MainSelection";
 import RowSelection from "@/frontend/modules/RowSelection";
+import Sidebar from "@/frontend/modules/Sidebar";
 import { chunkArray, getAlphabetLetter } from "@/helpers";
 import ProjectModel from "@/models/Project";
 
@@ -52,8 +44,6 @@ const ProjectPage = () => {
   const [currentPage, setCurrentPage] = useState<number>(0);
   const [loading, setLoading] = useState<LoadingData>({ show: false });
   const [isCopying, setIsCopying] = useState<boolean>(false);
-  const [actionsOpen, setActionsOpen] = useState<boolean>(false);
-  const [exporting, setExporting] = useState<boolean>(false);
 
   const project = useMemo(() => {
     const projectData = JSON.parse(
@@ -83,6 +73,7 @@ const ProjectPage = () => {
   }, [draggingPhoto, isCopying]);
 
   const handleKeyUp = () => setIsCopying(false);
+
   const handleKeyDown = (event: KeyboardEvent) => setIsCopying(event.ctrlKey || event.altKey);
 
   const handleDragStart = (event: DragStartEvent) => {
@@ -113,19 +104,6 @@ const ProjectPage = () => {
     }
 
     setDraggingPhoto(null);
-  };
-
-  const navigate = useNavigate();
-
-  const handleClose = () => navigate({ to: "/" });
-
-  const handleExport = async () => {
-    setExporting(true);
-
-    await project.exportMatches();
-
-    setActionsOpen(false);
-    setExporting(false);
   };
 
   const matchedArray = Array.from(project.matched);
@@ -166,50 +144,7 @@ const ProjectPage = () => {
         </DragOverlay>
 
         <div className={`project ${isCopying ? "copying" : ""}`}>
-          <div className="sidebar">
-            <PrimerStack
-              direction="vertical"
-              align="start"
-              justify="space-between"
-              padding="normal"
-              style={{ minHeight: "100%" }}
-            >
-              <MainSelection collection={project.unassigned} total={project.allPhotos.size} />
-              <DiscardedSelection collection={project.discarded} />
-
-              <PrimerStack
-                direction="horizontal"
-                align="start"
-                justify="space-between"
-                style={{ marginTop: "auto", width: "100%" }}
-              >
-                <IconButton
-                  icon={ReplyIcon}
-                  variant="invisible"
-                  aria-label="Close project"
-                  onClick={() => handleClose()}
-                />
-
-                <ActionMenu open={actionsOpen} onOpenChange={setActionsOpen}>
-                  <ActionMenu.Button leadingVisual={ThreeBarsIcon}>Actions</ActionMenu.Button>
-                  <ActionMenu.Overlay>
-                    <ActionList>
-                      <ActionList.Item
-                        disabled={exporting}
-                        loading={exporting}
-                        onClick={() => handleExport()}
-                      >
-                        <ActionList.LeadingVisual>
-                          <FileMovedIcon />
-                        </ActionList.LeadingVisual>
-                        {exporting ? "Exporting..." : "Export matches"}
-                      </ActionList.Item>
-                    </ActionList>
-                  </ActionMenu.Overlay>
-                </ActionMenu>
-              </PrimerStack>
-            </PrimerStack>
-          </div>
+          <Sidebar project={project} />
 
           <UnderlineNav aria-label="Pages" className="pages">
             {matchedPages}
