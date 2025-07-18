@@ -1,5 +1,12 @@
 # photo-id
 
+## 0.2.2
+
+### Patch Changes
+
+- ff6c258: Improve performance when using the app for long periods of time
+- 9689894: Fixed bug when removing the penultimate photo from a stack
+
 ## 0.2.1
 
 ### Patch Changes
