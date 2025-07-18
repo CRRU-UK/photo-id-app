@@ -72,6 +72,10 @@ const Stack = observer(({ collection }: StackProps) => {
   };
 
   const handleRevertPhoto = async () => {
+    if (revertingPhoto) {
+      return;
+    }
+
     setRevertingPhoto(true);
 
     const data: PhotoBody = {
@@ -135,7 +139,7 @@ const Stack = observer(({ collection }: StackProps) => {
               event.preventDefault();
               return handleOpenEdit();
             }}
-            disabled={collection.photos.size <= 0}
+            disabled={collection.photos.size <= 0 || revertingPhoto}
           >
             Edit
           </IconButton>
