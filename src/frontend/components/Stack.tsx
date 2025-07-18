@@ -15,7 +15,7 @@ import {
   Stack as PrimerStack,
 } from "@primer/react";
 import { observer } from "mobx-react-lite";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import type Collection from "@/models/Collection";
 import type Photo from "@/models/Photo";
@@ -44,8 +44,7 @@ interface StackProps {
   collection: Collection;
 }
 
-const Stack = ({ collection }: StackProps) => {
-  const [currentPhoto, setCurrentPhoto] = useState<Photo | null>(null);
+const Stack = observer(({ collection }: StackProps) => {
   const [actionsOpen, setActionsOpen] = useState<boolean>(false);
   const [revertingPhoto, setRevertingPhoto] = useState<boolean>(false);
 
@@ -54,21 +53,17 @@ const Stack = ({ collection }: StackProps) => {
     attributes,
     listeners,
   } = useDraggable({
-    id: currentPhoto?.fileName ?? "",
-    data: { collection, currentPhoto },
+    id: collection.currentPhoto?.fileName ?? "",
+    data: { collection, currentPhoto: collection.currentPhoto },
     disabled: collection.photos.size <= 0,
   });
 
-  useEffect(() => {
-    setCurrentPhoto(collection.currentPhoto);
-  }, [collection, collection.photos.size]);
-
   const handleOpenEdit = () => {
     const data: PhotoBody = {
-      directory: currentPhoto!.directory,
-      name: currentPhoto!.fileName,
-      edited: currentPhoto!.editedFileName,
-      thumbnail: currentPhoto!.thumbnailFileName,
+      directory: collection.currentPhoto!.directory,
+      name: collection.currentPhoto!.fileName,
+      edited: collection.currentPhoto!.editedFileName,
+      thumbnail: collection.currentPhoto!.thumbnailFileName,
     };
 
     window.electronAPI.openEditWindow(data);
@@ -78,10 +73,10 @@ const Stack = ({ collection }: StackProps) => {
     setRevertingPhoto(true);
 
     const data: PhotoBody = {
-      directory: currentPhoto!.directory,
-      name: currentPhoto!.fileName,
-      edited: currentPhoto!.editedFileName,
-      thumbnail: currentPhoto!.thumbnailFileName,
+      directory: collection.currentPhoto!.directory,
+      name: collection.currentPhoto!.fileName,
+      edited: collection.currentPhoto!.editedFileName,
+      thumbnail: collection.currentPhoto!.thumbnailFileName,
     };
 
     await window.electronAPI.revertPhotoFile(data);
@@ -90,15 +85,8 @@ const Stack = ({ collection }: StackProps) => {
     setRevertingPhoto(false);
   };
 
-  const handlePrev = () => {
-    collection.setPreviousPhoto();
-    setCurrentPhoto(collection.currentPhoto);
-  };
-
-  const handleNext = () => {
-    collection.setNextPhoto();
-    setCurrentPhoto(collection.currentPhoto);
-  };
+  const handlePrev = () => collection.setPreviousPhoto();
+  const handleNext = () => collection.setNextPhoto();
 
   return (
     <>
@@ -118,7 +106,7 @@ const Stack = ({ collection }: StackProps) => {
           {...attributes}
           onDoubleClick={handleOpenEdit}
         >
-          {currentPhoto && <StackImage photo={currentPhoto} />}
+          {collection?.currentPhoto && <StackImage photo={collection.currentPhoto} />}
         </div>
       </div>
 
@@ -193,6 +181,6 @@ const Stack = ({ collection }: StackProps) => {
       </PrimerStack>
     </>
   );
-};
+});
 
 export default Stack;

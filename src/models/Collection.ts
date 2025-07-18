@@ -24,6 +24,8 @@ class Stack {
       addPhoto: action,
       removePhoto: action,
       currentPhoto: computed,
+      setPreviousPhoto: action,
+      setNextPhoto: action,
       setName: action,
     });
 
