@@ -64,7 +64,26 @@ const ProjectPage = () => {
 
   useEffect(() => {
     window.electronAPI.onUpdateThumbnail((name) => project.refreshThumbnail(name));
-  });
+    window.electronAPI.onLoading((data) => setLoading(data));
+
+    document.addEventListener("keyup", handleKeyDown);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("keyup", handleKeyUp);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [project]);
+
+  useEffect(() => {
+    if (draggingPhoto && isCopying) {
+      return document.body.classList.add("copying");
+    }
+    return document.body.classList.remove("copying");
+  }, [draggingPhoto, isCopying]);
+
+  const handleKeyUp = () => setIsCopying(false);
+  const handleKeyDown = (event: KeyboardEvent) => setIsCopying(event.ctrlKey || event.altKey);
 
   const handleDragStart = (event: DragStartEvent) => {
     const { collection, currentPhoto } = event.active.data.current as unknown as DraggableStartData;
@@ -97,20 +116,6 @@ const ProjectPage = () => {
   };
 
   const navigate = useNavigate();
-
-  useEffect(() => {
-    window.electronAPI.onLoading((data) => setLoading(data));
-
-    document.addEventListener("keyup", () => setIsCopying(false));
-    document.addEventListener("keydown", (event) => setIsCopying(event.ctrlKey || event.altKey));
-  });
-
-  useEffect(() => {
-    if (draggingPhoto && isCopying) {
-      return document.body.classList.add("copying");
-    }
-    return document.body.classList.remove("copying");
-  }, [draggingPhoto, isCopying]);
 
   const handleClose = () => navigate({ to: "/" });
 

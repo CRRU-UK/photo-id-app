@@ -15,9 +15,9 @@ const IndexPage = () => {
   const [loading, setLoading] = useState<LoadingData>({ show: false });
 
   const navigate = useNavigate();
+
   useEffect(() => {
     window.electronAPI.onLoading((data) => setLoading(data));
-
     window.electronAPI.onLoadProject((data) => {
       localStorage.setItem(PROJECT_STORAGE_NAME, JSON.stringify(data));
       return navigate({ to: "/project" });
