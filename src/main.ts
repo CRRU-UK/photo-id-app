@@ -173,14 +173,14 @@ app.whenReady().then(() => {
     async (event, data: PhotoBody, photo: ArrayBuffer): Promise<void> => {
       await savePhotoFromBuffer(data, photo);
 
-      mainWindow.webContents.send(IPC_EVENTS.REFRESH_STACK_IMAGES, data.name);
+      mainWindow.webContents.send(IPC_EVENTS.UPDATE_THUMBNAIL, data.name);
     },
   );
 
   ipcMain.handle(IPC_EVENTS.REVERT_PHOTO_FILE, async (event, data: PhotoBody): Promise<void> => {
     await revertPhotoToOriginal(data);
 
-    mainWindow.webContents.send(IPC_EVENTS.REFRESH_STACK_IMAGES, data.name);
+    mainWindow.webContents.send(IPC_EVENTS.UPDATE_THUMBNAIL, data.name);
   });
 
   ipcMain.handle(IPC_EVENTS.DUPLICATE_PHOTO_FILE, async (event, data: PhotoBody) => {

@@ -32,7 +32,6 @@ export type ProjectBody = {
   version: string;
   id: string;
   directory: Directory;
-  totalPhotos: number;
   unassigned: CollectionBody;
   discarded: CollectionBody;
   matched: {

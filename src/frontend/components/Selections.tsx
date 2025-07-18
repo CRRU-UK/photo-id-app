@@ -9,13 +9,13 @@ import { BOX_HOVER_STYLES } from "@/constants";
 import Stack from "@/frontend/components/Stack";
 import { getAlphabetLetter } from "@/helpers";
 
-interface SelectionProps {
+interface SelectionStackProps {
   id: number;
   side: string;
   collection: Collection;
 }
 
-const Selection = ({ id, side, collection }: SelectionProps) => {
+const SelectionStack = ({ id, side, collection }: SelectionStackProps) => {
   const [selectionName, setSelectionName] = useState<string>(collection.name || "");
 
   useEffect(() => {
@@ -70,19 +70,16 @@ const Selection = ({ id, side, collection }: SelectionProps) => {
   );
 };
 
-interface RowSelectionProps {
-  match: Match;
+interface SelectionsProps {
+  matches: Match[];
 }
 
-const RowSelection = ({ match }: RowSelectionProps) => {
-  return (
-    <div style={{ marginBottom: "var(--stack-gap-spacious)" }}>
-      <PrimerStack direction="horizontal">
-        <Selection id={match.id} side="Left" collection={match.left} />
-        <Selection id={match.id} side="Right" collection={match.right} />
-      </PrimerStack>
-    </div>
-  );
-};
+const Selections = ({ matches }: SelectionsProps) =>
+  matches.map((match) => (
+    <PrimerStack direction="horizontal" sx={{ mb: 4 }} key={match.id}>
+      <SelectionStack id={match.id} side="Left" collection={match.left} />
+      <SelectionStack id={match.id} side="Right" collection={match.right} />
+    </PrimerStack>
+  ));
 
-export default RowSelection;
+export default Selections;

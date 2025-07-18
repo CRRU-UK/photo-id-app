@@ -1,4 +1,5 @@
 import { Spinner } from "@primer/react";
+import { memo } from "react";
 
 import { LoadingData } from "@/types";
 
@@ -15,4 +16,4 @@ const LoadingOverlay = ({ show, text }: LoadingData) => {
   );
 };
 
-export default LoadingOverlay;
+export default memo(LoadingOverlay);

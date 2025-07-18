@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
-import ImageEditor from "@/frontend/modules/ImageEditor";
-import LoadingOverlay from "@/frontend/modules/LoadingOverlay";
+import ImageEditor from "@/frontend/components/ImageEditor";
+import LoadingOverlay from "@/frontend/components/LoadingOverlay";
 import type { LoadingData, PhotoBody } from "@/types";
 
 const fetchLocalFile = async (data: PhotoBody) => {

@@ -1,32 +1,51 @@
 import type { Directory, FileName } from "@/types";
 
-import File from "./File";
+import { action, computed, makeObservable, observable } from "mobx";
 
-class Photo extends File {
-  readonly edited: string;
-  readonly thumbnail: string;
+class Photo {
+  readonly directory;
+  private readonly name: string;
+  private readonly edited: string;
+  private readonly thumbnail: string;
+  version: number;
 
   constructor(directory: Directory, name: FileName, edited: FileName, thumbnail: FileName) {
-    super(directory, name);
+    makeObservable(this, {
+      fileName: computed,
+      editedFileName: computed,
+      thumbnailFileName: computed,
+      thumbnailFullPath: computed,
+      refreshThumbnail: action,
+      version: observable,
+    });
 
+    this.directory = directory;
+    this.name = name;
     this.edited = edited;
     this.thumbnail = thumbnail;
+
+    this.version = 0;
   }
 
-  public getEditedFullPath() {
-    return [this.directory, this.edited].join("/");
+  get fileName() {
+    return this.name;
   }
 
-  public getEditedFileName() {
+  get editedFileName(): string {
     return this.edited;
   }
 
-  public getThumbnailFullPath() {
-    return [this.directory, this.thumbnail].join("/");
+  get thumbnailFileName(): string {
+    return this.thumbnail;
   }
 
-  public getThumbnailFileName() {
-    return this.thumbnail;
+  get thumbnailFullPath(): string {
+    const path = [this.directory, this.thumbnail].join("/");
+    return `${path}?${this.version}`;
+  }
+
+  public refreshThumbnail(): void {
+    this.version++;
   }
 }
 

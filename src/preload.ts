@@ -30,6 +30,6 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ipcRenderer.on(IPC_EVENTS.SET_LOADING, (_event, value) => callback(value)),
   onLoadProject: (callback: (...params: unknown[]) => void) =>
     ipcRenderer.on(IPC_EVENTS.LOAD_PROJECT, (_event, value) => callback(value)),
-  onRefreshStackImages: (callback: (...params: unknown[]) => void) =>
-    ipcRenderer.on(IPC_EVENTS.REFRESH_STACK_IMAGES, (_event, value) => callback(value)),
+  onUpdateThumbnail: (callback: (...params: unknown[]) => void) =>
+    ipcRenderer.on(IPC_EVENTS.UPDATE_THUMBNAIL, (_event, value) => callback(value)),
 });

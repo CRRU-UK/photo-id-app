@@ -14,63 +14,75 @@ import {
   IconButton,
   Stack as PrimerStack,
 } from "@primer/react";
-import { useEffect, useState } from "react";
+import { observer } from "mobx-react-lite";
+import { useState } from "react";
 
 import type Collection from "@/models/Collection";
 import type Photo from "@/models/Photo";
 import type { PhotoBody } from "@/types";
 
+interface StackImageProps {
+  photo: Photo;
+}
+
+const StackImage = observer(({ photo }: StackImageProps) => (
+  <img
+    src={`file://${photo.thumbnailFullPath}`}
+    style={{
+      cursor: "pointer",
+      display: "block",
+      width: "100%",
+      height: "auto",
+      aspectRatio: "4/3",
+      objectFit: "cover",
+    }}
+    alt=""
+  />
+));
+
 interface StackProps {
   collection: Collection;
 }
 
-const Stack = ({ collection }: StackProps) => {
-  const [currentPhoto, setCurrentPhoto] = useState<Photo | null>(null);
-  const [currentTime, setCurrentTime] = useState<number>(new Date().getTime());
+const Stack = observer(({ collection }: StackProps) => {
   const [actionsOpen, setActionsOpen] = useState<boolean>(false);
   const [revertingPhoto, setRevertingPhoto] = useState<boolean>(false);
+
+  const currentPhoto = collection.currentPhoto;
 
   const {
     setNodeRef: setDraggableNodeRef,
     attributes,
     listeners,
   } = useDraggable({
-    id: currentPhoto?.getFileName() ?? "",
-    data: { collection, currentPhoto },
+    id: currentPhoto?.fileName ?? "",
+    data: { collection, currentPhoto: currentPhoto },
     disabled: collection.photos.size <= 0,
-  });
-
-  useEffect(() => {
-    setCurrentPhoto(collection.getCurrentPhoto());
-  }, [collection, collection.photos.size]);
-
-  useEffect(() => {
-    window.electronAPI.onRefreshStackImages((name) => {
-      if (currentPhoto?.getFileName() === name) {
-        setCurrentTime(new Date().getTime());
-      }
-    });
   });
 
   const handleOpenEdit = () => {
     const data: PhotoBody = {
       directory: currentPhoto!.directory,
-      name: currentPhoto!.getFileName(),
-      edited: currentPhoto!.getEditedFileName(),
-      thumbnail: currentPhoto!.getThumbnailFileName(),
+      name: currentPhoto!.fileName,
+      edited: currentPhoto!.editedFileName,
+      thumbnail: currentPhoto!.thumbnailFileName,
     };
 
     window.electronAPI.openEditWindow(data);
   };
 
   const handleRevertPhoto = async () => {
+    if (revertingPhoto) {
+      return;
+    }
+
     setRevertingPhoto(true);
 
     const data: PhotoBody = {
       directory: currentPhoto!.directory,
-      name: currentPhoto!.getFileName(),
-      edited: currentPhoto!.getEditedFileName(),
-      thumbnail: currentPhoto!.getThumbnailFileName(),
+      name: currentPhoto!.fileName,
+      edited: currentPhoto!.editedFileName,
+      thumbnail: currentPhoto!.thumbnailFileName,
     };
 
     await window.electronAPI.revertPhotoFile(data);
@@ -79,15 +91,8 @@ const Stack = ({ collection }: StackProps) => {
     setRevertingPhoto(false);
   };
 
-  const handlePrev = () => {
-    collection.setPreviousPhoto();
-    setCurrentPhoto(collection.getCurrentPhoto());
-  };
-
-  const handleNext = () => {
-    collection.setNextPhoto();
-    setCurrentPhoto(collection.getCurrentPhoto());
-  };
+  const handlePrev = () => collection.setPreviousPhoto();
+  const handleNext = () => collection.setNextPhoto();
 
   return (
     <>
@@ -107,20 +112,7 @@ const Stack = ({ collection }: StackProps) => {
           {...attributes}
           onDoubleClick={handleOpenEdit}
         >
-          {currentPhoto && (
-            <img
-              src={`file://${currentPhoto.getThumbnailFullPath()}?${currentTime}`}
-              style={{
-                cursor: "pointer",
-                display: "block",
-                width: "100%",
-                height: "auto",
-                aspectRatio: "4/3",
-                objectFit: "cover",
-              }}
-              alt=""
-            />
-          )}
+          {collection?.currentPhoto && <StackImage photo={currentPhoto!} />}
         </div>
       </div>
 
@@ -147,7 +139,7 @@ const Stack = ({ collection }: StackProps) => {
               event.preventDefault();
               return handleOpenEdit();
             }}
-            disabled={collection.photos.size <= 0}
+            disabled={collection.photos.size <= 0 || revertingPhoto}
           >
             Edit
           </IconButton>
@@ -195,6 +187,6 @@ const Stack = ({ collection }: StackProps) => {
       </PrimerStack>
     </>
   );
-};
+});
 
 export default Stack;

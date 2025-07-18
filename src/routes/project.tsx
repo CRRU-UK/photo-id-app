@@ -7,15 +7,8 @@ import {
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
-import { FileMovedIcon, ReplyIcon, ThreeBarsIcon } from "@primer/octicons-react";
-import {
-  ActionList,
-  ActionMenu,
-  IconButton,
-  Stack as PrimerStack,
-  UnderlineNav,
-} from "@primer/react";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { UnderlineNav } from "@primer/react";
+import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 
 import type Collection from "@/models/Collection";
@@ -23,16 +16,20 @@ import type Photo from "@/models/Photo";
 import type { DraggableEndData, DraggableStartData, LoadingData, ProjectBody } from "@/types";
 
 import { MATCHED_STACKS_PER_PAGE, PROJECT_STORAGE_NAME } from "@/constants";
-import DiscardedSelection from "@/frontend/modules/DiscardedSelection";
-import LoadingOverlay from "@/frontend/modules/LoadingOverlay";
-import MainSelection from "@/frontend/modules/MainSelection";
-import RowSelection from "@/frontend/modules/RowSelection";
+
+import ProjectContext from "@/contexts/ProjectContext";
+
+import LoadingOverlay from "@/frontend/components/LoadingOverlay";
+import Selections from "@/frontend/components/Selections";
+import Sidebar from "@/frontend/components/Sidebar";
+
 import { chunkArray, getAlphabetLetter } from "@/helpers";
+
 import ProjectModel from "@/models/Project";
 
 const DraggableImage = ({ photo }: { photo: Photo }) => (
   <img
-    src={`file://${photo.getThumbnailFullPath()}?${new Date().getTime()}`}
+    src={`file://${photo.thumbnailFullPath}`}
     style={{
       opacity: 0.7,
       display: "block",
@@ -51,15 +48,37 @@ const ProjectPage = () => {
   const [currentPage, setCurrentPage] = useState<number>(0);
   const [loading, setLoading] = useState<LoadingData>({ show: false });
   const [isCopying, setIsCopying] = useState<boolean>(false);
-  const [actionsOpen, setActionsOpen] = useState<boolean>(false);
-  const [exporting, setExporting] = useState<boolean>(false);
 
   const project = useMemo(() => {
     const projectData = JSON.parse(
       localStorage.getItem(PROJECT_STORAGE_NAME) as string,
     ) as ProjectBody;
-    return new ProjectModel().loadFromJSON(projectData);
+    return new ProjectModel(projectData);
   }, []);
+
+  useEffect(() => {
+    window.electronAPI.onUpdateThumbnail((name) => project.refreshThumbnail(name));
+    window.electronAPI.onLoading((data) => setLoading(data));
+
+    document.addEventListener("keyup", handleKeyDown);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("keyup", handleKeyUp);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [project]);
+
+  useEffect(() => {
+    if (draggingPhoto && isCopying) {
+      return document.body.classList.add("copying");
+    }
+    return document.body.classList.remove("copying");
+  }, [draggingPhoto, isCopying]);
+
+  const handleKeyUp = () => setIsCopying(false);
+
+  const handleKeyDown = (event: KeyboardEvent) => setIsCopying(event.ctrlKey || event.altKey);
 
   const handleDragStart = (event: DragStartEvent) => {
     const { collection, currentPhoto } = event.active.data.current as unknown as DraggableStartData;
@@ -69,6 +88,7 @@ const ProjectPage = () => {
 
   const handleDragEnd = async (event: DragEndEvent) => {
     const target = event.over ?? null;
+
     if (target) {
       const draggingCollectionTo = (target.data.current as DraggableEndData).collection;
 
@@ -76,53 +96,18 @@ const ProjectPage = () => {
         setLoading({ show: true, text: "Duplicating photo" });
         await project.duplicatePhotoToStack(draggingCollectionTo, draggingPhoto as Photo);
         setLoading({ show: false });
-      } else {
-        project.addPhotoToStack(
-          draggingCollectionFrom as Collection,
-          draggingCollectionTo,
-          draggingPhoto as Photo,
-        );
+
+        return;
       }
+
+      project.addPhotoToStack(
+        draggingCollectionFrom as Collection,
+        draggingCollectionTo,
+        draggingPhoto as Photo,
+      );
     }
 
     setDraggingPhoto(null);
-  };
-
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    window.electronAPI.onLoading((data) => setLoading(data));
-
-    /**
-     * TODO: Fix this, buggy when navigating back and then to a project
-     */
-    window.electronAPI.onLoadProject((data) => {
-      localStorage.setItem(PROJECT_STORAGE_NAME, JSON.stringify(data));
-      window.location.reload();
-    });
-
-    document.addEventListener("keyup", () => setIsCopying(false));
-    document.addEventListener("keydown", (event) => setIsCopying(event.ctrlKey || event.altKey));
-  });
-
-  useEffect(() => {
-    if (draggingPhoto && isCopying) {
-      return document.body.classList.add("copying");
-    }
-    return document.body.classList.remove("copying");
-  }, [draggingPhoto, isCopying]);
-
-  useEffect(() => {}, [project.unassigned.index]);
-
-  const handleClose = () => navigate({ to: "/" });
-
-  const handleExport = async () => {
-    setExporting(true);
-
-    await project.exportMatches();
-
-    setActionsOpen(false);
-    setExporting(false);
   };
 
   const matchedArray = Array.from(project.matched);
@@ -154,7 +139,7 @@ const ProjectPage = () => {
   const sensors = useSensors(pointerSensor);
 
   return (
-    <>
+    <ProjectContext value={project}>
       <LoadingOverlay show={loading.show} text={loading?.text} />
 
       <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
@@ -163,50 +148,7 @@ const ProjectPage = () => {
         </DragOverlay>
 
         <div className={`project ${isCopying ? "copying" : ""}`}>
-          <div className="sidebar">
-            <PrimerStack
-              direction="vertical"
-              align="start"
-              justify="space-between"
-              padding="normal"
-              style={{ minHeight: "100%" }}
-            >
-              <MainSelection collection={project.unassigned} total={project.totalPhotos} />
-              <DiscardedSelection collection={project.discarded} />
-
-              <PrimerStack
-                direction="horizontal"
-                align="start"
-                justify="space-between"
-                style={{ marginTop: "auto", width: "100%" }}
-              >
-                <IconButton
-                  icon={ReplyIcon}
-                  variant="invisible"
-                  aria-label="Close project"
-                  onClick={() => handleClose()}
-                />
-
-                <ActionMenu open={actionsOpen} onOpenChange={setActionsOpen}>
-                  <ActionMenu.Button leadingVisual={ThreeBarsIcon}>Actions</ActionMenu.Button>
-                  <ActionMenu.Overlay>
-                    <ActionList>
-                      <ActionList.Item
-                        disabled={exporting}
-                        loading={exporting}
-                        onClick={() => handleExport()}
-                      >
-                        <ActionList.LeadingVisual>
-                          <FileMovedIcon />
-                        </ActionList.LeadingVisual>
-                        {exporting ? "Exporting..." : "Export matches"}
-                      </ActionList.Item>
-                    </ActionList>
-                  </ActionMenu.Overlay>
-                </ActionMenu>
-              </PrimerStack>
-            </PrimerStack>
-          </div>
+          <Sidebar />
 
           <UnderlineNav aria-label="Pages" className="pages">
             {matchedPages}
@@ -214,14 +156,12 @@ const ProjectPage = () => {
 
           <div className="content">
             <div className="grid">
-              {matchedRows.map((item) => (
-                <RowSelection key={item.id} match={item} />
-              ))}
+              <Selections matches={matchedRows} />
             </div>
           </div>
         </div>
       </DndContext>
-    </>
+    </ProjectContext>
   );
 };
 
