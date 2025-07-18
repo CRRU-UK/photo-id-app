@@ -5,7 +5,7 @@ import { action, computed, makeObservable, observable } from "mobx";
 class Photo {
   readonly directory;
   private readonly name: string;
-  private readonly edited: string;
+  private readonly edited?: string;
   private readonly thumbnail: string;
   version: number;
 
@@ -31,8 +31,8 @@ class Photo {
     return this.name;
   }
 
-  get editedFileName(): string {
-    return this.edited;
+  get editedFileName(): string | null {
+    return this.edited || null;
   }
 
   get thumbnailFileName(): string {

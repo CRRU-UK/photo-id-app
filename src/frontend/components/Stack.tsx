@@ -64,7 +64,7 @@ const Stack = observer(({ collection }: StackProps) => {
     const data: PhotoBody = {
       directory: currentPhoto!.directory,
       name: currentPhoto!.fileName,
-      edited: currentPhoto!.editedFileName,
+      edited: currentPhoto?.editedFileName || undefined,
       thumbnail: currentPhoto!.thumbnailFileName,
     };
 
@@ -81,7 +81,7 @@ const Stack = observer(({ collection }: StackProps) => {
     const data: PhotoBody = {
       directory: currentPhoto!.directory,
       name: currentPhoto!.fileName,
-      edited: currentPhoto!.editedFileName,
+      edited: currentPhoto!.editedFileName || undefined,
       thumbnail: currentPhoto!.thumbnailFileName,
     };
 

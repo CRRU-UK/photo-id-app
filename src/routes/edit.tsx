@@ -6,7 +6,7 @@ import LoadingOverlay from "@/frontend/components/LoadingOverlay";
 import type { LoadingData, PhotoBody } from "@/types";
 
 const fetchLocalFile = async (data: PhotoBody) => {
-  const response = await fetch(`file://${data.directory}/${data.edited}`);
+  const response = await fetch(`file://${data.directory}/${data?.edited || data.name}`);
   const blob = await response.blob();
   return new File([blob], data.name, { type: blob.type || "image/*" });
 };

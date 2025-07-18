@@ -57,6 +57,7 @@ const ProjectPage = () => {
   }, []);
 
   useEffect(() => {
+    // Rename this and also handle adding edited to photo (but need to account for reversion)
     window.electronAPI.onUpdateThumbnail((name) => project.refreshThumbnail(name));
     window.electronAPI.onLoading((data) => setLoading(data));
 

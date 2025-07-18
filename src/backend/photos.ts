@@ -6,9 +6,9 @@ import { PROJECT_EDITS_DIRECTORY, PROJECT_THUMBNAIL_DIRECTORY, THUMBNAIL_SIZE } 
 import type { PhotoBody } from "@/types";
 
 const savePhotoFromBuffer = async (data: PhotoBody, photoData: ArrayBuffer) => {
-  const editedPath = path.join(data.directory, data.edited);
+  const targetPath = path.join(data.directory, PROJECT_EDITS_DIRECTORY, data.name);
   const buffer = Buffer.from(photoData);
-  fs.writeFileSync(editedPath, buffer, "utf8");
+  fs.writeFileSync(targetPath, buffer, "utf8");
 
   await createPhotoThumbnail(data.name, data.directory);
 };
@@ -26,10 +26,10 @@ const createPhotoEditsCopy = async (
 };
 
 const createPhotoThumbnail = async (
-  sourcePhotoName: string,
+  targetPhoto: string,
   projectDirectory: string,
 ): Promise<string> => {
-  const image: Sharp = sharp(path.join(projectDirectory, PROJECT_EDITS_DIRECTORY, sourcePhotoName));
+  const image: Sharp = sharp(path.join(projectDirectory, targetPhoto));
 
   const metadata = await image.metadata();
   const isLandscape = metadata.width >= metadata.height;
@@ -44,17 +44,17 @@ const createPhotoThumbnail = async (
     .toBuffer();
 
   const thumbnailDirectory = path.join(projectDirectory, PROJECT_THUMBNAIL_DIRECTORY);
-  const thumbnailPath = path.join(thumbnailDirectory, sourcePhotoName);
+  const thumbnailPath = path.join(thumbnailDirectory, targetPhoto);
   fs.writeFileSync(thumbnailPath, thumbnailData);
 
-  return path.join(PROJECT_THUMBNAIL_DIRECTORY, sourcePhotoName);
+  return path.join(PROJECT_THUMBNAIL_DIRECTORY, targetPhoto);
 };
 
 const revertPhotoToOriginal = async (data: PhotoBody) => {
   const originalPath = path.join(data.directory, data.name);
-  const editsPath = path.join(data.directory, data.edited);
+  const targetPath = path.join(data.directory, data?.edited || data.name);
 
-  await fs.promises.copyFile(originalPath, editsPath);
+  await fs.promises.copyFile(originalPath, targetPath);
   await createPhotoThumbnail(data.name, data.directory);
 };
 
