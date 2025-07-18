@@ -47,7 +47,10 @@ class Stack {
 
   removePhoto(photo: Photo): this {
     this.photos.delete(photo);
-    this.setPreviousPhoto();
+
+    if (this.index + 1 > this.photos.size) {
+      this.index--;
+    }
 
     return this;
   }
