@@ -101,7 +101,7 @@ class Project {
     this.created = new Date(created);
     this.lastModified = new Date(lastModified);
 
-    console.debug("loading project from json data:", this);
+    console.debug("Loaded project from data:", this);
     return this;
   }
 
