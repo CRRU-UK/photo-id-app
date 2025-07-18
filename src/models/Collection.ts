@@ -1,5 +1,7 @@
 import { PhotoSet } from "@/types";
 
+import { action, computed, makeObservable, observable } from "mobx";
+
 import type Photo from "@/models/Photo";
 import type Project from "@/models/Project";
 
@@ -16,6 +18,15 @@ class Stack {
   project: Project;
 
   constructor({ name = undefined, index = 0, photos }: StackOptions, project: Project) {
+    makeObservable(this, {
+      index: observable,
+      photos: observable,
+      addPhoto: action,
+      removePhoto: action,
+      currentPhoto: computed,
+      setName: action,
+    });
+
     this.name = name;
     this.index = index;
     this.photos = photos;
@@ -43,7 +54,7 @@ class Stack {
     return this.photos.has(photo);
   }
 
-  getCurrentPhoto(): Photo | null {
+  get currentPhoto(): Photo | null {
     if (this.photos.size === 0) {
       return null;
     }

@@ -14,11 +14,33 @@ import {
   IconButton,
   Stack as PrimerStack,
 } from "@primer/react";
+import { observer } from "mobx-react-lite";
 import { useEffect, useState } from "react";
 
 import type Collection from "@/models/Collection";
 import type Photo from "@/models/Photo";
 import type { PhotoBody } from "@/types";
+
+interface StackImageProps {
+  photo: Photo;
+}
+
+const StackImage = observer(({ photo }: StackImageProps) => {
+  return (
+    <img
+      src={`file://${photo.getThumbnailFullPath()}?${photo.version}`}
+      style={{
+        cursor: "pointer",
+        display: "block",
+        width: "100%",
+        height: "auto",
+        aspectRatio: "4/3",
+        objectFit: "cover",
+      }}
+      alt=""
+    />
+  );
+});
 
 interface StackProps {
   collection: Collection;
@@ -26,7 +48,6 @@ interface StackProps {
 
 const Stack = ({ collection }: StackProps) => {
   const [currentPhoto, setCurrentPhoto] = useState<Photo | null>(null);
-  const [currentTime, setCurrentTime] = useState<number>(new Date().getTime());
   const [actionsOpen, setActionsOpen] = useState<boolean>(false);
   const [revertingPhoto, setRevertingPhoto] = useState<boolean>(false);
 
@@ -41,16 +62,8 @@ const Stack = ({ collection }: StackProps) => {
   });
 
   useEffect(() => {
-    setCurrentPhoto(collection.getCurrentPhoto());
+    setCurrentPhoto(collection.currentPhoto);
   }, [collection, collection.photos.size]);
-
-  useEffect(() => {
-    window.electronAPI.onRefreshStackImages((name) => {
-      if (currentPhoto?.getFileName() === name) {
-        setCurrentTime(new Date().getTime());
-      }
-    });
-  });
 
   const handleOpenEdit = () => {
     const data: PhotoBody = {
@@ -81,12 +94,12 @@ const Stack = ({ collection }: StackProps) => {
 
   const handlePrev = () => {
     collection.setPreviousPhoto();
-    setCurrentPhoto(collection.getCurrentPhoto());
+    setCurrentPhoto(collection.currentPhoto);
   };
 
   const handleNext = () => {
     collection.setNextPhoto();
-    setCurrentPhoto(collection.getCurrentPhoto());
+    setCurrentPhoto(collection.currentPhoto);
   };
 
   return (
@@ -107,20 +120,7 @@ const Stack = ({ collection }: StackProps) => {
           {...attributes}
           onDoubleClick={handleOpenEdit}
         >
-          {currentPhoto && (
-            <img
-              src={`file://${currentPhoto.getThumbnailFullPath()}?${currentTime}`}
-              style={{
-                cursor: "pointer",
-                display: "block",
-                width: "100%",
-                height: "auto",
-                aspectRatio: "4/3",
-                objectFit: "cover",
-              }}
-              alt=""
-            />
-          )}
+          {currentPhoto && <StackImage photo={currentPhoto} />}
         </div>
       </div>
 

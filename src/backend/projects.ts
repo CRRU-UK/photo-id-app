@@ -123,7 +123,6 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
     version: "v1",
     id: crypto.randomUUID(),
     directory,
-    totalPhotos: photos.length,
     unassigned: {
       photos: photos.map((name, index) => ({
         directory,

@@ -23,6 +23,7 @@ import type Photo from "@/models/Photo";
 import type { DraggableEndData, DraggableStartData, LoadingData, ProjectBody } from "@/types";
 
 import { MATCHED_STACKS_PER_PAGE, PROJECT_STORAGE_NAME } from "@/constants";
+
 import DiscardedSelection from "@/frontend/modules/DiscardedSelection";
 import LoadingOverlay from "@/frontend/modules/LoadingOverlay";
 import MainSelection from "@/frontend/modules/MainSelection";
@@ -32,7 +33,7 @@ import ProjectModel from "@/models/Project";
 
 const DraggableImage = ({ photo }: { photo: Photo }) => (
   <img
-    src={`file://${photo.getThumbnailFullPath()}?${new Date().getTime()}`}
+    src={`file://${photo.getThumbnailFullPath()}`}
     style={{
       opacity: 0.7,
       display: "block",
@@ -58,8 +59,12 @@ const ProjectPage = () => {
     const projectData = JSON.parse(
       localStorage.getItem(PROJECT_STORAGE_NAME) as string,
     ) as ProjectBody;
-    return new ProjectModel().loadFromJSON(projectData);
+    return new ProjectModel(projectData);
   }, []);
+
+  useEffect(() => {
+    window.electronAPI.onRefreshStackImages((name) => project.refreshThumbnail(name));
+  });
 
   const handleDragStart = (event: DragStartEvent) => {
     const { collection, currentPhoto } = event.active.data.current as unknown as DraggableStartData;
@@ -69,20 +74,28 @@ const ProjectPage = () => {
 
   const handleDragEnd = async (event: DragEndEvent) => {
     const target = event.over ?? null;
+
     if (target) {
       const draggingCollectionTo = (target.data.current as DraggableEndData).collection;
+
+      if (target?.data?.current === draggingCollectionFrom) {
+        console.log("Dragging to same collection");
+        return;
+      }
 
       if (isCopying) {
         setLoading({ show: true, text: "Duplicating photo" });
         await project.duplicatePhotoToStack(draggingCollectionTo, draggingPhoto as Photo);
         setLoading({ show: false });
-      } else {
-        project.addPhotoToStack(
-          draggingCollectionFrom as Collection,
-          draggingCollectionTo,
-          draggingPhoto as Photo,
-        );
+
+        return;
       }
+
+      project.addPhotoToStack(
+        draggingCollectionFrom as Collection,
+        draggingCollectionTo,
+        draggingPhoto as Photo,
+      );
     }
 
     setDraggingPhoto(null);
@@ -92,14 +105,6 @@ const ProjectPage = () => {
 
   useEffect(() => {
     window.electronAPI.onLoading((data) => setLoading(data));
-
-    /**
-     * TODO: Fix this, buggy when navigating back and then to a project
-     */
-    window.electronAPI.onLoadProject((data) => {
-      localStorage.setItem(PROJECT_STORAGE_NAME, JSON.stringify(data));
-      window.location.reload();
-    });
 
     document.addEventListener("keyup", () => setIsCopying(false));
     document.addEventListener("keydown", (event) => setIsCopying(event.ctrlKey || event.altKey));
@@ -111,8 +116,6 @@ const ProjectPage = () => {
     }
     return document.body.classList.remove("copying");
   }, [draggingPhoto, isCopying]);
-
-  useEffect(() => {}, [project.unassigned.index]);
 
   const handleClose = () => navigate({ to: "/" });
 
@@ -171,7 +174,7 @@ const ProjectPage = () => {
               padding="normal"
               style={{ minHeight: "100%" }}
             >
-              <MainSelection collection={project.unassigned} total={project.totalPhotos} />
+              <MainSelection collection={project.unassigned} total={project.allPhotos.size} />
               <DiscardedSelection collection={project.discarded} />
 
               <PrimerStack
