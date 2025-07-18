@@ -19,9 +19,9 @@ import { MATCHED_STACKS_PER_PAGE, PROJECT_STORAGE_NAME } from "@/constants";
 
 import ProjectContext from "@/contexts/ProjectContext";
 
-import LoadingOverlay from "@/frontend/modules/LoadingOverlay";
-import RowSelection from "@/frontend/modules/RowSelection";
-import Sidebar from "@/frontend/modules/Sidebar";
+import LoadingOverlay from "@/frontend/components/LoadingOverlay";
+import Selections from "@/frontend/components/Selections";
+import Sidebar from "@/frontend/components/Sidebar";
 
 import { chunkArray, getAlphabetLetter } from "@/helpers";
 
@@ -156,9 +156,7 @@ const ProjectPage = () => {
 
           <div className="content">
             <div className="grid">
-              {matchedRows.map((item) => (
-                <RowSelection key={item.id} match={item} />
-              ))}
+              <Selections matches={matchedRows} />
             </div>
           </div>
         </div>

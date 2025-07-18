@@ -4,9 +4,9 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
 import { PROJECT_FILE_NAME, PROJECT_STORAGE_NAME } from "@/constants";
+import LoadingOverlay from "@/frontend/components/LoadingOverlay";
+import RecentProjects from "@/frontend/components/RecentProjects";
 import logo from "@/frontend/img/logo.png";
-import LoadingOverlay from "@/frontend/modules/LoadingOverlay";
-import RecentProjects from "@/frontend/modules/RecentProjects";
 import { LoadingData } from "@/types";
 
 import { version } from "../../package.json";

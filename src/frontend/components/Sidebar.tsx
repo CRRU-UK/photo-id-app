@@ -4,8 +4,8 @@ import { useNavigate } from "@tanstack/react-router";
 import { useContext, useState } from "react";
 
 import ProjectContext from "@/contexts/ProjectContext";
-import DiscardedSelection from "@/frontend/modules/DiscardedSelection";
-import MainSelection from "@/frontend/modules/MainSelection";
+import DiscardedSelection from "@/frontend/components/DiscardedSelection";
+import MainSelection from "@/frontend/components/MainSelection";
 
 const Sidebar = () => {
   const project = useContext(ProjectContext);
