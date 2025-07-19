@@ -1,21 +1,30 @@
-import type { Directory, FileName } from "@/types";
+import type Project from "@/models/Project";
+import type { Directory, FileName, PhotoBody } from "@/types";
 
 import { action, computed, makeObservable, observable } from "mobx";
+
+interface PhotoOptions {
+  directory: Directory;
+  name: FileName;
+  edited?: FileName | null;
+  thumbnail: FileName;
+}
 
 class Photo {
   readonly directory;
   private readonly name: string;
-  private readonly edited: string;
+  private edited?: string | null;
   private readonly thumbnail: string;
+  private readonly project: Project;
   version: number;
 
-  constructor(directory: Directory, name: FileName, edited: FileName, thumbnail: FileName) {
+  constructor({ directory, name, edited = null, thumbnail }: PhotoOptions, project: Project) {
     makeObservable(this, {
       fileName: computed,
       editedFileName: computed,
       thumbnailFileName: computed,
       thumbnailFullPath: computed,
-      refreshThumbnail: action,
+      updatePhoto: action,
       version: observable,
     });
 
@@ -24,15 +33,15 @@ class Photo {
     this.edited = edited;
     this.thumbnail = thumbnail;
 
-    this.version = 0;
+    this.project = project;
   }
 
   get fileName() {
     return this.name;
   }
 
-  get editedFileName(): string {
-    return this.edited;
+  get editedFileName(): string | null {
+    return this.edited || null;
   }
 
   get thumbnailFileName(): string {
@@ -44,8 +53,13 @@ class Photo {
     return `${path}?${this.version}`;
   }
 
-  public refreshThumbnail(): void {
+  public updatePhoto(data: PhotoBody): this {
+    this.edited = data.edited;
     this.version++;
+
+    this.project.save();
+
+    return this;
   }
 }
 

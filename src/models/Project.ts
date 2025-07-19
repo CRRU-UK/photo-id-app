@@ -1,5 +1,5 @@
 import { PROJECT_STORAGE_NAME } from "@/constants";
-import type { CollectionBody, Directory, Matches, ProjectBody } from "@/types";
+import type { CollectionBody, Directory, Matches, PhotoBody, ProjectBody } from "@/types";
 
 import { makeObservable, observable } from "mobx";
 
@@ -41,19 +41,19 @@ class Project {
     }
   }
 
-  refreshThumbnail(name: string) {
-    const photo = Array.from(this.allPhotos).find((photo) => photo.fileName === name);
+  updatePhoto(data: PhotoBody) {
+    const photo = Array.from(this.allPhotos).find((photo) => photo.fileName === data.name);
 
     if (!photo) {
-      return console.error("Unable to find photo with name:", name);
+      return console.error("Unable to find photo with name:", data.name);
     }
 
-    photo.refreshThumbnail();
+    photo.updatePhoto(data);
   }
 
   private mapPhotoBodyToCollection(directory: Directory, collection: CollectionBody): Collection {
     const photos = collection.photos.map(({ name, edited, thumbnail }) => {
-      const photo = new Photo(directory, name, edited, thumbnail);
+      const photo = new Photo({ directory, name, edited, thumbnail }, this);
       this.allPhotos.add(photo);
       return photo;
     });
@@ -68,7 +68,7 @@ class Project {
     const photos = Array.from(collection.photos).map((photo) => ({
       directory: photo.directory,
       name: photo.fileName,
-      edited: photo.editedFileName,
+      edited: photo.editedFileName || null,
       thumbnail: photo.thumbnailFileName,
     }));
 
@@ -149,11 +149,19 @@ class Project {
     const result = await window.electronAPI.duplicatePhotoFile({
       directory: photo.directory,
       name: photo.fileName,
-      edited: photo.editedFileName,
+      edited: photo.editedFileName || null,
       thumbnail: photo.thumbnailFileName,
     });
 
-    const newPhoto = new Photo(result.directory, result.name, result.edited, result.thumbnail);
+    const newPhoto = new Photo(
+      {
+        directory: result.directory,
+        name: result.name,
+        edited: result.edited,
+        thumbnail: result.thumbnail,
+      },
+      this,
+    );
 
     to.addPhoto(newPhoto);
     this.allPhotos.add(newPhoto);

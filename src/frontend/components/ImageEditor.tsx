@@ -9,7 +9,7 @@ import {
   Text,
   ToggleSwitch,
 } from "@primer/react";
-import { useState } from "react";
+import { memo, useState } from "react";
 import { usePhotoEditor } from "react-photo-editor";
 
 import { DEFAULT_LINE_COLOR, LINE_SIZES } from "@/constants";
@@ -48,6 +48,8 @@ interface ImageEditorProps {
 }
 
 const ImageEditor = ({ data, image }: ImageEditorProps) => {
+  console.log("Loaded photo edit data:", data);
+
   const [saving, setSaving] = useState<boolean>(false);
 
   const {
@@ -193,4 +195,4 @@ const ImageEditor = ({ data, image }: ImageEditorProps) => {
   );
 };
 
-export default ImageEditor;
+export default memo(ImageEditor);

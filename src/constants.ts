@@ -14,7 +14,7 @@ export enum IPC_EVENTS {
   REVERT_PHOTO_FILE = "photos:revertPhotoFile",
   DUPLICATE_PHOTO_FILE = "photos:duplicatePhotoFile",
   EXPORT_MATCHES = "photos:exportMatches",
-  UPDATE_THUMBNAIL = "photos:updateThumbnail",
+  UPDATE_PHOTO = "photos:updatePhoto",
 
   // UI
   SET_LOADING = "ui:setLoading",

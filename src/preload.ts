@@ -13,7 +13,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ipcRenderer.invoke(IPC_EVENTS.EXPORT_MATCHES, data),
   savePhotoFile: (data: PhotoBody, photo: ArrayBuffer): Promise<void> =>
     ipcRenderer.invoke(IPC_EVENTS.SAVE_PHOTO_FILE, data, photo),
-  revertPhotoFile: (data: PhotoBody): Promise<void> =>
+  revertPhotoFile: (data: PhotoBody): Promise<PhotoBody> =>
     ipcRenderer.invoke(IPC_EVENTS.REVERT_PHOTO_FILE, data),
   duplicatePhotoFile: (data: PhotoBody): Promise<PhotoBody> =>
     ipcRenderer.invoke(IPC_EVENTS.DUPLICATE_PHOTO_FILE, data),
@@ -30,6 +30,6 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ipcRenderer.on(IPC_EVENTS.SET_LOADING, (_event, value) => callback(value)),
   onLoadProject: (callback: (...params: unknown[]) => void) =>
     ipcRenderer.on(IPC_EVENTS.LOAD_PROJECT, (_event, value) => callback(value)),
-  onUpdateThumbnail: (callback: (...params: unknown[]) => void) =>
-    ipcRenderer.on(IPC_EVENTS.UPDATE_THUMBNAIL, (_event, value) => callback(value)),
+  onUpdatePhoto: (callback: (...params: unknown[]) => void) =>
+    ipcRenderer.on(IPC_EVENTS.UPDATE_PHOTO, (_event, value) => callback(value)),
 });

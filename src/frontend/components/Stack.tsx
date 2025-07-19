@@ -85,7 +85,8 @@ const Stack = observer(({ collection }: StackProps) => {
       thumbnail: currentPhoto!.thumbnailFileName,
     };
 
-    await window.electronAPI.revertPhotoFile(data);
+    const newData = await window.electronAPI.revertPhotoFile(data);
+    currentPhoto!.updatePhoto(newData);
 
     setActionsOpen(false);
     setRevertingPhoto(false);
