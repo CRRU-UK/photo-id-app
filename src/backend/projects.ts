@@ -73,7 +73,11 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
     // Otherwise, create and open new project...
   }
 
-  mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, { show: true, text: "Preparing project" });
+  mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, {
+    show: true,
+    text: "Preparing project",
+    progress: 0,
+  });
 
   const photos = files.filter((fileName) => {
     // Filter directories
@@ -103,9 +107,17 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
     await fs.promises.mkdir(thumbnailDirectory);
   }
 
-  const thumbnails = await Promise.all(
-    photos.map((photo) => createPhotoThumbnail(photo, directory)),
-  );
+  const thumbnails: string[] = [];
+  for (const [index, photo] of photos.entries()) {
+    const result = await createPhotoThumbnail(photo, directory);
+    thumbnails.push(result);
+
+    mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, {
+      show: true,
+      text: "Preparing project",
+      progress: Math.ceil((index / photos.length) * 100),
+    });
+  }
 
   const now = new Date().toISOString();
 

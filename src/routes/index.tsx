@@ -30,7 +30,7 @@ const IndexPage = () => {
 
   return (
     <>
-      <LoadingOverlay show={loading.show} text={loading?.text} />
+      <LoadingOverlay show={loading.show} text={loading?.text} progress={loading?.progress} />
 
       <PageLayout
         sx={{
