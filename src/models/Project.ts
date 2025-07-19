@@ -41,14 +41,14 @@ class Project {
     }
   }
 
-  refreshThumbnail(data: PhotoBody) {
+  updatePhoto(data: PhotoBody) {
     const photo = Array.from(this.allPhotos).find((photo) => photo.fileName === data.name);
 
     if (!photo) {
       return console.error("Unable to find photo with name:", data.name);
     }
 
-    photo.refreshThumbnail(data);
+    photo.updatePhoto(data);
   }
 
   private mapPhotoBodyToCollection(directory: Directory, collection: CollectionBody): Collection {
@@ -125,12 +125,12 @@ class Project {
     return JSON.stringify(data, null, 2);
   }
 
-  public save() {
+  public async save() {
     this.lastModified = new Date();
 
     const data = this.returnAsJSONString();
     window.localStorage.setItem(PROJECT_STORAGE_NAME, data);
-    window.electronAPI.saveProject(data);
+    await window.electronAPI.saveProject(data);
   }
 
   public addPhotoToStack(from: Collection, to: Collection, photo: Photo): this {

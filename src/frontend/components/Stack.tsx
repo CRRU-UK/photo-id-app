@@ -85,7 +85,9 @@ const Stack = observer(({ collection }: StackProps) => {
       thumbnail: currentPhoto!.thumbnailFileName,
     };
 
-    await window.electronAPI.revertPhotoFile(data);
+    const newData = await window.electronAPI.revertPhotoFile(data);
+    currentPhoto?.updatePhoto(newData);
+    await collection.project.save();
 
     setActionsOpen(false);
     setRevertingPhoto(false);
@@ -154,9 +156,7 @@ const Stack = observer(({ collection }: StackProps) => {
               <ActionList>
                 <ActionList.Item
                   variant="danger"
-                  disabled={
-                    collection.photos.size <= 0 || revertingPhoto || !currentPhoto?.editedFileName
-                  }
+                  disabled={collection.photos.size <= 0 || revertingPhoto}
                   loading={revertingPhoto}
                   onClick={handleRevertPhoto}
                 >

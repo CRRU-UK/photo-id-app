@@ -20,8 +20,7 @@ const savePhotoFromBuffer = async (photo: PhotoBody, data: ArrayBuffer) => {
   return targetPath;
 };
 
-// TODO: Rename
-const createPhotoEditsCopy = async (
+const duplicatePhotoFiles = async (
   targetPhotoPath: string,
   projectDirectory: string,
 ): Promise<string> => {
@@ -76,4 +75,4 @@ const revertPhotoToOriginal = async (data: PhotoBody): Promise<PhotoBody> => {
   };
 };
 
-export { createPhotoEditsCopy, createPhotoThumbnail, revertPhotoToOriginal, savePhotoFromBuffer };
+export { createPhotoThumbnail, duplicatePhotoFiles, revertPhotoToOriginal, savePhotoFromBuffer };

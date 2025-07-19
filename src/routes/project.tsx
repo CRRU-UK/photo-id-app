@@ -58,7 +58,7 @@ const ProjectPage = () => {
 
   useEffect(() => {
     // Rename this and also handle adding edited to photo (but need to account for reversion)
-    window.electronAPI.onUpdateThumbnail((data) => project.refreshThumbnail(data));
+    window.electronAPI.onUpdatePhoto((data) => project.updatePhoto(data));
     window.electronAPI.onLoading((data) => setLoading(data));
 
     document.addEventListener("keyup", handleKeyDown);

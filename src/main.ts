@@ -178,15 +178,17 @@ app.whenReady().then(() => {
         edited: editedPath,
       };
 
-      mainWindow.webContents.send(IPC_EVENTS.UPDATE_THUMBNAIL, photoData);
+      mainWindow.webContents.send(IPC_EVENTS.UPDATE_PHOTO, photoData);
     },
   );
 
-  ipcMain.handle(IPC_EVENTS.REVERT_PHOTO_FILE, async (event, data: PhotoBody): Promise<void> => {
-    const result = await revertPhotoToOriginal(data);
-
-    mainWindow.webContents.send(IPC_EVENTS.UPDATE_THUMBNAIL, result);
-  });
+  ipcMain.handle(
+    IPC_EVENTS.REVERT_PHOTO_FILE,
+    async (event, data: PhotoBody): Promise<PhotoBody> => {
+      const result = await revertPhotoToOriginal(data);
+      return result;
+    },
+  );
 
   ipcMain.handle(IPC_EVENTS.DUPLICATE_PHOTO_FILE, async (event, data: PhotoBody) => {
     const result = await handleDuplicatePhotoFile(data);

@@ -22,7 +22,7 @@ class Photo {
       editedFileName: computed,
       thumbnailFileName: computed,
       thumbnailFullPath: computed,
-      refreshThumbnail: action,
+      updatePhoto: action,
       version: observable,
     });
 
@@ -51,9 +51,11 @@ class Photo {
     return `${path}?${this.version}`;
   }
 
-  public refreshThumbnail(data: PhotoBody): void {
-    this.version++;
+  public updatePhoto(data: PhotoBody): void {
+    console.log("updatePhoto", data);
+
     this.edited = data.edited;
+    this.version++;
   }
 }
 
