@@ -87,7 +87,6 @@ const Stack = observer(({ collection }: StackProps) => {
 
     const newData = await window.electronAPI.revertPhotoFile(data);
     currentPhoto?.updatePhoto(newData);
-    await collection.project.save();
 
     setActionsOpen(false);
     setRevertingPhoto(false);
