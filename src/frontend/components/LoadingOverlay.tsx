@@ -8,8 +8,6 @@ const LoadingOverlay = ({ show, text, progress = false }: LoadingData) => {
     return null;
   }
 
-  console.log("progress", progress);
-
   return (
     <div className="loading">
       <PrimerStack
