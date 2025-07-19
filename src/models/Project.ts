@@ -53,7 +53,7 @@ class Project {
 
   private mapPhotoBodyToCollection(directory: Directory, collection: CollectionBody): Collection {
     const photos = collection.photos.map(({ name, edited, thumbnail }) => {
-      const photo = new Photo({ directory, name, edited, thumbnail });
+      const photo = new Photo({ directory, name, edited, thumbnail }, this);
       this.allPhotos.add(photo);
       return photo;
     });
@@ -125,12 +125,12 @@ class Project {
     return JSON.stringify(data, null, 2);
   }
 
-  public async save() {
+  public save() {
     this.lastModified = new Date();
 
     const data = this.returnAsJSONString();
     window.localStorage.setItem(PROJECT_STORAGE_NAME, data);
-    await window.electronAPI.saveProject(data);
+    window.electronAPI.saveProject(data);
   }
 
   public addPhotoToStack(from: Collection, to: Collection, photo: Photo): this {
@@ -153,12 +153,15 @@ class Project {
       thumbnail: photo.thumbnailFileName,
     });
 
-    const newPhoto = new Photo({
-      directory: result.directory,
-      name: result.name,
-      edited: result.edited,
-      thumbnail: result.thumbnail,
-    });
+    const newPhoto = new Photo(
+      {
+        directory: result.directory,
+        name: result.name,
+        edited: result.edited,
+        thumbnail: result.thumbnail,
+      },
+      this,
+    );
 
     to.addPhoto(newPhoto);
     this.allPhotos.add(newPhoto);

@@ -15,7 +15,7 @@ class Stack {
   name?: string;
   index: number;
   photos: PhotoSet;
-  project: Project;
+  private readonly project: Project;
 
   constructor({ name = undefined, index = 0, photos }: StackOptions, project: Project) {
     makeObservable(this, {
