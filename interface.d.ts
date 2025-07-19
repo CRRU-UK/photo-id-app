@@ -19,7 +19,7 @@ export interface IElectronAPI {
   // Listeners (main-to-renderer)
   onLoading: (callback: (data: LoadingData) => void) => void;
   onLoadProject: (callback: (value: ProjectBody) => void) => void;
-  onUpdateThumbnail: (callback: (name: string) => void) => void;
+  onUpdateThumbnail: (callback: (data: PhotoBody) => void) => void;
 }
 
 declare global {

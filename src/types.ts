@@ -18,7 +18,7 @@ export type Matches = Set<Match>;
 export type PhotoBody = {
   directory: Directory;
   name: FileName;
-  edited?: FileName;
+  edited: FileName | null;
   thumbnail: FileName;
 };
 

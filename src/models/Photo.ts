@@ -1,15 +1,22 @@
-import type { Directory, FileName } from "@/types";
+import type { Directory, FileName, PhotoBody } from "@/types";
 
 import { action, computed, makeObservable, observable } from "mobx";
+
+interface PhotoOptions {
+  directory: Directory;
+  name: FileName;
+  edited?: FileName | null;
+  thumbnail: FileName;
+}
 
 class Photo {
   readonly directory;
   private readonly name: string;
-  private readonly edited?: string;
+  private edited?: string | null;
   private readonly thumbnail: string;
   version: number;
 
-  constructor(directory: Directory, name: FileName, edited: FileName, thumbnail: FileName) {
+  constructor({ directory, name, edited = null, thumbnail }: PhotoOptions) {
     makeObservable(this, {
       fileName: computed,
       editedFileName: computed,
@@ -44,8 +51,9 @@ class Photo {
     return `${path}?${this.version}`;
   }
 
-  public refreshThumbnail(): void {
+  public refreshThumbnail(data: PhotoBody): void {
     this.version++;
+    this.edited = data.edited;
   }
 }
 

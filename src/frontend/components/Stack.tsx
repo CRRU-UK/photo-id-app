@@ -64,7 +64,7 @@ const Stack = observer(({ collection }: StackProps) => {
     const data: PhotoBody = {
       directory: currentPhoto!.directory,
       name: currentPhoto!.fileName,
-      edited: currentPhoto?.editedFileName || undefined,
+      edited: currentPhoto!.editedFileName,
       thumbnail: currentPhoto!.thumbnailFileName,
     };
 
@@ -81,7 +81,7 @@ const Stack = observer(({ collection }: StackProps) => {
     const data: PhotoBody = {
       directory: currentPhoto!.directory,
       name: currentPhoto!.fileName,
-      edited: currentPhoto!.editedFileName || undefined,
+      edited: currentPhoto!.editedFileName,
       thumbnail: currentPhoto!.thumbnailFileName,
     };
 
@@ -154,7 +154,9 @@ const Stack = observer(({ collection }: StackProps) => {
               <ActionList>
                 <ActionList.Item
                   variant="danger"
-                  disabled={collection.photos.size <= 0 || revertingPhoto}
+                  disabled={
+                    collection.photos.size <= 0 || revertingPhoto || !currentPhoto?.editedFileName
+                  }
                   loading={revertingPhoto}
                   onClick={handleRevertPhoto}
                 >

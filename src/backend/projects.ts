@@ -103,9 +103,9 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
     await fs.promises.mkdir(thumbnailDirectory);
   }
 
-  const [thumbnails] = await Promise.all([
-    Promise.all(photos.map((photo) => createPhotoThumbnail(photo, directory))),
-  ]);
+  const thumbnails = await Promise.all(
+    photos.map((photo) => createPhotoThumbnail(photo, directory)),
+  );
 
   const now = new Date().toISOString();
 
@@ -126,6 +126,7 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
       photos: photos.map((name, index) => ({
         directory,
         name,
+        edited: null,
         thumbnail: thumbnails[index],
       })),
       index: 0,
@@ -243,25 +244,22 @@ const handleDuplicatePhotoFile = async (data: PhotoBody): Promise<PhotoBody> => 
 
   const time = new Date().getTime();
 
-  const promises = [];
-
   const originalExtension = path.extname(data.name);
   const newOriginalPath = data.name.replace(
     originalExtension,
     `_duplicate_${time}${originalExtension}`,
   );
 
+  await fs.promises.copyFile(originalPath, path.join(data.directory, newOriginalPath));
+
+  let newEditedPath = null;
   if (data.edited) {
+    const editedPath = path.join(data.directory, data.edited);
     const editedExtension = path.extname(data.edited);
-    const newEditedPath = data.edited.replace(
-      editedExtension,
-      `_duplicate_${time}${editedExtension}`,
-    );
+    newEditedPath = data.edited.replace(editedExtension, `_duplicate_${time}${editedExtension}`);
 
     // If edited photo is present, use it as the original photo instead
-    promises.push(fs.promises.copyFile(newEditedPath, path.join(data.directory, newOriginalPath)));
-  } else {
-    promises.push(fs.promises.copyFile(originalPath, path.join(data.directory, newOriginalPath)));
+    await fs.promises.copyFile(editedPath, path.join(data.directory, newEditedPath));
   }
 
   const thumbnailExtension = path.extname(data.thumbnail);
@@ -270,13 +268,12 @@ const handleDuplicatePhotoFile = async (data: PhotoBody): Promise<PhotoBody> => 
     `_duplicate_${time}${thumbnailExtension}`,
   );
 
-  promises.push(fs.promises.copyFile(thumbnailPath, path.join(data.directory, newThumbnailPath)));
-
-  await Promise.all(promises);
+  await fs.promises.copyFile(thumbnailPath, path.join(data.directory, newThumbnailPath));
 
   return {
     directory: data.directory,
     name: newOriginalPath,
+    edited: newEditedPath,
     thumbnail: newThumbnailPath,
   };
 };
