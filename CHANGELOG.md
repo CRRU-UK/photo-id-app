@@ -1,5 +1,11 @@
 # photo-id
 
+## 0.2.3
+
+### Patch Changes
+
+- 440c3db: Add progress bar to project loading
+
 ## 0.2.2
 
 ### Patch Changes
