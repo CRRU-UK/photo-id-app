@@ -1,3 +1,7 @@
+import type Collection from "@/models/Collection";
+import type Photo from "@/models/Photo";
+import type { DraggableEndData, DraggableStartData, LoadingData, ProjectBody } from "@/types";
+
 import {
   DndContext,
   type DragEndEvent,
@@ -10,10 +14,6 @@ import {
 import { UnderlineNav } from "@primer/react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-
-import type Collection from "@/models/Collection";
-import type Photo from "@/models/Photo";
-import type { DraggableEndData, DraggableStartData, LoadingData, ProjectBody } from "@/types";
 
 import { MATCHED_STACKS_PER_PAGE, PROJECT_STORAGE_NAME } from "@/constants";
 
@@ -141,7 +141,7 @@ const ProjectPage = () => {
 
   return (
     <ProjectContext value={project}>
-      <LoadingOverlay show={loading.show} text={loading?.text} />
+      <LoadingOverlay data={loading} />
 
       <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
         <DragOverlay dropAnimation={null}>

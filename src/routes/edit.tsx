@@ -35,7 +35,7 @@ const EditPage = () => {
 
   return (
     <>
-      <LoadingOverlay show={loading.show} />
+      <LoadingOverlay data={loading} />
       {data && file && <ImageEditor data={data} image={file} />}
     </>
   );
