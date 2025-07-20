@@ -9,13 +9,14 @@ interface ProgressProps {
 }
 
 const Progress = ({ value, label }: ProgressProps) => (
-  <ProgressBar
-    animated
-    progress={value}
-    barSize="large"
-    style={{ width: "100%" }}
-    aria-label={label}
-  />
+  <>
+    <ProgressBar animated progress={value} barSize="large" style={{ width: "100%" }} />
+    {label && (
+      <Text sx={{ color: "var(--fgColor-muted)", font: "var(--text-body-shorthand-medium)" }}>
+        {label}
+      </Text>
+    )}
+  </>
 );
 
 interface LoadingOverlayProps {
@@ -39,12 +40,7 @@ const LoadingOverlay = ({ data }: LoadingOverlayProps) => {
       >
         {progressValue === null && <Spinner size="large" />}
         {text && <span className="text">{text}</span>}
-        {progressValue !== null && <Progress value={progressValue} />}
-        {progressText && (
-          <Text sx={{ color: "var(--fgColor-muted)", font: "var(--text-body-shorthand-medium)" }}>
-            {progressText}
-          </Text>
-        )}
+        {progressValue !== null && <Progress value={progressValue} label={progressText} />}
       </PrimerStack>
     </div>
   );
