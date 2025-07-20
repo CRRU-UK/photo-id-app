@@ -39,7 +39,7 @@ const LoadingOverlay = ({ data }: LoadingOverlayProps) => {
       >
         {progressValue === null && <Spinner size="large" />}
         {text && <span className="text">{text}</span>}
-        {progressValue !== null && <Progress value={progressValue} animated size="large" />}
+        {progressValue !== null && <Progress value={progressValue} />}
         {progressText && (
           <Text sx={{ color: "var(--fgColor-muted)", font: "var(--text-body-shorthand-medium)" }}>
             {progressText}
