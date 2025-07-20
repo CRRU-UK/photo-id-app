@@ -1,9 +1,31 @@
-import { Stack as PrimerStack, ProgressBar, Spinner } from "@primer/react";
+import { Stack as PrimerStack, ProgressBar, Spinner, Text } from "@primer/react";
 import { memo } from "react";
 
 import { LoadingData } from "@/types";
 
-const LoadingOverlay = ({ show, text, progress = false }: LoadingData) => {
+interface ProgressProps {
+  value: number;
+  label?: string;
+}
+
+const Progress = ({ value, label }: ProgressProps) => (
+  <>
+    <ProgressBar animated progress={value} barSize="large" style={{ width: "100%" }} />
+    {label && (
+      <Text sx={{ color: "var(--fgColor-muted)", font: "var(--text-body-shorthand-medium)" }}>
+        {label}
+      </Text>
+    )}
+  </>
+);
+
+interface LoadingOverlayProps {
+  data: LoadingData;
+}
+
+const LoadingOverlay = ({ data }: LoadingOverlayProps) => {
+  const { show, text, progressValue = null, progressText } = data;
+
   if (!show) {
     return null;
   }
@@ -16,11 +38,9 @@ const LoadingOverlay = ({ show, text, progress = false }: LoadingData) => {
         gap="spacious"
         sx={{ width: "100%", maxWidth: "600px" }}
       >
-        {progress === false && <Spinner size="large" />}
+        {progressValue === null && <Spinner size="large" />}
         {text && <span className="text">{text}</span>}
-        {progress !== false && (
-          <ProgressBar animated progress={progress} barSize="large" style={{ width: "100%" }} />
-        )}
+        {progressValue !== null && <Progress value={progressValue} label={progressText} />}
       </PrimerStack>
     </div>
   );

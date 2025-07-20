@@ -3,7 +3,7 @@ import { app, dialog } from "electron";
 import fs from "fs";
 import path from "path";
 
-import type { CollectionBody, PhotoBody, ProjectBody } from "@/types";
+import type { CollectionBody, LoadingData, PhotoBody, ProjectBody } from "@/types";
 
 import { createPhotoThumbnail } from "@/backend/photos";
 import { addRecentProject } from "@/backend/recents";
@@ -76,8 +76,8 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
   mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, {
     show: true,
     text: "Preparing project",
-    progress: 0,
-  });
+    progressValue: 0,
+  } as LoadingData);
 
   const photos = files.filter((fileName) => {
     // Filter directories
@@ -115,8 +115,9 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
     mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, {
       show: true,
       text: "Preparing project",
-      progress: Math.ceil((index / photos.length) * 100),
-    });
+      progressValue: Math.ceil((index / photos.length) * 100),
+      progressText: `Processing photo ${index + 1} of ${photos.length}`,
+    } as LoadingData);
   }
 
   const now = new Date().toISOString();

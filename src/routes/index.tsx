@@ -1,3 +1,5 @@
+import type { LoadingData } from "@/types";
+
 import { FileDirectoryIcon, FileIcon } from "@primer/octicons-react";
 import { BranchName, Button, Heading, PageLayout, Stack as PrimerStack, Text } from "@primer/react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
@@ -7,7 +9,6 @@ import { PROJECT_FILE_NAME, PROJECT_STORAGE_NAME } from "@/constants";
 import LoadingOverlay from "@/frontend/components/LoadingOverlay";
 import RecentProjects from "@/frontend/components/RecentProjects";
 import logo from "@/frontend/img/logo.png";
-import { LoadingData } from "@/types";
 
 import { version } from "../../package.json";
 
@@ -22,7 +23,7 @@ const IndexPage = () => {
       localStorage.setItem(PROJECT_STORAGE_NAME, JSON.stringify(data));
       return navigate({ to: "/project" });
     });
-  });
+  }, [navigate]);
 
   const handleOpenProjectFolder = () => window.electronAPI.openProjectFolder();
 
@@ -30,7 +31,7 @@ const IndexPage = () => {
 
   return (
     <>
-      <LoadingOverlay show={loading.show} text={loading?.text} progress={loading?.progress} />
+      <LoadingOverlay data={loading} />
 
       <PageLayout
         sx={{

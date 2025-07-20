@@ -61,5 +61,6 @@ export type DraggableEndData = {
 export type LoadingData = {
   show: boolean;
   text?: string;
-  progress?: number | false;
+  progressValue?: number | null;
+  progressText?: string;
 };
