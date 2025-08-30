@@ -13,6 +13,7 @@ import {
   EXISTING_DATA_MESSAGE,
   INITIAL_MATCHED_STACKS,
   IPC_EVENTS,
+  MISSING_RECENT_PROJECT_MESSAGE,
   PHOTO_FILE_EXTENSIONS,
   PROJECT_EDITS_DIRECTORY,
   PROJECT_EXPORT_DIRECTORY,
@@ -190,6 +191,12 @@ const handleOpenFilePrompt = async (mainWindow: Electron.BrowserWindow) => {
  */
 const handleOpenProjectFile = async (mainWindow: Electron.BrowserWindow, file: string) => {
   mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, { show: true, text: "Opening project" });
+
+  if (!fs.existsSync(file)) {
+    dialog.showErrorBox(MISSING_RECENT_PROJECT_MESSAGE, file);
+    mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, { show: false } as LoadingData);
+    return;
+  }
 
   const data = await fs.promises.readFile(file, "utf8");
   return sendData(mainWindow, JSON.parse(data) as ProjectBody);

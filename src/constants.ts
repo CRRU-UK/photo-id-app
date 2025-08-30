@@ -30,6 +30,9 @@ export const EXISTING_DATA_MESSAGE =
 
 export const EXISTING_DATA_BUTTONS = ["Cancel", "Open Existing Data", "Replace Existing Data"];
 
+export const MISSING_RECENT_PROJECT_MESSAGE =
+  "Project not found, directory or data file may have been deleted.";
+
 export enum DragAreas {
   MainSelection = "main-selection",
   DiscardedSelection = "discarded-selection",
