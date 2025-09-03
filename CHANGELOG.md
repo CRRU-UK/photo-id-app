@@ -1,5 +1,11 @@
 # photo-id
 
+## 0.2.4
+
+### Patch Changes
+
+- 18c69ee: Show error when attempting to open a recent project that no longer exists
+
 ## 0.2.3
 
 ### Patch Changes
