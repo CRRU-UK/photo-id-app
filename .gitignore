@@ -93,3 +93,6 @@ out/
 
 # Mocked data
 data/
+
+# Docs
+site/
