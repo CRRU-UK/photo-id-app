@@ -1,7 +1,8 @@
 # Photo ID App
 
-[![Test](https://github.com/CRRU-UK/photo-id-app/actions/workflows/main.yaml/badge.svg?branch=main)](https://github.com/CRRU-UK/photo-id-app/actions/workflows/main.yaml)
+![Screenshots of the Photo ID app.](./docs/banner.png)
 
+[![Test](https://github.com/CRRU-UK/photo-id-app/actions/workflows/main.yaml/badge.svg?branch=main)](https://github.com/CRRU-UK/photo-id-app/actions/workflows/main.yaml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=CRRU-UK_photo-id-app&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=CRRU-UK_photo-id-app)
 [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=CRRU-UK_photo-id-app&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=CRRU-UK_photo-id-app)
 [![Bugs](https://sonarcloud.io/api/project_badges/measure?project=CRRU-UK_photo-id-app&metric=bugs)](https://sonarcloud.io/summary/new_code?id=CRRU-UK_photo-id-app)
@@ -15,11 +16,9 @@
 
 ## Introduction
 
-![Screenshots of the Photo ID app.](./docs/banner.png)
-
 The Photo ID app is a research tool that can be used for photo-identification methodologies for longitudinal mark-recapture studies. It allows for the organisation and matching of photographs containing unique identification markings (such as cetacean dorsal fins). It includes tools for editing and visually filtering photographs to help with identification of marks.
 
-📚 For more information and user guides, [check out the docs](/docs/1-introduction.md).
+📚 For more information and user guides, [check out the docs](photoidapp.crru.org.uk).
 
 ## Overview
 
@@ -61,4 +60,4 @@ Below are the NPM commands that can be used for development:
 | `test:types`         | Runs TypeScript tests.                                           |
 | `test:unit`          | Runs unit tests and generates a coverage report.                 |
 | `test:unit:watch`    | Same as `test:unit` but runs it in watch mode.                   |
-| `docs`.              | Builds and serves documentation locally                          |
+| `docs`               | Builds and serves documentation locally                          |
