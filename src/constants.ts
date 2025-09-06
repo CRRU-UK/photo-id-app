@@ -18,7 +18,7 @@ export enum IPC_EVENTS {
 
   // UI
   SET_LOADING = "ui:setLoading",
-  OPEN_USER_GUIDE = "ui: openUserGuide",
+  OPEN_USER_GUIDE = "ui:openUserGuide",
 
   // Edit
   OPEN_EDIT_WINDOW = "edit:openEditWindow",
