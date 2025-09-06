@@ -1,7 +1,15 @@
 import type { LoadingData } from "@/types";
 
-import { FileDirectoryIcon, FileIcon } from "@primer/octicons-react";
-import { BranchName, Button, Heading, PageLayout, Stack as PrimerStack, Text } from "@primer/react";
+import { BookIcon, FileDirectoryIcon, FileIcon } from "@primer/octicons-react";
+import {
+  BranchName,
+  Button,
+  Heading,
+  Link,
+  PageLayout,
+  Stack as PrimerStack,
+  Text,
+} from "@primer/react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
@@ -64,7 +72,19 @@ const IndexPage = () => {
 
             <div>
               <Heading variant="large">Photo ID</Heading>
-              <BranchName as="span">v{version}</BranchName>
+
+              <PrimerStack direction="horizontal" align="center">
+                <BranchName as="span">v{version}</BranchName>
+                <Link
+                  href="#"
+                  onClick={() => window.electronAPI.openUserGuide()}
+                  inline
+                  muted
+                  style={{ fontSize: "var(--text-body-size-medium)" }}
+                >
+                  <BookIcon size={16} /> <Text>User Guide</Text>
+                </Link>
+              </PrimerStack>
             </div>
           </PrimerStack>
 

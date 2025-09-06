@@ -1,0 +1,22 @@
+site_name: Photo ID App
+site_url: https://photoidapp.crru.org.uk/
+theme:
+  name: material
+  logo: https://crru.org.uk/images/header/logo-header.png
+  favicon: https://crru.org.uk/favicon-96x96.png
+  features:
+    - search.suggest
+    - search.highlight
+  palette:
+    scheme: slate
+    primary: black
+  icon:
+    repo: fontawesome/brands/github
+plugins:
+  - search
+markdown_extensions:
+  - attr_list
+  - md_in_html
+  - pymdownx.blocks.caption
+repo_url: https://github.com/CRRU-UK/photo-id-app
+repo_name: CRRU-UK/photo-id-app

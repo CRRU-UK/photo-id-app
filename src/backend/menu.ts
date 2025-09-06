@@ -2,6 +2,7 @@ import type { BrowserWindow } from "electron";
 import { app, shell } from "electron";
 
 import { handleOpenDirectoryPrompt, handleOpenFilePrompt } from "@/backend/projects";
+import { USER_GUIDE_URL } from "@/constants";
 
 const getMenu = (mainWindow: BrowserWindow) => {
   const isMac = process.platform === "darwin";
@@ -86,9 +87,9 @@ const getMenu = (mainWindow: BrowserWindow) => {
       role: "help",
       submenu: [
         {
-          label: "Learn More",
+          label: "User Guide",
           click: async () => {
-            await shell.openExternal("https://crru.org.uk/research");
+            await shell.openExternal(USER_GUIDE_URL);
           },
         },
       ],
