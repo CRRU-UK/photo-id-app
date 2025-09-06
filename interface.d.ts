@@ -15,6 +15,7 @@ export interface IElectronAPI {
   openRecentProject: (path: string) => void;
   saveProject: (data: string) => void;
   openEditWindow: (data: PhotoBody) => void;
+  openUserGuide: () => void;
 
   // Listeners (main-to-renderer)
   onLoading: (callback: (data: LoadingData) => void) => void;

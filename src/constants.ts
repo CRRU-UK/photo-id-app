@@ -18,6 +18,9 @@ export enum IPC_EVENTS {
 
   // UI
   SET_LOADING = "ui:setLoading",
+  OPEN_USER_GUIDE = "ui: openUserGuide",
+
+  // Edit
   OPEN_EDIT_WINDOW = "edit:openEditWindow",
 }
 
@@ -70,3 +73,5 @@ export enum LINE_SIZES {
 }
 
 export const DEFAULT_LINE_COLOR = "#FF0000";
+
+export const USER_GUIDE_URL = "https://photoidapp.crru.org.uk";

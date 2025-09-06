@@ -24,6 +24,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
   openRecentProject: (path: string) => ipcRenderer.send(IPC_EVENTS.OPEN_PROJECT_FILE, path),
   saveProject: (data: string) => ipcRenderer.send(IPC_EVENTS.SAVE_PROJECT, data),
   openEditWindow: (data: PhotoBody) => ipcRenderer.send(IPC_EVENTS.OPEN_EDIT_WINDOW, data),
+  openUserGuide: () => ipcRenderer.send(IPC_EVENTS.OPEN_USER_GUIDE),
 
   // Listeners (main-to-renderer)
   onLoading: (callback: (...params: unknown[]) => void) =>

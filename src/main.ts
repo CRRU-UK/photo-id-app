@@ -15,7 +15,12 @@ import {
   handleSaveProject,
 } from "@/backend/projects";
 import { getRecentProjects, removeRecentProject } from "@/backend/recents";
-import { DEFAULT_WINDOW_TITLE, IPC_EVENTS, PROJECT_EXPORT_DIRECTORY } from "@/constants";
+import {
+  DEFAULT_WINDOW_TITLE,
+  IPC_EVENTS,
+  PROJECT_EXPORT_DIRECTORY,
+  USER_GUIDE_URL,
+} from "@/constants";
 import type { PhotoBody, ProjectBody, RecentProject } from "@/types";
 
 updateElectronApp();
@@ -193,5 +198,10 @@ app.whenReady().then(() => {
   ipcMain.handle(IPC_EVENTS.DUPLICATE_PHOTO_FILE, async (event, data: PhotoBody) => {
     const result = await handleDuplicatePhotoFile(data);
     return result;
+  });
+
+  ipcMain.on(IPC_EVENTS.OPEN_USER_GUIDE, () => {
+    shell.openExternal(USER_GUIDE_URL);
+    return { action: "deny" };
   });
 });

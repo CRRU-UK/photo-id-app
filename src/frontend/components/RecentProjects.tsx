@@ -92,7 +92,7 @@ const RecentProjectsList = ({ projects, onRemove }: RecentProjectsListProps) => 
                 icon={TrashIcon}
                 size="small"
                 variant="invisible"
-                aria-label="Remove recent project"
+                aria-label="Remove from recent projects"
                 onClick={() => onRemove(item.path)}
               />
             </PrimerStack>
