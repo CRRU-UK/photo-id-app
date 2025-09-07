@@ -10,30 +10,14 @@
 [![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=CRRU-UK_photo-id-app&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=CRRU-UK_photo-id-app)
 
 - [Introduction](#introduction)
-- [Overview](#overview)
 - [Installation](#installation)
 - [Development](#development)
 
 ## Introduction
 
-The Photo ID app is a research tool that can be used for photo-identification methodologies for longitudinal mark-recapture studies. It allows for the organisation and matching of photographs containing unique identification markings (such as cetacean dorsal fins). It includes tools for editing and visually filtering photographs to help with identification of marks.
+The Photo ID app is a research tool that can be used for photo-identification methodologies in longitudinal mark-recapture studies. It allows for the organisation and matching of photographs containing unique identification markings (such as the dorsal fins of cetaceans). It includes tools for editing and visually filtering photographs to help with identification of marks.
 
 📚 For more information and user guides, [check out the docs](https://photoidapp.crru.org.uk).
-
-## Overview
-
-The app is made up of the following parts:
-
-- [`src/`](src/) contains the main app code
-- [`src/assets`](src/assets) contains app assets (e.g. icons)
-- [`src/backend`](src/backend) contains backend (_main_) controllers
-- [`src/contexts`](src/contexts) contains React contexts
-- [`src/frontend`](src/frontend) contains frontend (_renderer_) views and components
-- [`src/models`](src/models) contains classes used in the frontend
-- [`src/routes`](src/routes) contains frontend routes
-- [`src/index.tsx`](src/index.tsx) contains the frontend (_renderer_) entry point
-- [`src/main.ts`](src/main.ts) contains the backend (_main_) entry point
-- [`src/preload.ts`](src/preload.ts) contains preloaded app methods
 
 ## Installation
 
@@ -60,4 +44,4 @@ Below are the NPM commands that can be used for development:
 | `test:types`         | Runs TypeScript tests.                                           |
 | `test:unit`          | Runs unit tests and generates a coverage report.                 |
 | `test:unit:watch`    | Same as `test:unit` but runs it in watch mode.                   |
-| `docs`               | Builds and serves documentation locally                          |
+| `docs`               | Builds and serves documentation locally.                         |

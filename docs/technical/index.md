@@ -1,5 +1,5 @@
 ---
-title: Development
+title: Technical
 description: Technical information and considerations about the app.
 ---
 
