@@ -13,6 +13,7 @@
 - [Overview](#overview)
 - [Installation](#installation)
 - [Development](#development)
+  - [Debugging](#debugging)
 
 ## Introduction
 
@@ -61,3 +62,7 @@ Below are the NPM commands that can be used for development:
 | `test:unit`          | Runs unit tests and generates a coverage report.                 |
 | `test:unit:watch`    | Same as `test:unit` but runs it in watch mode.                   |
 | `docs`               | Builds and serves documentation locally                          |
+
+### Debugging
+
+Using VSCode, a debugger can be attached to the main process in Electron by running "Debug main process" in the _Run and Debug_ view.

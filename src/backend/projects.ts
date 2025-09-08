@@ -109,6 +109,7 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
   }
 
   const thumbnails: string[] = [];
+
   for (const [index, photo] of photos.entries()) {
     const result = await createPhotoThumbnail(photo, directory);
     thumbnails.push(result);
