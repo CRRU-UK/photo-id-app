@@ -1,5 +1,14 @@
 # photo-id
 
+## 0.2.4
+
+### Patch Changes
+
+- 1150977: Add React and MobX developer tools
+- 18c69ee: Show error when attempting to open a recent project that no longer exists
+- 620bcc3: Add initial documentation
+- a3262f7: Add Sentry error tracking
+
 ## 0.2.3
 
 ### Patch Changes
