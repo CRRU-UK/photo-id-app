@@ -23,6 +23,9 @@ export default defineConfig({
   build: {
     rollupOptions: {
       external: ["sharp"],
+      output: {
+        sourcemap: true,
+      },
     },
     sourcemap: true,
   },
