@@ -1,3 +1,4 @@
+import { sentryVitePlugin } from "@sentry/vite-plugin";
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 // @ts-expect-error Unable to set to bundler
 import { tanstackRouter } from "@tanstack/router-plugin/vite";
@@ -12,6 +13,12 @@ export default defineConfig({
       target: "react",
       autoCodeSplitting: true,
     }),
+    sentryVitePlugin({
+      org: process.env.SENTRY_ORG,
+      project: process.env.SENTRY_PROJECT,
+      authToken: process.env.SENTRY_AUTH_TOKEN,
+      telemetry: false,
+    }),
   ],
   build: {
     rollupOptions: {
@@ -20,5 +27,6 @@ export default defineConfig({
         sourcemap: true,
       },
     },
+    sourcemap: true,
   },
 });
