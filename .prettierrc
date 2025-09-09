@@ -21,6 +21,13 @@
     }
   ],
   "importOrderSeparation": true,
-  "importOrder": ["^@/(.*)$", "^[./]"],
-  "plugins": ["@trivago/prettier-plugin-sort-imports", "prettier-plugin-organize-imports"]
+  "importOrder": [
+    "^@/(.*)$",
+    "^[./]"
+  ],
+  "plugins": [
+    "@trivago/prettier-plugin-sort-imports",
+    "prettier-plugin-organize-imports"
+  ],
+  "list-indent": false
 }

@@ -23,7 +23,7 @@ theme:
     repo: fontawesome/brands/github
 plugins:
   - search
-  # - macros
+  - macros
 markdown_extensions:
   - attr_list
   - md_in_html
