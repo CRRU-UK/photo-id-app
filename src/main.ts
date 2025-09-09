@@ -1,3 +1,6 @@
+import "dotenv/config";
+
+import * as Sentry from "@sentry/electron/main";
 import { app, BrowserWindow, ipcMain, Menu, shell } from "electron";
 import started from "electron-squirrel-startup";
 import path from "path";
@@ -22,6 +25,12 @@ import {
   USER_GUIDE_URL,
 } from "@/constants";
 import type { PhotoBody, ProjectBody, RecentProject } from "@/types";
+
+Sentry.init({
+  dsn: process.env.SENTRY_DSN,
+  integrations: [Sentry.consoleLoggingIntegration({ levels: ["log", "warn", "error"] })],
+  _experiments: { enableLogs: true },
+});
 
 updateElectronApp();
 
