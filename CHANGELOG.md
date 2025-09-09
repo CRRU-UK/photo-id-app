@@ -1,5 +1,11 @@
 # photo-id
 
+## 0.2.6
+
+### Patch Changes
+
+- 2e96a57: Remove some Sentry configs
+
 ## 0.2.5
 
 ### Patch Changes
