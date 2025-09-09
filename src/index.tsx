@@ -21,9 +21,14 @@ import "./styles.css";
 Sentry.init({
   dsn: import.meta.env.VITE_SENTRY_DSN,
   telemetry: false,
+  tracesSampleRate: 1.0,
+  tracePropagationTargets: ["localhost"],
+  profilesSampleRate: 1.0,
   replaysSessionSampleRate: 0,
   replaysOnErrorSampleRate: 1.0,
   integrations: [
+    Sentry.browserTracingIntegration(),
+    Sentry.browserProfilingIntegration(),
     Sentry.replayIntegration(),
     Sentry.consoleLoggingIntegration({ levels: ["log", "warn", "error"] }),
   ],

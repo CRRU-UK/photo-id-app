@@ -34,6 +34,7 @@ import type { PhotoBody, ProjectBody, RecentProject } from "@/types";
 Sentry.init({
   dsn: process.env.SENTRY_DSN,
   integrations: [Sentry.consoleLoggingIntegration({ levels: ["log", "warn", "error"] })],
+  enableRendererProfiling: true,
   _experiments: { enableLogs: true },
 });
 
