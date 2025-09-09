@@ -74,4 +74,4 @@ export enum LINE_SIZES {
 
 export const DEFAULT_LINE_COLOR = "#FF0000";
 
-export const USER_GUIDE_URL = "https://photoidapp.crru.org.uk";
+export const USER_GUIDE_URL = "https://photoidapp.crru.org.uk/user-guide/";

@@ -23,11 +23,21 @@ theme:
     repo: fontawesome/brands/github
 plugins:
   - search
-  - macros
 markdown_extensions:
   - attr_list
   - md_in_html
   - pymdownx.blocks.caption
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+
 repo_url: https://github.com/CRRU-UK/photo-id-app
 repo_name: CRRU-UK/photo-id-app
 extra:
@@ -38,11 +48,3 @@ extra:
     - icon: fontawesome/brands/github
       link: https://github.com/CRRU-UK
       name: CRRU on GitHub
-markdown_extensions:
-  - pymdownx.highlight:
-      anchor_linenums: true
-      line_spans: __span
-      pygments_lang_class: true
-  - pymdownx.inlinehilite
-  - pymdownx.snippets
-  - pymdownx.superfences
