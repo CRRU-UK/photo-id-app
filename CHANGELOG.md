@@ -1,5 +1,11 @@
 # photo-id
 
+## 0.2.7
+
+### Patch Changes
+
+- fb4e8db: Fix Sentry files in published builds
+
 ## 0.2.6
 
 ### Patch Changes
