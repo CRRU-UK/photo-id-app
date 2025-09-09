@@ -1,5 +1,11 @@
 # photo-id
 
+## 0.2.5
+
+### Patch Changes
+
+- 7971317: Fix Sentry auth variable
+
 ## 0.2.4
 
 ### Patch Changes
