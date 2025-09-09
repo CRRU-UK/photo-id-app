@@ -90,9 +90,13 @@ typings/
 
 # Electron-Forge
 out/
+dist/
 
 # Mocked data
 data/
 
 # Docs
 site/
+
+# Sentry Config File
+.env.sentry-build-plugin

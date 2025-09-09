@@ -12,6 +12,8 @@
 - [Introduction](#introduction)
 - [Installation](#installation)
 - [Development](#development)
+  - [Debugging](#debugging)
+  - [Error Tracking](#error-tracking)
 
 ## Introduction
 
@@ -44,4 +46,14 @@ Below are the NPM commands that can be used for development:
 | `test:types`         | Runs TypeScript tests.                                           |
 | `test:unit`          | Runs unit tests and generates a coverage report.                 |
 | `test:unit:watch`    | Same as `test:unit` but runs it in watch mode.                   |
-| `docs`               | Builds and serves documentation locally.                         |
+| `docs`               | Builds and serves documentation locally. <sup>1</sup>            |
+
+<sup>1</sup> Requires [Material for MKDocs](https://squidfunk.github.io/mkdocs-material/).
+
+### Debugging
+
+Using VSCode, a debugger can be attached to the main process in Electron by running "Debug main process" in the _Run and Debug_ view.
+
+### Error Tracking
+
+The app uses [Sentry](https://sentry.io) to track errors and logs for debugging in published production builds. To enable this locally, add an `.env` file to the root of the repository using the variables defined in [`.env.example`](.env.example).

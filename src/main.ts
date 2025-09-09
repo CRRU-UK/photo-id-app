@@ -1,4 +1,12 @@
+import "dotenv/config";
+
+import * as Sentry from "@sentry/electron/main";
 import { app, BrowserWindow, ipcMain, Menu, shell } from "electron";
+import {
+  installExtension,
+  MOBX_DEVTOOLS,
+  REACT_DEVELOPER_TOOLS,
+} from "electron-devtools-installer";
 import started from "electron-squirrel-startup";
 import path from "path";
 import { updateElectronApp } from "update-electron-app";
@@ -23,7 +31,16 @@ import {
 } from "@/constants";
 import type { PhotoBody, ProjectBody, RecentProject } from "@/types";
 
+Sentry.init({
+  dsn: process.env.SENTRY_DSN,
+  integrations: [Sentry.consoleLoggingIntegration({ levels: ["log", "warn", "error"] })],
+  enableRendererProfiling: true,
+  _experiments: { enableLogs: true },
+});
+
 updateElectronApp();
+
+const production = app.isPackaged;
 
 if (started) {
   app.quit();
@@ -60,7 +77,7 @@ const createMainWindow = async () => {
 
   mainWindow.webContents.on("did-create-window", (window) => {
     window.webContents.once("dom-ready", () => {
-      if (!app.isPackaged) {
+      if (!production) {
         window.webContents.openDevTools();
       }
     });
@@ -69,7 +86,7 @@ const createMainWindow = async () => {
   const menu = Menu.buildFromTemplate(getMenu(mainWindow));
   Menu.setApplicationMenu(menu);
 
-  if (!app.isPackaged) {
+  if (!production) {
     mainWindow.webContents.openDevTools();
   }
 };
@@ -89,6 +106,10 @@ app.on("activate", async () => {
 });
 
 app.whenReady().then(() => {
+  if (!production) {
+    installExtension([REACT_DEVELOPER_TOOLS, MOBX_DEVTOOLS]);
+  }
+
   ipcMain.on(IPC_EVENTS.OPEN_FOLDER, async (event) => {
     const webContents = event.sender;
     const window = BrowserWindow.fromWebContents(webContents) as BrowserWindow;
@@ -134,7 +155,7 @@ app.whenReady().then(() => {
       fullscreenable: false,
     });
 
-    if (!app.isPackaged) {
+    if (!production) {
       editWindow.webContents.openDevTools();
     }
 
