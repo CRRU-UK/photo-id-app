@@ -22,9 +22,8 @@ Sentry.init({
   dsn: import.meta.env.VITE_SENTRY_DSN,
   telemetry: false,
   tracesSampleRate: 1.0,
-  tracePropagationTargets: ["localhost"],
   profilesSampleRate: 1.0,
-  replaysSessionSampleRate: 0,
+  replaysSessionSampleRate: 1.0,
   replaysOnErrorSampleRate: 1.0,
   integrations: [
     Sentry.browserTracingIntegration(),
