@@ -16,6 +16,7 @@ const config: ForgeConfig = {
     },
     icon: path.join(__dirname, "src", "assets", "icon"),
     executableName: "photo-id",
+    extraResource: [path.resolve(__dirname, "./.env")],
   },
   rebuildConfig: {},
   makers: [new MakerSquirrel({}), new MakerZIP({}, ["darwin"]), new MakerRpm({}), new MakerDeb({})],
