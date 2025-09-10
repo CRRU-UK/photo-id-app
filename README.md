@@ -56,4 +56,4 @@ Using VSCode, a debugger can be attached to the main process in Electron by runn
 
 ### Error Tracking
 
-The app uses [Sentry](https://sentry.io) to track errors and logs for debugging in published production builds. To enable this locally, add an `.env` file to the root of the repository using the variables defined in [`.env.example`](.env.example).
+The app uses [Sentry](https://sentry.io) to track errors and logs for debugging in published production builds. To enable this locally, add an `.env` file to the root of the repository using the variables defined in [`.env.example`](.env.example). This file also needs to be created when publishing to ensure the values are included in the production build.

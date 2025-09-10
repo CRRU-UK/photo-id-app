@@ -1,5 +1,29 @@
 # photo-id
 
+## 0.2.10
+
+### Patch Changes
+
+- 0781d59: Fix environment variables on build
+
+## 0.2.9
+
+### Patch Changes
+
+- cddad9b: Fix build
+
+## 0.2.8
+
+### Patch Changes
+
+- 2361acf: Fix Sentry environment variables
+
+## 0.2.7
+
+### Patch Changes
+
+- fb4e8db: Fix Sentry files in published builds
+
 ## 0.2.6
 
 ### Patch Changes

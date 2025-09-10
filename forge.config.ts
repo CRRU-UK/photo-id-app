@@ -6,6 +6,7 @@ import { FusesPlugin } from "@electron-forge/plugin-fuses";
 import { VitePlugin } from "@electron-forge/plugin-vite";
 import type { ForgeConfig } from "@electron-forge/shared-types";
 import { FuseV1Options, FuseVersion } from "@electron/fuses";
+import fs from "fs";
 import path from "path";
 
 const config: ForgeConfig = {
@@ -15,7 +16,7 @@ const config: ForgeConfig = {
     },
     icon: path.join(__dirname, "src", "assets", "icon"),
     executableName: "photo-id",
-    ignore: [/^\/\.github/, /^\/public/, /^\/src/, /^\/temp/],
+    extraResource: [path.resolve(__dirname, "./.env")],
   },
   rebuildConfig: {},
   makers: [new MakerSquirrel({}), new MakerZIP({}, ["darwin"]), new MakerRpm({}), new MakerDeb({})],
@@ -49,7 +50,25 @@ const config: ForgeConfig = {
       [FuseV1Options.EnableEmbeddedAsarIntegrityValidation]: true,
       [FuseV1Options.OnlyLoadAppFromAsar]: true,
     }),
+    {
+      name: "@timfish/forge-externals-plugin",
+      config: {
+        externals: ["sharp"],
+        includeDeps: true,
+      },
+    },
   ],
+  hooks: {
+    generateAssets: async () => {
+      await fs.promises.writeFile(
+        ".env",
+        [
+          `SENTRY_DSN=${process.env.SENTRY_DSN || ""}`,
+          `VITE_SENTRY_DSN=${process.env.SENTRY_DSN || ""}`,
+        ].join("\n"),
+      );
+    },
+  },
   publishers: [
     {
       name: "@electron-forge/publisher-github",
