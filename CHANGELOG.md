@@ -1,5 +1,11 @@
 # photo-id
 
+## 0.2.9
+
+### Patch Changes
+
+- cddad9b: Fix build
+
 ## 0.2.8
 
 ### Patch Changes
