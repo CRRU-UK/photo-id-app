@@ -65,8 +65,6 @@ const config: ForgeConfig = {
         [
           `SENTRY_DSN=${process.env.SENTRY_DSN || ""}`,
           `VITE_SENTRY_DSN=${process.env.SENTRY_DSN || ""}`,
-          `SENTRY_ORG=${process.env.SENTRY_ORG || ""}`,
-          `SENTRY_PROJECT=${process.env.SENTRY_PROJECT || ""}`,
         ].join("\n"),
       );
     },
