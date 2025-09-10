@@ -49,16 +49,23 @@ const config: ForgeConfig = {
       [FuseV1Options.EnableEmbeddedAsarIntegrityValidation]: true,
       [FuseV1Options.OnlyLoadAppFromAsar]: true,
     }),
+    {
+      name: "@timfish/forge-externals-plugin",
+      config: {
+        externals: ["sharp"],
+        includeDeps: true,
+      },
+    },
   ],
   hooks: {
     generateAssets: async () => {
       await fs.promises.writeFile(
         ".env",
         [
-          `SENTRY_DSN=${process.env.SENTRY_DSN}`,
-          `VITE_SENTRY_DSN=${process.env.SENTRY_DSN}`,
-          `SENTRY_ORG=${process.env.SENTRY_ORG}`,
-          `SENTRY_PROJECT=${process.env.SENTRY_PROJECT}`,
+          `SENTRY_DSN=${process.env.SENTRY_DSN || ""}`,
+          `VITE_SENTRY_DSN=${process.env.SENTRY_DSN || ""}`,
+          `SENTRY_ORG=${process.env.SENTRY_ORG || ""}`,
+          `SENTRY_PROJECT=${process.env.SENTRY_PROJECT || ""}`,
         ].join("\n"),
       );
     },

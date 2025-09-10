@@ -60,6 +60,7 @@
     "@electron/fuses": "^1.8.0",
     "@tanstack/react-router-devtools": "^1.131.36",
     "@tanstack/router-plugin": "^1.131.36",
+    "@timfish/forge-externals-plugin": "^0.2.1",
     "@trivago/prettier-plugin-sort-imports": "^5.2.2",
     "@types/electron-squirrel-startup": "^1.0.2",
     "@types/react": "^19.1.12",
