@@ -10,25 +10,25 @@
 [![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=CRRU-UK_photo-id-app&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=CRRU-UK_photo-id-app)
 
 - [Introduction](#introduction)
-- [Installation](#installation)
 - [Development](#development)
   - [Debugging](#debugging)
   - [Error Tracking](#error-tracking)
 
 ## Introduction
 
-The Photo ID app is a research tool that can be used for photo-identification methodologies in longitudinal mark-recapture studies. It allows for the organisation and matching of photographs containing unique identification markings (such as the dorsal fins of cetaceans). It includes tools for editing and visually filtering photographs to help with identification of marks.
+The Photo ID app is a multi-platform research tool that can be used for photo-identification methodologies in longitudinal mark-recapture studies. It allows for the organisation and matching of photographs containing unique identification markings (such as the dorsal fins of cetaceans), and includes tools for editing and visually filtering photographs to help with identification of marks, and exporting matches.
 
-📚 For more information and user guides, [check out the docs](https://photoidapp.crru.org.uk).
+It supports Windows, macOS, and Linux.
 
-## Installation
+> [!TIP]
+> 📚 [Check out the documentation](https://photoidapp.crru.org.uk) for guides on how to install and use the app!
+
+## Development
 
 1. Clone the repository
 2. Ensure you are using Node version >= 24 (`nvm install 24` / `nvm use 24`)
 3. Install the dependencies by running [`npm ci`](https://docs.npmjs.com/cli/ci.html)
 4. If using VS Code install the [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint), [Stylelint](https://marketplace.visualstudio.com/items?itemName=stylelint.vscode-stylelint), and [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode) extensions
-
-## Development
 
 Below are the NPM commands that can be used for development:
 
