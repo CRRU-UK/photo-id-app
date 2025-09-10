@@ -1,5 +1,11 @@
 # photo-id
 
+## 0.2.8
+
+### Patch Changes
+
+- 2361acf: Fix Sentry environment variables
+
 ## 0.2.7
 
 ### Patch Changes
