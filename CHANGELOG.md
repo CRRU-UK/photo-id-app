@@ -1,5 +1,11 @@
 # photo-id
 
+## 0.2.10
+
+### Patch Changes
+
+- 0781d59: Fix environment variables on build
+
 ## 0.2.9
 
 ### Patch Changes
