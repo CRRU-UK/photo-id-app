@@ -3,7 +3,13 @@ import { app, dialog } from "electron";
 import fs from "fs";
 import path from "path";
 
-import type { CollectionBody, LoadingData, PhotoBody, ProjectBody } from "@/types";
+import type {
+  CollectionBody,
+  EditorNavigation,
+  LoadingData,
+  PhotoBody,
+  ProjectBody,
+} from "@/types";
 
 import { createPhotoThumbnail } from "@/backend/photos";
 import { addRecentProject } from "@/backend/recents";
@@ -299,11 +305,85 @@ const handleDuplicatePhotoFile = async (data: PhotoBody): Promise<PhotoBody> => 
   };
 };
 
-const handleEditorNavigate = async (data: PhotoBody): Promise<PhotoBody> => {
-  return Promise.resolve(data);
+/**
+ * Finds a photo in a project and returns its collection (if any).
+ */
+const findPhotoInProject = (project: ProjectBody, photo: PhotoBody): CollectionBody | null => {
+  const { name } = photo;
+
+  const inUnassigned = project.unassigned.photos.some((photo: PhotoBody) => photo.name === name);
+  console.log("inUnassigned", inUnassigned);
+
+  if (inUnassigned) {
+    console.log("photo is in unassigned");
+    return project.unassigned;
+  }
+
+  const inDiscarded = project.discarded.photos.some((photo: PhotoBody) => photo.name === name);
+  console.log("inDiscarded", inDiscarded);
+
+  if (inDiscarded) {
+    console.log("photo is in discarded");
+    return project.discarded;
+  }
+
+  for (const match of project.matched) {
+    const inLeft = match.left.photos.some((photo: PhotoBody) => photo.name === name);
+    if (inLeft) {
+      console.log("photo is in matched left");
+      return match.left;
+    }
+
+    const inRight = match.right.photos.some((photo: PhotoBody) => photo.name === name);
+    if (inRight) {
+      console.log("photo is in matched right");
+      return match.right;
+    }
+  }
+
+  return null;
+};
+
+const handleEditorNavigate = async (
+  data: PhotoBody,
+  direction: EditorNavigation,
+): Promise<PhotoBody | null> => {
+  const projectPath = path.join(data.directory, PROJECT_FILE_NAME);
+  const projectData = JSON.parse(await fs.promises.readFile(projectPath, "utf8")) as ProjectBody;
+
+  const collection = findPhotoInProject(projectData, data);
+  if (!collection) {
+    console.error("Photo not found in project", data);
+    throw new Error("Photo not found in project");
+  }
+
+  // Return same photo if the collection only contains one photo or is empty
+  if (collection.photos.length <= 1) {
+    return null;
+  }
+
+  const currentIndex = collection.photos.findIndex((photo) => photo.name === data.name);
+  let newIndex = currentIndex;
+
+  if (direction === "next") {
+    newIndex = currentIndex + 1;
+    if (newIndex >= collection.photos.length) {
+      newIndex = 0;
+    }
+  }
+
+  if (direction === "prev") {
+    newIndex = currentIndex - 1;
+    if (newIndex < 0) {
+      newIndex = collection.photos.length - 1;
+    }
+  }
+
+  return collection.photos[newIndex];
 };
 
 export {
+  findPhotoInProject,
   handleDuplicatePhotoFile,
   handleEditorNavigate,
   handleExportMatches,

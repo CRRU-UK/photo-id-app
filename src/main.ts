@@ -12,6 +12,8 @@ import path from "path";
 import { updateElectronApp } from "update-electron-app";
 import url from "url";
 
+import type { EditorNavigation, PhotoBody, ProjectBody, RecentProject } from "@/types";
+
 import { getMenu } from "@/backend/menu";
 import { revertPhotoToOriginal, savePhotoFromBuffer } from "@/backend/photos";
 import {
@@ -24,13 +26,7 @@ import {
   handleSaveProject,
 } from "@/backend/projects";
 import { getRecentProjects, removeRecentProject } from "@/backend/recents";
-import {
-  DEFAULT_WINDOW_TITLE,
-  IPC_EVENTS,
-  PROJECT_EXPORT_DIRECTORY,
-  USER_GUIDE_URL,
-} from "@/constants";
-import type { PhotoBody, ProjectBody, RecentProject } from "@/types";
+import { IPC_EVENTS, PROJECT_EXPORT_DIRECTORY, USER_GUIDE_URL } from "@/constants";
 
 Sentry.init({
   dsn: process.env.SENTRY_DSN,
@@ -177,10 +173,7 @@ app.whenReady().then(() => {
 
     editWindow.removeMenu();
 
-    editWindow.once("ready-to-show", () => {
-      editWindow.setTitle(`${DEFAULT_WINDOW_TITLE} - ${data.directory}/${data.name}`);
-      editWindow.show();
-    });
+    editWindow.once("ready-to-show", () => editWindow.show());
   });
 
   ipcMain.on(IPC_EVENTS.SAVE_PROJECT, async (event, data: string): Promise<void> => {
@@ -209,17 +202,32 @@ app.whenReady().then(() => {
     },
   );
 
-  ipcMain.handle(
+  ipcMain.on(
     IPC_EVENTS.NAVIGATE_EDITOR_PHOTO,
-    async (event, data: PhotoBody, direction: "prev" | "next"): Promise<PhotoBody> => {
-      const sender = event.sender;
+    async (event, data: PhotoBody, direction: EditorNavigation) => {
+      const result = await handleEditorNavigate(data, direction);
 
-      console.log("sender", sender);
-      console.log("data", data);
-      console.log("direction", direction);
+      if (!result) {
+        console.warn("Photo not found in project for navigation");
+        return;
+      }
 
-      const result = await handleEditorNavigate(data);
-      return result;
+      const editWindow = event.sender;
+      const encodedData = btoa(JSON.stringify(result));
+
+      if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
+        editWindow.loadURL(`${MAIN_WINDOW_VITE_DEV_SERVER_URL}?data=${encodedData}#/edit`);
+      } else {
+        editWindow.loadURL(
+          url.format({
+            protocol: "file",
+            slashes: true,
+            pathname: basePath,
+            hash: "#/edit",
+            search: `?data=${encodedData}`,
+          }),
+        );
+      }
     },
   );
 

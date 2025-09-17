@@ -20,9 +20,10 @@ import {
 import { memo, useState } from "react";
 import { usePhotoEditor } from "react-photo-editor";
 
+import type { EditorNavigation, PhotoBody } from "@/types";
+
 import { DEFAULT_LINE_COLOR, LINE_SIZES } from "@/constants";
 import { readFileAsString } from "@/helpers";
-import type { PhotoBody } from "@/types";
 
 interface SliderProps {
   name: string;
@@ -101,14 +102,9 @@ const ImageEditor = ({ data, image }: ImageEditorProps) => {
     setSaving(false);
   };
 
-  const handlePrev = async () => {
-    const result = await window.electronAPI.navigateEditorPhoto(data, "prev");
-    console.log("result", result);
-  };
-
-  const handleNext = async () => {
-    const result = await window.electronAPI.navigateEditorPhoto(data, "next");
-    console.log("result", result);
+  const handleEditorNavigation = (direction: EditorNavigation) => {
+    // Show loading
+    window.electronAPI.navigateEditorPhoto(data, direction);
   };
 
   return (
@@ -184,13 +180,13 @@ const ImageEditor = ({ data, image }: ImageEditorProps) => {
             icon={ChevronLeftIcon}
             size="small"
             aria-label="Previous photo"
-            onClick={handlePrev}
+            onClick={() => handleEditorNavigation("prev")}
           />
           <IconButton
             icon={ChevronRightIcon}
             size="small"
             aria-label="Next Photo"
-            onClick={handleNext}
+            onClick={() => handleEditorNavigation("next")}
           />
         </ButtonGroup>
 
