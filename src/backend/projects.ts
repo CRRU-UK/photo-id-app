@@ -31,6 +31,7 @@ import { getAlphabetLetter } from "@/helpers";
 const sendData = (mainWindow: Electron.BrowserWindow, data: ProjectBody) => {
   mainWindow.setTitle(`${DEFAULT_WINDOW_TITLE} - ${data.directory}`);
   mainWindow.webContents.send(IPC_EVENTS.LOAD_PROJECT, data);
+  mainWindow.focus();
 
   addRecentProject({
     name: path.basename(data.directory),
