@@ -1,3 +1,5 @@
+import type { EditorNavigation, PhotoBody } from "@/types";
+
 import {
   CheckIcon,
   ChevronLeftIcon,
@@ -17,10 +19,8 @@ import {
   Text,
   ToggleSwitch,
 } from "@primer/react";
-import { memo, useState } from "react";
+import { memo, useEffect, useState } from "react";
 import { usePhotoEditor } from "react-photo-editor";
-
-import type { EditorNavigation, PhotoBody } from "@/types";
 
 import { DEFAULT_LINE_COLOR, LINE_SIZES } from "@/constants";
 import { readFileAsString } from "@/helpers";
@@ -51,6 +51,35 @@ const Slider = ({ name, value, min, max, callback }: SliderProps) => (
   </FormControl>
 );
 
+interface CanvasImageProps {
+  ref: React.RefObject<HTMLCanvasElement | null>;
+  mode: string;
+  handlePointerDown: (event: React.PointerEvent<HTMLCanvasElement>) => void;
+  handlePointerMove: (event: React.PointerEvent<HTMLCanvasElement>) => void;
+  handlePointerUp: (event: React.PointerEvent<HTMLCanvasElement>) => void;
+  handleWheel: (event: React.WheelEvent<HTMLCanvasElement>) => void;
+}
+
+const CanvasImage = ({
+  ref,
+  mode,
+  handlePointerDown,
+  handlePointerMove,
+  handlePointerUp,
+  handleWheel,
+}: CanvasImageProps) => {
+  return (
+    <canvas
+      ref={ref}
+      className={`canvas ${mode}`}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onWheel={handleWheel}
+    />
+  );
+};
+
 interface ImageEditorProps {
   data: PhotoBody;
   image: File;
@@ -58,6 +87,8 @@ interface ImageEditorProps {
 }
 
 const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
+  console.log("render ImageEditor");
+
   console.log("Loaded photo edit data:", data);
 
   const [saving, setSaving] = useState<boolean>(false);
@@ -112,6 +143,10 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
       resetFilters();
     }
   };
+
+  useEffect(() => {
+    console.log("loading ImageEditor");
+  });
 
   return (
     <div className="edit">
@@ -218,13 +253,13 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
         </Button>
       </div>
 
-      <canvas
+      <CanvasImage
         ref={canvasRef}
-        className={`canvas ${mode}`}
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerUp}
-        onWheel={handleWheel}
+        mode={mode}
+        handlePointerDown={handlePointerDown}
+        handlePointerMove={handlePointerMove}
+        handlePointerUp={handlePointerUp}
+        handleWheel={handleWheel}
       />
     </div>
   );
