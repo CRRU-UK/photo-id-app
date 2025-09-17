@@ -336,6 +336,9 @@ const findPhotoInProject = (project: ProjectBody, photo: PhotoBody): CollectionB
   return null;
 };
 
+/**
+ * Returns photo to show in the editor on navigation based on direction.
+ */
 const handleEditorNavigate = async (
   data: PhotoBody,
   direction: EditorNavigation,
