@@ -60,6 +60,8 @@ const createMainWindow = async () => {
 
   mainWindow.maximize();
 
+  mainWindow.on("closed", () => app.quit());
+
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
     await mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
   } else {
@@ -87,6 +89,8 @@ const createMainWindow = async () => {
     mainWindow.webContents.openDevTools();
   }
 };
+
+const editWindows: BrowserWindow[] = [];
 
 app.on("ready", createMainWindow);
 
@@ -138,6 +142,12 @@ app.whenReady().then(() => {
     },
   );
 
+  ipcMain.on(IPC_EVENTS.CLOSE_PROJECT, () => {
+    for (const window of editWindows) {
+      window.close();
+    }
+  });
+
   ipcMain.on(IPC_EVENTS.OPEN_EDIT_WINDOW, (event, data: PhotoBody): void => {
     const editWindow = new BrowserWindow({
       show: false,
@@ -151,6 +161,8 @@ app.whenReady().then(() => {
       backgroundColor: "black",
       fullscreenable: false,
     });
+
+    editWindows.push(editWindow);
 
     if (!production) {
       editWindow.webContents.openDevTools();

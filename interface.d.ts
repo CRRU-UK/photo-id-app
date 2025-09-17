@@ -21,6 +21,7 @@ export interface IElectronAPI {
   openProjectFile: () => void;
   openRecentProject: (path: string) => void;
   saveProject: (data: string) => void;
+  closeProject: () => void;
   openEditWindow: (data: PhotoBody) => void;
   openUserGuide: () => void;
 

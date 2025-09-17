@@ -15,7 +15,10 @@ const Sidebar = () => {
 
   const navigate = useNavigate();
 
-  const handleClose = () => navigate({ to: "/" });
+  const handleCloseProject = () => {
+    window.electronAPI.closeProject();
+    navigate({ to: "/" });
+  };
 
   const handleExport = async () => {
     setExporting(true);
@@ -48,7 +51,7 @@ const Sidebar = () => {
             icon={ReplyIcon}
             variant="invisible"
             aria-label="Close project"
-            onClick={() => handleClose()}
+            onClick={() => handleCloseProject()}
           />
 
           <ActionMenu open={actionsOpen} onOpenChange={setActionsOpen}>
