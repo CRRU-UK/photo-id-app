@@ -90,7 +90,7 @@ const createMainWindow = async () => {
   }
 };
 
-const editWindows: BrowserWindow[] = [];
+let editWindows: BrowserWindow[] = [];
 
 app.on("ready", createMainWindow);
 
@@ -143,9 +143,10 @@ app.whenReady().then(() => {
   );
 
   ipcMain.on(IPC_EVENTS.CLOSE_PROJECT, () => {
-    for (const window of editWindows) {
+    editWindows = editWindows.filter((window) => {
       window.close();
-    }
+      return false;
+    });
   });
 
   ipcMain.on(IPC_EVENTS.OPEN_EDIT_WINDOW, (event, data: PhotoBody): void => {
