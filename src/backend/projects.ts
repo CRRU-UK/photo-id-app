@@ -361,14 +361,11 @@ const handleEditorNavigate = async (
   let newIndex = currentIndex;
 
   if (direction === "next") {
-    newIndex = currentIndex + 1;
-    if (newIndex >= collection.photos.length) {
-      newIndex = 0;
-    }
+    newIndex = (currentIndex + 1) % collection.photos.length;
   }
 
   if (direction === "prev") {
-    newIndex = currentIndex - 1;
+    newIndex = (currentIndex - 1) % collection.photos.length;
     if (newIndex < 0) {
       newIndex = collection.photos.length - 1;
     }
