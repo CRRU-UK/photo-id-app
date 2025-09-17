@@ -16,7 +16,6 @@ const Sidebar = () => {
   const navigate = useNavigate();
 
   const handleCloseProject = () => {
-    console.log("what");
     window.electronAPI.closeProject();
     navigate({ to: "/" });
   };
