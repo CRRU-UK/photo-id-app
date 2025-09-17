@@ -143,7 +143,6 @@ app.whenReady().then(() => {
   );
 
   ipcMain.on(IPC_EVENTS.CLOSE_PROJECT, () => {
-    console.log("boop");
     for (const window of editWindows) {
       window.close();
     }
