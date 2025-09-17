@@ -144,8 +144,23 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
     }
   };
 
+  const handleKeyDown = (event: KeyboardEvent) => {
+    console.log("event.code", event.code);
+    if (event.code === "ArrowLeft") {
+      handleEditorNavigation("prev");
+    }
+
+    if (event.code === "ArrowRight") {
+      handleEditorNavigation("next");
+    }
+  };
+
   useEffect(() => {
-    console.log("loading ImageEditor");
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
   });
 
   return (
