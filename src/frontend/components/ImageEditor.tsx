@@ -87,8 +87,6 @@ interface ImageEditorProps {
 }
 
 const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
-  console.log("render ImageEditor");
-
   console.log("Loaded photo edit data:", data);
 
   const [saving, setSaving] = useState<boolean>(false);
@@ -145,7 +143,6 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
   };
 
   const handleKeyDown = (event: KeyboardEvent) => {
-    console.log("event.code", event.code);
     if (event.code === "ArrowLeft") {
       handleEditorNavigation("prev");
     }
