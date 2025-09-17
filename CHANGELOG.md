@@ -1,5 +1,11 @@
 # photo-id
 
+## 0.2.12
+
+### Patch Changes
+
+- e09110d: Add ability to navigate collection in photo editor
+
 ## 0.2.11
 
 ### Patch Changes
