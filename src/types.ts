@@ -28,17 +28,19 @@ export type CollectionBody = {
   photos: PhotoBody[];
 };
 
+export type MatchedBody = {
+  id: number;
+  left: CollectionBody;
+  right: CollectionBody;
+};
+
 export type ProjectBody = {
   version: string;
   id: string;
   directory: Directory;
   unassigned: CollectionBody;
   discarded: CollectionBody;
-  matched: {
-    id: number;
-    left: CollectionBody;
-    right: CollectionBody;
-  }[];
+  matched: MatchedBody[];
   created: string;
   lastModified: string;
 };
@@ -64,3 +66,5 @@ export type LoadingData = {
   progressValue?: number | null;
   progressText?: string;
 };
+
+export type EditorNavigation = "prev" | "next";

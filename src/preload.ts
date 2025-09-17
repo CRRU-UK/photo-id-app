@@ -1,7 +1,8 @@
+import type { EditorNavigation, PhotoBody, RecentProject } from "@/types";
+
 import { contextBridge, ipcRenderer } from "electron";
 
 import { IPC_EVENTS } from "@/constants";
-import type { PhotoBody, RecentProject } from "@/types";
 
 contextBridge.exposeInMainWorld("electronAPI", {
   // Invocations (main and renderer)
@@ -15,6 +16,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ipcRenderer.invoke(IPC_EVENTS.SAVE_PHOTO_FILE, data, photo),
   revertPhotoFile: (data: PhotoBody): Promise<PhotoBody> =>
     ipcRenderer.invoke(IPC_EVENTS.REVERT_PHOTO_FILE, data),
+  navigateEditorPhoto: (data: PhotoBody, direction: EditorNavigation) =>
+    ipcRenderer.invoke(IPC_EVENTS.NAVIGATE_EDITOR_PHOTO, data, direction),
   duplicatePhotoFile: (data: PhotoBody): Promise<PhotoBody> =>
     ipcRenderer.invoke(IPC_EVENTS.DUPLICATE_PHOTO_FILE, data),
 

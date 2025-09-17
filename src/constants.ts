@@ -20,8 +20,9 @@ export enum IPC_EVENTS {
   SET_LOADING = "ui:setLoading",
   OPEN_USER_GUIDE = "ui:openUserGuide",
 
-  // Edit
+  // Editor
   OPEN_EDIT_WINDOW = "edit:openEditWindow",
+  NAVIGATE_EDITOR_PHOTO = "edit:navigateEditorPhoto",
 }
 
 export const DEFAULT_WINDOW_TITLE = "Photo ID";

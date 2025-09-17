@@ -1,20 +1,29 @@
-import { CheckIcon, XIcon, ZoomInIcon, ZoomOutIcon } from "@primer/octicons-react";
+import type { EditorNavigation, PhotoBody } from "@/types";
+
+import {
+  CheckIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  XIcon,
+  ZoomInIcon,
+  ZoomOutIcon,
+} from "@primer/octicons-react";
 import {
   Button,
   ButtonGroup,
   FormControl,
+  IconButton,
   Label,
   Select,
   Stack,
   Text,
   ToggleSwitch,
 } from "@primer/react";
-import { memo, useState } from "react";
+import { memo, useEffect, useState } from "react";
 import { usePhotoEditor } from "react-photo-editor";
 
 import { DEFAULT_LINE_COLOR, LINE_SIZES } from "@/constants";
 import { readFileAsString } from "@/helpers";
-import type { PhotoBody } from "@/types";
 
 interface SliderProps {
   name: string;
@@ -42,12 +51,42 @@ const Slider = ({ name, value, min, max, callback }: SliderProps) => (
   </FormControl>
 );
 
+interface CanvasImageProps {
+  ref: React.RefObject<HTMLCanvasElement | null>;
+  mode: string;
+  handlePointerDown: (event: React.PointerEvent<HTMLCanvasElement>) => void;
+  handlePointerMove: (event: React.PointerEvent<HTMLCanvasElement>) => void;
+  handlePointerUp: (event: React.PointerEvent<HTMLCanvasElement>) => void;
+  handleWheel: (event: React.WheelEvent<HTMLCanvasElement>) => void;
+}
+
+const CanvasImage = ({
+  ref,
+  mode,
+  handlePointerDown,
+  handlePointerMove,
+  handlePointerUp,
+  handleWheel,
+}: CanvasImageProps) => {
+  return (
+    <canvas
+      ref={ref}
+      className={`canvas ${mode}`}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onWheel={handleWheel}
+    />
+  );
+};
+
 interface ImageEditorProps {
   data: PhotoBody;
   image: File;
+  setQueryCallback: React.Dispatch<React.SetStateAction<string>>;
 }
 
-const ImageEditor = ({ data, image }: ImageEditorProps) => {
+const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
   console.log("Loaded photo edit data:", data);
 
   const [saving, setSaving] = useState<boolean>(false);
@@ -92,6 +131,34 @@ const ImageEditor = ({ data, image }: ImageEditorProps) => {
 
     setSaving(false);
   };
+
+  const handleEditorNavigation = async (direction: EditorNavigation) => {
+    const result = await window.electronAPI.navigateEditorPhoto(data, direction);
+    if (result) {
+      setQueryCallback(result);
+
+      // TODO: Move this to useEffect on data change as there is a delay from setQueryCallback
+      resetFilters();
+    }
+  };
+
+  const handleKeyDown = (event: KeyboardEvent) => {
+    if (event.code === "ArrowLeft") {
+      handleEditorNavigation("prev");
+    }
+
+    if (event.code === "ArrowRight") {
+      handleEditorNavigation("next");
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  });
 
   return (
     <div className="edit">
@@ -153,17 +220,33 @@ const ImageEditor = ({ data, image }: ImageEditorProps) => {
         </Stack>
 
         <ButtonGroup style={{ marginLeft: "auto", marginRight: "auto" }}>
-          <Button leadingVisual={ZoomOutIcon} size="small" onClick={handleZoomOut}>
-            Zoom Out
-          </Button>
-          <Button leadingVisual={ZoomInIcon} size="small" onClick={handleZoomIn}>
-            Zoom In
-          </Button>
+          <IconButton
+            icon={ZoomOutIcon}
+            size="medium"
+            aria-label="Zoom out"
+            onClick={handleZoomOut}
+          />
+          <IconButton icon={ZoomInIcon} size="medium" aria-label="Zoom In" onClick={handleZoomIn} />
+        </ButtonGroup>
+
+        <ButtonGroup style={{ marginLeft: "auto", marginRight: "auto" }}>
+          <IconButton
+            icon={ChevronLeftIcon}
+            size="medium"
+            aria-label="Previous photo"
+            onClick={() => handleEditorNavigation("prev")}
+          />
+          <IconButton
+            icon={ChevronRightIcon}
+            size="medium"
+            aria-label="Next Photo"
+            onClick={() => handleEditorNavigation("next")}
+          />
         </ButtonGroup>
 
         <Button
           leadingVisual={XIcon}
-          size="small"
+          size="medium"
           variant="danger"
           onClick={resetFilters}
           style={{ marginRight: "var(--stack-gap-normal)" }}
@@ -173,7 +256,7 @@ const ImageEditor = ({ data, image }: ImageEditorProps) => {
 
         <Button
           leadingVisual={CheckIcon}
-          size="small"
+          size="medium"
           variant="primary"
           loading={saving}
           disabled={saving}
@@ -183,13 +266,13 @@ const ImageEditor = ({ data, image }: ImageEditorProps) => {
         </Button>
       </div>
 
-      <canvas
+      <CanvasImage
         ref={canvasRef}
-        className={`canvas ${mode}`}
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerUp}
-        onWheel={handleWheel}
+        mode={mode}
+        handlePointerDown={handlePointerDown}
+        handlePointerMove={handlePointerMove}
+        handlePointerUp={handlePointerUp}
+        handleWheel={handleWheel}
       />
     </div>
   );
