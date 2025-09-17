@@ -90,6 +90,7 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
   console.log("Loaded photo edit data:", data);
 
   const [saving, setSaving] = useState<boolean>(false);
+  const [navigating, setNavigating] = useState<boolean>(false);
 
   const {
     canvasRef,
@@ -133,12 +134,19 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
   };
 
   const handleEditorNavigation = async (direction: EditorNavigation) => {
+    if (navigating) {
+      return;
+    }
+
+    setNavigating(true);
+
     const result = await window.electronAPI.navigateEditorPhoto(data, direction);
     if (result) {
       setQueryCallback(result);
 
       // TODO: Move this to useEffect on data change as there is a delay from setQueryCallback
       resetFilters();
+      setNavigating(false);
     }
   };
 
