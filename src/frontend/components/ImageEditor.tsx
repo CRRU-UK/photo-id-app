@@ -220,24 +220,25 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
         </Stack>
 
         <ButtonGroup style={{ marginLeft: "auto", marginRight: "auto" }}>
-          <Button leadingVisual={ZoomOutIcon} size="small" onClick={handleZoomOut}>
-            Zoom Out
-          </Button>
-          <Button leadingVisual={ZoomInIcon} size="small" onClick={handleZoomIn}>
-            Zoom In
-          </Button>
+          <IconButton
+            icon={ZoomOutIcon}
+            size="medium"
+            aria-label="Zoom out"
+            onClick={handleZoomOut}
+          />
+          <IconButton icon={ZoomInIcon} size="medium" aria-label="Zoom In" onClick={handleZoomIn} />
         </ButtonGroup>
 
         <ButtonGroup style={{ marginLeft: "auto", marginRight: "auto" }}>
           <IconButton
             icon={ChevronLeftIcon}
-            size="small"
+            size="medium"
             aria-label="Previous photo"
             onClick={() => handleEditorNavigation("prev")}
           />
           <IconButton
             icon={ChevronRightIcon}
-            size="small"
+            size="medium"
             aria-label="Next Photo"
             onClick={() => handleEditorNavigation("next")}
           />
@@ -245,7 +246,7 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
 
         <Button
           leadingVisual={XIcon}
-          size="small"
+          size="medium"
           variant="danger"
           onClick={resetFilters}
           style={{ marginRight: "var(--stack-gap-normal)" }}
@@ -255,7 +256,7 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
 
         <Button
           leadingVisual={CheckIcon}
-          size="small"
+          size="medium"
           variant="primary"
           loading={saving}
           disabled={saving}
