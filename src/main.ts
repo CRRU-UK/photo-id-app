@@ -202,32 +202,19 @@ app.whenReady().then(() => {
     },
   );
 
-  ipcMain.on(
+  ipcMain.handle(
     IPC_EVENTS.NAVIGATE_EDITOR_PHOTO,
-    async (event, data: PhotoBody, direction: EditorNavigation) => {
+    async (event, data: PhotoBody, direction: EditorNavigation): Promise<string | null> => {
+      // TODO: Should we get the source photo body from sender query params instead?
       const result = await handleEditorNavigate(data, direction);
 
       if (!result) {
         console.warn("Photo not found in project for navigation");
-        return;
+        return null;
       }
 
-      const editWindow = event.sender;
       const encodedData = btoa(JSON.stringify(result));
-
-      if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
-        editWindow.loadURL(`${MAIN_WINDOW_VITE_DEV_SERVER_URL}?data=${encodedData}#/edit`);
-      } else {
-        editWindow.loadURL(
-          url.format({
-            protocol: "file",
-            slashes: true,
-            pathname: basePath,
-            hash: "#/edit",
-            search: `?data=${encodedData}`,
-          }),
-        );
-      }
+      return encodedData;
     },
   );
 

@@ -16,6 +16,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ipcRenderer.invoke(IPC_EVENTS.SAVE_PHOTO_FILE, data, photo),
   revertPhotoFile: (data: PhotoBody): Promise<PhotoBody> =>
     ipcRenderer.invoke(IPC_EVENTS.REVERT_PHOTO_FILE, data),
+  navigateEditorPhoto: (data: PhotoBody, direction: EditorNavigation) =>
+    ipcRenderer.invoke(IPC_EVENTS.NAVIGATE_EDITOR_PHOTO, data, direction),
   duplicatePhotoFile: (data: PhotoBody): Promise<PhotoBody> =>
     ipcRenderer.invoke(IPC_EVENTS.DUPLICATE_PHOTO_FILE, data),
 
@@ -26,8 +28,6 @@ contextBridge.exposeInMainWorld("electronAPI", {
   saveProject: (data: string) => ipcRenderer.send(IPC_EVENTS.SAVE_PROJECT, data),
   openEditWindow: (data: PhotoBody) => ipcRenderer.send(IPC_EVENTS.OPEN_EDIT_WINDOW, data),
   openUserGuide: () => ipcRenderer.send(IPC_EVENTS.OPEN_USER_GUIDE),
-  navigateEditorPhoto: (data: PhotoBody, direction: EditorNavigation) =>
-    ipcRenderer.send(IPC_EVENTS.NAVIGATE_EDITOR_PHOTO, data, direction),
 
   // Listeners (main-to-renderer)
   onLoading: (callback: (...params: unknown[]) => void) =>

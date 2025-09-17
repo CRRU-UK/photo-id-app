@@ -15,16 +15,16 @@ const fetchLocalFile = async (data: PhotoBody) => {
 };
 
 const EditPage = () => {
+  const [query, setQuery] = useState<string>(
+    new URLSearchParams(window.location.search).get("data")!,
+  );
   const [loading, setLoading] = useState<LoadingData>({ show: true });
   const [data, setData] = useState<PhotoBody | null>(null);
   const [file, setFile] = useState<File | null>(null);
 
-  // For hash routing
-  const queryValue = new URLSearchParams(window.location.search).get("data")!;
-
   useEffect(() => {
     async function fetchData() {
-      const parsedData = JSON.parse(atob(queryValue)) as PhotoBody;
+      const parsedData = JSON.parse(atob(query)) as PhotoBody;
       setData(parsedData);
 
       document.title = `${DEFAULT_WINDOW_TITLE} - ${parsedData.directory}/${parsedData.name}`;
@@ -36,12 +36,12 @@ const EditPage = () => {
     }
 
     fetchData();
-  }, [queryValue]);
+  }, [query]);
 
   return (
     <>
       <LoadingOverlay data={loading} />
-      {data && file && <ImageEditor data={data} image={file} />}
+      {data && file && <ImageEditor data={data} image={file} setQueryCallback={setQuery} />}
     </>
   );
 };

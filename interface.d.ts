@@ -13,7 +13,7 @@ export interface IElectronAPI {
   exportMatches: (data: string) => Promise<void>;
   savePhotoFile: (data: PhotoBody, photo: ArrayBuffer) => Promise<void>;
   revertPhotoFile: (data: PhotoBody) => Promise<PhotoBody>;
-  navigateEditorPhoto: (data: PhotoBody, direction: EditorNavigation) => Promise<PhotoBody>;
+  navigateEditorPhoto: (data: PhotoBody, direction: EditorNavigation) => Promise<string | null>;
   duplicatePhotoFile: (data: PhotoBody) => Promise<PhotoBody>;
 
   // Methods (renderer-to-main)

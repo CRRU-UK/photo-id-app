@@ -54,9 +54,10 @@ const Slider = ({ name, value, min, max, callback }: SliderProps) => (
 interface ImageEditorProps {
   data: PhotoBody;
   image: File;
+  setQueryCallback: React.Dispatch<React.SetStateAction<string>>;
 }
 
-const ImageEditor = ({ data, image }: ImageEditorProps) => {
+const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
   console.log("Loaded photo edit data:", data);
 
   const [saving, setSaving] = useState<boolean>(false);
@@ -102,9 +103,14 @@ const ImageEditor = ({ data, image }: ImageEditorProps) => {
     setSaving(false);
   };
 
-  const handleEditorNavigation = (direction: EditorNavigation) => {
-    // Show loading
-    window.electronAPI.navigateEditorPhoto(data, direction);
+  const handleEditorNavigation = async (direction: EditorNavigation) => {
+    const result = await window.electronAPI.navigateEditorPhoto(data, direction);
+    if (result) {
+      setQueryCallback(result);
+
+      // TODO: Move this to useEffect on data change as there is a delay from setQueryCallback
+      resetFilters();
+    }
   };
 
   return (
