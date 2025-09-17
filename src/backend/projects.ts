@@ -312,31 +312,23 @@ const findPhotoInProject = (project: ProjectBody, photo: PhotoBody): CollectionB
   const { name } = photo;
 
   const inUnassigned = project.unassigned.photos.some((photo: PhotoBody) => photo.name === name);
-  console.log("inUnassigned", inUnassigned);
-
   if (inUnassigned) {
-    console.log("photo is in unassigned");
     return project.unassigned;
   }
 
   const inDiscarded = project.discarded.photos.some((photo: PhotoBody) => photo.name === name);
-  console.log("inDiscarded", inDiscarded);
-
   if (inDiscarded) {
-    console.log("photo is in discarded");
     return project.discarded;
   }
 
   for (const match of project.matched) {
     const inLeft = match.left.photos.some((photo: PhotoBody) => photo.name === name);
     if (inLeft) {
-      console.log("photo is in matched left");
       return match.left;
     }
 
     const inRight = match.right.photos.some((photo: PhotoBody) => photo.name === name);
     if (inRight) {
-      console.log("photo is in matched right");
       return match.right;
     }
   }
