@@ -26,7 +26,12 @@ import {
   handleSaveProject,
 } from "@/backend/projects";
 import { getRecentProjects, removeRecentProject } from "@/backend/recents";
-import { IPC_EVENTS, PROJECT_EXPORT_DIRECTORY, USER_GUIDE_URL } from "@/constants";
+import {
+  DEFAULT_WINDOW_TITLE,
+  IPC_EVENTS,
+  PROJECT_EXPORT_DIRECTORY,
+  USER_GUIDE_URL,
+} from "@/constants";
 
 Sentry.init({
   dsn: process.env.SENTRY_DSN,
@@ -143,10 +148,12 @@ app.whenReady().then(() => {
   );
 
   ipcMain.on(IPC_EVENTS.CLOSE_PROJECT, () => {
-    editWindows = editWindows.filter((window) => {
+    for (const window of editWindows) {
       window.close();
-      return false;
-    });
+    }
+
+    editWindows = [];
+    mainWindow.setTitle(DEFAULT_WINDOW_TITLE);
   });
 
   ipcMain.on(IPC_EVENTS.OPEN_EDIT_WINDOW, (event, data: PhotoBody): void => {
