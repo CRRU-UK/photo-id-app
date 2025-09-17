@@ -16,6 +16,7 @@ import { getMenu } from "@/backend/menu";
 import { revertPhotoToOriginal, savePhotoFromBuffer } from "@/backend/photos";
 import {
   handleDuplicatePhotoFile,
+  handleEditorNavigate,
   handleExportMatches,
   handleOpenDirectoryPrompt,
   handleOpenFilePrompt,
@@ -205,6 +206,20 @@ app.whenReady().then(() => {
       };
 
       mainWindow.webContents.send(IPC_EVENTS.UPDATE_PHOTO, photoData);
+    },
+  );
+
+  ipcMain.handle(
+    IPC_EVENTS.NAVIGATE_EDITOR_PHOTO,
+    async (event, data: PhotoBody, direction: "prev" | "next"): Promise<PhotoBody> => {
+      const sender = event.sender;
+
+      console.log("sender", sender);
+      console.log("data", data);
+      console.log("direction", direction);
+
+      const result = await handleEditorNavigate(data);
+      return result;
     },
   );
 

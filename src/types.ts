@@ -64,3 +64,5 @@ export type LoadingData = {
   progressValue?: number | null;
   progressText?: string;
 };
+
+export type EditorNavigation = "prev" | "next";

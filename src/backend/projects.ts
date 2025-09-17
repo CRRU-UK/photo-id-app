@@ -299,8 +299,13 @@ const handleDuplicatePhotoFile = async (data: PhotoBody): Promise<PhotoBody> => 
   };
 };
 
+const handleEditorNavigate = async (data: PhotoBody): Promise<PhotoBody> => {
+  return Promise.resolve(data);
+};
+
 export {
   handleDuplicatePhotoFile,
+  handleEditorNavigate,
   handleExportMatches,
   handleOpenDirectoryPrompt,
   handleOpenFilePrompt,

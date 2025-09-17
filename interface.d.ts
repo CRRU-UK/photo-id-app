@@ -1,4 +1,10 @@
-import type { LoadingData, PhotoBody, ProjectBody, RecentProject } from "./src/types";
+import type {
+  EditorNavigation,
+  LoadingData,
+  PhotoBody,
+  ProjectBody,
+  RecentProject,
+} from "./src/types";
 
 export interface IElectronAPI {
   // Invocations (main and renderer)
@@ -7,6 +13,7 @@ export interface IElectronAPI {
   exportMatches: (data: string) => Promise<void>;
   savePhotoFile: (data: PhotoBody, photo: ArrayBuffer) => Promise<void>;
   revertPhotoFile: (data: PhotoBody) => Promise<PhotoBody>;
+  navigateEditorPhoto: (data: PhotoBody, direction: EditorNavigation) => Promise<PhotoBody>;
   duplicatePhotoFile: (data: PhotoBody) => Promise<PhotoBody>;
 
   // Methods (renderer-to-main)

@@ -1,8 +1,16 @@
-import { CheckIcon, XIcon, ZoomInIcon, ZoomOutIcon } from "@primer/octicons-react";
+import {
+  CheckIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  XIcon,
+  ZoomInIcon,
+  ZoomOutIcon,
+} from "@primer/octicons-react";
 import {
   Button,
   ButtonGroup,
   FormControl,
+  IconButton,
   Label,
   Select,
   Stack,
@@ -93,6 +101,16 @@ const ImageEditor = ({ data, image }: ImageEditorProps) => {
     setSaving(false);
   };
 
+  const handlePrev = async () => {
+    const result = await window.electronAPI.navigateEditorPhoto(data, "prev");
+    console.log("result", result);
+  };
+
+  const handleNext = async () => {
+    const result = await window.electronAPI.navigateEditorPhoto(data, "next");
+    console.log("result", result);
+  };
+
   return (
     <div className="edit">
       <div className="toolbar">
@@ -159,6 +177,21 @@ const ImageEditor = ({ data, image }: ImageEditorProps) => {
           <Button leadingVisual={ZoomInIcon} size="small" onClick={handleZoomIn}>
             Zoom In
           </Button>
+        </ButtonGroup>
+
+        <ButtonGroup style={{ marginLeft: "auto", marginRight: "auto" }}>
+          <IconButton
+            icon={ChevronLeftIcon}
+            size="small"
+            aria-label="Previous photo"
+            onClick={handlePrev}
+          />
+          <IconButton
+            icon={ChevronRightIcon}
+            size="small"
+            aria-label="Next Photo"
+            onClick={handleNext}
+          />
         </ButtonGroup>
 
         <Button
