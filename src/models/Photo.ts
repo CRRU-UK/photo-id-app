@@ -32,6 +32,7 @@ class Photo {
     this.name = name;
     this.edited = edited;
     this.thumbnail = thumbnail;
+    this.version = 1;
 
     this.project = project;
   }
