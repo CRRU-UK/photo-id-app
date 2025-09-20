@@ -12,7 +12,13 @@ import path from "path";
 import { updateElectronApp } from "update-electron-app";
 import url from "url";
 
-import type { EditorNavigation, PhotoBody, ProjectBody, RecentProject } from "@/types";
+import type {
+  EditorNavigation,
+  ExternalLinks,
+  PhotoBody,
+  ProjectBody,
+  RecentProject,
+} from "@/types";
 
 import { getMenu } from "@/backend/menu";
 import { revertPhotoToOriginal, savePhotoFromBuffer } from "@/backend/photos";
@@ -28,9 +34,9 @@ import {
 import { getRecentProjects, removeRecentProject } from "@/backend/recents";
 import {
   DEFAULT_WINDOW_TITLE,
+  EXTERNAL_LINKS,
   IPC_EVENTS,
   PROJECT_EXPORT_DIRECTORY,
-  USER_GUIDE_URL,
 } from "@/constants";
 
 Sentry.init({
@@ -251,8 +257,15 @@ app.whenReady().then(() => {
     return result;
   });
 
-  ipcMain.on(IPC_EVENTS.OPEN_USER_GUIDE, () => {
-    shell.openExternal(USER_GUIDE_URL);
+  ipcMain.on(IPC_EVENTS.OPEN_EXTERNAL_LINK, (event, link: ExternalLinks) => {
+    if (link === "website") {
+      shell.openExternal(EXTERNAL_LINKS.WEBSITE);
+    }
+
+    if (link === "user-guide") {
+      shell.openExternal(EXTERNAL_LINKS.USER_GUIDE);
+    }
+
     return { action: "deny" };
   });
 });

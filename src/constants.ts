@@ -19,7 +19,7 @@ export enum IPC_EVENTS {
 
   // UI
   SET_LOADING = "ui:setLoading",
-  OPEN_USER_GUIDE = "ui:openUserGuide",
+  OPEN_EXTERNAL_LINK = "ui:openExternalLink",
 
   // Editor
   OPEN_EDIT_WINDOW = "edit:openEditWindow",
@@ -76,4 +76,7 @@ export enum LINE_SIZES {
 
 export const DEFAULT_LINE_COLOR = "#FF0000";
 
-export const USER_GUIDE_URL = "https://photoidapp.crru.org.uk";
+export enum EXTERNAL_LINKS {
+  WEBSITE = "https://crru.org.uk",
+  USER_GUIDE = "https://photoidapp.crru.org.uk",
+}

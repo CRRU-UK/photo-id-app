@@ -23,7 +23,7 @@ export interface IElectronAPI {
   saveProject: (data: string) => void;
   closeProject: () => void;
   openEditWindow: (data: PhotoBody) => void;
-  openUserGuide: () => void;
+  openExternalLink: (link: ExternalLinks) => void;
 
   // Listeners (main-to-renderer)
   onLoading: (callback: (data: LoadingData) => void) => void;
