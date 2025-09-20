@@ -268,10 +268,6 @@ app.whenReady().then(() => {
       shell.openExternal(EXTERNAL_LINKS.USER_GUIDE);
     }
 
-    if (link === "user-guide") {
-      shell.openExternal(EXTERNAL_LINKS.USER_GUIDE);
-    }
-
     if (link === "changelog") {
       shell.openExternal(EXTERNAL_LINKS.CHANGELOG);
     }
