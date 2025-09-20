@@ -155,7 +155,9 @@ app.whenReady().then(() => {
 
   ipcMain.on(IPC_EVENTS.CLOSE_PROJECT, () => {
     for (const window of editWindows) {
-      window.close();
+      if (!window.isDestroyed() && window.closable) {
+        window.close();
+      }
     }
 
     editWindows = [];
