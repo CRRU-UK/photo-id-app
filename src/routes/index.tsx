@@ -141,7 +141,7 @@ const IndexPage = () => {
         <Text size="small">
           Created by{" "}
           <Link href="#" onClick={() => window.electronAPI.openExternalLink("website")}>
-            Cetacean Research & Rescue Unit
+            Cetacean Research &amp; Rescue Unit
           </Link>
         </Text>
       </PrimerStack>

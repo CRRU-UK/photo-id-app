@@ -259,12 +259,10 @@ app.whenReady().then(() => {
 
   ipcMain.on(IPC_EVENTS.OPEN_EXTERNAL_LINK, (event, link: ExternalLinks) => {
     if (link === "website") {
-      console.log("wensite");
       shell.openExternal(EXTERNAL_LINKS.WEBSITE);
     }
 
     if (link === "user-guide") {
-      console.log("guide");
       shell.openExternal(EXTERNAL_LINKS.USER_GUIDE);
     }
 

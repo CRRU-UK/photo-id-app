@@ -92,6 +92,12 @@ const getMenu = (mainWindow: BrowserWindow) => {
             await shell.openExternal(EXTERNAL_LINKS.USER_GUIDE);
           },
         },
+        {
+          label: "Cetacean Research && Rescue Unit website",
+          click: async () => {
+            await shell.openExternal(EXTERNAL_LINKS.WEBSITE);
+          },
+        },
       ],
     },
   ] as Electron.MenuItemConstructorOptions[];
