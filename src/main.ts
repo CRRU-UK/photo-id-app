@@ -12,10 +12,19 @@ import path from "path";
 import { updateElectronApp } from "update-electron-app";
 import url from "url";
 
+import type {
+  EditorNavigation,
+  ExternalLinks,
+  PhotoBody,
+  ProjectBody,
+  RecentProject,
+} from "@/types";
+
 import { getMenu } from "@/backend/menu";
 import { revertPhotoToOriginal, savePhotoFromBuffer } from "@/backend/photos";
 import {
   handleDuplicatePhotoFile,
+  handleEditorNavigate,
   handleExportMatches,
   handleOpenDirectoryPrompt,
   handleOpenFilePrompt,
@@ -25,11 +34,10 @@ import {
 import { getRecentProjects, removeRecentProject } from "@/backend/recents";
 import {
   DEFAULT_WINDOW_TITLE,
+  EXTERNAL_LINKS,
   IPC_EVENTS,
   PROJECT_EXPORT_DIRECTORY,
-  USER_GUIDE_URL,
 } from "@/constants";
-import type { PhotoBody, ProjectBody, RecentProject } from "@/types";
 
 Sentry.init({
   dsn: process.env.SENTRY_DSN,
@@ -63,6 +71,8 @@ const createMainWindow = async () => {
 
   mainWindow.maximize();
 
+  mainWindow.on("closed", () => app.quit());
+
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
     await mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
   } else {
@@ -90,6 +100,8 @@ const createMainWindow = async () => {
     mainWindow.webContents.openDevTools();
   }
 };
+
+let editWindows: BrowserWindow[] = [];
 
 app.on("ready", createMainWindow);
 
@@ -141,6 +153,15 @@ app.whenReady().then(() => {
     },
   );
 
+  ipcMain.on(IPC_EVENTS.CLOSE_PROJECT, () => {
+    for (const window of editWindows) {
+      window.close();
+    }
+
+    editWindows = [];
+    mainWindow.setTitle(DEFAULT_WINDOW_TITLE);
+  });
+
   ipcMain.on(IPC_EVENTS.OPEN_EDIT_WINDOW, (event, data: PhotoBody): void => {
     const editWindow = new BrowserWindow({
       show: false,
@@ -154,6 +175,8 @@ app.whenReady().then(() => {
       backgroundColor: "black",
       fullscreenable: false,
     });
+
+    editWindows.push(editWindow);
 
     if (!production) {
       editWindow.webContents.openDevTools();
@@ -176,10 +199,7 @@ app.whenReady().then(() => {
 
     editWindow.removeMenu();
 
-    editWindow.once("ready-to-show", () => {
-      editWindow.setTitle(`${DEFAULT_WINDOW_TITLE} - ${data.directory}/${data.name}`);
-      editWindow.show();
-    });
+    editWindow.once("ready-to-show", () => editWindow.show());
   });
 
   ipcMain.on(IPC_EVENTS.SAVE_PROJECT, async (event, data: string): Promise<void> => {
@@ -209,6 +229,22 @@ app.whenReady().then(() => {
   );
 
   ipcMain.handle(
+    IPC_EVENTS.NAVIGATE_EDITOR_PHOTO,
+    async (event, data: PhotoBody, direction: EditorNavigation): Promise<string | null> => {
+      // TODO: Should we get the source photo body from sender query params instead?
+      const result = await handleEditorNavigate(data, direction);
+
+      if (!result) {
+        console.warn("Photo not found in project for navigation");
+        return null;
+      }
+
+      const encodedData = btoa(JSON.stringify(result));
+      return encodedData;
+    },
+  );
+
+  ipcMain.handle(
     IPC_EVENTS.REVERT_PHOTO_FILE,
     async (event, data: PhotoBody): Promise<PhotoBody> => {
       const result = await revertPhotoToOriginal(data);
@@ -221,8 +257,15 @@ app.whenReady().then(() => {
     return result;
   });
 
-  ipcMain.on(IPC_EVENTS.OPEN_USER_GUIDE, () => {
-    shell.openExternal(USER_GUIDE_URL);
+  ipcMain.on(IPC_EVENTS.OPEN_EXTERNAL_LINK, (event, link: ExternalLinks) => {
+    if (link === "website") {
+      shell.openExternal(EXTERNAL_LINKS.WEBSITE);
+    }
+
+    if (link === "user-guide") {
+      shell.openExternal(EXTERNAL_LINKS.USER_GUIDE);
+    }
+
     return { action: "deny" };
   });
 });

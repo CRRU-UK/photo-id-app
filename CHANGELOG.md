@@ -1,5 +1,17 @@
 # photo-id
 
+## 0.2.12
+
+### Patch Changes
+
+- e09110d: Add ability to navigate collection in photo editor
+
+## 0.2.11
+
+### Patch Changes
+
+- 30b27d6: Enable Sentry replays
+
 ## 0.2.10
 
 ### Patch Changes

@@ -2,8 +2,8 @@ site_name: Photo ID App
 site_url: https://photoidapp.crru.org.uk/
 theme:
   name: material
-  logo: https://crru.org.uk/images/header/logo-header.png
-  favicon: https://crru.org.uk/favicon-96x96.png
+  logo: assets/images/icon.svg
+  favicon: assets/images/favicon.png
   features:
     - search.suggest
     - search.highlight

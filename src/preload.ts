@@ -1,7 +1,8 @@
+import type { EditorNavigation, ExternalLinks, PhotoBody, RecentProject } from "@/types";
+
 import { contextBridge, ipcRenderer } from "electron";
 
 import { IPC_EVENTS } from "@/constants";
-import type { PhotoBody, RecentProject } from "@/types";
 
 contextBridge.exposeInMainWorld("electronAPI", {
   // Invocations (main and renderer)
@@ -15,6 +16,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ipcRenderer.invoke(IPC_EVENTS.SAVE_PHOTO_FILE, data, photo),
   revertPhotoFile: (data: PhotoBody): Promise<PhotoBody> =>
     ipcRenderer.invoke(IPC_EVENTS.REVERT_PHOTO_FILE, data),
+  navigateEditorPhoto: (data: PhotoBody, direction: EditorNavigation) =>
+    ipcRenderer.invoke(IPC_EVENTS.NAVIGATE_EDITOR_PHOTO, data, direction),
   duplicatePhotoFile: (data: PhotoBody): Promise<PhotoBody> =>
     ipcRenderer.invoke(IPC_EVENTS.DUPLICATE_PHOTO_FILE, data),
 
@@ -23,8 +26,9 @@ contextBridge.exposeInMainWorld("electronAPI", {
   openProjectFile: () => ipcRenderer.send(IPC_EVENTS.OPEN_FILE),
   openRecentProject: (path: string) => ipcRenderer.send(IPC_EVENTS.OPEN_PROJECT_FILE, path),
   saveProject: (data: string) => ipcRenderer.send(IPC_EVENTS.SAVE_PROJECT, data),
+  closeProject: () => ipcRenderer.send(IPC_EVENTS.CLOSE_PROJECT),
   openEditWindow: (data: PhotoBody) => ipcRenderer.send(IPC_EVENTS.OPEN_EDIT_WINDOW, data),
-  openUserGuide: () => ipcRenderer.send(IPC_EVENTS.OPEN_USER_GUIDE),
+  openExternalLink: (link: ExternalLinks) => ipcRenderer.send(IPC_EVENTS.OPEN_EXTERNAL_LINK, link),
 
   // Listeners (main-to-renderer)
   onLoading: (callback: (...params: unknown[]) => void) =>

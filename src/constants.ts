@@ -8,6 +8,7 @@ export enum IPC_EVENTS {
   SAVE_PROJECT = "project:saveProject",
   LOAD_PROJECT = "project:loadProject",
   LOAD_RECENT_PROJECTS = "project:loadRecentProjects",
+  CLOSE_PROJECT = "project:closeProject",
 
   // Photos
   SAVE_PHOTO_FILE = "photos:savePhotoFile",
@@ -18,10 +19,11 @@ export enum IPC_EVENTS {
 
   // UI
   SET_LOADING = "ui:setLoading",
-  OPEN_USER_GUIDE = "ui:openUserGuide",
+  OPEN_EXTERNAL_LINK = "ui:openExternalLink",
 
-  // Edit
+  // Editor
   OPEN_EDIT_WINDOW = "edit:openEditWindow",
+  NAVIGATE_EDITOR_PHOTO = "edit:navigateEditorPhoto",
 }
 
 export const DEFAULT_WINDOW_TITLE = "Photo ID";
@@ -74,4 +76,7 @@ export enum LINE_SIZES {
 
 export const DEFAULT_LINE_COLOR = "#FF0000";
 
-export const USER_GUIDE_URL = "https://photoidapp.crru.org.uk/user-guide/";
+export enum EXTERNAL_LINKS {
+  WEBSITE = "https://crru.org.uk",
+  USER_GUIDE = "https://photoidapp.crru.org.uk/user-guide/",
+}
