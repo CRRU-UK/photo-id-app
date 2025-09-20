@@ -1,4 +1,4 @@
-import type { EditorNavigation, PhotoBody, RecentProject } from "@/types";
+import type { EditorNavigation, ExternalLinks, PhotoBody, RecentProject } from "@/types";
 
 import { contextBridge, ipcRenderer } from "electron";
 
@@ -28,7 +28,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
   saveProject: (data: string) => ipcRenderer.send(IPC_EVENTS.SAVE_PROJECT, data),
   closeProject: () => ipcRenderer.send(IPC_EVENTS.CLOSE_PROJECT),
   openEditWindow: (data: PhotoBody) => ipcRenderer.send(IPC_EVENTS.OPEN_EDIT_WINDOW, data),
-  openUserGuide: () => ipcRenderer.send(IPC_EVENTS.OPEN_USER_GUIDE),
+  openExternalLink: (link: ExternalLinks) => ipcRenderer.send(IPC_EVENTS.OPEN_EXTERNAL_LINK, link),
 
   // Listeners (main-to-renderer)
   onLoading: (callback: (...params: unknown[]) => void) =>

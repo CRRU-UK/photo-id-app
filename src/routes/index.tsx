@@ -16,6 +16,7 @@ import { useEffect, useState } from "react";
 import { PROJECT_FILE_NAME, PROJECT_STORAGE_NAME } from "@/constants";
 import LoadingOverlay from "@/frontend/components/LoadingOverlay";
 import RecentProjects from "@/frontend/components/RecentProjects";
+import icon from "@/frontend/img/icon.svg";
 import logo from "@/frontend/img/logo.png";
 
 import { version } from "../../package.json";
@@ -42,7 +43,7 @@ const IndexPage = () => {
       <LoadingOverlay data={loading} />
 
       <PageLayout
-        sx={{
+        style={{
           backgroundColor: "var(--bgColor-default)",
           width: "100vw",
           height: "100vh",
@@ -66,7 +67,7 @@ const IndexPage = () => {
                 width: "100px",
                 height: "auto",
               }}
-              src={logo as string}
+              src={icon}
               alt=""
             />
 
@@ -77,7 +78,7 @@ const IndexPage = () => {
                 <BranchName as="span">v{version}</BranchName>
                 <Link
                   href="#"
-                  onClick={() => window.electronAPI.openUserGuide()}
+                  onClick={() => window.electronAPI.openExternalLink("user-guide")}
                   inline
                   muted
                   style={{ fontSize: "var(--text-body-size-medium)" }}
@@ -120,6 +121,30 @@ const IndexPage = () => {
           <RecentProjects />
         </PageLayout.Content>
       </PageLayout>
+
+      <PrimerStack
+        className="footer"
+        align="center"
+        justify="center"
+        direction="horizontal"
+        padding="spacious"
+      >
+        <img
+          style={{
+            display: "block",
+            width: "32px",
+            height: "32px",
+          }}
+          src={logo as string}
+          alt=""
+        />
+        <Text size="small">
+          Created by{" "}
+          <Link href="#" onClick={() => window.electronAPI.openExternalLink("website")}>
+            Cetacean Research & Rescue Unit
+          </Link>
+        </Text>
+      </PrimerStack>
     </>
   );
 };
