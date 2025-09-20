@@ -69,4 +69,4 @@ export type LoadingData = {
 
 export type EditorNavigation = "prev" | "next";
 
-export type ExternalLinks = "website" | "user-guide";
+export type ExternalLinks = "website" | "user-guide" | "changelog";

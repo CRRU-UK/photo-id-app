@@ -155,7 +155,9 @@ app.whenReady().then(() => {
 
   ipcMain.on(IPC_EVENTS.CLOSE_PROJECT, () => {
     for (const window of editWindows) {
-      window.close();
+      if (!window.isDestroyed() && window.closable) {
+        window.close();
+      }
     }
 
     editWindows = [];
@@ -264,6 +266,14 @@ app.whenReady().then(() => {
 
     if (link === "user-guide") {
       shell.openExternal(EXTERNAL_LINKS.USER_GUIDE);
+    }
+
+    if (link === "user-guide") {
+      shell.openExternal(EXTERNAL_LINKS.USER_GUIDE);
+    }
+
+    if (link === "changelog") {
+      shell.openExternal(EXTERNAL_LINKS.CHANGELOG);
     }
 
     return { action: "deny" };

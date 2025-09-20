@@ -1,6 +1,6 @@
 import type { LoadingData } from "@/types";
 
-import { BookIcon, FileDirectoryIcon, FileIcon } from "@primer/octicons-react";
+import { BookIcon, FileDirectoryIcon, FileIcon, RepoIcon } from "@primer/octicons-react";
 import {
   BranchName,
   Button,
@@ -16,6 +16,7 @@ import { useEffect, useState } from "react";
 import { PROJECT_FILE_NAME, PROJECT_STORAGE_NAME } from "@/constants";
 import LoadingOverlay from "@/frontend/components/LoadingOverlay";
 import RecentProjects from "@/frontend/components/RecentProjects";
+
 import icon from "@/frontend/img/icon.svg";
 import logo from "@/frontend/img/logo.png";
 
@@ -72,10 +73,12 @@ const IndexPage = () => {
             />
 
             <div>
-              <Heading variant="large">Photo ID</Heading>
+              <PrimerStack direction="horizontal" align="center" justify="start" gap="normal">
+                <Heading variant="large">Photo ID</Heading>
+                <BranchName as="span">v{version}</BranchName>
+              </PrimerStack>
 
               <PrimerStack direction="horizontal" align="center">
-                <BranchName as="span">v{version}</BranchName>
                 <Link
                   href="#"
                   onClick={() => window.electronAPI.openExternalLink("user-guide")}
@@ -84,6 +87,15 @@ const IndexPage = () => {
                   style={{ fontSize: "var(--text-body-size-medium)" }}
                 >
                   <BookIcon size={16} /> <Text>User Guide</Text>
+                </Link>
+                <Link
+                  href="#"
+                  onClick={() => window.electronAPI.openExternalLink("changelog")}
+                  inline
+                  muted
+                  style={{ fontSize: "var(--text-body-size-medium)" }}
+                >
+                  <RepoIcon size={16} /> <Text>What&apos;s New</Text>
                 </Link>
               </PrimerStack>
             </div>
@@ -139,8 +151,13 @@ const IndexPage = () => {
           alt=""
         />
         <Text size="small">
-          Created by{" "}
-          <Link href="#" onClick={() => window.electronAPI.openExternalLink("website")}>
+          By{" "}
+          <Link
+            href="#"
+            onClick={() => window.electronAPI.openExternalLink("website")}
+            muted
+            style={{ textDecoration: "underline" }}
+          >
             Cetacean Research &amp; Rescue Unit
           </Link>
         </Text>
