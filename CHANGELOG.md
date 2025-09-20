@@ -1,5 +1,19 @@
 # photo-id
 
+## 0.3.0
+
+### Minor Changes
+
+- 0326d8f: Update app logo
+
+### Patch Changes
+
+- e8089aa: App now focuses when a new project has finished initialising
+- 715c4bc: Show default window title when closing a project
+- 5353878: Fix closing edit windows when closing a project multiple times
+- b5fdf6c: Closing a project now closes all open edit windows
+- 23e780d: Limit photo editor navigation
+
 ## 0.2.12
 
 ### Patch Changes
