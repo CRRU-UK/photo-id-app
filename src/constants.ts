@@ -79,4 +79,5 @@ export const DEFAULT_LINE_COLOR = "#FF0000";
 export enum EXTERNAL_LINKS {
   WEBSITE = "https://crru.org.uk",
   USER_GUIDE = "https://photoidapp.crru.org.uk",
+  CHANGELOG = "https://github.com/CRRU-UK/photo-id-app/releases/latest",
 }
