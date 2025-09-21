@@ -124,7 +124,8 @@ body.copying *:hover {
   object-fit: contain;
 }
 
-.edit > .canvas {
+.edit > .canvas,
+.edit > .canvas:hover {
   cursor: grab;
 }
 
