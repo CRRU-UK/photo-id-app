@@ -124,16 +124,12 @@ body.copying *:hover {
   object-fit: contain;
 }
 
-.edit > .canvas.pan {
+.edit > .canvas {
   cursor: grab;
 }
 
-.edit > .canvas.pan:active {
+.edit > .canvas:active {
   cursor: grabbing;
-}
-
-.edit > .canvas.draw {
-  cursor: crosshair;
 }
 
 .loading {
