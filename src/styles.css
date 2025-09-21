@@ -52,6 +52,14 @@ body.copying *:hover {
   background: var(--bgColor-default);
 }
 
+.project > .pages > .columns {
+  margin-left: auto;
+  padding: 0 var(--stack-gap-normal);
+  border-left: 1px solid var(--borderColor-muted, var(--color-border-muted));
+  box-shadow: inset 0 -1px var(--borderColor-muted, var(--color-border-muted));
+  min-height: var(--control-xlarge-size, 48px);
+}
+
 .project > .content {
   position: fixed;
   right: 0;
@@ -67,6 +75,14 @@ body.copying *:hover {
   padding: var(--stack-gap-normal);
   column-count: 2;
   column-gap: var(--stack-gap-spacious);
+}
+
+.project > .content > .grid[data-columns="1"] {
+  column-count: 1;
+}
+
+.project > .content > .grid[data-columns="2"] {
+  column-count: 2;
 }
 
 .edit {
