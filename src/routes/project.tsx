@@ -11,7 +11,9 @@ import {
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
-import { UnderlineNav } from "@primer/react";
+
+import { ColumnsIcon } from "@primer/octicons-react";
+import { SegmentedControl, Stack, UnderlineNav } from "@primer/react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 
@@ -48,6 +50,7 @@ const ProjectPage = () => {
   const [currentPage, setCurrentPage] = useState<number>(0);
   const [loading, setLoading] = useState<LoadingData>({ show: false });
   const [isCopying, setIsCopying] = useState<boolean>(false);
+  const [columns, setColumns] = useState<number>(2);
 
   const project = useMemo(() => {
     const projectData = JSON.parse(
@@ -111,6 +114,8 @@ const ProjectPage = () => {
     setDraggingPhoto(null);
   };
 
+  const handleColumnsChange = (i: number) => setColumns(i + 1);
+
   const matchedArray = Array.from(project.matched);
 
   const matchedRows = matchedArray.slice(
@@ -151,12 +156,22 @@ const ProjectPage = () => {
         <div className={`project ${isCopying ? "copying" : ""}`}>
           <Sidebar />
 
-          <UnderlineNav aria-label="Pages" className="pages">
-            {matchedPages}
-          </UnderlineNav>
+          <Stack className="pages" direction="horizontal" align="center" gap="none">
+            <UnderlineNav aria-label="Pages" sx={{ width: "100%" }}>
+              {matchedPages}
+            </UnderlineNav>
+
+            <Stack className="columns" direction="horizontal" align="center" gap="normal">
+              <ColumnsIcon size={16} />
+              <SegmentedControl aria-label="Columns" onChange={handleColumnsChange}>
+                <SegmentedControl.Button selected={columns === 1}>1</SegmentedControl.Button>
+                <SegmentedControl.Button selected={columns === 2}>2</SegmentedControl.Button>
+              </SegmentedControl>
+            </Stack>
+          </Stack>
 
           <div className="content">
-            <div className="grid">
+            <div className="grid" data-columns={columns}>
               <Selections matches={matchedRows} />
             </div>
           </div>
