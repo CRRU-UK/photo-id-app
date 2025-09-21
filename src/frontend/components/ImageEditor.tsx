@@ -58,7 +58,7 @@ const CanvasImage = ({
   return (
     <canvas
       ref={ref}
-      className={`canvas`}
+      className="canvas"
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
