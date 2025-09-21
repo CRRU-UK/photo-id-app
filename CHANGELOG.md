@@ -1,5 +1,12 @@
 # photo-id
 
+## 0.3.1
+
+### Patch Changes
+
+- 401336a: Add a column control in the project view
+- 83fd924: Remove drawing and greyscale
+
 ## 0.3.0
 
 ### Minor Changes
