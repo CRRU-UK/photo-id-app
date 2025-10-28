@@ -5,5 +5,9 @@
   "editor.formatOnSave": true,
   "[typescript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "sonarlint.connectedMode.project": {
+    "connectionId": "crru",
+    "projectKey": "CRRU-UK_photo-id-app"
   }
 }

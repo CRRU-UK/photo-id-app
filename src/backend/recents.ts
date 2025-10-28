@@ -1,6 +1,6 @@
 import { app } from "electron";
-import fs from "fs";
-import path from "path";
+import fs from "node:fs";
+import path from "node:path";
 
 import { MAX_RECENT_PROJECTS, RECENT_PROJECTS_FILE_NAME } from "@/constants";
 import type { RecentProject } from "@/types";

@@ -123,8 +123,8 @@ const ProjectPage = () => {
   );
 
   const matchedPages = chunkArray(matchedArray, MATCHED_STACKS_PER_PAGE).map((item, index) => {
-    const first = item[0].id;
-    const last = item[item.length - 1].id;
+    const first = item.at(0)!.id;
+    const last = item.at(-1)!.id;
 
     return (
       <UnderlineNav.Item

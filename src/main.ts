@@ -8,9 +8,9 @@ import {
   REACT_DEVELOPER_TOOLS,
 } from "electron-devtools-installer";
 import started from "electron-squirrel-startup";
-import path from "path";
+import path from "node:path";
+import url from "node:url";
 import { updateElectronApp } from "update-electron-app";
-import url from "url";
 
 import type {
   EditorNavigation,
