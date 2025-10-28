@@ -12,8 +12,6 @@ import { Button, ButtonGroup, FormControl, IconButton, Label, Stack } from "@pri
 import { memo, useEffect, useState } from "react";
 import { usePhotoEditor } from "react-photo-editor";
 
-import { readFileAsString } from "@/helpers";
-
 interface SliderProps {
   name: string;
   value: number;
@@ -103,7 +101,7 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
     setSaving(true);
 
     const editedFile = await generateEditedFile();
-    const editedFileData = await readFileAsString(editedFile as File);
+    const editedFileData = await (editedFile as File).arrayBuffer();
 
     await window.electronAPI.savePhotoFile(data, editedFileData);
 

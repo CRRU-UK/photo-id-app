@@ -1,7 +1,7 @@
-import crypto from "crypto";
 import { app, dialog } from "electron";
-import fs from "fs";
-import path from "path";
+import crypto from "node:crypto";
+import fs from "node:fs";
+import path from "node:path";
 
 import type {
   CollectionBody,
@@ -225,13 +225,13 @@ const handleExportMatches = async (data: string) => {
   const project = JSON.parse(data) as ProjectBody;
 
   const exportsDirectory = path.join(project.directory, PROJECT_EXPORT_DIRECTORY);
-  if (!fs.existsSync(exportsDirectory)) {
-    await fs.promises.mkdir(exportsDirectory);
-  } else {
+  if (fs.existsSync(exportsDirectory)) {
     // Empty exports folder
     for (const file of await fs.promises.readdir(exportsDirectory)) {
       await fs.promises.unlink(path.join(exportsDirectory, file));
     }
+  } else {
+    await fs.promises.mkdir(exportsDirectory);
   }
 
   const handleSide = async (id: string, side: CollectionBody, label: "L" | "R") => {
@@ -270,7 +270,7 @@ const handleDuplicatePhotoFile = async (data: PhotoBody): Promise<PhotoBody> => 
   const originalPath = path.join(data.directory, data.name);
   const thumbnailPath = path.join(data.directory, data.thumbnail);
 
-  const time = new Date().getTime();
+  const time = Date.now();
 
   const originalExtension = path.extname(data.name);
   const newOriginalPath = data.name.replace(

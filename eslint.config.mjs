@@ -3,8 +3,11 @@ import vitest from "@vitest/eslint-plugin";
 import prettier from "eslint-plugin-prettier/recommended";
 import react from "eslint-plugin-react";
 import reactHooks from "eslint-plugin-react-hooks";
+import { defineConfig, globalIgnores } from "eslint/config";
 import globals from "globals";
 import tseslint from "typescript-eslint";
+
+const ignores = globalIgnores(["**/*.gen.ts"]);
 
 const recommendedConfigs = [
   eslint.configs.recommended,
@@ -87,4 +90,4 @@ const customConfigs = [
   },
 ];
 
-export default tseslint.config(...[...recommendedConfigs, ...customConfigs, prettier]);
+export default defineConfig(ignores, recommendedConfigs, customConfigs, prettier);
