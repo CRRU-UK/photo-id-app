@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
 import "@primer/primitives/dist/css/base/motion/motion.css";
 import "@primer/primitives/dist/css/functional/size/border.css";

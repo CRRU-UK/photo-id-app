@@ -59,6 +59,9 @@ const ProjectPage = () => {
     return new ProjectModel(projectData);
   }, []);
 
+  const handleKeyUp = () => setIsCopying(false);
+  const handleKeyDown = (event: KeyboardEvent) => setIsCopying(event.ctrlKey || event.altKey);
+
   useEffect(() => {
     // Rename this and also handle adding edited to photo (but need to account for reversion)
     window.electronAPI.onUpdatePhoto((data) => project.updatePhoto(data));
@@ -79,10 +82,6 @@ const ProjectPage = () => {
     }
     return document.body.classList.remove("copying");
   }, [draggingPhoto, isCopying]);
-
-  const handleKeyUp = () => setIsCopying(false);
-
-  const handleKeyDown = (event: KeyboardEvent) => setIsCopying(event.ctrlKey || event.altKey);
 
   const handleDragStart = (event: DragStartEvent) => {
     const { collection, currentPhoto } = event.active.data.current as unknown as DraggableStartData;
