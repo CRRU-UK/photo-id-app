@@ -41,6 +41,7 @@ const recommendedConfigs = [
     rules: {
       ...vitest.configs.all.rules,
       "vitest/prefer-expect-assertions": ["off"],
+      "vitest/no-hooks": ["off"],
     },
     settings: {
       vitest: {
