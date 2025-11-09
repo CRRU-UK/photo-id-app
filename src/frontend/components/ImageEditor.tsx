@@ -8,22 +8,9 @@ import {
   ZoomInIcon,
   ZoomOutIcon,
 } from "@primer/octicons-react";
-import {
-  Button,
-  ButtonGroup,
-  FormControl,
-  IconButton,
-  Label,
-  Select,
-  Stack,
-  Text,
-  ToggleSwitch,
-} from "@primer/react";
+import { Button, ButtonGroup, FormControl, IconButton, Label, Stack } from "@primer/react";
 import { memo, useEffect, useState } from "react";
 import { usePhotoEditor } from "react-photo-editor";
-
-import { DEFAULT_LINE_COLOR, LINE_SIZES } from "@/constants";
-import { readFileAsString } from "@/helpers";
 
 interface SliderProps {
   name: string;
@@ -53,7 +40,6 @@ const Slider = ({ name, value, min, max, callback }: SliderProps) => (
 
 interface CanvasImageProps {
   ref: React.RefObject<HTMLCanvasElement | null>;
-  mode: string;
   handlePointerDown: (event: React.PointerEvent<HTMLCanvasElement>) => void;
   handlePointerMove: (event: React.PointerEvent<HTMLCanvasElement>) => void;
   handlePointerUp: (event: React.PointerEvent<HTMLCanvasElement>) => void;
@@ -62,7 +48,6 @@ interface CanvasImageProps {
 
 const CanvasImage = ({
   ref,
-  mode,
   handlePointerDown,
   handlePointerMove,
   handlePointerUp,
@@ -71,7 +56,7 @@ const CanvasImage = ({
   return (
     <canvas
       ref={ref}
-      className={`canvas ${mode}`}
+      className="canvas"
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
@@ -100,14 +85,6 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
     setContrast,
     saturate,
     setSaturate,
-    grayscale,
-    setGrayscale,
-    mode,
-    setMode,
-    lineColor,
-    setLineColor,
-    lineWidth,
-    setLineWidth,
     handleZoomIn,
     handleZoomOut,
     generateEditedFile,
@@ -118,15 +95,13 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
     resetFilters,
   } = usePhotoEditor({
     file: image,
-    defaultLineWidth: Number(LINE_SIZES.NORMAL),
-    defaultLineColor: DEFAULT_LINE_COLOR,
   });
 
   const handleSave = async () => {
     setSaving(true);
 
     const editedFile = await generateEditedFile();
-    const editedFileData = await readFileAsString(editedFile as File);
+    const editedFileData = await (editedFile as File).arrayBuffer();
 
     await window.electronAPI.savePhotoFile(data, editedFileData);
 
@@ -175,66 +150,25 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
           <Slider name="Brightness" value={brightness} min={0} max={200} callback={setBrightness} />
           <Slider name="Contrast" value={contrast} min={0} max={200} callback={setContrast} />
           <Slider name="Saturation" value={saturate} min={0} max={200} callback={setSaturate} />
-          <Slider name="Grayscale" value={grayscale} min={0} max={100} callback={setGrayscale} />
-        </Stack>
-
-        <Stack
-          direction="horizontal"
-          align="center"
-          gap="condensed"
-          sx={{ marginLeft: "auto", marginRight: "auto" }}
-        >
-          <Text
-            id="captioned-toggle-label"
-            sx={{
-              fontSize: "var(--text-body-size-medium)",
-              fontWeight: "var(--base-text-weight-semibold)",
-            }}
-          >
-            Draw
-          </Text>
-
-          <ToggleSwitch
-            size="small"
-            aria-labelledby="draw-toggle"
-            statusLabelPosition="end"
-            checked={mode == "draw"}
-            onClick={() => setMode(mode === "pan" ? "draw" : "pan")}
-          />
-
-          <div className="colour-picker">
-            <label
-              htmlFor="line-colour"
-              style={{ backgroundColor: lineColor }}
-              aria-label="Colour"
-            />
-            <input
-              id="line-colour"
-              type="color"
-              value={lineColor}
-              onChange={(event) => setLineColor(event.target.value)}
-            />
-          </div>
-
-          <Select
-            size="small"
-            value={String(lineWidth)}
-            onChange={(event) => setLineWidth(Number(event.target.value))}
-          >
-            <Select.Option value={String(LINE_SIZES.LIGHT)}>Light</Select.Option>
-            <Select.Option value={String(LINE_SIZES.NORMAL)}>Normal</Select.Option>
-            <Select.Option value={String(LINE_SIZES.HEAVY)}>Heavy</Select.Option>
-          </Select>
         </Stack>
 
         <ButtonGroup style={{ marginLeft: "auto", marginRight: "auto" }}>
-          <IconButton
-            icon={ZoomOutIcon}
+          <Button
+            leadingVisual={ZoomOutIcon}
             size="medium"
             aria-label="Zoom out"
             onClick={handleZoomOut}
-          />
-          <IconButton icon={ZoomInIcon} size="medium" aria-label="Zoom In" onClick={handleZoomIn} />
+          >
+            Zoom Out
+          </Button>
+          <Button
+            leadingVisual={ZoomInIcon}
+            size="medium"
+            aria-label="Zoom In"
+            onClick={handleZoomIn}
+          >
+            Zoom In
+          </Button>
         </ButtonGroup>
 
         <ButtonGroup style={{ marginLeft: "auto", marginRight: "auto" }}>
@@ -276,7 +210,6 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
 
       <CanvasImage
         ref={canvasRef}
-        mode={mode}
         handlePointerDown={handlePointerDown}
         handlePointerMove={handlePointerMove}
         handlePointerUp={handlePointerUp}

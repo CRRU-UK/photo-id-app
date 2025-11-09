@@ -1,5 +1,5 @@
-import fs from "fs";
-import path from "path";
+import fs from "node:fs";
+import path from "node:path";
 import sharp, { type Sharp } from "sharp";
 
 import { PROJECT_EDITS_DIRECTORY, PROJECT_THUMBNAIL_DIRECTORY, THUMBNAIL_SIZE } from "@/constants";

@@ -3,7 +3,7 @@ export const getAlphabetLetter = (index: number): string => {
 
   while (index > 0) {
     index--;
-    result = String.fromCharCode((index % 26) + 65) + result;
+    result = String.fromCodePoint((index % 26) + 65) + result;
     index = Math.floor(index / 26);
   }
 
@@ -18,15 +18,4 @@ export const chunkArray = <T>(array: T[], size: number): T[][] => {
   }
 
   return chunks;
-};
-
-export const readFileAsString = (file: File): Promise<ArrayBuffer> => {
-  return new Promise<ArrayBuffer>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      resolve(reader.result as ArrayBuffer);
-    };
-    reader.onerror = reject;
-    reader.readAsArrayBuffer(file);
-  });
 };

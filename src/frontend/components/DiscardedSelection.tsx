@@ -32,10 +32,10 @@ const DiscardedSelection = ({ collection }: DiscardedSelectionProps) => {
       <Text
         size="medium"
         weight="semibold"
-        sx={{
+        style={{
           display: "block",
           color: "var(--fgColor-muted)",
-          mb: 2,
+          marginBottom: "var(--stack-gap-condensed)",
         }}
       >
         Discarded Photos

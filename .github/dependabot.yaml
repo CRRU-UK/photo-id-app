@@ -16,7 +16,7 @@ updates:
           - "major"
 
   - package-ecosystem: "github-actions"
-    directory: "/.github"
+    directory: "/"
     schedule:
       interval: "weekly"
     groups:

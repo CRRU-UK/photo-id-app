@@ -11,7 +11,9 @@ import {
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
-import { UnderlineNav } from "@primer/react";
+
+import { ColumnsIcon } from "@primer/octicons-react";
+import { SegmentedControl, Stack, UnderlineNav } from "@primer/react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 
@@ -48,6 +50,7 @@ const ProjectPage = () => {
   const [currentPage, setCurrentPage] = useState<number>(0);
   const [loading, setLoading] = useState<LoadingData>({ show: false });
   const [isCopying, setIsCopying] = useState<boolean>(false);
+  const [columns, setColumns] = useState<number>(2);
 
   const project = useMemo(() => {
     const projectData = JSON.parse(
@@ -55,6 +58,9 @@ const ProjectPage = () => {
     ) as ProjectBody;
     return new ProjectModel(projectData);
   }, []);
+
+  const handleKeyUp = () => setIsCopying(false);
+  const handleKeyDown = (event: KeyboardEvent) => setIsCopying(event.ctrlKey || event.altKey);
 
   useEffect(() => {
     // Rename this and also handle adding edited to photo (but need to account for reversion)
@@ -76,10 +82,6 @@ const ProjectPage = () => {
     }
     return document.body.classList.remove("copying");
   }, [draggingPhoto, isCopying]);
-
-  const handleKeyUp = () => setIsCopying(false);
-
-  const handleKeyDown = (event: KeyboardEvent) => setIsCopying(event.ctrlKey || event.altKey);
 
   const handleDragStart = (event: DragStartEvent) => {
     const { collection, currentPhoto } = event.active.data.current as unknown as DraggableStartData;
@@ -111,6 +113,8 @@ const ProjectPage = () => {
     setDraggingPhoto(null);
   };
 
+  const handleColumnsChange = (i: number) => setColumns(i + 1);
+
   const matchedArray = Array.from(project.matched);
 
   const matchedRows = matchedArray.slice(
@@ -119,8 +123,8 @@ const ProjectPage = () => {
   );
 
   const matchedPages = chunkArray(matchedArray, MATCHED_STACKS_PER_PAGE).map((item, index) => {
-    const first = item[0].id;
-    const last = item[item.length - 1].id;
+    const first = item.at(0)!.id;
+    const last = item.at(-1)!.id;
 
     return (
       <UnderlineNav.Item
@@ -151,12 +155,20 @@ const ProjectPage = () => {
         <div className={`project ${isCopying ? "copying" : ""}`}>
           <Sidebar />
 
-          <UnderlineNav aria-label="Pages" className="pages">
-            {matchedPages}
-          </UnderlineNav>
+          <Stack className="pages" direction="horizontal" align="center" gap="none">
+            <UnderlineNav aria-label="Pages">{matchedPages}</UnderlineNav>
+
+            <Stack className="columns" direction="horizontal" align="center" gap="normal">
+              <ColumnsIcon size={16} />
+              <SegmentedControl aria-label="Columns" onChange={handleColumnsChange}>
+                <SegmentedControl.Button selected={columns === 1}>1</SegmentedControl.Button>
+                <SegmentedControl.Button selected={columns === 2}>2</SegmentedControl.Button>
+              </SegmentedControl>
+            </Stack>
+          </Stack>
 
           <div className="content">
-            <div className="grid">
+            <div className="grid" data-columns={columns}>
               <Selections matches={matchedRows} />
             </div>
           </div>

@@ -68,14 +68,6 @@ export const MATCHED_STACKS_PER_PAGE = 8;
 
 export const INITIAL_MATCHED_STACKS = 52;
 
-export enum LINE_SIZES {
-  LIGHT = 10,
-  NORMAL = 20,
-  HEAVY = 50,
-}
-
-export const DEFAULT_LINE_COLOR = "#FF0000";
-
 export enum EXTERNAL_LINKS {
   WEBSITE = "https://crru.org.uk",
   USER_GUIDE = "https://photoidapp.crru.org.uk/user-guide/",

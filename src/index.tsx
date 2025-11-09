@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
 import "@primer/primitives/dist/css/base/motion/motion.css";
 import "@primer/primitives/dist/css/functional/size/border.css";
@@ -21,10 +20,10 @@ import "./styles.css";
 Sentry.init({
   dsn: import.meta.env.VITE_SENTRY_DSN,
   telemetry: false,
-  tracesSampleRate: 1.0,
-  profilesSampleRate: 1.0,
-  replaysSessionSampleRate: 1.0,
-  replaysOnErrorSampleRate: 1.0,
+  tracesSampleRate: 1,
+  profilesSampleRate: 1,
+  replaysSessionSampleRate: 1,
+  replaysOnErrorSampleRate: 1,
   integrations: [
     Sentry.browserTracingIntegration(),
     Sentry.browserProfilingIntegration(),

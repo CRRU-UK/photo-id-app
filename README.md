@@ -28,7 +28,7 @@ It supports Windows, macOS, and Linux.
 1. Clone the repository
 2. Ensure you are using Node version >= 24 (`nvm install 24` / `nvm use 24`)
 3. Install the dependencies by running [`npm ci`](https://docs.npmjs.com/cli/ci.html)
-4. If using VS Code install the [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint), [Stylelint](https://marketplace.visualstudio.com/items?itemName=stylelint.vscode-stylelint), and [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode) extensions
+4. If using VS Code install the [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) and [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode) extensions
 
 Below are the NPM commands that can be used for development:
 

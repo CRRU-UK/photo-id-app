@@ -12,7 +12,7 @@ const Progress = ({ value, label }: ProgressProps) => (
   <>
     <ProgressBar animated progress={value} barSize="large" style={{ width: "100%" }} />
     {label && (
-      <Text sx={{ color: "var(--fgColor-muted)", font: "var(--text-body-shorthand-medium)" }}>
+      <Text style={{ color: "var(--fgColor-muted)", font: "var(--text-body-shorthand-medium)" }}>
         {label}
       </Text>
     )}
@@ -36,7 +36,7 @@ const LoadingOverlay = ({ data }: LoadingOverlayProps) => {
         direction="vertical"
         align="center"
         gap="spacious"
-        sx={{ width: "100%", maxWidth: "600px" }}
+        style={{ width: "100%", maxWidth: "600px" }}
       >
         {progressValue === null && <Spinner size="large" />}
         {text && <span className="text">{text}</span>}
