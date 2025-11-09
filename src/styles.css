@@ -52,6 +52,11 @@ body.copying *:hover {
   background: var(--bgColor-default);
 }
 
+/* For <UnderlineNav /> component */
+.project > .pages > nav {
+  width: 100%;
+}
+
 .project > .pages > .columns {
   margin-left: auto;
   padding: 0 var(--stack-gap-normal);

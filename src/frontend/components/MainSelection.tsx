@@ -18,12 +18,15 @@ const ProgressElements = ({ progress, total }: ProgressElementsProps) => (
     gap="condensed"
     style={{ marginTop: "var(--stack-gap-normal)" }}
   >
-    <Text size="small" weight="light" sx={{ color: "var(--fgColor-muted)", whiteSpace: "nowrap" }}>
+    <Text
+      size="small"
+      weight="light"
+      style={{ color: "var(--fgColor-muted)", whiteSpace: "nowrap" }}
+    >
       {progress} of {total} assigned
     </Text>
     <ProgressBar
       progress={Math.floor((progress / total) * 100)}
-      width="100%"
       inline
       bg={progress >= total ? "success.emphasis" : "accent.emphasis"}
       style={{ width: "100%" }}
@@ -59,10 +62,10 @@ const MainSelection = ({ collection, total }: MainSelectionProps) => {
       <Text
         size="medium"
         weight="semibold"
-        sx={{
+        style={{
           display: "block",
           color: "var(--fgColor-muted)",
-          mb: 2,
+          marginBottom: "var(--stack-gap-condensed)",
         }}
       >
         Unassigned Photos

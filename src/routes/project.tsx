@@ -156,9 +156,7 @@ const ProjectPage = () => {
           <Sidebar />
 
           <Stack className="pages" direction="horizontal" align="center" gap="none">
-            <UnderlineNav aria-label="Pages" sx={{ width: "100%" }}>
-              {matchedPages}
-            </UnderlineNav>
+            <UnderlineNav aria-label="Pages">{matchedPages}</UnderlineNav>
 
             <Stack className="columns" direction="horizontal" align="center" gap="normal">
               <ColumnsIcon size={16} />
