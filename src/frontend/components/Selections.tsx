@@ -46,12 +46,12 @@ const SelectionStack = ({ id, side, collection }: SelectionStackProps) => {
         align="center"
         justify="space-between"
         gap="condensed"
-        sx={{ mb: 2 }}
+        style={{ marginBottom: "var(--stack-gap-condensed)" }}
       >
         <Text
           size="medium"
           weight="semibold"
-          sx={{
+          style={{
             display: "block",
             color: "var(--fgColor-default)",
           }}
@@ -76,7 +76,11 @@ interface SelectionsProps {
 
 const Selections = ({ matches }: SelectionsProps) =>
   matches.map((match) => (
-    <PrimerStack direction="horizontal" sx={{ mb: 4 }} key={match.id}>
+    <PrimerStack
+      direction="horizontal"
+      style={{ marginBottom: "var(--stack-gap-normal)" }}
+      key={match.id}
+    >
       <SelectionStack id={match.id} side="Left" collection={match.left} />
       <SelectionStack id={match.id} side="Right" collection={match.right} />
     </PrimerStack>

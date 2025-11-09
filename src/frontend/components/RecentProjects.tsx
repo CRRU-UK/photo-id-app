@@ -72,13 +72,16 @@ const RecentProjectsList = ({ projects, onRemove }: RecentProjectsListProps) => 
                 <Link
                   href="#"
                   onClick={() => handleOpenProjectFile(item.path)}
-                  sx={{
+                  style={{
                     fontWeight: "bold",
                   }}
                 >
                   {item.name}
                 </Link>
-                <RelativeTime datetime={item.lastOpened} sx={{ ml: 2 }} />
+                <RelativeTime
+                  datetime={item.lastOpened}
+                  style={{ marginLeft: "var(--stack-gap-condensed)" }}
+                />
                 <Text
                   weight="semibold"
                   size="small"
