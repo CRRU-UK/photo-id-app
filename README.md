@@ -16,7 +16,7 @@
 
 ## Introduction
 
-The Photo ID app is a multi-platform research tool that can be used for photo-identification methodologies in longitudinal mark-recapture studies. It allows for the grouping of photographs containing unique identification markings (such as the dorsal fins of cetaceans), and includes tools for editing and visually filtering photographs to help with identification of marks, and exporting matches.
+The Photo ID app is a multi-platform research tool that can be used for photo-identification methodologies such as in longitudinal mark-recapture studies. It allows for the grouping of photographs containing unique identification markings (such as the dorsal fins of cetaceans), and includes tools for editing and visually filtering photographs to help with identification of marks, and exporting matches.
 
 It supports Windows, macOS, and Linux.
 
