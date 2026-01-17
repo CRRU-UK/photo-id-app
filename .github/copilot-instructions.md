@@ -103,7 +103,7 @@ When unsure, look at these files first
   - `Project.ts` — Project model
   - `Photo.ts` — Photo model
   - `Collection.ts` — Collection model
-- `src/hooks/` — Custom React hooks:
+- `src/frontend/hooks/` — Custom React hooks:
   - `useImageEditor.ts` — Photo editor state management and canvas rendering
 - `src/contexts/` — React Context providers (e.g., ProjectContext)
 - `docs/` — User and technical documentation
