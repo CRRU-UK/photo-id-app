@@ -28,8 +28,8 @@ const usePhotoEditor = ({ file }: UsePhotoEditorProps) => {
   const isPanningRef = useRef<boolean>(false);
   const panXRef = useRef<number>(DEFAULT_LEVELS.PAN_X);
   const panYRef = useRef<number>(DEFAULT_LEVELS.PAN_Y);
-  const lastPointerXRef = useRef<number>(DEFAULT_LEVELS.PAN_X);
-  const lastPointerYRef = useRef<number>(DEFAULT_LEVELS.PAN_Y);
+  const lastPointerXRef = useRef<number>(0);
+  const lastPointerYRef = useRef<number>(0);
 
   // Ensures the image is within the canvas bounds
   const clamp = useCallback(() => {
@@ -156,6 +156,7 @@ const usePhotoEditor = ({ file }: UsePhotoEditorProps) => {
     lastPointerYRef.current = event.clientY;
   }, []);
 
+  // Pan the image from the last cursor position (i.e. 1:1 movement)
   const handlePointerMove = useCallback(
     (event: React.PointerEvent<HTMLCanvasElement>) => {
       if (!isPanningRef.current) {
@@ -202,19 +203,48 @@ const usePhotoEditor = ({ file }: UsePhotoEditorProps) => {
     isPanningRef.current = false;
   }, []);
 
+  // Zoom the image towards where the cursor currently is
   const handleWheel = useCallback(
     (event: React.WheelEvent<HTMLCanvasElement>) => {
       event.preventDefault();
 
+      const canvas = canvasRef.current;
+      const image = imageRef.current;
+
+      if (!canvas || !image) {
+        return;
+      }
+
+      const rect = canvas.getBoundingClientRect();
+      const cursorScreenX = event.clientX - rect.left;
+      const cursorScreenY = event.clientY - rect.top;
+
+      const scaleX = image.naturalWidth / canvas.clientWidth;
+      const scaleY = image.naturalHeight / canvas.clientHeight;
+
+      const cursorImageX = cursorScreenX * scaleX;
+      const cursorImageY = cursorScreenY * scaleY;
+
+      const zoom = zoomRef.current;
+      const centreX = canvas.width / 2;
+      const centreY = canvas.height / 2;
+
+      const imagePointX = (cursorImageX - centreX - panXRef.current) / zoom + centreX;
+      const imagePointY = (cursorImageY - centreY - panYRef.current) / zoom + centreY;
+
       const delta = event.deltaY > 0 ? 1 / ZOOM_FACTOR_WHEEL : ZOOM_FACTOR_WHEEL;
       const newZoom = zoomRef.current * delta;
+
       zoomRef.current = Math.max(newZoom, 1);
+      panXRef.current = cursorImageX - centreX - (imagePointX - centreX) * zoomRef.current;
+      panYRef.current = cursorImageY - centreY - (imagePointY - centreY) * zoomRef.current;
 
       draw();
     },
     [draw],
   );
 
+  // Zoom in from the centre of the canvas
   const handleZoomIn = useCallback(() => {
     zoomRef.current = zoomRef.current * ZOOM_FACTOR_BUTTON;
     panXRef.current = panXRef.current * ZOOM_FACTOR_BUTTON;
@@ -223,6 +253,7 @@ const usePhotoEditor = ({ file }: UsePhotoEditorProps) => {
     draw();
   }, [draw]);
 
+  // Zoom out from the centre of the canvas
   const handleZoomOut = useCallback(() => {
     const newZoom = zoomRef.current / ZOOM_FACTOR_BUTTON;
     zoomRef.current = Math.max(newZoom, 1);
