@@ -9,9 +9,9 @@ import {
   ZoomOutIcon,
 } from "@primer/octicons-react";
 import { Button, ButtonGroup, FormControl, IconButton, Label, Stack } from "@primer/react";
-import { memo, useEffect, useState } from "react";
+import { memo, useCallback, useEffect, useState } from "react";
 
-import usePhotoEditor from "../hooks/usePhotoEditor";
+import usePhotoEditor from "../hooks/useImageEditor";
 
 interface SliderProps {
   name: string;
@@ -53,7 +53,6 @@ interface CanvasImageProps {
   handlePointerDown: (event: React.PointerEvent<HTMLCanvasElement>) => void;
   handlePointerMove: (event: React.PointerEvent<HTMLCanvasElement>) => void;
   handlePointerUp: (event: React.PointerEvent<HTMLCanvasElement>) => void;
-  handleWheel: (event: React.WheelEvent<HTMLCanvasElement>) => void;
 }
 
 const CanvasImage = ({
@@ -61,7 +60,6 @@ const CanvasImage = ({
   handlePointerDown,
   handlePointerMove,
   handlePointerUp,
-  handleWheel,
 }: CanvasImageProps) => {
   return (
     <canvas
@@ -70,7 +68,6 @@ const CanvasImage = ({
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
-      onWheel={handleWheel}
     />
   );
 };
@@ -92,7 +89,6 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
     setBrightness,
     setContrast,
     setSaturate,
-    zoom,
     handleZoomIn,
     handleZoomOut,
     handlePointerDown,
@@ -116,40 +112,56 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
     setSaving(false);
   };
 
-  const handleEditorNavigation = async (direction: EditorNavigation) => {
-    if (navigating) {
-      return;
-    }
+  const handleEditorNavigation = useCallback(
+    async (direction: EditorNavigation) => {
+      if (navigating) {
+        return;
+      }
 
-    setNavigating(true);
+      setNavigating(true);
 
-    const result = await window.electronAPI.navigateEditorPhoto(data, direction);
-    if (result) {
-      setQueryCallback(result);
+      const result = await window.electronAPI.navigateEditorPhoto(data, direction);
+      if (result) {
+        setQueryCallback(result);
 
-      // TODO: Move this to useEffect on data change as there is a delay from setQueryCallback
-      resetFilters();
-      setNavigating(false);
-    }
-  };
+        // TODO: Move this to useEffect on data change as there is a delay from setQueryCallback
+        resetFilters();
+        setNavigating(false);
+      }
+    },
+    [data, navigating, resetFilters, setQueryCallback],
+  );
 
-  const handleKeyDown = (event: KeyboardEvent) => {
-    if (event.code === "ArrowLeft") {
-      handleEditorNavigation("prev");
-    }
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent) => {
+      if (event.code === "ArrowLeft") {
+        handleEditorNavigation("prev");
+      }
 
-    if (event.code === "ArrowRight") {
-      handleEditorNavigation("next");
-    }
-  };
+      if (event.code === "ArrowRight") {
+        handleEditorNavigation("next");
+      }
+    },
+    [handleEditorNavigation],
+  );
 
   useEffect(() => {
+    const canvas = canvasRef.current;
+
+    if (canvas) {
+      canvas.addEventListener("wheel", handleWheel as unknown as EventListener, { passive: false });
+    }
+
     document.addEventListener("keydown", handleKeyDown);
 
     return () => {
+      if (canvas) {
+        canvas.removeEventListener("wheel", handleWheel as unknown as EventListener);
+      }
+
       document.removeEventListener("keydown", handleKeyDown);
     };
-  });
+  }, [canvasRef, handleWheel, handleKeyDown]);
 
   return (
     <div className="edit">
@@ -166,7 +178,6 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
             size="medium"
             aria-label="Zoom out"
             onClick={handleZoomOut}
-            disabled={zoom <= 1}
           >
             Zoom Out
           </Button>
@@ -223,7 +234,6 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
         handlePointerDown={handlePointerDown}
         handlePointerMove={handlePointerMove}
         handlePointerUp={handlePointerUp}
-        handleWheel={handleWheel}
       />
     </div>
   );

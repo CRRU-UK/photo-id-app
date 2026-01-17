@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
-interface UsePhotoEditorProps {
+interface UseImageEditorProps {
   file: File;
 }
 
@@ -16,7 +16,7 @@ const DEFAULT_LEVELS = {
 const ZOOM_FACTOR_BUTTON = 1.2;
 const ZOOM_FACTOR_WHEEL = 1.02;
 
-const usePhotoEditor = ({ file }: UsePhotoEditorProps) => {
+const useImageEditor = ({ file }: UseImageEditorProps) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const imageRef = useRef<HTMLImageElement | null>(null);
 
@@ -24,8 +24,6 @@ const usePhotoEditor = ({ file }: UsePhotoEditorProps) => {
   const contrastRef = useRef<number>(DEFAULT_LEVELS.CONTRAST);
   const saturateRef = useRef<number>(DEFAULT_LEVELS.SATURATE);
   const zoomRef = useRef<number>(DEFAULT_LEVELS.ZOOM);
-
-  const [zoom, setZoom] = useState<number>(DEFAULT_LEVELS.ZOOM);
 
   const isPanningRef = useRef<boolean>(false);
   const panXRef = useRef<number>(DEFAULT_LEVELS.PAN_X);
@@ -57,8 +55,6 @@ const usePhotoEditor = ({ file }: UsePhotoEditorProps) => {
   }, []);
 
   const draw = useCallback(() => {
-    setZoom(zoomRef.current);
-
     const canvas = canvasRef.current;
     const image = imageRef.current;
 
@@ -94,16 +90,6 @@ const usePhotoEditor = ({ file }: UsePhotoEditorProps) => {
     ].join(" ");
 
     context.drawImage(image, 0, 0);
-
-    console.table({
-      brightness: brightnessRef.current,
-      contrast: contrastRef.current,
-      saturate: saturateRef.current,
-      zoom: zoomRef.current,
-      isPanning: isPanningRef.current,
-      panX: panXRef.current,
-      panY: panYRef.current,
-    });
   }, [clamp]);
 
   useEffect(() => {
@@ -125,7 +111,7 @@ const usePhotoEditor = ({ file }: UsePhotoEditorProps) => {
       URL.revokeObjectURL(url);
       imageRef.current = null;
     };
-  }, [file]);
+  }, [file, draw]);
 
   // Draw on load
   useEffect(() => {
@@ -303,7 +289,6 @@ const usePhotoEditor = ({ file }: UsePhotoEditorProps) => {
     panXRef.current = DEFAULT_LEVELS.PAN_X;
     panYRef.current = DEFAULT_LEVELS.PAN_Y;
 
-    setZoom(DEFAULT_LEVELS.ZOOM);
     draw();
   }, [draw]);
 
@@ -312,7 +297,6 @@ const usePhotoEditor = ({ file }: UsePhotoEditorProps) => {
     setBrightness,
     setContrast,
     setSaturate,
-    zoom,
     handleZoomIn,
     handleZoomOut,
     handlePointerDown,
@@ -324,4 +308,4 @@ const usePhotoEditor = ({ file }: UsePhotoEditorProps) => {
   };
 };
 
-export default usePhotoEditor;
+export default useImageEditor;
