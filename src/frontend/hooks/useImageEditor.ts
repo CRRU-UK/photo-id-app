@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { getBoundaries, getCanvasFilters } from "@/helpers";
 
@@ -30,6 +30,9 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
   const isPanningRef = useRef<boolean>(false);
   const panRef = useRef({ x: DEFAULT_LEVELS.PAN_X, y: DEFAULT_LEVELS.PAN_Y });
   const lastPointerRef = useRef({ x: 0, y: 0 });
+  const rafIdRef = useRef<number | null>(null);
+
+  const [resetKey, setResetKey] = useState(0);
 
   // Convert screen coordinates to image coordinates
   const getImageCoordinates = useCallback(
@@ -186,32 +189,31 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
       const scaledDeltaX = deltaX * scaleX;
       const scaledDeltaY = deltaY * scaleY;
 
-      const zoom = zoomRef.current;
-      const scaledImageWidth = image.naturalWidth * zoom;
-      const scaledImageHeight = image.naturalHeight * zoom;
-
-      const boundaryX = getBoundaries(canvas.width, scaledImageWidth);
-      const boundaryY = getBoundaries(canvas.height, scaledImageHeight);
-
-      panRef.current.x = Math.max(
-        boundaryX.min,
-        Math.min(boundaryX.max, panRef.current.x + scaledDeltaX),
-      );
-      panRef.current.y = Math.max(
-        boundaryY.min,
-        Math.min(boundaryY.max, panRef.current.y + scaledDeltaY),
-      );
+      panRef.current.x = panRef.current.x + scaledDeltaX;
+      panRef.current.y = panRef.current.y + scaledDeltaY;
 
       lastPointerRef.current.x = event.clientX;
       lastPointerRef.current.y = event.clientY;
 
-      draw();
+      // Use requestAnimationFrame to throttle draw calls during panning
+      if (rafIdRef.current === null) {
+        rafIdRef.current = requestAnimationFrame(() => {
+          draw();
+          rafIdRef.current = null;
+        });
+      }
     },
     [draw],
   );
 
   const handlePointerUp = useCallback(() => {
     isPanningRef.current = false;
+
+    // Cancel any pending animation frame
+    if (rafIdRef.current !== null) {
+      cancelAnimationFrame(rafIdRef.current);
+      rafIdRef.current = null;
+    }
   }, []);
 
   // Zoom the image towards where the cursor currently is
@@ -245,9 +247,10 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
       panRef.current.x = imageCoords.x - centreX - (imagePointX - centreX) * zoomRef.current;
       panRef.current.y = imageCoords.y - centreY - (imagePointY - centreY) * zoomRef.current;
 
+      clamp();
       draw();
     },
-    [draw, getImageCoordinates],
+    [clamp, draw, getImageCoordinates],
   );
 
   // Apply zoom with given factor, scales pan proportionally
@@ -257,9 +260,10 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
       panRef.current.x = panRef.current.x * zoomFactor;
       panRef.current.y = panRef.current.y * zoomFactor;
 
+      clamp();
       draw();
     },
-    [draw],
+    [clamp, draw],
   );
 
   // Zoom in from the centre of the canvas
@@ -272,6 +276,10 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
     applyZoom(1 / ZOOM_FACTOR_BUTTON);
   }, [applyZoom]);
 
+  /**
+   * Sets the brightness level for the image.
+   * @param value - Brightness percentage value (0-200, where 100 is normal)
+   */
   const setBrightness = useCallback(
     (value: number) => {
       brightnessRef.current = value;
@@ -281,6 +289,10 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
     [draw],
   );
 
+  /**
+   * Sets the contrast level for the image.
+   * @param value - Contrast percentage value (0-200, where 100 is normal)
+   */
   const setContrast = useCallback(
     (value: number) => {
       contrastRef.current = value;
@@ -290,6 +302,10 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
     [draw],
   );
 
+  /**
+   * Sets the saturation level for the image.
+   * @param value - Saturation percentage value (0-200, where 100 is normal)
+   */
   const setSaturate = useCallback(
     (value: number) => {
       saturateRef.current = value;
@@ -306,6 +322,7 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
     zoomRef.current = DEFAULT_LEVELS.ZOOM;
     panRef.current = { x: DEFAULT_LEVELS.PAN_X, y: DEFAULT_LEVELS.PAN_Y };
 
+    setResetKey((prev) => prev + 1);
     draw();
   }, [draw]);
 
@@ -322,6 +339,7 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
     handleWheel,
     resetFilters,
     exportFile,
+    resetKey,
   };
 };
 
