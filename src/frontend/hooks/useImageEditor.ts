@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef } from "react";
 
+import { getBoundaries, getCanvasFilters } from "@/helpers";
+
 interface UseImageEditorProps {
   file: File;
 }
@@ -26,10 +28,33 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
   const zoomRef = useRef<number>(DEFAULT_LEVELS.ZOOM);
 
   const isPanningRef = useRef<boolean>(false);
-  const panXRef = useRef<number>(DEFAULT_LEVELS.PAN_X);
-  const panYRef = useRef<number>(DEFAULT_LEVELS.PAN_Y);
-  const lastPointerXRef = useRef<number>(0);
-  const lastPointerYRef = useRef<number>(0);
+  const panRef = useRef({ x: DEFAULT_LEVELS.PAN_X, y: DEFAULT_LEVELS.PAN_Y });
+  const lastPointerRef = useRef({ x: 0, y: 0 });
+
+  // Convert screen coordinates to image coordinates
+  const getImageCoordinates = useCallback(
+    (screenX: number, screenY: number): { x: number; y: number } | null => {
+      const canvas = canvasRef.current;
+      const image = imageRef.current;
+
+      if (!canvas || !image) {
+        return null;
+      }
+
+      const rect = canvas.getBoundingClientRect();
+      const screenImageX = screenX - rect.left;
+      const screenImageY = screenY - rect.top;
+
+      const scaleX = image.naturalWidth / canvas.clientWidth;
+      const scaleY = image.naturalHeight / canvas.clientHeight;
+
+      return {
+        x: screenImageX * scaleX,
+        y: screenImageY * scaleY,
+      };
+    },
+    [],
+  );
 
   // Ensures the image is within the canvas bounds
   const clamp = useCallback(() => {
@@ -44,14 +69,11 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
     const scaledImageWidth = image.naturalWidth * zoom;
     const scaledImageHeight = image.naturalHeight * zoom;
 
-    const minPanX = (canvas.width - scaledImageWidth) / 2;
-    const maxPanX = (scaledImageWidth - canvas.width) / 2;
+    const boundaryX = getBoundaries(canvas.width, scaledImageWidth);
+    const boundaryY = getBoundaries(canvas.height, scaledImageHeight);
 
-    const minPanY = (canvas.height - scaledImageHeight) / 2;
-    const maxPanY = (scaledImageHeight - canvas.height) / 2;
-
-    panXRef.current = Math.max(minPanX, Math.min(maxPanX, panXRef.current));
-    panYRef.current = Math.max(minPanY, Math.min(maxPanY, panYRef.current));
+    panRef.current.x = Math.max(boundaryX.min, Math.min(boundaryX.max, panRef.current.x));
+    panRef.current.y = Math.max(boundaryY.min, Math.min(boundaryY.max, panRef.current.y));
   }, []);
 
   const draw = useCallback(() => {
@@ -79,15 +101,15 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
 
     clamp();
 
-    context.translate(centreX + panXRef.current, centreY + panYRef.current);
+    context.translate(centreX + panRef.current.x, centreY + panRef.current.y);
     context.scale(zoom, zoom);
     context.translate(-centreX, -centreY);
 
-    context.filter = [
-      `brightness(${brightnessRef.current}%)`,
-      `contrast(${contrastRef.current}%)`,
-      `saturate(${saturateRef.current}%)`,
-    ].join(" ");
+    context.filter = getCanvasFilters({
+      brightness: brightnessRef.current,
+      contrast: contrastRef.current,
+      saturate: saturateRef.current,
+    });
 
     context.drawImage(image, 0, 0);
   }, [clamp]);
@@ -113,11 +135,6 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
     };
   }, [file, draw]);
 
-  // Draw on load
-  useEffect(() => {
-    draw();
-  }, [draw]);
-
   const exportFile = useCallback(async (): Promise<File | null> => {
     const canvas = canvasRef.current;
     if (!canvas) {
@@ -142,8 +159,8 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
 
   const handlePointerDown = useCallback((event: React.PointerEvent<HTMLCanvasElement>) => {
     isPanningRef.current = true;
-    lastPointerXRef.current = event.clientX;
-    lastPointerYRef.current = event.clientY;
+    lastPointerRef.current.x = event.clientX;
+    lastPointerRef.current.y = event.clientY;
   }, []);
 
   // Pan the image from the last cursor position (i.e. 1:1 movement)
@@ -160,8 +177,8 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
         return;
       }
 
-      const deltaX = event.clientX - lastPointerXRef.current;
-      const deltaY = event.clientY - lastPointerYRef.current;
+      const deltaX = event.clientX - lastPointerRef.current.x;
+      const deltaY = event.clientY - lastPointerRef.current.y;
 
       const scaleX = image.naturalWidth / canvas.clientWidth;
       const scaleY = image.naturalHeight / canvas.clientHeight;
@@ -173,16 +190,20 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
       const scaledImageWidth = image.naturalWidth * zoom;
       const scaledImageHeight = image.naturalHeight * zoom;
 
-      const minPanX = (canvas.width - scaledImageWidth) / 2;
-      const maxPanX = (scaledImageWidth - canvas.width) / 2;
-      const minPanY = (canvas.height - scaledImageHeight) / 2;
-      const maxPanY = (scaledImageHeight - canvas.height) / 2;
+      const boundaryX = getBoundaries(canvas.width, scaledImageWidth);
+      const boundaryY = getBoundaries(canvas.height, scaledImageHeight);
 
-      panXRef.current = Math.max(minPanX, Math.min(maxPanX, panXRef.current + scaledDeltaX));
-      panYRef.current = Math.max(minPanY, Math.min(maxPanY, panYRef.current + scaledDeltaY));
+      panRef.current.x = Math.max(
+        boundaryX.min,
+        Math.min(boundaryX.max, panRef.current.x + scaledDeltaX),
+      );
+      panRef.current.y = Math.max(
+        boundaryY.min,
+        Math.min(boundaryY.max, panRef.current.y + scaledDeltaY),
+      );
 
-      lastPointerXRef.current = event.clientX;
-      lastPointerYRef.current = event.clientY;
+      lastPointerRef.current.x = event.clientX;
+      lastPointerRef.current.y = event.clientY;
 
       draw();
     },
@@ -205,29 +226,36 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
         return;
       }
 
-      const rect = canvas.getBoundingClientRect();
-      const cursorScreenX = event.clientX - rect.left;
-      const cursorScreenY = event.clientY - rect.top;
-
-      const scaleX = image.naturalWidth / canvas.clientWidth;
-      const scaleY = image.naturalHeight / canvas.clientHeight;
-
-      const cursorImageX = cursorScreenX * scaleX;
-      const cursorImageY = cursorScreenY * scaleY;
+      const imageCoords = getImageCoordinates(event.clientX, event.clientY);
+      if (!imageCoords) {
+        return;
+      }
 
       const zoom = zoomRef.current;
       const centreX = canvas.width / 2;
       const centreY = canvas.height / 2;
 
-      const imagePointX = (cursorImageX - centreX - panXRef.current) / zoom + centreX;
-      const imagePointY = (cursorImageY - centreY - panYRef.current) / zoom + centreY;
+      const imagePointX = (imageCoords.x - centreX - panRef.current.x) / zoom + centreX;
+      const imagePointY = (imageCoords.y - centreY - panRef.current.y) / zoom + centreY;
 
       const delta = event.deltaY > 0 ? 1 / ZOOM_FACTOR_WHEEL : ZOOM_FACTOR_WHEEL;
       const newZoom = zoomRef.current * delta;
 
       zoomRef.current = Math.max(newZoom, 1);
-      panXRef.current = cursorImageX - centreX - (imagePointX - centreX) * zoomRef.current;
-      panYRef.current = cursorImageY - centreY - (imagePointY - centreY) * zoomRef.current;
+      panRef.current.x = imageCoords.x - centreX - (imagePointX - centreX) * zoomRef.current;
+      panRef.current.y = imageCoords.y - centreY - (imagePointY - centreY) * zoomRef.current;
+
+      draw();
+    },
+    [draw, getImageCoordinates],
+  );
+
+  // Apply zoom with given factor, scales pan proportionally
+  const applyZoom = useCallback(
+    (zoomFactor: number) => {
+      zoomRef.current = Math.max(zoomRef.current * zoomFactor, 1);
+      panRef.current.x = panRef.current.x * zoomFactor;
+      panRef.current.y = panRef.current.y * zoomFactor;
 
       draw();
     },
@@ -236,23 +264,13 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
 
   // Zoom in from the centre of the canvas
   const handleZoomIn = useCallback(() => {
-    zoomRef.current = zoomRef.current * ZOOM_FACTOR_BUTTON;
-    panXRef.current = panXRef.current * ZOOM_FACTOR_BUTTON;
-    panYRef.current = panYRef.current * ZOOM_FACTOR_BUTTON;
-
-    draw();
-  }, [draw]);
+    applyZoom(ZOOM_FACTOR_BUTTON);
+  }, [applyZoom]);
 
   // Zoom out from the centre of the canvas
   const handleZoomOut = useCallback(() => {
-    const newZoom = zoomRef.current / ZOOM_FACTOR_BUTTON;
-    zoomRef.current = Math.max(newZoom, 1);
-
-    panXRef.current = panXRef.current / ZOOM_FACTOR_BUTTON;
-    panYRef.current = panYRef.current / ZOOM_FACTOR_BUTTON;
-
-    draw();
-  }, [draw]);
+    applyZoom(1 / ZOOM_FACTOR_BUTTON);
+  }, [applyZoom]);
 
   const setBrightness = useCallback(
     (value: number) => {
@@ -286,8 +304,7 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
     contrastRef.current = DEFAULT_LEVELS.CONTRAST;
     saturateRef.current = DEFAULT_LEVELS.SATURATE;
     zoomRef.current = DEFAULT_LEVELS.ZOOM;
-    panXRef.current = DEFAULT_LEVELS.PAN_X;
-    panYRef.current = DEFAULT_LEVELS.PAN_Y;
+    panRef.current = { x: DEFAULT_LEVELS.PAN_X, y: DEFAULT_LEVELS.PAN_Y };
 
     draw();
   }, [draw]);

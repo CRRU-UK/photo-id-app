@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { chunkArray, getAlphabetLetter } from "./helpers";
+import { chunkArray, getAlphabetLetter, getBoundaries, getCanvasFilters } from "./helpers";
 
 describe(getAlphabetLetter, () => {
   it.each([
@@ -28,5 +28,25 @@ describe(chunkArray, () => {
     const result = chunkArray(input, 3);
 
     expect(result).toStrictEqual([["A", "B"]]);
+  });
+});
+
+describe(getCanvasFilters, () => {
+  it("returns correct filter string", () => {
+    const result = getCanvasFilters({
+      brightness: 120,
+      contrast: 80,
+      saturate: 150,
+    });
+
+    expect(result).toBe("brightness(120%) contrast(80%) saturate(150%)");
+  });
+});
+
+describe(getBoundaries, () => {
+  it("calculates boundaries", () => {
+    const result = getBoundaries(400, 800);
+
+    expect(result).toStrictEqual({ min: -200, max: 200 });
   });
 });
