@@ -102,3 +102,5 @@ export const ZOOM_FACTORS = {
   BUTTON: 1.2,
   WHEEL: 1.02,
 };
+
+export const MAX_CANVAS_DIMENSION = 2048;

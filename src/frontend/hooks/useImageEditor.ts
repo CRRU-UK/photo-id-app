@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { IMAGE_EDITS, IMAGE_FILTERS, ZOOM_FACTORS } from "@/constants";
+import { IMAGE_EDITS, IMAGE_FILTERS, MAX_CANVAS_DIMENSION, ZOOM_FACTORS } from "@/constants";
 import { getBoundaries, getCanvasFilters } from "@/helpers";
 
 interface UseImageEditorProps {
@@ -10,6 +10,8 @@ interface UseImageEditorProps {
 const useImageEditor = ({ file }: UseImageEditorProps) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const imageRef = useRef<HTMLImageElement | null>(null);
+  const offscreenCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const canvasScaleRef = useRef<number>(1);
 
   const brightnessRef = useRef<number>(IMAGE_FILTERS.BRIGHTNESS.DEFAULT);
   const contrastRef = useRef<number>(IMAGE_FILTERS.CONTRAST.DEFAULT);
@@ -23,13 +25,12 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
 
   const [resetKey, setResetKey] = useState(0);
 
-  // Convert screen coordinates to image coordinates
+  // Convert screen coordinates to canvas coordinates
   const getImageCoordinates = useCallback(
     (screenX: number, screenY: number): { x: number; y: number } | null => {
       const canvas = canvasRef.current;
-      const image = imageRef.current;
 
-      if (!canvas || !image) {
+      if (!canvas) {
         return null;
       }
 
@@ -37,8 +38,8 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
       const screenImageX = screenX - rect.left;
       const screenImageY = screenY - rect.top;
 
-      const scaleX = image.naturalWidth / canvas.clientWidth;
-      const scaleY = image.naturalHeight / canvas.clientHeight;
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
 
       return {
         x: screenImageX * scaleX,
@@ -58,8 +59,8 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
     }
 
     const zoom = zoomRef.current;
-    const scaledImageWidth = image.naturalWidth * zoom;
-    const scaledImageHeight = image.naturalHeight * zoom;
+    const scaledImageWidth = canvas.width * zoom;
+    const scaledImageHeight = canvas.height * zoom;
 
     const boundaryX = getBoundaries(canvas.width, scaledImageWidth);
     const boundaryY = getBoundaries(canvas.height, scaledImageHeight);
@@ -85,9 +86,17 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
     context.setTransform(1, 0, 0, 1, 0, 0);
     context.clearRect(0, 0, canvas.width, canvas.height);
 
-    if (canvas.width !== image.naturalWidth || canvas.height !== image.naturalHeight) {
-      canvas.width = image.naturalWidth;
-      canvas.height = image.naturalHeight;
+    // Calculate scaled canvas dimensions to limit memory usage
+    const maxDimension = Math.max(image.naturalWidth, image.naturalHeight);
+    const scale = Math.min(1, MAX_CANVAS_DIMENSION / maxDimension);
+    const scaledWidth = Math.round(image.naturalWidth * scale);
+    const scaledHeight = Math.round(image.naturalHeight * scale);
+
+    // Update canvas dimensions only if they have changed
+    if (canvas.width !== scaledWidth || canvas.height !== scaledHeight) {
+      canvas.width = scaledWidth;
+      canvas.height = scaledHeight;
+      canvasScaleRef.current = scale;
     }
 
     const zoom = zoomRef.current;
@@ -106,7 +115,7 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
       saturate: saturateRef.current,
     });
 
-    context.drawImage(image, 0, 0);
+    context.drawImage(image, 0, 0, canvas.width, canvas.height);
   }, [clamp]);
 
   useEffect(() => {
@@ -127,6 +136,7 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
     return () => {
       URL.revokeObjectURL(url);
       imageRef.current = null;
+      offscreenCanvasRef.current = null;
 
       // Cancel any pending requestAnimationFrame
       if (throttleRef.current !== null) {
@@ -137,15 +147,54 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
   }, [file, draw]);
 
   const exportFile = useCallback(async (): Promise<File | null> => {
-    const canvas = canvasRef.current;
-    if (!canvas) {
+    const image = imageRef.current;
+    if (!image) {
       return null;
     }
+
+    // Create or reuse off-screen canvas at full resolution for export
+    let offscreenCanvas = offscreenCanvasRef.current;
+    if (!offscreenCanvas) {
+      offscreenCanvas = document.createElement("canvas");
+      offscreenCanvasRef.current = offscreenCanvas;
+    }
+
+    offscreenCanvas.width = image.naturalWidth;
+    offscreenCanvas.height = image.naturalHeight;
+
+    const context = offscreenCanvas.getContext("2d");
+    if (!context) {
+      return null;
+    }
+
+    const zoom = zoomRef.current;
+    const centreX = offscreenCanvas.width / 2;
+    const centreY = offscreenCanvas.height / 2;
+
+    // Scale pan values back to full resolution
+    const scale = canvasScaleRef.current;
+    const fullResPanX = panRef.current.x / scale;
+    const fullResPanY = panRef.current.y / scale;
+
+    context.setTransform(1, 0, 0, 1, 0, 0);
+    context.clearRect(0, 0, offscreenCanvas.width, offscreenCanvas.height);
+
+    context.translate(centreX + fullResPanX, centreY + fullResPanY);
+    context.scale(zoom, zoom);
+    context.translate(-centreX, -centreY);
+
+    context.filter = getCanvasFilters({
+      brightness: brightnessRef.current,
+      contrast: contrastRef.current,
+      saturate: saturateRef.current,
+    });
+
+    context.drawImage(image, 0, 0);
 
     const mime = file.type;
 
     return new Promise((resolve) => {
-      canvas.toBlob((blob) => {
+      offscreenCanvas.toBlob((blob) => {
         if (!blob) {
           return resolve(null);
         }
@@ -172,17 +221,17 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
       }
 
       const canvas = canvasRef.current;
-      const image = imageRef.current;
 
-      if (!canvas || !image) {
+      if (!canvas) {
         return;
       }
 
       const deltaX = event.clientX - lastPointerRef.current.x;
       const deltaY = event.clientY - lastPointerRef.current.y;
 
-      const scaleX = image.naturalWidth / canvas.clientWidth;
-      const scaleY = image.naturalHeight / canvas.clientHeight;
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
 
       const scaledDeltaX = deltaX * scaleX;
       const scaledDeltaY = deltaY * scaleY;
@@ -224,14 +273,13 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
       event.preventDefault();
 
       const canvas = canvasRef.current;
-      const image = imageRef.current;
 
-      if (!canvas || !image) {
+      if (!canvas) {
         return;
       }
 
-      const imageCoords = getImageCoordinates(event.clientX, event.clientY);
-      if (!imageCoords) {
+      const canvasCoords = getImageCoordinates(event.clientX, event.clientY);
+      if (!canvasCoords) {
         return;
       }
 
@@ -239,15 +287,15 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
       const centreX = canvas.width / 2;
       const centreY = canvas.height / 2;
 
-      const imagePointX = (imageCoords.x - centreX - panRef.current.x) / zoom + centreX;
-      const imagePointY = (imageCoords.y - centreY - panRef.current.y) / zoom + centreY;
+      const canvasPointX = (canvasCoords.x - centreX - panRef.current.x) / zoom + centreX;
+      const canvasPointY = (canvasCoords.y - centreY - panRef.current.y) / zoom + centreY;
 
       const delta = event.deltaY > 0 ? 1 / ZOOM_FACTORS.WHEEL : ZOOM_FACTORS.WHEEL;
       const newZoom = zoomRef.current * delta;
 
       zoomRef.current = Math.max(newZoom, 1);
-      panRef.current.x = imageCoords.x - centreX - (imagePointX - centreX) * zoomRef.current;
-      panRef.current.y = imageCoords.y - centreY - (imagePointY - centreY) * zoomRef.current;
+      panRef.current.x = canvasCoords.x - centreX - (canvasPointX - centreX) * zoomRef.current;
+      panRef.current.y = canvasCoords.y - centreY - (canvasPointY - centreY) * zoomRef.current;
 
       clamp();
       draw();
