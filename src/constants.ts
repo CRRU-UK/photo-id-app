@@ -73,3 +73,17 @@ export enum EXTERNAL_LINKS {
   USER_GUIDE = "https://photoidapp.crru.org.uk",
   CHANGELOG = "https://github.com/CRRU-UK/photo-id-app/releases/latest",
 }
+
+export const DEFAULT_EDITOR_LEVELS = {
+  BRIGHTNESS: 100,
+  CONTRAST: 100,
+  SATURATE: 100,
+  ZOOM: 1,
+  PAN_X: 0,
+  PAN_Y: 0,
+};
+
+export enum ZOOM_FACTORS {
+  BUTTON = 1.2,
+  WHEEL = 1.02,
+}

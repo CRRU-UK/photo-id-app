@@ -1,34 +1,23 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { DEFAULT_EDITOR_LEVELS, ZOOM_FACTORS } from "@/constants";
 import { getBoundaries, getCanvasFilters } from "@/helpers";
 
 interface UseImageEditorProps {
   file: File;
 }
 
-const DEFAULT_LEVELS = {
-  BRIGHTNESS: 100,
-  CONTRAST: 100,
-  SATURATE: 100,
-  ZOOM: 1,
-  PAN_X: 0,
-  PAN_Y: 0,
-};
-
-const ZOOM_FACTOR_BUTTON = 1.2;
-const ZOOM_FACTOR_WHEEL = 1.02;
-
 const useImageEditor = ({ file }: UseImageEditorProps) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const imageRef = useRef<HTMLImageElement | null>(null);
 
-  const brightnessRef = useRef<number>(DEFAULT_LEVELS.BRIGHTNESS);
-  const contrastRef = useRef<number>(DEFAULT_LEVELS.CONTRAST);
-  const saturateRef = useRef<number>(DEFAULT_LEVELS.SATURATE);
-  const zoomRef = useRef<number>(DEFAULT_LEVELS.ZOOM);
+  const brightnessRef = useRef<number>(DEFAULT_EDITOR_LEVELS.BRIGHTNESS);
+  const contrastRef = useRef<number>(DEFAULT_EDITOR_LEVELS.CONTRAST);
+  const saturateRef = useRef<number>(DEFAULT_EDITOR_LEVELS.SATURATE);
+  const zoomRef = useRef<number>(DEFAULT_EDITOR_LEVELS.ZOOM);
 
   const isPanningRef = useRef<boolean>(false);
-  const panRef = useRef({ x: DEFAULT_LEVELS.PAN_X, y: DEFAULT_LEVELS.PAN_Y });
+  const panRef = useRef({ x: DEFAULT_EDITOR_LEVELS.PAN_X, y: DEFAULT_EDITOR_LEVELS.PAN_Y });
   const lastPointerRef = useRef({ x: 0, y: 0 });
   const throttleRef = useRef<number | null>(null);
 
@@ -252,7 +241,7 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
       const imagePointX = (imageCoords.x - centreX - panRef.current.x) / zoom + centreX;
       const imagePointY = (imageCoords.y - centreY - panRef.current.y) / zoom + centreY;
 
-      const delta = event.deltaY > 0 ? 1 / ZOOM_FACTOR_WHEEL : ZOOM_FACTOR_WHEEL;
+      const delta = event.deltaY > 0 ? 1 / ZOOM_FACTORS.WHEEL : ZOOM_FACTORS.WHEEL;
       const newZoom = zoomRef.current * delta;
 
       zoomRef.current = Math.max(newZoom, 1);
@@ -280,12 +269,12 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
 
   // Zoom in from the centre of the canvas
   const handleZoomIn = useCallback(() => {
-    applyZoom(ZOOM_FACTOR_BUTTON);
+    applyZoom(ZOOM_FACTORS.WHEEL);
   }, [applyZoom]);
 
   // Zoom out from the centre of the canvas
   const handleZoomOut = useCallback(() => {
-    applyZoom(1 / ZOOM_FACTOR_BUTTON);
+    applyZoom(1 / ZOOM_FACTORS.WHEEL);
   }, [applyZoom]);
 
   /**
@@ -328,11 +317,11 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
   );
 
   const resetFilters = useCallback(() => {
-    brightnessRef.current = DEFAULT_LEVELS.BRIGHTNESS;
-    contrastRef.current = DEFAULT_LEVELS.CONTRAST;
-    saturateRef.current = DEFAULT_LEVELS.SATURATE;
-    zoomRef.current = DEFAULT_LEVELS.ZOOM;
-    panRef.current = { x: DEFAULT_LEVELS.PAN_X, y: DEFAULT_LEVELS.PAN_Y };
+    brightnessRef.current = DEFAULT_EDITOR_LEVELS.BRIGHTNESS;
+    contrastRef.current = DEFAULT_EDITOR_LEVELS.CONTRAST;
+    saturateRef.current = DEFAULT_EDITOR_LEVELS.SATURATE;
+    zoomRef.current = DEFAULT_EDITOR_LEVELS.ZOOM;
+    panRef.current = { x: DEFAULT_EDITOR_LEVELS.PAN_X, y: DEFAULT_EDITOR_LEVELS.PAN_Y };
 
     setResetKey((prev) => prev + 1);
     draw();
