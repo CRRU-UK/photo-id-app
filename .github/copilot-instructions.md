@@ -20,13 +20,26 @@
 
 ## Build / dev / test
 
-- Node >= 24 required (see `README.md`).
-- Install: `npm ci`.
-- Run locally: `npm start` (uses `electron-forge start`).
-- Tests: `npm test` runs linting (`eslint` + `prettier`), type-check (`tsc --noEmit`), and unit tests (`vitest run`). Unit tests can be run in watch mode with `npm run test:unit:watch`.
-- Never run `npm run package`, `npm run make`, or `npm run publish`.
+### Required Before Each Commit
+
+- Run `npm test` before committing any changes to ensure:
+  - Linting passes (`eslint` + `prettier`)
+  - Type-checking passes (`tsc --noEmit`)
+  - All unit tests pass (`vitest run`)
+- This ensures all code changes meet quality and consistency standards
+
+### Development Flow
+
+- **Prerequisites**: Node >= 24 required (see `README.md`)
+- **Install dependencies**: `npm ci`
+- **Run locally**: `npm start` (uses `electron-forge start`)
+- **Run tests**: `npm test` (includes linting, type-check, and unit tests)
+- **Run tests in watch mode**: `npm run test:unit:watch` for iterative development
+- **Never run**: `npm run package`, `npm run make`, or `npm run publish`
 
 ## Conventions
+
+### Code standards and style
 
 - Prefer using constants when appropriate (see `src/constants.ts`).
 - Prefer abstracting small blocks of logic into helper functions (see `src/helpers.ts`).
@@ -37,6 +50,9 @@
 - Prefer using long math expressions broken over multiple lines for readability and shorthand assignments (e.g. `a = a + b` instead of `a += b`).
 - Prefer adding comments only for workarounds, hacks, or non-obvious code paths.
 - The UI uses GitHub Primer components/icons — prefer reusing Primer primitives and icons for consistency.
+
+### Architecture-specific conventions
+
 - IPC naming is explicit. Prefer using the `IPC_EVENTS` enum from `src/constants.ts` instead of raw strings.
 - File operations and project persistence happen on the main side (`src/backend/*.ts`). Frontend should call preload helpers and assume I/O is async.
 - Edit-window lifecycle: when navigating editor photos, the renderer calls `window.electronAPI.navigateEditorPhoto(data, direction)` which returns a base64-encoded JSON string that the edit route sets back into its query param.
@@ -63,10 +79,47 @@ When unsure, look at these files first
 - `src/types.ts`
 - `src/backend/*`
 - `src/frontend/components/*`
-- `src/routes/*`.
+- `src/routes/*`
+
+## Repository Structure
+
+- `src/main.ts` — Main process entry point, window management, IPC handlers
+- `src/preload.ts` — Preload script exposing `window.electronAPI` to renderer
+- `src/index.tsx` — React app entry point
+- `src/constants.ts` — Centralized constants and IPC event definitions
+- `src/types.ts` — Central types for consistent data shapes between main and renderer
+- `src/helpers.ts` — Utility helpers for common operations
+- `src/backend/` — Backend file I/O and image processing:
+  - `photos.ts` — Photo loading, thumbnail generation, and image manipulation
+  - `projects.ts` — Project file operations and persistence
+  - `menu.ts` — Application menu configuration
+  - `recents.ts` — Recent projects tracking
+- `src/frontend/` — React UI components and hooks:
+  - `components/` — React components for UI elements
+  - `hooks/` — Custom React hooks for UI logic
+- `src/routes/` — TanStack Router route definitions (router generates `routeTree.gen.ts`)
+- `src/models/` — Data model classes:
+  - `Project.ts` — Project model
+  - `Photo.ts` — Photo model
+  - `Collection.ts` — Collection model
+- `src/contexts/` — React Context providers (e.g., ProjectContext)
+- `docs/` — User and technical documentation
+- Tests: `*.test.ts` files co-located with source files
+- Configuration: `tsconfig.json`, `vite.*.mts`, `forge.config.ts`, `vitest.config.ts`
 
 ## Considerations
 
 - The app is often run on machines with limited hardware. Be conservative with memory and avoid loading many full-resolution images into memory at once.
 - Favour streaming, thumbnails (`src/backend/photos.ts`), and on-disk edits over keeping large buffers in renderer memory. Use the backend helpers for file I/O and image processing (`sharp`).
 - In React, avoid retaining large binary blobs in state across long sessions; prefer references to on-disk filenames and load File/ArrayBuffer only when needed (see `src/routes/edit.tsx` and `src/frontend/hooks/usePhotoEditor.ts`).
+
+## Key Guidelines
+
+1. **Always run tests before proposing changes**: Use `npm test` to verify linting, types, and unit tests pass
+2. **Follow established patterns**: Examine similar code in the codebase before implementing new features
+3. **Use IPC constants**: Always reference `IPC_EVENTS` from `src/constants.ts` instead of raw strings
+4. **Maintain type safety**: Ensure all types are defined in `src/types.ts` and shared properly between main and renderer
+5. **Keep the architecture clean**: Frontend calls preload helpers, main process handles file I/O, backend helpers do actual work
+6. **Test new functionality**: Add or update unit tests alongside feature changes in `*.test.ts` files
+7. **Document non-obvious code**: Add comments only for workarounds, hacks, or non-obvious logic paths
+8. **Be mindful of performance**: Avoid loading large buffers into state; prefer references and lazy loading
