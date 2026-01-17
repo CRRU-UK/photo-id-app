@@ -117,11 +117,12 @@ When unsure, look at these files first
 
 ## Key Guidelines
 
-1. **Always run tests before proposing changes**: Use `npm test` to verify linting, types, and unit tests pass
-2. **Follow established patterns**: Examine similar code in the codebase before implementing new features
-3. **Use IPC constants**: Always reference `IPC_EVENTS` from `src/constants.ts` instead of raw strings
-4. **Maintain type safety**: Ensure all types are defined in `src/types.ts` and shared properly between main and renderer
-5. **Keep the architecture clean**: Frontend calls preload helpers, main process handles file I/O, backend helpers do actual work
-6. **Test new functionality**: Add or update unit tests alongside feature changes in `*.test.ts` files
-7. **Document non-obvious code**: Add comments only for workarounds, hacks, or non-obvious logic paths
-8. **Be mindful of performance**: Avoid loading large buffers into state; prefer references and lazy loading
+1. **Be mindful of performance**: Avoid loading large buffers into state; prefer references and lazy loading
+2. **Usage considerations**: Remember the app is typically run on low-spec hardware Windows computers, for long periods of time, and using high-resolution images; optimize for memory and CPU usage
+3. **Always run tests before proposing changes**: Use `npm test` to verify linting, types, and unit tests pass
+4. **Follow established patterns**: Examine similar code in the codebase before implementing new features
+5. **Use IPC constants**: Always reference `IPC_EVENTS` from `src/constants.ts` instead of raw strings
+6. **Maintain type safety**: Ensure all types are defined in `src/types.ts` and shared properly between main and renderer
+7. **Keep the architecture clean**: Frontend calls preload helpers, main process handles file I/O, backend helpers do actual work
+8. **Test new functionality**: Add or update unit tests alongside feature changes in `*.test.ts` files
+9. **Document non-obvious code**: Add comments only for workarounds, hacks, or non-obvious logic paths
