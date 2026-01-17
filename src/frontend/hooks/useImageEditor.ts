@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { DEFAULT_EDITOR_LEVELS, ZOOM_FACTORS } from "@/constants";
+import { IMAGE_EDITS, IMAGE_FILTERS, ZOOM_FACTORS } from "@/constants";
 import { getBoundaries, getCanvasFilters } from "@/helpers";
 
 interface UseImageEditorProps {
@@ -11,13 +11,13 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const imageRef = useRef<HTMLImageElement | null>(null);
 
-  const brightnessRef = useRef<number>(DEFAULT_EDITOR_LEVELS.BRIGHTNESS);
-  const contrastRef = useRef<number>(DEFAULT_EDITOR_LEVELS.CONTRAST);
-  const saturateRef = useRef<number>(DEFAULT_EDITOR_LEVELS.SATURATE);
-  const zoomRef = useRef<number>(DEFAULT_EDITOR_LEVELS.ZOOM);
+  const brightnessRef = useRef<number>(IMAGE_FILTERS.BRIGHTNESS.DEFAULT);
+  const contrastRef = useRef<number>(IMAGE_FILTERS.CONTRAST.DEFAULT);
+  const saturateRef = useRef<number>(IMAGE_FILTERS.SATURATE.DEFAULT);
+  const zoomRef = useRef<number>(IMAGE_EDITS.ZOOM);
 
   const isPanningRef = useRef<boolean>(false);
-  const panRef = useRef({ x: DEFAULT_EDITOR_LEVELS.PAN_X, y: DEFAULT_EDITOR_LEVELS.PAN_Y });
+  const panRef = useRef({ x: IMAGE_EDITS.PAN_X, y: IMAGE_EDITS.PAN_Y });
   const lastPointerRef = useRef({ x: 0, y: 0 });
   const throttleRef = useRef<number | null>(null);
 
@@ -317,11 +317,11 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
   );
 
   const resetFilters = useCallback(() => {
-    brightnessRef.current = DEFAULT_EDITOR_LEVELS.BRIGHTNESS;
-    contrastRef.current = DEFAULT_EDITOR_LEVELS.CONTRAST;
-    saturateRef.current = DEFAULT_EDITOR_LEVELS.SATURATE;
-    zoomRef.current = DEFAULT_EDITOR_LEVELS.ZOOM;
-    panRef.current = { x: DEFAULT_EDITOR_LEVELS.PAN_X, y: DEFAULT_EDITOR_LEVELS.PAN_Y };
+    brightnessRef.current = IMAGE_FILTERS.BRIGHTNESS.DEFAULT;
+    contrastRef.current = IMAGE_FILTERS.CONTRAST.DEFAULT;
+    saturateRef.current = IMAGE_FILTERS.SATURATE.DEFAULT;
+    zoomRef.current = IMAGE_EDITS.ZOOM;
+    panRef.current = { x: IMAGE_EDITS.PAN_X, y: IMAGE_EDITS.PAN_Y };
 
     setResetKey((prev) => prev + 1);
     draw();

@@ -11,6 +11,8 @@ import {
 import { Button, ButtonGroup, FormControl, IconButton, Label, Stack } from "@primer/react";
 import { memo, useCallback, useEffect, useState } from "react";
 
+import { IMAGE_FILTERS } from "@/constants";
+
 import useImageEditor from "../hooks/useImageEditor";
 
 interface SliderProps {
@@ -180,25 +182,25 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
           <Slider
             key={`brightness-${resetKey}`}
             name="Brightness"
-            initial={100}
-            min={0}
-            max={200}
+            initial={IMAGE_FILTERS.BRIGHTNESS.DEFAULT}
+            min={IMAGE_FILTERS.BRIGHTNESS.MIN}
+            max={IMAGE_FILTERS.BRIGHTNESS.MAX}
             callback={setBrightness}
           />
           <Slider
             key={`contrast-${resetKey}`}
             name="Contrast"
-            initial={100}
-            min={0}
-            max={200}
+            initial={IMAGE_FILTERS.CONTRAST.DEFAULT}
+            min={IMAGE_FILTERS.CONTRAST.MIN}
+            max={IMAGE_FILTERS.CONTRAST.MAX}
             callback={setContrast}
           />
           <Slider
             key={`saturation-${resetKey}`}
             name="Saturation"
-            initial={100}
-            min={0}
-            max={200}
+            initial={IMAGE_FILTERS.SATURATE.DEFAULT}
+            min={IMAGE_FILTERS.SATURATE.MIN}
+            max={IMAGE_FILTERS.SATURATE.MAX}
             callback={setSaturate}
           />
         </Stack>
