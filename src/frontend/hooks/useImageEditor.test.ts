@@ -4,22 +4,23 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import useImageEditor from "./useImageEditor";
 
 // Mock URL.createObjectURL and URL.revokeObjectURL
-vi.spyOn(URL, "createObjectURL").mockImplementation<typeof URL.createObjectURL>(() => "mock-url");
-vi.spyOn(URL, "revokeObjectURL").mockImplementation<typeof URL.revokeObjectURL>(() => {});
+vi.spyOn(URL, "createObjectURL").mockImplementation(() => "mock-url");
+vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => {});
 
 // Mock HTMLCanvasElement methods
-const mockGetContext = vi.fn<typeof HTMLCanvasElement.prototype.getContext>(() => ({
-  setTransform: vi.fn<CanvasRenderingContext2D["setTransform"]>(),
-  translate: vi.fn<CanvasRenderingContext2D["translate"]>(),
-  scale: vi.fn<CanvasRenderingContext2D["scale"]>(),
-  drawImage: vi.fn<CanvasRenderingContext2D["drawImage"]>(),
+const mockGetContext = vi.fn(() => ({
+  setTransform: vi.fn(),
+  translate: vi.fn(),
+  scale: vi.fn(),
+  drawImage: vi.fn(),
   filter: "",
 })) as unknown as typeof HTMLCanvasElement.prototype.getContext;
 
 HTMLCanvasElement.prototype.getContext = mockGetContext;
 
-const mockToBlob = vi.fn<typeof HTMLCanvasElement.prototype.toBlob>((callback) => {
+const mockToBlob = vi.fn((callback) => {
   const blob = new Blob(["test"], { type: "image/jpeg" });
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
   callback(blob);
 });
 

@@ -214,7 +214,11 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
       cancelAnimationFrame(rafIdRef.current);
       rafIdRef.current = null;
     }
-  }, []);
+
+    // Ensure final position is within bounds
+    clamp();
+    draw();
+  }, [clamp, draw]);
 
   // Zoom the image towards where the cursor currently is
   const handleWheel = useCallback(
