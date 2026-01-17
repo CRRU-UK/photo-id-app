@@ -92,6 +92,7 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
     setBrightness,
     setContrast,
     setSaturate,
+    zoom,
     handleZoomIn,
     handleZoomOut,
     handlePointerDown,
@@ -165,9 +166,11 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
             size="medium"
             aria-label="Zoom out"
             onClick={handleZoomOut}
+            disabled={zoom <= 1}
           >
             Zoom Out
           </Button>
+
           <Button
             leadingVisual={ZoomInIcon}
             size="medium"

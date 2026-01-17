@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 interface UsePhotoEditorProps {
   file: File;
@@ -24,6 +24,8 @@ const usePhotoEditor = ({ file }: UsePhotoEditorProps) => {
   const contrastRef = useRef<number>(DEFAULT_LEVELS.CONTRAST);
   const saturateRef = useRef<number>(DEFAULT_LEVELS.SATURATE);
   const zoomRef = useRef<number>(DEFAULT_LEVELS.ZOOM);
+
+  const [zoom, setZoom] = useState<number>(DEFAULT_LEVELS.ZOOM);
 
   const isPanningRef = useRef<boolean>(false);
   const panXRef = useRef<number>(DEFAULT_LEVELS.PAN_X);
@@ -55,6 +57,8 @@ const usePhotoEditor = ({ file }: UsePhotoEditorProps) => {
   }, []);
 
   const draw = useCallback(() => {
+    setZoom(zoomRef.current);
+
     const canvas = canvasRef.current;
     const image = imageRef.current;
 
@@ -299,6 +303,7 @@ const usePhotoEditor = ({ file }: UsePhotoEditorProps) => {
     panXRef.current = DEFAULT_LEVELS.PAN_X;
     panYRef.current = DEFAULT_LEVELS.PAN_Y;
 
+    setZoom(DEFAULT_LEVELS.ZOOM);
     draw();
   }, [draw]);
 
@@ -307,6 +312,7 @@ const usePhotoEditor = ({ file }: UsePhotoEditorProps) => {
     setBrightness,
     setContrast,
     setSaturate,
+    zoom,
     handleZoomIn,
     handleZoomOut,
     handlePointerDown,
