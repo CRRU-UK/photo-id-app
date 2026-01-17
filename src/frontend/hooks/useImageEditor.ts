@@ -220,7 +220,7 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
 
   // Zoom the image towards where the cursor currently is
   const handleWheel = useCallback(
-    (event: WheelEvent | React.WheelEvent<HTMLCanvasElement>) => {
+    (event: WheelEvent) => {
       event.preventDefault();
 
       const canvas = canvasRef.current;
