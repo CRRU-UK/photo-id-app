@@ -44,9 +44,15 @@ describe(getCanvasFilters, () => {
 });
 
 describe(getBoundaries, () => {
-  it("calculates boundaries", () => {
+  it("calculates boundaries when image is larger than canvas", () => {
     const result = getBoundaries(400, 800);
 
     expect(result).toStrictEqual({ min: -200, max: 200 });
+  });
+
+  it("calculates boundaries when image is smaller than canvas", () => {
+    const result = getBoundaries(800, 400);
+
+    expect(result).toStrictEqual({ min: 200, max: -200 });
   });
 });

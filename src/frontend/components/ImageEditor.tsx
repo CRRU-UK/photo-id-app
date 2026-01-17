@@ -11,14 +11,14 @@ import {
 import { Button, ButtonGroup, FormControl, IconButton, Label, Stack } from "@primer/react";
 import { memo, useCallback, useEffect, useState } from "react";
 
-import usePhotoEditor from "../hooks/useImageEditor";
+import useImageEditor from "../hooks/useImageEditor";
 
 interface SliderProps {
   name: string;
   min: number;
   max: number;
   initial: number;
-  callback: React.Dispatch<React.SetStateAction<number>>;
+  callback: (value: number) => void;
 }
 
 const Slider = ({ name, min, max, initial, callback }: SliderProps) => {
@@ -97,7 +97,8 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
     handleWheel,
     resetFilters,
     exportFile,
-  } = usePhotoEditor({
+    resetKey,
+  } = useImageEditor({
     file: image,
   });
 
@@ -105,7 +106,13 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
     setSaving(true);
 
     const editedFile = await exportFile();
-    const editedFileData = await (editedFile as File).arrayBuffer();
+
+    if (!editedFile) {
+      setSaving(false);
+      return;
+    }
+
+    const editedFileData = await editedFile.arrayBuffer();
 
     await window.electronAPI.savePhotoFile(data, editedFileData);
 
@@ -161,15 +168,36 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
 
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [canvasRef, handleWheel, handleKeyDown]);
+  }, [handleWheel, handleKeyDown]);
 
   return (
     <div className="edit">
       <div className="toolbar">
         <Stack direction="horizontal" align="center">
-          <Slider name="Brightness" initial={100} min={0} max={200} callback={setBrightness} />
-          <Slider name="Contrast" initial={100} min={0} max={200} callback={setContrast} />
-          <Slider name="Saturation" initial={100} min={0} max={200} callback={setSaturate} />
+          <Slider
+            key={`brightness-${resetKey}`}
+            name="Brightness"
+            initial={100}
+            min={0}
+            max={200}
+            callback={setBrightness}
+          />
+          <Slider
+            key={`contrast-${resetKey}`}
+            name="Contrast"
+            initial={100}
+            min={0}
+            max={200}
+            callback={setContrast}
+          />
+          <Slider
+            key={`saturation-${resetKey}`}
+            name="Saturation"
+            initial={100}
+            min={0}
+            max={200}
+            callback={setSaturate}
+          />
         </Stack>
 
         <ButtonGroup style={{ marginLeft: "auto", marginRight: "auto" }}>
