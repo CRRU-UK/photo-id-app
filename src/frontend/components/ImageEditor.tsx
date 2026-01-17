@@ -9,7 +9,7 @@ import {
   ZoomOutIcon,
 } from "@primer/octicons-react";
 import { Button, ButtonGroup, FormControl, IconButton, Label, Stack } from "@primer/react";
-import { memo, useCallback, useEffect, useState } from "react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
 
 import { IMAGE_FILTERS } from "@/constants";
 
@@ -135,13 +135,9 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
       const result = await window.electronAPI.navigateEditorPhoto(data, direction);
       if (result) {
         setQueryCallback(result);
-
-        // TODO: Move this to useEffect on data change as there is a delay from setQueryCallback
-        resetFilters();
-        setNavigating(false);
       }
     },
-    [data, navigating, resetFilters, setQueryCallback],
+    [data, navigating, setQueryCallback],
   );
 
   const handleKeyDown = useCallback(
@@ -156,6 +152,19 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
     },
     [handleEditorNavigation],
   );
+
+  const previousPhotoIdRef = useRef<string>(`${data.directory}/${data.name}`);
+
+  useEffect(() => {
+    const currentPhotoId = `${data.directory}/${data.name}`;
+
+    if (previousPhotoIdRef.current !== currentPhotoId) {
+      resetFilters();
+      setNavigating(false);
+
+      previousPhotoIdRef.current = currentPhotoId;
+    }
+  }, [data.directory, data.name, resetFilters]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
