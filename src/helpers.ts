@@ -19,3 +19,23 @@ export const chunkArray = <T>(array: T[], size: number): T[][] => {
 
   return chunks;
 };
+
+export const getCanvasFilters = ({
+  brightness,
+  contrast,
+  saturate,
+}: {
+  brightness: number;
+  contrast: number;
+  saturate: number;
+}): string =>
+  [`brightness(${brightness}%)`, `contrast(${contrast}%)`, `saturate(${saturate}%)`].join(" ");
+
+// Calculate boundaries for given canvas and image size
+export const getBoundaries = (
+  canvasSize: number,
+  scaledImageSize: number,
+): { min: number; max: number } => ({
+  min: (canvasSize - scaledImageSize) / 2,
+  max: (scaledImageSize - canvasSize) / 2,
+});
