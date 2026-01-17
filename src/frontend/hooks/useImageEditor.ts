@@ -83,6 +83,7 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
     }
 
     context.setTransform(1, 0, 0, 1, 0, 0);
+    context.clearRect(0, 0, canvas.width, canvas.height);
 
     if (canvas.width !== image.naturalWidth || canvas.height !== image.naturalHeight) {
       canvas.width = image.naturalWidth;
