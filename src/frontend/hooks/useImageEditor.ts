@@ -95,8 +95,10 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
 
     context.setTransform(1, 0, 0, 1, 0, 0);
 
-    canvas.width = image.naturalWidth;
-    canvas.height = image.naturalHeight;
+    if (canvas.width !== image.naturalWidth || canvas.height !== image.naturalHeight) {
+      canvas.width = image.naturalWidth;
+      canvas.height = image.naturalHeight;
+    }
 
     const zoom = zoomRef.current;
     const centreX = canvas.width / 2;
@@ -135,6 +137,12 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
     return () => {
       URL.revokeObjectURL(url);
       imageRef.current = null;
+
+      // Cancel any pending requestAnimationFrame
+      if (throttleRef.current !== null) {
+        cancelAnimationFrame(throttleRef.current);
+        throttleRef.current = null;
+      }
     };
   }, [file, draw]);
 
@@ -222,7 +230,7 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
 
   // Zoom the image towards where the cursor currently is
   const handleWheel = useCallback(
-    (event: React.WheelEvent<HTMLCanvasElement>) => {
+    (event: WheelEvent | React.WheelEvent<HTMLCanvasElement>) => {
       event.preventDefault();
 
       const canvas = canvasRef.current;

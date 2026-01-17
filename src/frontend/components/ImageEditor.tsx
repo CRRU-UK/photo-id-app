@@ -156,14 +156,14 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
     const canvas = canvasRef.current;
 
     if (canvas) {
-      canvas.addEventListener("wheel", handleWheel as unknown as EventListener, { passive: false });
+      canvas.addEventListener("wheel", handleWheel, { passive: false });
     }
 
     document.addEventListener("keydown", handleKeyDown);
 
     return () => {
       if (canvas) {
-        canvas.removeEventListener("wheel", handleWheel as unknown as EventListener);
+        canvas.removeEventListener("wheel", handleWheel);
       }
 
       document.removeEventListener("keydown", handleKeyDown);
