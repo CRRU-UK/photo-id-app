@@ -26,7 +26,7 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
   const [resetKey, setResetKey] = useState(0);
 
   // Convert screen coordinates to canvas coordinates
-  const getImageCoordinates = useCallback(
+  const getCanvasCoordinates = useCallback(
     (screenX: number, screenY: number): { x: number; y: number } | null => {
       const canvas = canvasRef.current;
 
@@ -86,19 +86,6 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
     context.setTransform(1, 0, 0, 1, 0, 0);
     context.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Calculate scaled canvas dimensions to limit memory usage
-    const maxDimension = Math.max(image.naturalWidth, image.naturalHeight);
-    const scale = Math.min(1, MAX_CANVAS_DIMENSION / maxDimension);
-    const scaledWidth = Math.round(image.naturalWidth * scale);
-    const scaledHeight = Math.round(image.naturalHeight * scale);
-
-    // Update canvas dimensions only if they have changed
-    if (canvas.width !== scaledWidth || canvas.height !== scaledHeight) {
-      canvas.width = scaledWidth;
-      canvas.height = scaledHeight;
-      canvasScaleRef.current = scale;
-    }
-
     const zoom = zoomRef.current;
     const centreX = canvas.width / 2;
     const centreY = canvas.height / 2;
@@ -128,6 +115,20 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
 
     image.onload = () => {
       imageRef.current = image;
+
+      const canvas = canvasRef.current;
+      if (canvas) {
+        // Calculate scaled canvas dimensions to limit memory usage
+        const maxDimension = Math.max(image.naturalWidth, image.naturalHeight);
+        const scale = Math.min(1, MAX_CANVAS_DIMENSION / maxDimension);
+        const scaledWidth = Math.round(image.naturalWidth * scale);
+        const scaledHeight = Math.round(image.naturalHeight * scale);
+
+        canvas.width = scaledWidth;
+        canvas.height = scaledHeight;
+        canvasScaleRef.current = scale;
+      }
+
       draw();
     };
 
@@ -173,6 +174,10 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
 
     // Scale pan values back to full resolution
     const scale = canvasScaleRef.current;
+    if (scale === 0) {
+      return null;
+    }
+
     const fullResPanX = panRef.current.x / scale;
     const fullResPanY = panRef.current.y / scale;
 
@@ -278,7 +283,7 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
         return;
       }
 
-      const canvasCoords = getImageCoordinates(event.clientX, event.clientY);
+      const canvasCoords = getCanvasCoordinates(event.clientX, event.clientY);
       if (!canvasCoords) {
         return;
       }
@@ -300,7 +305,7 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
       clamp();
       draw();
     },
-    [clamp, draw, getImageCoordinates],
+    [clamp, draw, getCanvasCoordinates],
   );
 
   // Apply zoom with given factor, scales pan proportionally
