@@ -270,12 +270,12 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
 
   // Zoom in from the centre of the canvas
   const handleZoomIn = useCallback(() => {
-    applyZoom(ZOOM_FACTORS.WHEEL);
+    applyZoom(ZOOM_FACTORS.BUTTON);
   }, [applyZoom]);
 
   // Zoom out from the centre of the canvas
   const handleZoomOut = useCallback(() => {
-    applyZoom(1 / ZOOM_FACTORS.WHEEL);
+    applyZoom(1 / ZOOM_FACTORS.BUTTON);
   }, [applyZoom]);
 
   /**
