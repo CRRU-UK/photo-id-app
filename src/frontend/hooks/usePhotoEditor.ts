@@ -8,7 +8,11 @@ const DEFAULT_LEVELS = {
   BRIGHTNESS: 100,
   CONTRAST: 100,
   SATURATE: 100,
+  ZOOM: 1,
 };
+
+const ZOOM_FACTOR_BUTTON = 1.2;
+const ZOOM_FACTOR_WHEEL = 1.02;
 
 const usePhotoEditor = ({ file }: UsePhotoEditorProps) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -17,6 +21,7 @@ const usePhotoEditor = ({ file }: UsePhotoEditorProps) => {
   const brightnessRef = useRef<number>(DEFAULT_LEVELS.BRIGHTNESS);
   const contrastRef = useRef<number>(DEFAULT_LEVELS.CONTRAST);
   const saturateRef = useRef<number>(DEFAULT_LEVELS.SATURATE);
+  const zoomRef = useRef<number>(DEFAULT_LEVELS.ZOOM);
 
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
@@ -37,6 +42,14 @@ const usePhotoEditor = ({ file }: UsePhotoEditorProps) => {
     canvas.width = image.naturalWidth;
     canvas.height = image.naturalHeight;
 
+    const zoom = zoomRef.current;
+    const centreX = canvas.width / 2;
+    const centreY = canvas.height / 2;
+
+    context.translate(centreX, centreY);
+    context.scale(zoom, zoom);
+    context.translate(-centreX, -centreY);
+
     context.filter = [
       `brightness(${brightnessRef.current}%)`,
       `contrast(${contrastRef.current}%)`,
@@ -49,6 +62,7 @@ const usePhotoEditor = ({ file }: UsePhotoEditorProps) => {
       brightness: brightnessRef.current,
       contrast: contrastRef.current,
       saturate: saturateRef.current,
+      zoom: zoomRef.current,
     });
   }, []);
 
@@ -103,14 +117,37 @@ const usePhotoEditor = ({ file }: UsePhotoEditorProps) => {
   const handlePointerDown = useCallback(() => {}, []);
   const handlePointerMove = useCallback(() => {}, []);
   const handlePointerUp = useCallback(() => {}, []);
-  const handleWheel = useCallback(() => {}, []);
 
-  const handleZoomIn = useCallback(() => {}, []);
-  const handleZoomOut = useCallback(() => {}, []);
+  const handleWheel = useCallback(
+    (event: React.WheelEvent<HTMLCanvasElement>) => {
+      event.preventDefault();
+
+      const delta = event.deltaY > 0 ? 1 / ZOOM_FACTOR_WHEEL : ZOOM_FACTOR_WHEEL;
+      const newZoom = zoomRef.current * delta;
+      zoomRef.current = Math.max(newZoom, 1);
+
+      draw();
+    },
+    [draw],
+  );
+
+  const handleZoomIn = useCallback(() => {
+    zoomRef.current *= ZOOM_FACTOR_BUTTON;
+
+    draw();
+  }, [draw]);
+
+  const handleZoomOut = useCallback(() => {
+    const newZoom = zoomRef.current / ZOOM_FACTOR_BUTTON;
+    zoomRef.current = Math.max(newZoom, 1);
+
+    draw();
+  }, [draw]);
 
   const setBrightness = useCallback(
     (value: number) => {
       brightnessRef.current = value;
+
       draw();
     },
     [draw],
@@ -119,6 +156,7 @@ const usePhotoEditor = ({ file }: UsePhotoEditorProps) => {
   const setContrast = useCallback(
     (value: number) => {
       contrastRef.current = value;
+
       draw();
     },
     [draw],
@@ -127,6 +165,7 @@ const usePhotoEditor = ({ file }: UsePhotoEditorProps) => {
   const setSaturate = useCallback(
     (value: number) => {
       saturateRef.current = value;
+
       draw();
     },
     [draw],
@@ -136,6 +175,7 @@ const usePhotoEditor = ({ file }: UsePhotoEditorProps) => {
     brightnessRef.current = DEFAULT_LEVELS.BRIGHTNESS;
     contrastRef.current = DEFAULT_LEVELS.CONTRAST;
     saturateRef.current = DEFAULT_LEVELS.SATURATE;
+    zoomRef.current = DEFAULT_LEVELS.ZOOM;
 
     draw();
   }, [draw]);
