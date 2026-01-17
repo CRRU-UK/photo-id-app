@@ -174,7 +174,7 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
 
     // Scale pan values back to full resolution
     const scale = canvasScaleRef.current;
-    if (scale === 0) {
+    if (scale <= 0 || !Number.isFinite(scale)) {
       return null;
     }
 
@@ -199,6 +199,10 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
     const mime = file.type;
 
     return new Promise((resolve) => {
+      if (!offscreenCanvas) {
+        return resolve(null);
+      }
+
       offscreenCanvas.toBlob((blob) => {
         if (!blob) {
           return resolve(null);
