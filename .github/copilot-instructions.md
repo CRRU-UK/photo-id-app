@@ -97,14 +97,13 @@ When unsure, look at these files first
 - `src/frontend/` — React UI components and hooks:
   - `components/` — React components for UI elements
     - `ImageEditor.tsx` — Main photo editing layout and controls
-  - `hooks/` — Custom React hooks for UI logic
+  - `hooks/` — Custom React hooks for UI logic:
+    - `useImageEditor.ts` — Photo editor state management and canvas rendering
 - `src/routes/` — TanStack Router route definitions (router generates `routeTree.gen.ts`)
 - `src/models/` — Data model classes:
   - `Project.ts` — Project model
   - `Photo.ts` — Photo model
   - `Collection.ts` — Collection model
-- `src/frontend/hooks/` — Custom React hooks:
-  - `useImageEditor.ts` — Photo editor state management and canvas rendering
 - `src/contexts/` — React Context providers (e.g., ProjectContext)
 - `docs/` — User and technical documentation
 - Tests: `*.test.ts` files co-located with source files

@@ -105,18 +105,21 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
   const handleSave = async () => {
     setSaving(true);
 
-    const editedFile = await exportFile();
+    try {
+      const editedFile = await exportFile();
 
-    if (!editedFile) {
+      if (!editedFile) {
+        return;
+      }
+
+      const editedFileData = await editedFile.arrayBuffer();
+
+      await window.electronAPI.savePhotoFile(data, editedFileData);
+    } catch (error) {
+      console.error("Failed to save edited photo file:", error);
+    } finally {
       setSaving(false);
-      return;
     }
-
-    const editedFileData = await editedFile.arrayBuffer();
-
-    await window.electronAPI.savePhotoFile(data, editedFileData);
-
-    setSaving(false);
   };
 
   const handleEditorNavigation = useCallback(
