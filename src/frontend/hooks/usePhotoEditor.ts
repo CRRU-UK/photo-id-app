@@ -9,6 +9,8 @@ const DEFAULT_LEVELS = {
   CONTRAST: 100,
   SATURATE: 100,
   ZOOM: 1,
+  PAN_X: 0,
+  PAN_Y: 0,
 };
 
 const ZOOM_FACTOR_BUTTON = 1.2;
@@ -22,6 +24,12 @@ const usePhotoEditor = ({ file }: UsePhotoEditorProps) => {
   const contrastRef = useRef<number>(DEFAULT_LEVELS.CONTRAST);
   const saturateRef = useRef<number>(DEFAULT_LEVELS.SATURATE);
   const zoomRef = useRef<number>(DEFAULT_LEVELS.ZOOM);
+
+  const isPanningRef = useRef<boolean>(false);
+  const panXRef = useRef<number>(DEFAULT_LEVELS.PAN_X);
+  const panYRef = useRef<number>(DEFAULT_LEVELS.PAN_Y);
+  const lastPointerXRef = useRef<number>(DEFAULT_LEVELS.PAN_X);
+  const lastPointerYRef = useRef<number>(DEFAULT_LEVELS.PAN_Y);
 
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
@@ -46,7 +54,7 @@ const usePhotoEditor = ({ file }: UsePhotoEditorProps) => {
     const centreX = canvas.width / 2;
     const centreY = canvas.height / 2;
 
-    context.translate(centreX, centreY);
+    context.translate(centreX + panXRef.current, centreY + panYRef.current);
     context.scale(zoom, zoom);
     context.translate(-centreX, -centreY);
 
@@ -58,11 +66,14 @@ const usePhotoEditor = ({ file }: UsePhotoEditorProps) => {
 
     context.drawImage(image, 0, 0);
 
-    console.debug("Drawing image with current filters:", {
+    console.table({
       brightness: brightnessRef.current,
       contrast: contrastRef.current,
       saturate: saturateRef.current,
       zoom: zoomRef.current,
+      isPanning: isPanningRef.current,
+      panX: panXRef.current,
+      panY: panYRef.current,
     });
   }, []);
 
@@ -114,9 +125,48 @@ const usePhotoEditor = ({ file }: UsePhotoEditorProps) => {
     });
   }, [file]);
 
-  const handlePointerDown = useCallback(() => {}, []);
-  const handlePointerMove = useCallback(() => {}, []);
-  const handlePointerUp = useCallback(() => {}, []);
+  const handlePointerDown = useCallback((event: React.PointerEvent<HTMLCanvasElement>) => {
+    isPanningRef.current = true;
+    lastPointerXRef.current = event.clientX;
+    lastPointerYRef.current = event.clientY;
+  }, []);
+
+  const handlePointerMove = useCallback(
+    (event: React.PointerEvent<HTMLCanvasElement>) => {
+      if (!isPanningRef.current) {
+        return;
+      }
+
+      const canvas = canvasRef.current;
+      const image = imageRef.current;
+
+      if (!canvas || !image) {
+        return;
+      }
+
+      const deltaX = event.clientX - lastPointerXRef.current;
+      const deltaY = event.clientY - lastPointerYRef.current;
+
+      const scaleX = image.naturalWidth / canvas.clientWidth;
+      const scaleY = image.naturalHeight / canvas.clientHeight;
+
+      const scaledDeltaX = deltaX * scaleX;
+      const scaledDeltaY = deltaY * scaleY;
+
+      panXRef.current = panXRef.current + scaledDeltaX;
+      panYRef.current = panYRef.current + scaledDeltaY;
+
+      lastPointerXRef.current = event.clientX;
+      lastPointerYRef.current = event.clientY;
+
+      draw();
+    },
+    [draw],
+  );
+
+  const handlePointerUp = useCallback(() => {
+    isPanningRef.current = false;
+  }, []);
 
   const handleWheel = useCallback(
     (event: React.WheelEvent<HTMLCanvasElement>) => {
@@ -132,7 +182,9 @@ const usePhotoEditor = ({ file }: UsePhotoEditorProps) => {
   );
 
   const handleZoomIn = useCallback(() => {
-    zoomRef.current *= ZOOM_FACTOR_BUTTON;
+    zoomRef.current = zoomRef.current * ZOOM_FACTOR_BUTTON;
+    panXRef.current = panXRef.current * ZOOM_FACTOR_BUTTON;
+    panYRef.current = panYRef.current * ZOOM_FACTOR_BUTTON;
 
     draw();
   }, [draw]);
@@ -140,6 +192,9 @@ const usePhotoEditor = ({ file }: UsePhotoEditorProps) => {
   const handleZoomOut = useCallback(() => {
     const newZoom = zoomRef.current / ZOOM_FACTOR_BUTTON;
     zoomRef.current = Math.max(newZoom, 1);
+
+    panXRef.current = panXRef.current / ZOOM_FACTOR_BUTTON;
+    panYRef.current = panYRef.current / ZOOM_FACTOR_BUTTON;
 
     draw();
   }, [draw]);
@@ -176,6 +231,8 @@ const usePhotoEditor = ({ file }: UsePhotoEditorProps) => {
     contrastRef.current = DEFAULT_LEVELS.CONTRAST;
     saturateRef.current = DEFAULT_LEVELS.SATURATE;
     zoomRef.current = DEFAULT_LEVELS.ZOOM;
+    panXRef.current = DEFAULT_LEVELS.PAN_X;
+    panYRef.current = DEFAULT_LEVELS.PAN_Y;
 
     draw();
   }, [draw]);
