@@ -100,3 +100,6 @@ site/
 
 # Sentry Config File
 .env.sentry-build-plugin
+
+# Agents
+.github/copilot-instructions.md

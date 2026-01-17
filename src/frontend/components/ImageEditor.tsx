@@ -10,33 +10,43 @@ import {
 } from "@primer/octicons-react";
 import { Button, ButtonGroup, FormControl, IconButton, Label, Stack } from "@primer/react";
 import { memo, useEffect, useState } from "react";
-import { usePhotoEditor } from "react-photo-editor";
+
+import usePhotoEditor from "../hooks/usePhotoEditor";
 
 interface SliderProps {
   name: string;
-  value: number;
   min: number;
   max: number;
+  initial: number;
   callback: React.Dispatch<React.SetStateAction<number>>;
 }
 
-const Slider = ({ name, value, min, max, callback }: SliderProps) => (
-  <FormControl>
-    <FormControl.Label>
-      {name}
-      <Label variant="secondary">
-        <pre>{value}</pre>
-      </Label>
-    </FormControl.Label>
-    <input
-      type="range"
-      min={min}
-      max={max}
-      value={value}
-      onChange={(event) => callback(Number(event.target.value))}
-    />
-  </FormControl>
-);
+const Slider = ({ name, min, max, initial, callback }: SliderProps) => {
+  const [value, setValue] = useState<number>(initial);
+
+  return (
+    <FormControl>
+      <FormControl.Label>
+        {name}
+        <Label variant="secondary">
+          <pre>{value}</pre>
+        </Label>
+      </FormControl.Label>
+
+      <input
+        type="range"
+        min={min}
+        max={max}
+        value={value}
+        onChange={(event) => {
+          const newValue = Number(event.target.value);
+          setValue(newValue);
+          callback(newValue);
+        }}
+      />
+    </FormControl>
+  );
+};
 
 interface CanvasImageProps {
   ref: React.RefObject<HTMLCanvasElement | null>;
@@ -80,19 +90,16 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
   const {
     canvasRef,
     setBrightness,
-    brightness,
-    contrast,
     setContrast,
-    saturate,
     setSaturate,
     handleZoomIn,
     handleZoomOut,
-    generateEditedFile,
     handlePointerDown,
     handlePointerUp,
     handlePointerMove,
     handleWheel,
     resetFilters,
+    exportFile,
   } = usePhotoEditor({
     file: image,
   });
@@ -100,7 +107,7 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
   const handleSave = async () => {
     setSaving(true);
 
-    const editedFile = await generateEditedFile();
+    const editedFile = await exportFile();
     const editedFileData = await (editedFile as File).arrayBuffer();
 
     await window.electronAPI.savePhotoFile(data, editedFileData);
@@ -147,9 +154,9 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
     <div className="edit">
       <div className="toolbar">
         <Stack direction="horizontal" align="center">
-          <Slider name="Brightness" value={brightness} min={0} max={200} callback={setBrightness} />
-          <Slider name="Contrast" value={contrast} min={0} max={200} callback={setContrast} />
-          <Slider name="Saturation" value={saturate} min={0} max={200} callback={setSaturate} />
+          <Slider name="Brightness" initial={100} min={0} max={200} callback={setBrightness} />
+          <Slider name="Contrast" initial={100} min={0} max={200} callback={setContrast} />
+          <Slider name="Saturation" initial={100} min={0} max={200} callback={setSaturate} />
         </Stack>
 
         <ButtonGroup style={{ marginLeft: "auto", marginRight: "auto" }}>

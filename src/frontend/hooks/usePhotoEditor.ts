@@ -1,0 +1,159 @@
+import { useCallback, useEffect, useRef } from "react";
+
+interface UsePhotoEditorProps {
+  file: File;
+}
+
+const DEFAULT_LEVELS = {
+  BRIGHTNESS: 100,
+  CONTRAST: 100,
+  SATURATE: 100,
+};
+
+const usePhotoEditor = ({ file }: UsePhotoEditorProps) => {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const imageRef = useRef<HTMLImageElement | null>(null);
+
+  const brightnessRef = useRef<number>(DEFAULT_LEVELS.BRIGHTNESS);
+  const contrastRef = useRef<number>(DEFAULT_LEVELS.CONTRAST);
+  const saturateRef = useRef<number>(DEFAULT_LEVELS.SATURATE);
+
+  const draw = useCallback(() => {
+    const canvas = canvasRef.current;
+    const image = imageRef.current;
+
+    if (!canvas || !image) {
+      return;
+    }
+
+    const context = canvas.getContext("2d");
+
+    if (!context) {
+      return;
+    }
+
+    context.setTransform(1, 0, 0, 1, 0, 0);
+
+    canvas.width = image.naturalWidth;
+    canvas.height = image.naturalHeight;
+
+    context.filter = [
+      `brightness(${brightnessRef.current}%)`,
+      `contrast(${contrastRef.current}%)`,
+      `saturate(${saturateRef.current}%)`,
+    ].join(" ");
+
+    context.drawImage(image, 0, 0);
+
+    console.debug("Drawing image with current filters:", {
+      brightness: brightnessRef.current,
+      contrast: contrastRef.current,
+      saturate: saturateRef.current,
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!file) {
+      return;
+    }
+
+    const url = URL.createObjectURL(file);
+    const image = new Image();
+
+    image.onload = () => {
+      imageRef.current = image;
+      draw();
+    };
+
+    image.src = url;
+
+    return () => {
+      URL.revokeObjectURL(url);
+      imageRef.current = null;
+    };
+  }, [file]);
+
+  // Draw on load
+  useEffect(() => {
+    draw();
+  }, [draw]);
+
+  const exportFile = useCallback(async (): Promise<File | null> => {
+    const canvas = canvasRef.current;
+    if (!canvas) {
+      return null;
+    }
+
+    const mime = file.type;
+
+    return new Promise((resolve) => {
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          return resolve(null);
+        }
+
+        const name = file.name;
+        const edited = new File([blob], name, { type: mime });
+
+        resolve(edited);
+      }, mime);
+    });
+  }, [file]);
+
+  const handlePointerDown = useCallback(() => {}, []);
+  const handlePointerMove = useCallback(() => {}, []);
+  const handlePointerUp = useCallback(() => {}, []);
+  const handleWheel = useCallback(() => {}, []);
+
+  const handleZoomIn = useCallback(() => {}, []);
+  const handleZoomOut = useCallback(() => {}, []);
+
+  const setBrightness = useCallback(
+    (value: number) => {
+      brightnessRef.current = value;
+      draw();
+    },
+    [draw],
+  );
+
+  const setContrast = useCallback(
+    (value: number) => {
+      contrastRef.current = value;
+      draw();
+    },
+    [draw],
+  );
+
+  const setSaturate = useCallback(
+    (value: number) => {
+      saturateRef.current = value;
+      draw();
+    },
+    [draw],
+  );
+
+  const resetFilters = useCallback(() => {
+    brightnessRef.current = DEFAULT_LEVELS.BRIGHTNESS;
+    contrastRef.current = DEFAULT_LEVELS.CONTRAST;
+    saturateRef.current = DEFAULT_LEVELS.SATURATE;
+
+    draw();
+  }, [draw]);
+
+  return {
+    canvasRef,
+    setBrightness,
+    setContrast,
+    setSaturate,
+    handleZoomIn,
+    handleZoomOut,
+    handlePointerDown,
+    handlePointerUp,
+    handlePointerMove,
+    handleWheel,
+    resetFilters,
+    exportFile,
+  };
+};
+
+export default usePhotoEditor;
