@@ -30,7 +30,7 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
   const isPanningRef = useRef<boolean>(false);
   const panRef = useRef({ x: DEFAULT_LEVELS.PAN_X, y: DEFAULT_LEVELS.PAN_Y });
   const lastPointerRef = useRef({ x: 0, y: 0 });
-  const rafIdRef = useRef<number | null>(null);
+  const throttleRef = useRef<number | null>(null);
 
   const [resetKey, setResetKey] = useState(0);
 
@@ -196,10 +196,10 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
       lastPointerRef.current.y = event.clientY;
 
       // Use requestAnimationFrame to throttle draw calls during panning
-      if (rafIdRef.current === null) {
-        rafIdRef.current = requestAnimationFrame(() => {
+      if (throttleRef.current === null) {
+        throttleRef.current = requestAnimationFrame(() => {
           draw();
-          rafIdRef.current = null;
+          throttleRef.current = null;
         });
       }
     },
@@ -210,9 +210,9 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
     isPanningRef.current = false;
 
     // Cancel any pending animation frame
-    if (rafIdRef.current !== null) {
-      cancelAnimationFrame(rafIdRef.current);
-      rafIdRef.current = null;
+    if (throttleRef.current !== null) {
+      cancelAnimationFrame(throttleRef.current);
+      throttleRef.current = null;
     }
 
     // Ensure final position is within bounds
