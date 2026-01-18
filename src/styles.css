@@ -135,6 +135,17 @@ body.copying *:hover {
   pointer-events: none;
 }
 
+.edit > .edge-toggle {
+  z-index: 10;
+  position: absolute;
+  padding: var(--stack-gap-condensed);
+  left: var(--stack-gap-normal);
+  bottom: calc(var(--stack-gap-normal) + 60px);
+  border: var(--borderWidth-default) var(--borderColor-muted) solid;
+  background: var(--bgColor-muted);
+  border-radius: var(--borderRadius-default);
+}
+
 .edit > .canvas {
   z-index: 0;
   position: absolute;

@@ -1,6 +1,8 @@
+import type { EdgeDetectionData } from "@/types";
+
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { IMAGE_EDITS, IMAGE_FILTERS, ZOOM_FACTORS } from "@/constants";
+import { EDGE_DETECTION, IMAGE_EDITS, IMAGE_FILTERS, ZOOM_FACTORS } from "@/constants";
 import { getBoundaries, getCanvasFilters } from "@/helpers";
 
 interface UseImageEditorProps {
@@ -14,11 +16,17 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
   const brightnessRef = useRef<number>(IMAGE_FILTERS.BRIGHTNESS.DEFAULT);
   const contrastRef = useRef<number>(IMAGE_FILTERS.CONTRAST.DEFAULT);
   const saturateRef = useRef<number>(IMAGE_FILTERS.SATURATE.DEFAULT);
-  const zoomRef = useRef<number>(IMAGE_EDITS.ZOOM);
 
+  const zoomRef = useRef<number>(IMAGE_EDITS.ZOOM);
   const isPanningRef = useRef<boolean>(false);
   const panRef = useRef({ x: IMAGE_EDITS.PAN_X, y: IMAGE_EDITS.PAN_Y });
   const lastPointerRef = useRef({ x: 0, y: 0 });
+
+  const edgeDetectionRef = useRef<EdgeDetectionData>({
+    enabled: false,
+    value: EDGE_DETECTION.DEFAULT,
+  });
+
   const throttleRef = useRef<number | null>(null);
 
   const [resetKey, setResetKey] = useState(0);
@@ -104,6 +112,7 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
       brightness: brightnessRef.current,
       contrast: contrastRef.current,
       saturate: saturateRef.current,
+      edgeDetection: edgeDetectionRef.current,
     });
 
     context.drawImage(image, 0, 0);
@@ -138,6 +147,7 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
 
   const exportFile = useCallback(async (): Promise<File | null> => {
     const canvas = canvasRef.current;
+
     if (!canvas) {
       return null;
     }
@@ -156,7 +166,7 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
         resolve(edited);
       }, mime);
     });
-  }, [file]);
+  }, [file, draw]);
 
   const handlePointerDown = useCallback((event: React.PointerEvent<HTMLCanvasElement>) => {
     isPanningRef.current = true;
@@ -194,12 +204,10 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
       lastPointerRef.current.y = event.clientY;
 
       // Use requestAnimationFrame to throttle draw calls during panning
-      if (throttleRef.current === null) {
-        throttleRef.current = requestAnimationFrame(() => {
-          draw();
-          throttleRef.current = null;
-        });
-      }
+      throttleRef.current ??= requestAnimationFrame(() => {
+        draw();
+        throttleRef.current = null;
+      });
     },
     [draw],
   );
@@ -280,7 +288,7 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
 
   /**
    * Sets the brightness level for the image.
-   * @param value - Brightness percentage value (0-200, where 100 is normal)
+   * @param value - Brightness percentage (0-200, default 100)
    */
   const setBrightness = useCallback(
     (value: number) => {
@@ -293,7 +301,7 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
 
   /**
    * Sets the contrast level for the image.
-   * @param value - Contrast percentage value (0-200, where 100 is normal)
+   * @param value - Contrast percentage (0-200, default 100)
    */
   const setContrast = useCallback(
     (value: number) => {
@@ -306,7 +314,7 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
 
   /**
    * Sets the saturation level for the image.
-   * @param value - Saturation percentage value (0-200, where 100 is normal)
+   * @param value - Saturation percentage (0-200, default 100)
    */
   const setSaturate = useCallback(
     (value: number) => {
@@ -317,14 +325,30 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
     [draw],
   );
 
+  /**
+   * Toggles the visualization of edges on the image.
+   */
+  const toggleEdgeDetection = useCallback(
+    (state: EdgeDetectionData) => {
+      edgeDetectionRef.current = state;
+
+      draw();
+    },
+    [draw],
+  );
+
   const resetFilters = useCallback(() => {
     brightnessRef.current = IMAGE_FILTERS.BRIGHTNESS.DEFAULT;
     contrastRef.current = IMAGE_FILTERS.CONTRAST.DEFAULT;
     saturateRef.current = IMAGE_FILTERS.SATURATE.DEFAULT;
+
     zoomRef.current = IMAGE_EDITS.ZOOM;
     panRef.current = { x: IMAGE_EDITS.PAN_X, y: IMAGE_EDITS.PAN_Y };
 
+    edgeDetectionRef.current = { enabled: false, value: EDGE_DETECTION.DEFAULT };
+
     setResetKey((prev) => prev + 1);
+
     draw();
   }, [draw]);
 
@@ -339,6 +363,7 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
     handlePointerUp,
     handlePointerMove,
     handleWheel,
+    toggleEdgeDetection,
     resetFilters,
     exportFile,
     resetKey,

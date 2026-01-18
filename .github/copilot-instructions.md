@@ -41,7 +41,7 @@
 
 ### Code standards and style
 
-- Prefer using constants when appropriate (see `src/constants.ts`).
+- Prefer using constants (see `src/constants.ts`) and shared types (see `src/types.ts`).
 - Prefer abstracting small blocks of logic into helper functions (see `src/helpers.ts`).
 - Prefer using full variable and parameter names for clarity (e.g. `error` instead of `e`).
 - Prefer using longer functions that are easier to read over clever one-liners.
@@ -49,6 +49,7 @@
 - Prefer using `try/catch` for error handling over `.catch()` on Promises.
 - Prefer using long math expressions broken over multiple lines for readability and shorthand assignments (e.g. `a = a + b` instead of `a += b`).
 - Prefer adding comments only for workarounds, hacks, or non-obvious code paths.
+- Prefer adding JSDocs where helpful, but avoid redundant types that are already covered by TypeScript.
 - The UI uses GitHub Primer components/icons — prefer reusing Primer primitives and icons for consistency.
 
 ### Architecture-specific conventions

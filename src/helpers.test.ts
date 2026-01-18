@@ -32,14 +32,26 @@ describe(chunkArray, () => {
 });
 
 describe(getCanvasFilters, () => {
-  it("returns correct filter string", () => {
+  it("returns regular filter string", () => {
     const result = getCanvasFilters({
       brightness: 120,
       contrast: 80,
       saturate: 150,
+      edgeDetection: { enabled: false, value: 100 },
     });
 
     expect(result).toBe("brightness(120%) contrast(80%) saturate(150%)");
+  });
+
+  it("returns edge detection filter string", () => {
+    const result = getCanvasFilters({
+      brightness: 120,
+      contrast: 80,
+      saturate: 150,
+      edgeDetection: { enabled: true, value: 250 },
+    });
+
+    expect(result).toBe("brightness(120%) invert(100%) saturate(0) contrast(250%)");
   });
 });
 
