@@ -2,8 +2,10 @@ import type { EdgeDetectionData } from "@/types";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { IMAGE_EDITS, IMAGE_FILTERS, ZOOM_FACTORS } from "@/constants";
-import { getBoundaries, getCanvasFilters } from "@/helpers";
+import { IMAGE_FILTERS } from "@/constants";
+import { getCanvasFilters } from "@/helpers";
+
+import useImageTransform from "@/frontend/hooks/useImageTransform";
 
 interface UseImageEditorProps {
   file: File;
@@ -17,9 +19,7 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
   const contrastRef = useRef<number>(IMAGE_FILTERS.CONTRAST.DEFAULT);
   const saturateRef = useRef<number>(IMAGE_FILTERS.SATURATE.DEFAULT);
 
-  const zoomRef = useRef<number>(IMAGE_EDITS.ZOOM);
   const isPanningRef = useRef<boolean>(false);
-  const panRef = useRef({ x: IMAGE_EDITS.PAN_X, y: IMAGE_EDITS.PAN_Y });
   const lastPointerRef = useRef({ x: 0, y: 0 });
 
   const edgeDetectionRef = useRef<EdgeDetectionData>({ enabled: false });
@@ -27,51 +27,6 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
   const throttleRef = useRef<number | null>(null);
 
   const [resetKey, setResetKey] = useState(0);
-
-  // Convert screen coordinates to image coordinates
-  const getImageCoordinates = useCallback(
-    (screenX: number, screenY: number): { x: number; y: number } | null => {
-      const canvas = canvasRef.current;
-      const image = imageRef.current;
-
-      if (!canvas || !image) {
-        return null;
-      }
-
-      const rect = canvas.getBoundingClientRect();
-      const screenImageX = screenX - rect.left;
-      const screenImageY = screenY - rect.top;
-
-      const scaleX = image.naturalWidth / canvas.clientWidth;
-      const scaleY = image.naturalHeight / canvas.clientHeight;
-
-      return {
-        x: screenImageX * scaleX,
-        y: screenImageY * scaleY,
-      };
-    },
-    [],
-  );
-
-  // Ensures the image is within the canvas bounds
-  const clamp = useCallback(() => {
-    const canvas = canvasRef.current;
-    const image = imageRef.current;
-
-    if (!canvas || !image) {
-      return;
-    }
-
-    const zoom = zoomRef.current;
-    const scaledImageWidth = image.naturalWidth * zoom;
-    const scaledImageHeight = image.naturalHeight * zoom;
-
-    const boundaryX = getBoundaries(canvas.width, scaledImageWidth);
-    const boundaryY = getBoundaries(canvas.height, scaledImageHeight);
-
-    panRef.current.x = Math.max(boundaryX.min, Math.min(boundaryX.max, panRef.current.x));
-    panRef.current.y = Math.max(boundaryY.min, Math.min(boundaryY.max, panRef.current.y));
-  }, []);
 
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
@@ -95,13 +50,13 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
       canvas.height = image.naturalHeight;
     }
 
-    const zoom = zoomRef.current;
+    const zoom = transform.zoomRef.current;
     const centreX = canvas.width / 2;
     const centreY = canvas.height / 2;
 
-    clamp();
+    transform.clamp();
 
-    context.translate(centreX + panRef.current.x, centreY + panRef.current.y);
+    context.translate(centreX + transform.panRef.current.x, centreY + transform.panRef.current.y);
     context.scale(zoom, zoom);
     context.translate(-centreX, -centreY);
 
@@ -113,7 +68,13 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
     });
 
     context.drawImage(image, 0, 0);
-  }, [clamp]);
+  }, []);
+
+  const transform = useImageTransform({
+    canvasRef,
+    imageRef,
+    onTransformChange: draw,
+  });
 
   useEffect(() => {
     if (!file) {
@@ -162,6 +123,15 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
       return null;
     }
 
+    const zoom = transform.zoomRef.current;
+    const centreX = exportCanvas.width / 2;
+    const centreY = exportCanvas.height / 2;
+
+    // Apply zoom and pan transformations
+    context.translate(centreX + transform.panRef.current.x, centreY + transform.panRef.current.y);
+    context.scale(zoom, zoom);
+    context.translate(-centreX, -centreY);
+
     // Apply all filters EXCEPT edge detection
     context.filter = getCanvasFilters({
       brightness: brightnessRef.current,
@@ -184,7 +154,7 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
         resolve(edited);
       }, mime);
     });
-  }, [file]);
+  }, [file, transform]);
 
   const handlePointerDown = useCallback((event: React.PointerEvent<HTMLCanvasElement>) => {
     isPanningRef.current = true;
@@ -215,8 +185,8 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
       const scaledDeltaX = deltaX * scaleX;
       const scaledDeltaY = deltaY * scaleY;
 
-      panRef.current.x = panRef.current.x + scaledDeltaX;
-      panRef.current.y = panRef.current.y + scaledDeltaY;
+      transform.panRef.current.x = transform.panRef.current.x + scaledDeltaX;
+      transform.panRef.current.y = transform.panRef.current.y + scaledDeltaY;
 
       lastPointerRef.current.x = event.clientX;
       lastPointerRef.current.y = event.clientY;
@@ -227,7 +197,7 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
         throttleRef.current = null;
       });
     },
-    [draw],
+    [draw, transform],
   );
 
   const handlePointerUp = useCallback(() => {
@@ -240,69 +210,9 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
     }
 
     // Ensure final position is within bounds
-    clamp();
+    transform.clamp();
     draw();
-  }, [clamp, draw]);
-
-  // Zoom the image towards where the cursor currently is
-  const handleWheel = useCallback(
-    (event: WheelEvent) => {
-      event.preventDefault();
-
-      const canvas = canvasRef.current;
-      const image = imageRef.current;
-
-      if (!canvas || !image) {
-        return;
-      }
-
-      const imageCoords = getImageCoordinates(event.clientX, event.clientY);
-      if (!imageCoords) {
-        return;
-      }
-
-      const zoom = zoomRef.current;
-      const centreX = canvas.width / 2;
-      const centreY = canvas.height / 2;
-
-      const imagePointX = (imageCoords.x - centreX - panRef.current.x) / zoom + centreX;
-      const imagePointY = (imageCoords.y - centreY - panRef.current.y) / zoom + centreY;
-
-      const delta = event.deltaY > 0 ? 1 / ZOOM_FACTORS.WHEEL : ZOOM_FACTORS.WHEEL;
-      const newZoom = zoomRef.current * delta;
-
-      zoomRef.current = Math.max(newZoom, 1);
-      panRef.current.x = imageCoords.x - centreX - (imagePointX - centreX) * zoomRef.current;
-      panRef.current.y = imageCoords.y - centreY - (imagePointY - centreY) * zoomRef.current;
-
-      clamp();
-      draw();
-    },
-    [clamp, draw, getImageCoordinates],
-  );
-
-  // Apply zoom with given factor, scales pan proportionally
-  const applyZoom = useCallback(
-    (zoomFactor: number) => {
-      zoomRef.current = Math.max(zoomRef.current * zoomFactor, 1);
-      panRef.current.x = panRef.current.x * zoomFactor;
-      panRef.current.y = panRef.current.y * zoomFactor;
-
-      clamp();
-      draw();
-    },
-    [clamp, draw],
-  );
-
-  // Zoom in from the centre of the canvas
-  const handleZoomIn = useCallback(() => {
-    applyZoom(ZOOM_FACTORS.BUTTON);
-  }, [applyZoom]);
-
-  // Zoom out from the centre of the canvas
-  const handleZoomOut = useCallback(() => {
-    applyZoom(1 / ZOOM_FACTORS.BUTTON);
-  }, [applyZoom]);
+  }, [transform, draw]);
 
   /**
    * Sets the brightness level for the image.
@@ -361,15 +271,14 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
     contrastRef.current = IMAGE_FILTERS.CONTRAST.DEFAULT;
     saturateRef.current = IMAGE_FILTERS.SATURATE.DEFAULT;
 
-    zoomRef.current = IMAGE_EDITS.ZOOM;
-    panRef.current = { x: IMAGE_EDITS.PAN_X, y: IMAGE_EDITS.PAN_Y };
+    transform.reset();
 
     edgeDetectionRef.current = { enabled: false };
 
     setResetKey((prev) => prev + 1);
 
     draw();
-  }, [draw]);
+  }, [draw, transform]);
 
   return {
     canvasRef,
@@ -377,12 +286,12 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
     setContrast,
     setSaturate,
     setEdgeDetection,
-    handleZoomIn,
-    handleZoomOut,
+    handleZoomIn: transform.handleZoomIn,
+    handleZoomOut: transform.handleZoomOut,
     handlePointerDown,
     handlePointerUp,
     handlePointerMove,
-    handleWheel,
+    handleWheel: transform.handleWheel,
     resetFilters,
     exportFile,
     resetKey,
