@@ -48,7 +48,7 @@
 - Try to avoid monolothic functions.
 - Prefer using async/await over raw Promises for async code.
 - Prefer using `try/catch` for error handling over `.catch()` on Promises.
-- Prefer using long maths expressions broken over multiple lines for readability and shorthand assignments (e.g. `a = a + b` instead of `a += b`).
+- Prefer using long mathematical expressions broken over multiple lines for readability and shorthand assignments (e.g. `a = a + b` instead of `a += b`).
 - Prefer adding comments only for workarounds, hacks, or non-obvious code paths.
 - Prefer adding JSDocs where helpful, but avoid redundant types that are already covered by TypeScript.
 - The UI uses GitHub Primer components/icons — prefer reusing Primer primitives and icons for consistency.
