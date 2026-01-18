@@ -347,6 +347,7 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
 
   /**
    * Toggles the visualization of edges on the image.
+   * @param state - Edge detection configuration with enabled state and intensity value
    */
   const toggleEdgeDetection = useCallback(
     (state: EdgeDetectionData) => {

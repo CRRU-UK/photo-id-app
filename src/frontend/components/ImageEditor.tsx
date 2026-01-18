@@ -137,10 +137,10 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
   };
 
   const handleEdgeDetectionSlider = (value: number) => {
-    setEdgeDetection(() => ({
+    setEdgeDetection({
       enabled: true,
       value,
-    }));
+    });
   };
 
   const handleReset = useCallback(() => {
@@ -253,11 +253,11 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
           onClick={handleToggleEdgeDetection}
         />
 
-        {edgeDetectionEnabled && (
+        {edgeDetection.enabled && (
           <Slider
             key={`edge-detection-${resetKey}`}
             name="Edge Detection"
-            initial={edgeDetection.value}
+            initial={edgeDetection.enabled ? edgeDetection.value : EDGE_DETECTION.DEFAULT}
             min={EDGE_DETECTION.MIN}
             max={EDGE_DETECTION.MAX}
             simple

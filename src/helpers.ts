@@ -30,7 +30,7 @@ export const chunkArray = <T>(array: T[], size: number): T[][] => {
  * @param options.brightness - Brightness percentage
  * @param options.contrast - Contrast percentage
  * @param options.saturate - Saturation percentage
- * @param options.edgeDetection - Whether to enable edge detection filters
+ * @param options.edgeDetection - Edge detection settings including enabled state and intensity value.
  * @returns CSS filter string.
  */
 export const getCanvasFilters = ({
@@ -45,8 +45,8 @@ export const getCanvasFilters = ({
   edgeDetection: EdgeDetectionData;
 }): string => {
   if (edgeDetection.enabled) {
-    const contrast = EDGE_DETECTION.CONTRAST + edgeDetection.value * 2;
-    return ["grayscale(1)", "invert(1)", `contrast(${contrast}%)`].join(" ");
+    const edgeContrast = EDGE_DETECTION.CONTRAST + edgeDetection.value * 2;
+    return ["grayscale(1)", "invert(1)", `contrast(${edgeContrast}%)`].join(" ");
   }
 
   return [`brightness(${brightness}%)`, `contrast(${contrast}%)`, `saturate(${saturate}%)`].join(
