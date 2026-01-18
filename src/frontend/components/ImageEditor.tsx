@@ -103,7 +103,7 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
   const [saving, setSaving] = useState<boolean>(false);
   const [navigating, setNavigating] = useState<boolean>(false);
 
-  const [edgeDetection, setEdgeDetection] = useState<EdgeDetectionData>({
+  const [edgeDetectionData, setEdgeDetectionData] = useState<EdgeDetectionData>({
     enabled: false,
   });
 
@@ -112,7 +112,7 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
     setBrightness,
     setContrast,
     setSaturate,
-    setImageDetection,
+    setEdgeDetection,
     handleZoomIn,
     handleZoomOut,
     handlePointerDown,
@@ -127,7 +127,7 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
   });
 
   const handleSetImageDetection = () => {
-    setEdgeDetection((prev) => {
+    setEdgeDetectionData((prev) => {
       if (prev.enabled) {
         return { enabled: false };
       }
@@ -137,7 +137,7 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
   };
 
   const handleEdgeDetectionSlider = (value: number) => {
-    setEdgeDetection({
+    setEdgeDetectionData({
       enabled: true,
       value,
     });
@@ -145,12 +145,12 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
 
   const handleReset = useCallback(() => {
     resetFilters();
-    setEdgeDetection({ enabled: false });
+    setEdgeDetectionData({ enabled: false });
   }, [resetFilters]);
 
   useEffect(() => {
-    setImageDetection(edgeDetection);
-  }, [edgeDetection, setImageDetection]);
+    setEdgeDetection(edgeDetectionData);
+  }, [edgeDetectionData, setEdgeDetection]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -209,7 +209,7 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
     if (previousPhotoIdRef.current !== currentPhotoId) {
       resetFilters();
       setNavigating(false);
-      setEdgeDetection({ enabled: false });
+      setEdgeDetectionData({ enabled: false });
 
       previousPhotoIdRef.current = currentPhotoId;
     }
@@ -244,18 +244,18 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
 
       <Stack className="edge-toggle" direction="horizontal" align="center" spacing="none">
         <IconButton
-          icon={edgeDetection.enabled ? EyeIcon : EyeClosedIcon}
-          variant={edgeDetection.enabled ? "primary" : "default"}
+          icon={edgeDetectionData.enabled ? EyeIcon : EyeClosedIcon}
+          variant={edgeDetectionData.enabled ? "primary" : "default"}
           size="medium"
           aria-label="Edge detection"
           onClick={handleSetImageDetection}
         />
 
-        {edgeDetection.enabled && (
+        {edgeDetectionData.enabled && (
           <Slider
             key={`edge-detection-${resetKey}`}
             name="Edge Detection"
-            initial={edgeDetection.enabled ? edgeDetection.value : EDGE_DETECTION.DEFAULT}
+            initial={edgeDetectionData.enabled ? edgeDetectionData.value : EDGE_DETECTION.DEFAULT}
             min={EDGE_DETECTION.MIN}
             max={EDGE_DETECTION.MAX}
             simple
@@ -272,7 +272,7 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
             initial={IMAGE_FILTERS.BRIGHTNESS.DEFAULT}
             min={IMAGE_FILTERS.BRIGHTNESS.MIN}
             max={IMAGE_FILTERS.BRIGHTNESS.MAX}
-            disabled={edgeDetection.enabled}
+            disabled={edgeDetectionData.enabled}
             callback={setBrightness}
           />
           <Slider
@@ -281,7 +281,7 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
             initial={IMAGE_FILTERS.CONTRAST.DEFAULT}
             min={IMAGE_FILTERS.CONTRAST.MIN}
             max={IMAGE_FILTERS.CONTRAST.MAX}
-            disabled={edgeDetection.enabled}
+            disabled={edgeDetectionData.enabled}
             callback={setContrast}
           />
           <Slider
@@ -290,7 +290,7 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
             initial={IMAGE_FILTERS.SATURATE.DEFAULT}
             min={IMAGE_FILTERS.SATURATE.MIN}
             max={IMAGE_FILTERS.SATURATE.MAX}
-            disabled={edgeDetection.enabled}
+            disabled={edgeDetectionData.enabled}
             callback={setSaturate}
           />
         </Stack>
