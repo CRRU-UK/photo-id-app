@@ -125,20 +125,24 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
     file: image,
   });
 
-  const handleSetEdgeDetection = () => {
+  const handleToggleEdgeDetection = () => {
     setEdgeDetectionEnabled((prev) => !prev);
   };
 
-  const handleEdgeDetectionSlider = (value: number) => {
+  const handleEdgeDetectionValue = (value: number) => {
     setEdgeDetectionEnabled(true);
     setEdgeDetectionValue(value);
   };
 
-  const handleReset = useCallback(() => {
-    resetFilters();
+  const resetEdgeDetection = useCallback(() => {
     setEdgeDetectionEnabled(false);
     setEdgeDetectionValue(EDGE_DETECTION.DEFAULT);
-  }, [resetFilters]);
+  }, []);
+
+  const handleReset = useCallback(() => {
+    resetFilters();
+    resetEdgeDetection();
+  }, [resetFilters, resetEdgeDetection]);
 
   useEffect(() => {
     if (edgeDetectionEnabled) {
@@ -205,13 +209,13 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
 
     if (previousPhotoIdRef.current !== currentPhotoId) {
       resetFilters();
+      resetEdgeDetection();
+
       setNavigating(false);
-      setEdgeDetectionEnabled(false);
-      setEdgeDetectionValue(EDGE_DETECTION.DEFAULT);
 
       previousPhotoIdRef.current = currentPhotoId;
     }
-  }, [data.directory, data.name, resetFilters]);
+  }, [data.directory, data.name, resetFilters, resetEdgeDetection]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -246,7 +250,7 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
           variant={edgeDetectionEnabled ? "primary" : "default"}
           size="medium"
           aria-label={edgeDetectionEnabled ? "Disable edge detection" : "Enable edge detection"}
-          onClick={handleSetEdgeDetection}
+          onClick={handleToggleEdgeDetection}
         />
 
         {edgeDetectionEnabled && (
@@ -257,7 +261,7 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
             min={EDGE_DETECTION.MIN}
             max={EDGE_DETECTION.MAX}
             simple
-            callback={handleEdgeDetectionSlider}
+            callback={handleEdgeDetectionValue}
           />
         )}
       </Stack>

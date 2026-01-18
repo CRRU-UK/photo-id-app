@@ -22,9 +22,7 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
   const panRef = useRef({ x: IMAGE_EDITS.PAN_X, y: IMAGE_EDITS.PAN_Y });
   const lastPointerRef = useRef({ x: 0, y: 0 });
 
-  const edgeDetectionRef = useRef<EdgeDetectionData>({
-    enabled: false,
-  });
+  const edgeDetectionRef = useRef<EdgeDetectionData>({ enabled: false });
 
   const throttleRef = useRef<number | null>(null);
 
