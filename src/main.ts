@@ -233,7 +233,6 @@ app.whenReady().then(() => {
   ipcMain.handle(
     IPC_EVENTS.NAVIGATE_EDITOR_PHOTO,
     async (event, data: PhotoBody, direction: EditorNavigation): Promise<string | null> => {
-      // TODO: Should we get the source photo body from sender query params instead?
       const result = await handleEditorNavigate(data, direction);
 
       if (!result) {

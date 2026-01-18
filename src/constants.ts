@@ -73,3 +73,32 @@ export enum EXTERNAL_LINKS {
   USER_GUIDE = "https://photoidapp.crru.org.uk/user-guide/",
   CHANGELOG = "https://github.com/CRRU-UK/photo-id-app/releases/latest",
 }
+
+export const IMAGE_FILTERS = {
+  BRIGHTNESS: {
+    MIN: 0,
+    MAX: 200,
+    DEFAULT: 100,
+  },
+  CONTRAST: {
+    MIN: 0,
+    MAX: 200,
+    DEFAULT: 100,
+  },
+  SATURATE: {
+    MIN: 0,
+    MAX: 200,
+    DEFAULT: 100,
+  },
+};
+
+export const IMAGE_EDITS = {
+  ZOOM: 1,
+  PAN_X: 0,
+  PAN_Y: 0,
+};
+
+export const ZOOM_FACTORS = {
+  BUTTON: 1.2,
+  WHEEL: 1.02,
+};

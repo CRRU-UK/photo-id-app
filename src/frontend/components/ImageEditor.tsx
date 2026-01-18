@@ -9,41 +9,52 @@ import {
   ZoomOutIcon,
 } from "@primer/octicons-react";
 import { Button, ButtonGroup, FormControl, IconButton, Label, Stack } from "@primer/react";
-import { memo, useEffect, useState } from "react";
-import { usePhotoEditor } from "react-photo-editor";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
+
+import { IMAGE_FILTERS } from "@/constants";
+
+import useImageEditor from "../hooks/useImageEditor";
 
 interface SliderProps {
   name: string;
-  value: number;
   min: number;
   max: number;
-  callback: React.Dispatch<React.SetStateAction<number>>;
+  initial: number;
+  callback: (value: number) => void;
 }
 
-const Slider = ({ name, value, min, max, callback }: SliderProps) => (
-  <FormControl>
-    <FormControl.Label>
-      {name}
-      <Label variant="secondary">
-        <pre>{value}</pre>
-      </Label>
-    </FormControl.Label>
-    <input
-      type="range"
-      min={min}
-      max={max}
-      value={value}
-      onChange={(event) => callback(Number(event.target.value))}
-    />
-  </FormControl>
-);
+const Slider = ({ name, min, max, initial, callback }: SliderProps) => {
+  const [value, setValue] = useState<number>(initial);
+
+  return (
+    <FormControl>
+      <FormControl.Label>
+        {name}
+        <Label variant="secondary">
+          <pre>{value}</pre>
+        </Label>
+      </FormControl.Label>
+
+      <input
+        type="range"
+        min={min}
+        max={max}
+        value={value}
+        onChange={(event) => {
+          const newValue = Number(event.target.value);
+          setValue(newValue);
+          callback(newValue);
+        }}
+      />
+    </FormControl>
+  );
+};
 
 interface CanvasImageProps {
   ref: React.RefObject<HTMLCanvasElement | null>;
   handlePointerDown: (event: React.PointerEvent<HTMLCanvasElement>) => void;
   handlePointerMove: (event: React.PointerEvent<HTMLCanvasElement>) => void;
   handlePointerUp: (event: React.PointerEvent<HTMLCanvasElement>) => void;
-  handleWheel: (event: React.WheelEvent<HTMLCanvasElement>) => void;
 }
 
 const CanvasImage = ({
@@ -51,7 +62,6 @@ const CanvasImage = ({
   handlePointerDown,
   handlePointerMove,
   handlePointerUp,
-  handleWheel,
 }: CanvasImageProps) => {
   return (
     <canvas
@@ -60,7 +70,6 @@ const CanvasImage = ({
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
-      onWheel={handleWheel}
     />
   );
 };
@@ -80,76 +89,129 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
   const {
     canvasRef,
     setBrightness,
-    brightness,
-    contrast,
     setContrast,
-    saturate,
     setSaturate,
     handleZoomIn,
     handleZoomOut,
-    generateEditedFile,
     handlePointerDown,
     handlePointerUp,
     handlePointerMove,
     handleWheel,
     resetFilters,
-  } = usePhotoEditor({
+    exportFile,
+    resetKey,
+  } = useImageEditor({
     file: image,
   });
 
   const handleSave = async () => {
     setSaving(true);
 
-    const editedFile = await generateEditedFile();
-    const editedFileData = await (editedFile as File).arrayBuffer();
+    try {
+      const editedFile = await exportFile();
 
-    await window.electronAPI.savePhotoFile(data, editedFileData);
+      if (!editedFile) {
+        return;
+      }
 
-    setSaving(false);
-  };
+      const editedFileData = await editedFile.arrayBuffer();
 
-  const handleEditorNavigation = async (direction: EditorNavigation) => {
-    if (navigating) {
-      return;
-    }
-
-    setNavigating(true);
-
-    const result = await window.electronAPI.navigateEditorPhoto(data, direction);
-    if (result) {
-      setQueryCallback(result);
-
-      // TODO: Move this to useEffect on data change as there is a delay from setQueryCallback
-      resetFilters();
-      setNavigating(false);
+      await window.electronAPI.savePhotoFile(data, editedFileData);
+    } catch (error) {
+      console.error("Failed to save edited photo file:", error);
+    } finally {
+      setSaving(false);
     }
   };
 
-  const handleKeyDown = (event: KeyboardEvent) => {
-    if (event.code === "ArrowLeft") {
-      handleEditorNavigation("prev");
-    }
+  const handleEditorNavigation = useCallback(
+    async (direction: EditorNavigation) => {
+      if (navigating) {
+        return;
+      }
 
-    if (event.code === "ArrowRight") {
-      handleEditorNavigation("next");
-    }
-  };
+      setNavigating(true);
+
+      const result = await window.electronAPI.navigateEditorPhoto(data, direction);
+      if (result) {
+        setQueryCallback(result);
+      }
+    },
+    [data, navigating, setQueryCallback],
+  );
+
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent) => {
+      if (event.code === "ArrowLeft") {
+        handleEditorNavigation("prev");
+      }
+
+      if (event.code === "ArrowRight") {
+        handleEditorNavigation("next");
+      }
+    },
+    [handleEditorNavigation],
+  );
+
+  const previousPhotoIdRef = useRef<string>(`${data.directory}/${data.name}`);
 
   useEffect(() => {
+    const currentPhotoId = `${data.directory}/${data.name}`;
+
+    if (previousPhotoIdRef.current !== currentPhotoId) {
+      resetFilters();
+      setNavigating(false);
+
+      previousPhotoIdRef.current = currentPhotoId;
+    }
+  }, [data.directory, data.name, resetFilters]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+
+    if (canvas) {
+      canvas.addEventListener("wheel", handleWheel, { passive: false });
+    }
+
     document.addEventListener("keydown", handleKeyDown);
 
     return () => {
+      if (canvas) {
+        canvas.removeEventListener("wheel", handleWheel);
+      }
+
       document.removeEventListener("keydown", handleKeyDown);
     };
-  });
+  }, [handleWheel, handleKeyDown]);
 
   return (
     <div className="edit">
       <div className="toolbar">
         <Stack direction="horizontal" align="center">
-          <Slider name="Brightness" value={brightness} min={0} max={200} callback={setBrightness} />
-          <Slider name="Contrast" value={contrast} min={0} max={200} callback={setContrast} />
-          <Slider name="Saturation" value={saturate} min={0} max={200} callback={setSaturate} />
+          <Slider
+            key={`brightness-${resetKey}`}
+            name="Brightness"
+            initial={IMAGE_FILTERS.BRIGHTNESS.DEFAULT}
+            min={IMAGE_FILTERS.BRIGHTNESS.MIN}
+            max={IMAGE_FILTERS.BRIGHTNESS.MAX}
+            callback={setBrightness}
+          />
+          <Slider
+            key={`contrast-${resetKey}`}
+            name="Contrast"
+            initial={IMAGE_FILTERS.CONTRAST.DEFAULT}
+            min={IMAGE_FILTERS.CONTRAST.MIN}
+            max={IMAGE_FILTERS.CONTRAST.MAX}
+            callback={setContrast}
+          />
+          <Slider
+            key={`saturation-${resetKey}`}
+            name="Saturation"
+            initial={IMAGE_FILTERS.SATURATE.DEFAULT}
+            min={IMAGE_FILTERS.SATURATE.MIN}
+            max={IMAGE_FILTERS.SATURATE.MAX}
+            callback={setSaturate}
+          />
         </Stack>
 
         <ButtonGroup style={{ marginLeft: "auto", marginRight: "auto" }}>
@@ -161,6 +223,7 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
           >
             Zoom Out
           </Button>
+
           <Button
             leadingVisual={ZoomInIcon}
             size="medium"
@@ -213,7 +276,6 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
         handlePointerDown={handlePointerDown}
         handlePointerMove={handlePointerMove}
         handlePointerUp={handlePointerUp}
-        handleWheel={handleWheel}
       />
     </div>
   );
