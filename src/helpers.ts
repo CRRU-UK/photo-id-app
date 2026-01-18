@@ -1,5 +1,6 @@
+import type { EdgeDetectionData } from "@/types";
+
 import { EDGE_DETECTION } from "@/constants";
-import { EdgeDetectionData } from "@/types";
 
 export const getAlphabetLetter = (index: number): string => {
   let result = "";

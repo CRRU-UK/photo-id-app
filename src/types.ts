@@ -71,4 +71,4 @@ export type EditorNavigation = "prev" | "next";
 
 export type ExternalLinks = "website" | "user-guide" | "changelog";
 
-export type EdgeDetectionData = { enabled: true; value: number } | { enabled: false };
+export type EdgeDetectionData = { enabled: false } | { enabled: true; value: number };
