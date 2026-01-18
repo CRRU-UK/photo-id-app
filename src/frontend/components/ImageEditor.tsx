@@ -233,8 +233,6 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
     };
   }, [canvasRef, handleWheel, handleKeyDown]);
 
-  const edgeDetectionEnabled = edgeDetection.enabled;
-
   return (
     <div className="edit">
       <CanvasImage
@@ -246,8 +244,8 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
 
       <Stack className="edge-toggle" direction="horizontal" align="center" spacing="none">
         <IconButton
-          icon={edgeDetectionEnabled ? EyeIcon : EyeClosedIcon}
-          variant={edgeDetectionEnabled ? "primary" : "default"}
+          icon={edgeDetection.enabled ? EyeIcon : EyeClosedIcon}
+          variant={edgeDetection.enabled ? "primary" : "default"}
           size="medium"
           aria-label="Edge detection"
           onClick={handleToggleEdgeDetection}
@@ -274,7 +272,7 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
             initial={IMAGE_FILTERS.BRIGHTNESS.DEFAULT}
             min={IMAGE_FILTERS.BRIGHTNESS.MIN}
             max={IMAGE_FILTERS.BRIGHTNESS.MAX}
-            disabled={edgeDetectionEnabled}
+            disabled={edgeDetection.enabled}
             callback={setBrightness}
           />
           <Slider
@@ -283,7 +281,7 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
             initial={IMAGE_FILTERS.CONTRAST.DEFAULT}
             min={IMAGE_FILTERS.CONTRAST.MIN}
             max={IMAGE_FILTERS.CONTRAST.MAX}
-            disabled={edgeDetectionEnabled}
+            disabled={edgeDetection.enabled}
             callback={setContrast}
           />
           <Slider
@@ -292,7 +290,7 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
             initial={IMAGE_FILTERS.SATURATE.DEFAULT}
             min={IMAGE_FILTERS.SATURATE.MIN}
             max={IMAGE_FILTERS.SATURATE.MAX}
-            disabled={edgeDetectionEnabled}
+            disabled={edgeDetection.enabled}
             callback={setSaturate}
           />
         </Stack>

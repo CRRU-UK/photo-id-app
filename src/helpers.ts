@@ -30,7 +30,7 @@ export const chunkArray = <T>(array: T[], size: number): T[][] => {
  * @param options.brightness - Brightness percentage
  * @param options.contrast - Contrast percentage
  * @param options.saturate - Saturation percentage
- * @param options.edgeDetection - Edge detection settings including enabled state and intensity value.
+ * @param options.edgeDetection - Edge detection settings including enabled state and intensity value
  * @returns CSS filter string.
  */
 export const getCanvasFilters = ({
