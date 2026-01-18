@@ -1,3 +1,7 @@
+import type { EdgeDetectionData } from "@/types";
+
+import { EDGE_DETECTION } from "@/constants";
+
 export const getAlphabetLetter = (index: number): string => {
   let result = "";
 
@@ -20,16 +24,35 @@ export const chunkArray = <T>(array: T[], size: number): T[][] => {
   return chunks;
 };
 
+/**
+ * Generates CSS filter string for canvas.
+ * @param options - Options
+ * @param options.brightness - Brightness percentage
+ * @param options.contrast - Contrast percentage
+ * @param options.saturate - Saturation percentage
+ * @param options.edgeDetection - Edge detection settings including enabled state and intensity value
+ * @returns CSS filter string.
+ */
 export const getCanvasFilters = ({
   brightness,
   contrast,
   saturate,
+  edgeDetection,
 }: {
   brightness: number;
   contrast: number;
   saturate: number;
-}): string =>
-  [`brightness(${brightness}%)`, `contrast(${contrast}%)`, `saturate(${saturate}%)`].join(" ");
+  edgeDetection: EdgeDetectionData;
+}): string => {
+  if (edgeDetection.enabled) {
+    const edgeContrast = EDGE_DETECTION.CONTRAST + edgeDetection.value * 2;
+    return ["grayscale(1)", "invert(1)", `contrast(${edgeContrast}%)`].join(" ");
+  }
+
+  return [`brightness(${brightness}%)`, `contrast(${contrast}%)`, `saturate(${saturate}%)`].join(
+    " ",
+  );
+};
 
 // Calculate boundaries for given canvas and image size
 export const getBoundaries = (

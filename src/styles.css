@@ -13,6 +13,10 @@ textarea,
   outline: none;
 }
 
+:root {
+  --toolbar-height: 60px;
+}
+
 .footer {
   z-index: 10;
   position: absolute;
@@ -107,7 +111,7 @@ body.copying *:hover {
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  height: 60px;
+  height: var(--toolbar-height);
   border-top: var(--borderWidth-default) var(--borderColor-muted) solid;
   background: var(--bgColor-muted);
 }
@@ -135,13 +139,24 @@ body.copying *:hover {
   pointer-events: none;
 }
 
+.edit > .edge-toggle {
+  z-index: 10;
+  position: absolute;
+  padding: var(--stack-gap-condensed);
+  left: var(--stack-gap-normal);
+  bottom: calc(var(--stack-gap-normal) + var(--toolbar-height));
+  border: var(--borderWidth-default) var(--borderColor-muted) solid;
+  background: var(--bgColor-muted);
+  border-radius: var(--borderRadius-default);
+}
+
 .edit > .canvas {
   z-index: 0;
   position: absolute;
   left: 0;
   top: 0;
   width: 100%;
-  height: calc(100% - 60px);
+  height: calc(100% - var(--toolbar-height));
   object-fit: contain;
 }
 

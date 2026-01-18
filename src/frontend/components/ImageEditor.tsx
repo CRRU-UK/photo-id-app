@@ -4,6 +4,8 @@ import {
   CheckIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  EyeClosedIcon,
+  EyeIcon,
   XIcon,
   ZoomInIcon,
   ZoomOutIcon,
@@ -11,7 +13,7 @@ import {
 import { Button, ButtonGroup, FormControl, IconButton, Label, Stack } from "@primer/react";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
 
-import { IMAGE_FILTERS } from "@/constants";
+import { EDGE_DETECTION, IMAGE_FILTERS } from "@/constants";
 
 import useImageEditor from "../hooks/useImageEditor";
 
@@ -20,15 +22,29 @@ interface SliderProps {
   min: number;
   max: number;
   initial: number;
+  disabled?: boolean;
+  simple?: boolean;
   callback: (value: number) => void;
 }
 
-const Slider = ({ name, min, max, initial, callback }: SliderProps) => {
+const Slider = ({
+  name,
+  min,
+  max,
+  initial,
+  disabled = false,
+  simple = false,
+  callback,
+}: SliderProps) => {
   const [value, setValue] = useState<number>(initial);
 
+  useEffect(() => {
+    setValue(initial);
+  }, [initial]);
+
   return (
-    <FormControl>
-      <FormControl.Label>
+    <FormControl disabled={disabled}>
+      <FormControl.Label visuallyHidden={simple}>
         {name}
         <Label variant="secondary">
           <pre>{value}</pre>
@@ -40,6 +56,7 @@ const Slider = ({ name, min, max, initial, callback }: SliderProps) => {
         min={min}
         max={max}
         value={value}
+        disabled={disabled}
         onChange={(event) => {
           const newValue = Number(event.target.value);
           setValue(newValue);
@@ -86,11 +103,15 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
   const [saving, setSaving] = useState<boolean>(false);
   const [navigating, setNavigating] = useState<boolean>(false);
 
+  const [edgeDetectionEnabled, setEdgeDetectionEnabled] = useState<boolean>(false);
+  const [edgeDetectionValue, setEdgeDetectionValue] = useState<number>(EDGE_DETECTION.DEFAULT);
+
   const {
     canvasRef,
     setBrightness,
     setContrast,
     setSaturate,
+    setEdgeDetection,
     handleZoomIn,
     handleZoomOut,
     handlePointerDown,
@@ -103,6 +124,34 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
   } = useImageEditor({
     file: image,
   });
+
+  const handleToggleEdgeDetection = () => {
+    setEdgeDetectionEnabled((prev) => !prev);
+  };
+
+  const handleEdgeDetectionValue = (value: number) => {
+    setEdgeDetectionEnabled(true);
+    setEdgeDetectionValue(value);
+  };
+
+  const resetEdgeDetection = useCallback(() => {
+    setEdgeDetectionEnabled(false);
+    setEdgeDetectionValue(EDGE_DETECTION.DEFAULT);
+  }, []);
+
+  const handleReset = useCallback(() => {
+    resetFilters();
+    resetEdgeDetection();
+  }, [resetFilters, resetEdgeDetection]);
+
+  useEffect(() => {
+    if (edgeDetectionEnabled) {
+      setEdgeDetection({ enabled: true, value: edgeDetectionValue });
+      return;
+    }
+
+    setEdgeDetection({ enabled: false });
+  }, [edgeDetectionEnabled, edgeDetectionValue, setEdgeDetection]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -160,11 +209,13 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
 
     if (previousPhotoIdRef.current !== currentPhotoId) {
       resetFilters();
+      resetEdgeDetection();
+
       setNavigating(false);
 
       previousPhotoIdRef.current = currentPhotoId;
     }
-  }, [data.directory, data.name, resetFilters]);
+  }, [data.directory, data.name, resetFilters, resetEdgeDetection]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -182,18 +233,48 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
 
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [handleWheel, handleKeyDown]);
+  }, [canvasRef, handleWheel, handleKeyDown]);
 
   return (
     <div className="edit">
+      <CanvasImage
+        ref={canvasRef}
+        handlePointerDown={handlePointerDown}
+        handlePointerMove={handlePointerMove}
+        handlePointerUp={handlePointerUp}
+      />
+
+      <Stack className="edge-toggle" direction="horizontal" align="center" spacing="none">
+        <IconButton
+          icon={edgeDetectionEnabled ? EyeIcon : EyeClosedIcon}
+          variant={edgeDetectionEnabled ? "primary" : "default"}
+          size="medium"
+          aria-label={edgeDetectionEnabled ? "Disable edge detection" : "Enable edge detection"}
+          onClick={handleToggleEdgeDetection}
+        />
+
+        {edgeDetectionEnabled && (
+          <Slider
+            key={`edge-detection-${resetKey}`}
+            name="Edge Detection"
+            initial={edgeDetectionValue}
+            min={EDGE_DETECTION.MIN}
+            max={EDGE_DETECTION.MAX}
+            simple
+            callback={handleEdgeDetectionValue}
+          />
+        )}
+      </Stack>
+
       <div className="toolbar">
-        <Stack direction="horizontal" align="center">
+        <Stack direction="horizontal" align="center" gap="condensed">
           <Slider
             key={`brightness-${resetKey}`}
             name="Brightness"
             initial={IMAGE_FILTERS.BRIGHTNESS.DEFAULT}
             min={IMAGE_FILTERS.BRIGHTNESS.MIN}
             max={IMAGE_FILTERS.BRIGHTNESS.MAX}
+            disabled={edgeDetectionEnabled}
             callback={setBrightness}
           />
           <Slider
@@ -202,6 +283,7 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
             initial={IMAGE_FILTERS.CONTRAST.DEFAULT}
             min={IMAGE_FILTERS.CONTRAST.MIN}
             max={IMAGE_FILTERS.CONTRAST.MAX}
+            disabled={edgeDetectionEnabled}
             callback={setContrast}
           />
           <Slider
@@ -210,6 +292,7 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
             initial={IMAGE_FILTERS.SATURATE.DEFAULT}
             min={IMAGE_FILTERS.SATURATE.MIN}
             max={IMAGE_FILTERS.SATURATE.MAX}
+            disabled={edgeDetectionEnabled}
             callback={setSaturate}
           />
         </Stack>
@@ -253,7 +336,7 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
           leadingVisual={XIcon}
           size="medium"
           variant="danger"
-          onClick={resetFilters}
+          onClick={handleReset}
           style={{ marginRight: "var(--stack-gap-normal)" }}
         >
           Reset
@@ -270,13 +353,6 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
           Save
         </Button>
       </div>
-
-      <CanvasImage
-        ref={canvasRef}
-        handlePointerDown={handlePointerDown}
-        handlePointerMove={handlePointerMove}
-        handlePointerUp={handlePointerUp}
-      />
     </div>
   );
 };

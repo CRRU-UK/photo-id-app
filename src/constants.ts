@@ -102,3 +102,10 @@ export const ZOOM_FACTORS = {
   BUTTON: 1.2,
   WHEEL: 1.02,
 };
+
+export const EDGE_DETECTION = {
+  MIN: 0,
+  MAX: 100,
+  DEFAULT: 50,
+  CONTRAST: 50,
+};
