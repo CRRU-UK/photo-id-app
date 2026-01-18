@@ -48,10 +48,10 @@ describe(getCanvasFilters, () => {
       brightness: 120,
       contrast: 80,
       saturate: 150,
-      edgeDetection: { enabled: true, value: 250 },
+      edgeDetection: { enabled: true, value: 50 },
     });
 
-    expect(result).toBe("brightness(120%) invert(100%) saturate(0) contrast(250%)");
+    expect(result).toBe("grayscale(1) invert(1) contrast(150%)");
   });
 });
 

@@ -1,3 +1,4 @@
+import { EDGE_DETECTION } from "@/constants";
 import { EdgeDetectionData } from "@/types";
 
 export const getAlphabetLetter = (index: number): string => {
@@ -42,15 +43,14 @@ export const getCanvasFilters = ({
   saturate: number;
   edgeDetection: EdgeDetectionData;
 }): string => {
-  const filterString = [`brightness(${brightness}%)`];
-
   if (edgeDetection.enabled) {
-    filterString.push("invert(100%)", "saturate(0)", `contrast(${edgeDetection.value}%)`);
-  } else {
-    filterString.push(`contrast(${contrast}%)`, `saturate(${saturate}%)`);
+    const contrast = EDGE_DETECTION.CONTRAST + edgeDetection.value * 2;
+    return ["grayscale(1)", "invert(1)", `contrast(${contrast}%)`].join(" ");
   }
 
-  return filterString.join(" ");
+  return [`brightness(${brightness}%)`, `contrast(${contrast}%)`, `saturate(${saturate}%)`].join(
+    " ",
+  );
 };
 
 // Calculate boundaries for given canvas and image size

@@ -274,6 +274,7 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
             initial={IMAGE_FILTERS.BRIGHTNESS.DEFAULT}
             min={IMAGE_FILTERS.BRIGHTNESS.MIN}
             max={IMAGE_FILTERS.BRIGHTNESS.MAX}
+            disabled={edgeDetectionEnabled}
             callback={setBrightness}
           />
           <Slider

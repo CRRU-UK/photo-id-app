@@ -105,6 +105,7 @@ export const ZOOM_FACTORS = {
 
 export const EDGE_DETECTION = {
   MIN: 0,
-  MAX: 300,
-  DEFAULT: 100,
+  MAX: 100,
+  DEFAULT: 50,
+  CONTRAST: 50,
 };
