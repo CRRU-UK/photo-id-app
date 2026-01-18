@@ -126,7 +126,7 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
     file: image,
   });
 
-  const handleSetImageDetection = () => {
+  const handleSetEdgeDetection = () => {
     setEdgeDetectionData((prev) => {
       if (prev.enabled) {
         return { enabled: false };
@@ -248,14 +248,14 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
           variant={edgeDetectionData.enabled ? "primary" : "default"}
           size="medium"
           aria-label="Edge detection"
-          onClick={handleSetImageDetection}
+          onClick={handleSetEdgeDetection}
         />
 
         {edgeDetectionData.enabled && (
           <Slider
             key={`edge-detection-${resetKey}`}
             name="Edge Detection"
-            initial={edgeDetectionData.enabled ? edgeDetectionData.value : EDGE_DETECTION.DEFAULT}
+            initial={edgeDetectionData.value}
             min={EDGE_DETECTION.MIN}
             max={EDGE_DETECTION.MAX}
             simple
