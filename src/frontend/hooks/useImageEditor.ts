@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { getCanvasFilters } from "@/helpers";
 
 import useImageFilters from "@/frontend/hooks/useImageFilters";
+import useImagePanning from "@/frontend/hooks/useImagePanning";
 import useImageTransform from "@/frontend/hooks/useImageTransform";
 
 interface UseImageEditorProps {
@@ -12,11 +13,6 @@ interface UseImageEditorProps {
 const useImageEditor = ({ file }: UseImageEditorProps) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const imageRef = useRef<HTMLImageElement | null>(null);
-
-  const isPanningRef = useRef<boolean>(false);
-  const lastPointerRef = useRef({ x: 0, y: 0 });
-
-  const throttleRef = useRef<number | null>(null);
 
   const [resetKey, setResetKey] = useState(0);
 
@@ -72,6 +68,13 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
     onTransformChange: draw,
   });
 
+  const panning = useImagePanning({
+    canvasRef,
+    imageRef,
+    panRef: transform.panRef,
+    onPanChange: draw,
+  });
+
   useEffect(() => {
     if (!file) {
       return;
@@ -90,14 +93,9 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
     return () => {
       URL.revokeObjectURL(url);
       imageRef.current = null;
-
-      // Cancel any pending requestAnimationFrame
-      if (throttleRef.current !== null) {
-        cancelAnimationFrame(throttleRef.current);
-        throttleRef.current = null;
-      }
+      panning.cleanup();
     };
-  }, [file, draw]);
+  }, [file, draw, panning]);
 
   const exportFile = useCallback(async (): Promise<File | null> => {
     const image = imageRef.current;
@@ -152,64 +150,6 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
     });
   }, [file, filters, transform]);
 
-  const handlePointerDown = useCallback((event: React.PointerEvent<HTMLCanvasElement>) => {
-    isPanningRef.current = true;
-    lastPointerRef.current.x = event.clientX;
-    lastPointerRef.current.y = event.clientY;
-  }, []);
-
-  // Pan the image from the last cursor position (i.e. 1:1 movement)
-  const handlePointerMove = useCallback(
-    (event: React.PointerEvent<HTMLCanvasElement>) => {
-      if (!isPanningRef.current) {
-        return;
-      }
-
-      const canvas = canvasRef.current;
-      const image = imageRef.current;
-
-      if (!canvas || !image) {
-        return;
-      }
-
-      const deltaX = event.clientX - lastPointerRef.current.x;
-      const deltaY = event.clientY - lastPointerRef.current.y;
-
-      const scaleX = image.naturalWidth / canvas.clientWidth;
-      const scaleY = image.naturalHeight / canvas.clientHeight;
-
-      const scaledDeltaX = deltaX * scaleX;
-      const scaledDeltaY = deltaY * scaleY;
-
-      transform.panRef.current.x = transform.panRef.current.x + scaledDeltaX;
-      transform.panRef.current.y = transform.panRef.current.y + scaledDeltaY;
-
-      lastPointerRef.current.x = event.clientX;
-      lastPointerRef.current.y = event.clientY;
-
-      // Use requestAnimationFrame to throttle draw calls during panning
-      throttleRef.current ??= requestAnimationFrame(() => {
-        draw();
-        throttleRef.current = null;
-      });
-    },
-    [draw, transform],
-  );
-
-  const handlePointerUp = useCallback(() => {
-    isPanningRef.current = false;
-
-    // Cancel any pending animation frame
-    if (throttleRef.current !== null) {
-      cancelAnimationFrame(throttleRef.current);
-      throttleRef.current = null;
-    }
-
-    // Ensure final position is within bounds
-    transform.clamp();
-    draw();
-  }, [transform, draw]);
-
   const resetFilters = useCallback(() => {
     filters.reset();
     transform.reset();
@@ -227,9 +167,9 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
     setEdgeDetection: filters.setEdgeDetection,
     handleZoomIn: transform.handleZoomIn,
     handleZoomOut: transform.handleZoomOut,
-    handlePointerDown,
-    handlePointerUp,
-    handlePointerMove,
+    handlePointerDown: panning.handlePointerDown,
+    handlePointerUp: panning.handlePointerUp,
+    handlePointerMove: panning.handlePointerMove,
     handleWheel: transform.handleWheel,
     resetFilters,
     exportFile,
