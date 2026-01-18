@@ -263,7 +263,7 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
       </Stack>
 
       <div className="toolbar">
-        <Stack direction="horizontal" gap="condensed">
+        <Stack direction="horizontal" align="center" gap="condensed">
           <Slider
             key={`brightness-${resetKey}`}
             name="Brightness"
