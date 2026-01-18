@@ -112,13 +112,13 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
     setBrightness,
     setContrast,
     setSaturate,
+    setImageDetection,
     handleZoomIn,
     handleZoomOut,
     handlePointerDown,
     handlePointerUp,
     handlePointerMove,
     handleWheel,
-    toggleEdgeDetection,
     resetFilters,
     exportFile,
     resetKey,
@@ -126,7 +126,7 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
     file: image,
   });
 
-  const handleToggleEdgeDetection = () => {
+  const handleSetImageDetection = () => {
     setEdgeDetection((prev) => {
       if (prev.enabled) {
         return { enabled: false };
@@ -149,8 +149,8 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
   }, [resetFilters]);
 
   useEffect(() => {
-    toggleEdgeDetection(edgeDetection);
-  }, [edgeDetection, toggleEdgeDetection]);
+    setImageDetection(edgeDetection);
+  }, [edgeDetection, setImageDetection]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -248,7 +248,7 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
           variant={edgeDetection.enabled ? "primary" : "default"}
           size="medium"
           aria-label="Edge detection"
-          onClick={handleToggleEdgeDetection}
+          onClick={handleSetImageDetection}
         />
 
         {edgeDetection.enabled && (
