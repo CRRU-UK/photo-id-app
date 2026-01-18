@@ -1,10 +1,8 @@
-import type { EdgeDetectionData } from "@/types";
-
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { IMAGE_FILTERS } from "@/constants";
 import { getCanvasFilters } from "@/helpers";
 
+import useImageFilters from "@/frontend/hooks/useImageFilters";
 import useImageTransform from "@/frontend/hooks/useImageTransform";
 
 interface UseImageEditorProps {
@@ -15,14 +13,8 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const imageRef = useRef<HTMLImageElement | null>(null);
 
-  const brightnessRef = useRef<number>(IMAGE_FILTERS.BRIGHTNESS.DEFAULT);
-  const contrastRef = useRef<number>(IMAGE_FILTERS.CONTRAST.DEFAULT);
-  const saturateRef = useRef<number>(IMAGE_FILTERS.SATURATE.DEFAULT);
-
   const isPanningRef = useRef<boolean>(false);
   const lastPointerRef = useRef({ x: 0, y: 0 });
-
-  const edgeDetectionRef = useRef<EdgeDetectionData>({ enabled: false });
 
   const throttleRef = useRef<number | null>(null);
 
@@ -61,14 +53,18 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
     context.translate(-centreX, -centreY);
 
     context.filter = getCanvasFilters({
-      brightness: brightnessRef.current,
-      contrast: contrastRef.current,
-      saturate: saturateRef.current,
-      edgeDetection: edgeDetectionRef.current,
+      brightness: filters.brightnessRef.current,
+      contrast: filters.contrastRef.current,
+      saturate: filters.saturateRef.current,
+      edgeDetection: filters.edgeDetectionRef.current,
     });
 
     context.drawImage(image, 0, 0);
   }, []);
+
+  const filters = useImageFilters({
+    onFilterChange: draw,
+  });
 
   const transform = useImageTransform({
     canvasRef,
@@ -134,9 +130,9 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
 
     // Apply all filters EXCEPT edge detection
     context.filter = getCanvasFilters({
-      brightness: brightnessRef.current,
-      contrast: contrastRef.current,
-      saturate: saturateRef.current,
+      brightness: filters.brightnessRef.current,
+      contrast: filters.contrastRef.current,
+      saturate: filters.saturateRef.current,
       edgeDetection: { enabled: false },
     });
 
@@ -154,7 +150,7 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
         resolve(edited);
       }, mime);
     });
-  }, [file, transform]);
+  }, [file, filters, transform]);
 
   const handlePointerDown = useCallback((event: React.PointerEvent<HTMLCanvasElement>) => {
     isPanningRef.current = true;
@@ -214,78 +210,21 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
     draw();
   }, [transform, draw]);
 
-  /**
-   * Sets the brightness level for the image.
-   * @param value - Brightness percentage (0-200, default 100)
-   */
-  const setBrightness = useCallback(
-    (value: number) => {
-      brightnessRef.current = value;
-
-      draw();
-    },
-    [draw],
-  );
-
-  /**
-   * Sets the contrast level for the image.
-   * @param value - Contrast percentage (0-200, default 100)
-   */
-  const setContrast = useCallback(
-    (value: number) => {
-      contrastRef.current = value;
-
-      draw();
-    },
-    [draw],
-  );
-
-  /**
-   * Sets the saturation level for the image.
-   * @param value - Saturation percentage (0-200, default 100)
-   */
-  const setSaturate = useCallback(
-    (value: number) => {
-      saturateRef.current = value;
-
-      draw();
-    },
-    [draw],
-  );
-
-  /**
-   * Toggles the visualization of edges on the image.
-   * @param state - Edge detection configuration with enabled state and intensity value
-   */
-  const setEdgeDetection = useCallback(
-    (state: EdgeDetectionData) => {
-      edgeDetectionRef.current = state;
-
-      draw();
-    },
-    [draw],
-  );
-
   const resetFilters = useCallback(() => {
-    brightnessRef.current = IMAGE_FILTERS.BRIGHTNESS.DEFAULT;
-    contrastRef.current = IMAGE_FILTERS.CONTRAST.DEFAULT;
-    saturateRef.current = IMAGE_FILTERS.SATURATE.DEFAULT;
-
+    filters.reset();
     transform.reset();
-
-    edgeDetectionRef.current = { enabled: false };
 
     setResetKey((prev) => prev + 1);
 
     draw();
-  }, [draw, transform]);
+  }, [draw, filters, transform]);
 
   return {
     canvasRef,
-    setBrightness,
-    setContrast,
-    setSaturate,
-    setEdgeDetection,
+    setBrightness: filters.setBrightness,
+    setContrast: filters.setContrast,
+    setSaturate: filters.setSaturate,
+    setEdgeDetection: filters.setEdgeDetection,
     handleZoomIn: transform.handleZoomIn,
     handleZoomOut: transform.handleZoomOut,
     handlePointerDown,
