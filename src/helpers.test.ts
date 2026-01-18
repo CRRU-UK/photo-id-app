@@ -37,7 +37,7 @@ describe(getCanvasFilters, () => {
       brightness: 120,
       contrast: 80,
       saturate: 150,
-      edgeDetection: { enabled: false, value: 100 },
+      edgeDetection: { enabled: false },
     });
 
     expect(result).toBe("brightness(120%) contrast(80%) saturate(150%)");

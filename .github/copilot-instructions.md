@@ -41,7 +41,7 @@
 
 ### Code standards and style
 
-- Prefer using constants (see `src/constants.ts`) and shared types (see `src/types.ts`).
+- Prefer using and centralising constants (see `src/constants.ts`) and types (see `src/types.ts`).
 - Prefer abstracting small blocks of logic into helper functions (see `src/helpers.ts`).
 - Prefer using full variable and parameter names for clarity (e.g. `error` instead of `e`).
 - Prefer using longer functions that are easier to read over clever one-liners.

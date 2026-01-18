@@ -2,7 +2,7 @@ import type { EdgeDetectionData } from "@/types";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { EDGE_DETECTION, IMAGE_EDITS, IMAGE_FILTERS, ZOOM_FACTORS } from "@/constants";
+import { IMAGE_EDITS, IMAGE_FILTERS, ZOOM_FACTORS } from "@/constants";
 import { getBoundaries, getCanvasFilters } from "@/helpers";
 
 interface UseImageEditorProps {
@@ -24,7 +24,6 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
 
   const edgeDetectionRef = useRef<EdgeDetectionData>({
     enabled: false,
-    value: EDGE_DETECTION.DEFAULT,
   });
 
   const throttleRef = useRef<number | null>(null);
@@ -146,16 +145,37 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
   }, [file, draw]);
 
   const exportFile = useCallback(async (): Promise<File | null> => {
-    const canvas = canvasRef.current;
+    const image = imageRef.current;
 
-    if (!canvas) {
+    if (!image) {
       return null;
     }
 
     const mime = file.type;
 
+    // Create off-screen canvas for export (excludes edge detection filter)
+    const exportCanvas = document.createElement("canvas");
+    exportCanvas.width = image.naturalWidth;
+    exportCanvas.height = image.naturalHeight;
+
+    const context = exportCanvas.getContext("2d");
+
+    if (!context) {
+      return null;
+    }
+
+    // Apply all filters EXCEPT edge detection
+    context.filter = getCanvasFilters({
+      brightness: brightnessRef.current,
+      contrast: contrastRef.current,
+      saturate: saturateRef.current,
+      edgeDetection: { enabled: false },
+    });
+
+    context.drawImage(image, 0, 0);
+
     return new Promise((resolve) => {
-      canvas.toBlob((blob) => {
+      exportCanvas.toBlob((blob) => {
         if (!blob) {
           return resolve(null);
         }
@@ -166,7 +186,7 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
         resolve(edited);
       }, mime);
     });
-  }, [file, draw]);
+  }, [file]);
 
   const handlePointerDown = useCallback((event: React.PointerEvent<HTMLCanvasElement>) => {
     isPanningRef.current = true;
@@ -345,7 +365,7 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
     zoomRef.current = IMAGE_EDITS.ZOOM;
     panRef.current = { x: IMAGE_EDITS.PAN_X, y: IMAGE_EDITS.PAN_Y };
 
-    edgeDetectionRef.current = { enabled: false, value: EDGE_DETECTION.DEFAULT };
+    edgeDetectionRef.current = { enabled: false };
 
     setResetKey((prev) => prev + 1);
 

@@ -22,11 +22,20 @@ interface SliderProps {
   min: number;
   max: number;
   initial: number;
+  disabled?: boolean;
   simple?: boolean;
   callback: (value: number) => void;
 }
 
-const Slider = ({ name, min, max, initial, simple = false, callback }: SliderProps) => {
+const Slider = ({
+  name,
+  min,
+  max,
+  initial,
+  disabled = false,
+  simple = false,
+  callback,
+}: SliderProps) => {
   const [value, setValue] = useState<number>(initial);
 
   useEffect(() => {
@@ -34,7 +43,7 @@ const Slider = ({ name, min, max, initial, simple = false, callback }: SliderPro
   }, [initial]);
 
   return (
-    <FormControl>
+    <FormControl disabled={disabled}>
       <FormControl.Label visuallyHidden={simple}>
         {name}
         <Label variant="secondary">
@@ -47,6 +56,7 @@ const Slider = ({ name, min, max, initial, simple = false, callback }: SliderPro
         min={min}
         max={max}
         value={value}
+        disabled={disabled}
         onChange={(event) => {
           const newValue = Number(event.target.value);
           setValue(newValue);
@@ -95,7 +105,6 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
 
   const [edgeDetection, setEdgeDetection] = useState<EdgeDetectionData>({
     enabled: false,
-    value: EDGE_DETECTION.DEFAULT,
   });
 
   const {
@@ -118,10 +127,13 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
   });
 
   const handleToggleEdgeDetection = () => {
-    setEdgeDetection((prev) => ({
-      enabled: !prev.enabled,
-      value: prev.value,
-    }));
+    setEdgeDetection((prev) => {
+      if (prev.enabled) {
+        return { enabled: false };
+      }
+
+      return { enabled: true, value: EDGE_DETECTION.DEFAULT };
+    });
   };
 
   const handleEdgeDetectionSlider = (value: number) => {
@@ -133,7 +145,7 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
 
   const handleReset = useCallback(() => {
     resetFilters();
-    setEdgeDetection({ enabled: false, value: EDGE_DETECTION.DEFAULT });
+    setEdgeDetection({ enabled: false });
   }, [resetFilters]);
 
   useEffect(() => {
@@ -197,7 +209,7 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
     if (previousPhotoIdRef.current !== currentPhotoId) {
       resetFilters();
       setNavigating(false);
-      setEdgeDetection({ enabled: false, value: EDGE_DETECTION.DEFAULT });
+      setEdgeDetection({ enabled: false });
 
       previousPhotoIdRef.current = currentPhotoId;
     }
@@ -270,6 +282,7 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
             initial={IMAGE_FILTERS.CONTRAST.DEFAULT}
             min={IMAGE_FILTERS.CONTRAST.MIN}
             max={IMAGE_FILTERS.CONTRAST.MAX}
+            disabled={edgeDetectionEnabled}
             callback={setContrast}
           />
           <Slider
@@ -278,6 +291,7 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
             initial={IMAGE_FILTERS.SATURATE.DEFAULT}
             min={IMAGE_FILTERS.SATURATE.MIN}
             max={IMAGE_FILTERS.SATURATE.MAX}
+            disabled={edgeDetectionEnabled}
             callback={setSaturate}
           />
         </Stack>
