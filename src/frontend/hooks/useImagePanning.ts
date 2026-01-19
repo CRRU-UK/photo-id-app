@@ -5,9 +5,16 @@ interface UseImagePanningProps {
   imageRef: React.RefObject<HTMLImageElement | null>;
   panRef: React.RefObject<{ x: number; y: number }>;
   onPanChange: () => void;
+  clampFn: () => void;
 }
 
-const useImagePanning = ({ canvasRef, imageRef, panRef, onPanChange }: UseImagePanningProps) => {
+const useImagePanning = ({
+  canvasRef,
+  imageRef,
+  panRef,
+  onPanChange,
+  clampFn,
+}: UseImagePanningProps) => {
   const isPanningRef = useRef<boolean>(false);
   const lastPointerRef = useRef({ x: 0, y: 0 });
   const throttleRef = useRef<number | null>(null);
@@ -65,8 +72,10 @@ const useImagePanning = ({ canvasRef, imageRef, panRef, onPanChange }: UseImageP
       throttleRef.current = null;
     }
 
+    // Explicitly clamp before final draw to ensure image stays within bounds
+    clampFn();
     onPanChange();
-  }, [onPanChange]);
+  }, [clampFn, onPanChange]);
 
   const cleanup = useCallback(() => {
     // Cancel any pending requestAnimationFrame

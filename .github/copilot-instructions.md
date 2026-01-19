@@ -45,7 +45,7 @@
 - Prefer abstracting small blocks of logic into helper functions (see `src/helpers.ts`).
 - Prefer using full variable and parameter names for clarity (e.g. `error` instead of `e`).
 - Prefer using longer functions that are easier to read over clever one-liners.
-- Try to avoid monolothic functions.
+- Try to avoid monolithic functions.
 - Prefer using async/await over raw Promises for async code.
 - Prefer using `try/catch` for error handling over `.catch()` on Promises.
 - Prefer using long mathematical expressions broken over multiple lines for readability and shorthand assignments (e.g. `a = a + b` instead of `a += b`).

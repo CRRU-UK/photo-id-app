@@ -16,6 +16,27 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
 
   const [resetKey, setResetKey] = useState(0);
 
+  // Initialize hooks first, passing a stable draw function via ref
+  const drawRef = useRef<() => void>(() => {});
+
+  const filters = useImageFilters({
+    onFilterChange: () => drawRef.current(),
+  });
+
+  const transform = useImageTransform({
+    canvasRef,
+    imageRef,
+    onTransformChange: () => drawRef.current(),
+  });
+
+  const panning = useImagePanning({
+    canvasRef,
+    imageRef,
+    panRef: transform.panRef,
+    onPanChange: () => drawRef.current(),
+    clampFn: transform.clamp,
+  });
+
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
     const image = imageRef.current;
@@ -56,24 +77,12 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
     });
 
     context.drawImage(image, 0, 0);
-  }, []);
+  }, [filters, transform]);
 
-  const filters = useImageFilters({
-    onFilterChange: draw,
-  });
-
-  const transform = useImageTransform({
-    canvasRef,
-    imageRef,
-    onTransformChange: draw,
-  });
-
-  const panning = useImagePanning({
-    canvasRef,
-    imageRef,
-    panRef: transform.panRef,
-    onPanChange: draw,
-  });
+  // Update the draw ref to point to the latest draw function
+  useEffect(() => {
+    drawRef.current = draw;
+  }, [draw]);
 
   useEffect(() => {
     if (!file) {
@@ -95,7 +104,8 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
       imageRef.current = null;
       panning.cleanup();
     };
-  }, [file, draw, panning]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- panning object creates new reference on every render, only cleanup is needed
+  }, [file, draw, panning.cleanup]);
 
   const exportFile = useCallback(async (): Promise<File | null> => {
     const image = imageRef.current;
