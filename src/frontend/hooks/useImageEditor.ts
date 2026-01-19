@@ -16,7 +16,8 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
 
   const [resetKey, setResetKey] = useState(0);
 
-  // Initialize hooks first, passing a stable draw function via ref
+  // Initialize hooks first, passing a placeholder draw function via ref
+  // The ref will be updated with the actual draw function after it's defined
   const drawRef = useRef<() => void>(() => {});
 
   const filters = useImageFilters({
@@ -104,7 +105,7 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
       imageRef.current = null;
       panning.cleanup();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- panning object creates new reference on every render, only cleanup is needed
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the panning object creates a new reference on every render, only cleanup is needed
   }, [file, draw, panning.cleanup]);
 
   const exportFile = useCallback(async (): Promise<File | null> => {
