@@ -11,7 +11,7 @@ import {
   ZoomOutIcon,
 } from "@primer/octicons-react";
 import { Button, ButtonGroup, FormControl, IconButton, Label, Stack } from "@primer/react";
-import { memo, useCallback, useEffect, useRef, useState } from "react";
+import { forwardRef, memo, useCallback, useEffect, useRef, useState } from "react";
 
 import { EDGE_DETECTION, IMAGE_FILTERS } from "@/constants";
 import LoadingOverlay from "@/frontend/components/LoadingOverlay";
@@ -69,28 +69,26 @@ const Slider = ({
 };
 
 interface CanvasImageProps {
-  ref: React.RefObject<HTMLCanvasElement | null>;
   handlePointerDown: (event: React.PointerEvent<HTMLCanvasElement>) => void;
   handlePointerMove: (event: React.PointerEvent<HTMLCanvasElement>) => void;
   handlePointerUp: (event: React.PointerEvent<HTMLCanvasElement>) => void;
 }
 
-const CanvasImage = ({
-  ref,
-  handlePointerDown,
-  handlePointerMove,
-  handlePointerUp,
-}: CanvasImageProps) => {
-  return (
-    <canvas
-      ref={ref}
-      className="canvas"
-      onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerUp}
-    />
-  );
-};
+const CanvasImage = forwardRef<HTMLCanvasElement, CanvasImageProps>(
+  ({ handlePointerDown, handlePointerMove, handlePointerUp }, ref) => {
+    return (
+      <canvas
+        ref={ref}
+        className="canvas"
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+      />
+    );
+  },
+);
+
+CanvasImage.displayName = "CanvasImage";
 
 interface ImageEditorProps {
   data: PhotoBody;
@@ -103,8 +101,6 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
 
   const [saving, setSaving] = useState<boolean>(false);
   const [navigating, setNavigating] = useState<boolean>(false);
-
-  const [edgeDetectionEnabled, setEdgeDetectionEnabled] = useState<boolean>(false);
 
   const {
     canvasRef,
@@ -127,12 +123,14 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
     file: image,
   });
 
+  const [edgeDetectionEnabled, setEdgeDetectionEnabled] = useState<boolean>(false);
+
   const currentEdgeDetection = getFilters().edgeDetection;
   const edgeDetectionValue = currentEdgeDetection.enabled
     ? currentEdgeDetection.value
     : EDGE_DETECTION.DEFAULT;
 
-  const handleToggleEdgeDetection = () => {
+  const handleToggleEdgeDetection = useCallback(() => {
     const newEnabled = !edgeDetectionEnabled;
     setEdgeDetectionEnabled(newEnabled);
 
@@ -140,12 +138,13 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
       return setEdgeDetection({ enabled: true, value: edgeDetectionValue });
     }
 
-    setEdgeDetection({ enabled: false });
-  };
+    return setEdgeDetection({ enabled: false });
+  }, [edgeDetectionEnabled, edgeDetectionValue, setEdgeDetection]);
 
-  const handleEdgeDetectionValue = (value: number) => {
-    setEdgeDetection({ enabled: true, value });
-  };
+  const handleEdgeDetectionValue = useCallback(
+    (value: number) => setEdgeDetection({ enabled: true, value }),
+    [setEdgeDetection],
+  );
 
   const resetEdgeDetection = useCallback(() => {
     setEdgeDetectionEnabled(false);
@@ -198,56 +197,48 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
       if (event.code === "ArrowLeft") {
-        handleEditorNavigation("prev");
+        return handleEditorNavigation("prev");
       }
 
       if (event.code === "ArrowRight") {
-        handleEditorNavigation("next");
+        return handleEditorNavigation("next");
       }
     },
     [handleEditorNavigation],
   );
 
   const previousPhotoIdRef = useRef<string>(`${data.directory}/${data.name}`);
-  const pendingPhotoChangeRef = useRef<boolean>(false);
 
   useEffect(() => {
     const currentPhotoId = `${data.directory}/${data.name}`;
 
-    if (previousPhotoIdRef.current !== currentPhotoId) {
+    if (previousPhotoIdRef.current !== currentPhotoId && imageLoaded) {
       previousPhotoIdRef.current = currentPhotoId;
-      pendingPhotoChangeRef.current = true;
-    }
-  }, [data.directory, data.name]);
 
-  useEffect(() => {
-    if (pendingPhotoChangeRef.current && imageLoaded) {
       resetAll();
       resetEdgeDetection();
+      setEdgeDetectionEnabled(false);
 
       setNavigating(false);
-
-      pendingPhotoChangeRef.current = false;
     }
-  }, [imageLoaded, resetAll, resetEdgeDetection]);
+  }, [data.directory, data.name, imageLoaded, resetAll, resetEdgeDetection]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
 
-    if (canvas) {
-      canvas.addEventListener("wheel", handleWheel, { passive: false });
+    if (!canvas) {
+      return;
     }
 
+    canvas.addEventListener("wheel", handleWheel, { passive: false });
     document.addEventListener("keydown", handleKeyDown);
 
     return () => {
-      if (canvas) {
-        canvas.removeEventListener("wheel", handleWheel);
-      }
-
+      canvas.removeEventListener("wheel", handleWheel);
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [canvasRef, handleWheel, handleKeyDown]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [handleWheel, handleKeyDown]);
 
   return (
     <>

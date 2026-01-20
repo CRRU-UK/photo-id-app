@@ -10,8 +10,7 @@ interface ZoomInteractionOptions {
     screenY: number,
     canvas: HTMLCanvasElement | null,
   ) => { x: number; y: number } | null;
-  getCurrentZoom: () => number;
-  getCurrentPan: () => { x: number; y: number };
+  getTransform: () => { zoom: number; pan: { x: number; y: number } };
   setZoom: (zoom: number) => void;
   setPan: (pan: { x: number; y: number }) => void;
   clamp: (canvas: HTMLCanvasElement | null) => void;
@@ -22,8 +21,7 @@ export const useZoomInteraction = ({
   canvasRef,
   imageRef,
   getImageCoords,
-  getCurrentZoom,
-  getCurrentPan,
+  getTransform,
   setZoom,
   setPan,
   clamp,
@@ -46,8 +44,9 @@ export const useZoomInteraction = ({
         return;
       }
 
-      const zoom = getCurrentZoom();
-      const pan = getCurrentPan();
+      const transform = getTransform();
+      const zoom = transform.zoom;
+      const pan = transform.pan;
       const centreX = canvas.width / 2;
       const centreY = canvas.height / 2;
 
@@ -69,24 +68,15 @@ export const useZoomInteraction = ({
       clamp(canvas);
       onDraw();
     },
-    [
-      canvasRef,
-      imageRef,
-      getImageCoords,
-      getCurrentZoom,
-      getCurrentPan,
-      setZoom,
-      setPan,
-      clamp,
-      onDraw,
-    ],
+    [canvasRef, imageRef, getImageCoords, getTransform, setZoom, setPan, clamp, onDraw],
   );
 
   // Apply zoom with given factor, scales pan proportionally
   const applyZoom = useCallback(
     (zoomFactor: number) => {
-      const currentZoom = getCurrentZoom();
-      const currentPan = getCurrentPan();
+      const transform = getTransform();
+      const currentZoom = transform.zoom;
+      const currentPan = transform.pan;
 
       const newZoom = currentZoom * zoomFactor;
       const updatedZoom = Math.max(newZoom, 1);
@@ -109,7 +99,7 @@ export const useZoomInteraction = ({
       clamp(canvasRef.current);
       onDraw();
     },
-    [canvasRef, getCurrentZoom, getCurrentPan, setZoom, setPan, clamp, onDraw],
+    [canvasRef, getTransform, setZoom, setPan, clamp, onDraw],
   );
 
   // Zoom in from the centre of the canvas

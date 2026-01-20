@@ -42,14 +42,6 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
     clamp,
   });
 
-  const getCurrentPan = useCallback(() => {
-    return getTransform().pan;
-  }, [getTransform]);
-
-  const getCurrentZoom = useCallback(() => {
-    return getTransform().zoom;
-  }, [getTransform]);
-
   useEffect(() => {
     if (imageLoaded) {
       draw();
@@ -63,15 +55,14 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
     onDraw: draw,
     onDrawThrottled: drawThrottled,
     onCancelThrottle: cancelThrottle,
-    getCurrentPan,
+    getTransform,
   });
 
   const { handleWheel, handleZoomIn, handleZoomOut } = useZoomInteraction({
     canvasRef,
     imageRef,
     getImageCoords,
-    getCurrentZoom,
-    getCurrentPan,
+    getTransform,
     setZoom: setZoomInternal,
     setPan: setPanInternal,
     clamp,
@@ -92,9 +83,9 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
   const setBrightness = useCallback(
     (value: number) => {
       setBrightnessInternal(value);
-      draw();
+      drawThrottled();
     },
-    [setBrightnessInternal, draw],
+    [setBrightnessInternal, drawThrottled],
   );
 
   /**
@@ -104,9 +95,9 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
   const setContrast = useCallback(
     (value: number) => {
       setContrastInternal(value);
-      draw();
+      drawThrottled();
     },
-    [setContrastInternal, draw],
+    [setContrastInternal, drawThrottled],
   );
 
   /**
@@ -116,9 +107,9 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
   const setSaturate = useCallback(
     (value: number) => {
       setSaturateInternal(value);
-      draw();
+      drawThrottled();
     },
-    [setSaturateInternal, draw],
+    [setSaturateInternal, drawThrottled],
   );
 
   /**
@@ -128,9 +119,9 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
   const setEdgeDetection = useCallback(
     (state: Parameters<typeof setEdgeDetectionInternal>[0]) => {
       setEdgeDetectionInternal(state);
-      draw();
+      drawThrottled();
     },
-    [setEdgeDetectionInternal, draw],
+    [setEdgeDetectionInternal, drawThrottled],
   );
 
   const resetAll = useCallback(() => {
