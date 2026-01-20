@@ -50,6 +50,7 @@
 - Prefer using long math expressions broken over multiple lines for readability and shorthand assignments (e.g. `a = a + b` instead of `a += b`).
 - Prefer adding comments only for workarounds, hacks, or non-obvious code paths. Never remove existing comments, only update them if necessary instead.
 - Prefer adding JSDocs where helpful, but avoid redundant types that are already covered by TypeScript.
+- For functions with more than two parameters, prefer using objects.
 - The UI uses GitHub Primer components/icons — prefer reusing Primer primitives and icons for consistency.
 
 ### Architecture-specific conventions

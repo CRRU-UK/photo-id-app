@@ -94,6 +94,7 @@ export const useZoomInteraction = ({
       if (updatedZoom === currentZoom) {
         clamp(canvasRef.current);
         onDraw();
+
         return;
       }
 

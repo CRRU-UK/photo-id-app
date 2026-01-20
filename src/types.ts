@@ -80,7 +80,7 @@ export type ImageFilters = {
   edgeDetection: EdgeDetectionData;
 };
 
-export type Transform = {
+export type ImageTransformations = {
   zoom: number;
   pan: { x: number; y: number };
 };

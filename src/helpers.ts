@@ -66,17 +66,26 @@ export const getBoundaries = (
 /**
  * Convert screen coordinates to image coordinates
  */
-export const getImageCoordinates = (
-  screenX: number,
-  screenY: number,
-  canvas: HTMLCanvasElement | null,
-  image: HTMLImageElement | null,
-): { x: number; y: number } | null => {
+export const getImageCoordinates = ({
+  screenX,
+  screenY,
+  canvas,
+  image,
+}: {
+  screenX: number;
+  screenY: number;
+  canvas: HTMLCanvasElement | null;
+  image: HTMLImageElement | null;
+}): {
+  x: number;
+  y: number;
+} | null => {
   if (!canvas || !image) {
     return null;
   }
 
   const rect = canvas.getBoundingClientRect();
+
   const screenImageX = screenX - rect.left;
   const screenImageY = screenY - rect.top;
 
@@ -92,15 +101,20 @@ export const getImageCoordinates = (
 /**
  * Clamp pan values to ensure image stays within canvas bounds
  */
-export const clampPan = (
-  pan: { x: number; y: number },
-  canvasWidth: number,
-  canvasHeight: number,
-  scaledImageWidth: number,
-  scaledImageHeight: number,
-): { x: number; y: number } => {
-  const boundaryX = getBoundaries(canvasWidth, scaledImageWidth);
-  const boundaryY = getBoundaries(canvasHeight, scaledImageHeight);
+export const clampPan = ({
+  pan,
+  canvas,
+  scaledImage,
+}: {
+  pan: { x: number; y: number };
+  canvas: { width: number; height: number };
+  scaledImage: { width: number; height: number };
+}): {
+  x: number;
+  y: number;
+} => {
+  const boundaryX = getBoundaries(canvas.width, scaledImage.width);
+  const boundaryY = getBoundaries(canvas.height, scaledImage.height);
 
   return {
     x: Math.max(boundaryX.min, Math.min(boundaryX.max, pan.x)),

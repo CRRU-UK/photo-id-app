@@ -1,4 +1,4 @@
-import type { ImageFilters, Transform } from "@/types";
+import type { ImageFilters, ImageTransformations } from "@/types";
 
 import { useCallback, useEffect, useRef } from "react";
 
@@ -7,7 +7,7 @@ import { getCanvasFilters } from "@/helpers";
 interface RenderOptions {
   imageRef: React.RefObject<HTMLImageElement | null>;
   getFilters: () => ImageFilters;
-  getTransform: () => Transform;
+  getTransform: () => ImageTransformations;
   clamp: (canvas: HTMLCanvasElement | null) => void;
 }
 

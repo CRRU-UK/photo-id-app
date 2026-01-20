@@ -1,4 +1,4 @@
-import type { Transform } from "@/types";
+import type { ImageTransformations } from "@/types";
 
 import { useCallback, useRef } from "react";
 
@@ -9,7 +9,7 @@ export const useImageTransform = (imageRef: React.RefObject<HTMLImageElement | n
   const zoomRef = useRef<number>(IMAGE_EDITS.ZOOM);
   const panRef = useRef({ x: IMAGE_EDITS.PAN_X, y: IMAGE_EDITS.PAN_Y });
 
-  const getTransform = useCallback((): Transform => {
+  const getTransform = useCallback((): ImageTransformations => {
     return {
       zoom: zoomRef.current,
       pan: { ...panRef.current },
@@ -36,13 +36,11 @@ export const useImageTransform = (imageRef: React.RefObject<HTMLImageElement | n
       const scaledImageWidth = image.naturalWidth * zoom;
       const scaledImageHeight = image.naturalHeight * zoom;
 
-      panRef.current = clampPan(
-        panRef.current,
-        canvas.width,
-        canvas.height,
-        scaledImageWidth,
-        scaledImageHeight,
-      );
+      panRef.current = clampPan({
+        pan: panRef.current,
+        canvas: { width: canvas.width, height: canvas.height },
+        scaledImage: { width: scaledImageWidth, height: scaledImageHeight },
+      });
     },
     [imageRef],
   );
@@ -59,7 +57,7 @@ export const useImageTransform = (imageRef: React.RefObject<HTMLImageElement | n
         return null;
       }
 
-      return getImageCoordinates(screenX, screenY, canvas, image);
+      return getImageCoordinates({ screenX, screenY, canvas, image });
     },
     [imageRef],
   );

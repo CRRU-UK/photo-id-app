@@ -52,6 +52,7 @@ export const usePanInteraction = ({
       const scaledDeltaY = deltaY * scaleY;
 
       const currentPan = getCurrentPan();
+
       onPan({
         x: currentPan.x + scaledDeltaX,
         y: currentPan.y + scaledDeltaY,

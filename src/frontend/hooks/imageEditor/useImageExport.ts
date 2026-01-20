@@ -1,4 +1,4 @@
-import type { ImageFilters, Transform } from "@/types";
+import type { ImageFilters, ImageTransformations } from "@/types";
 
 import { useCallback } from "react";
 
@@ -8,7 +8,7 @@ interface ImageExportOptions {
   imageRef: React.RefObject<HTMLImageElement | null>;
   file: File;
   getFilters: () => ImageFilters;
-  getTransform: () => Transform;
+  getTransform: () => ImageTransformations;
 }
 
 export const useImageExport = ({
@@ -25,6 +25,7 @@ export const useImageExport = ({
     }
 
     const mime = file.type;
+
     const filters = getFilters();
     const transform = getTransform();
 
@@ -46,6 +47,7 @@ export const useImageExport = ({
     context.scale(transform.zoom, transform.zoom);
     context.translate(-centreX, -centreY);
 
+    // Apply all filters except edge detection is only for display purposes
     context.filter = getCanvasFilters({
       brightness: filters.brightness,
       contrast: filters.contrast,
