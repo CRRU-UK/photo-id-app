@@ -237,6 +237,8 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
       canvas.removeEventListener("wheel", handleWheel);
       document.removeEventListener("keydown", handleKeyDown);
     };
+
+    // canvasRef is a stable ref object and doesn't need to be in dependencies
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [handleWheel, handleKeyDown]);
 
