@@ -1,6 +1,6 @@
 import type { ImageFilters, Transform } from "@/types";
 
-import { useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 import { getCanvasFilters } from "@/helpers";
 
@@ -77,6 +77,12 @@ export const useCanvasRenderer = ({ imageRef, getFilters, getTransform, clamp }:
       throttleRef.current = null;
     }
   }, []);
+
+  useEffect(() => {
+    return () => {
+      cancelThrottle();
+    };
+  }, [cancelThrottle]);
 
   return {
     canvasRef,
