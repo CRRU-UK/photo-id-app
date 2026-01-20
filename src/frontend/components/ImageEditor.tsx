@@ -11,7 +11,7 @@ import {
   ZoomOutIcon,
 } from "@primer/octicons-react";
 import { Button, ButtonGroup, FormControl, IconButton, Label, Stack } from "@primer/react";
-import { forwardRef, memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { forwardRef, memo, useCallback, useEffect, useRef, useState } from "react";
 
 import { EDGE_DETECTION, IMAGE_FILTERS } from "@/constants";
 import LoadingOverlay from "@/frontend/components/LoadingOverlay";
@@ -105,11 +105,11 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
   const {
     canvasRef,
     imageLoaded,
+    imageError,
     setBrightness,
     setContrast,
     setSaturate,
     setEdgeDetection,
-    getFilters,
     handleZoomIn,
     handleZoomOut,
     handlePointerDown,
@@ -124,15 +124,7 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
   });
 
   const [edgeDetectionEnabled, setEdgeDetectionEnabled] = useState<boolean>(false);
-
-  const edgeDetectionValue = useMemo(() => {
-    const filters = getFilters();
-    const edgeDetection = filters.edgeDetection;
-    return edgeDetection.enabled ? edgeDetection.value : EDGE_DETECTION.DEFAULT;
-
-    // edgeDetectionEnabled is included to trigger recalculation when filter is toggled
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [getFilters, edgeDetectionEnabled]);
+  const [edgeDetectionValue, setEdgeDetectionValue] = useState<number>(EDGE_DETECTION.DEFAULT);
 
   const handleToggleEdgeDetection = useCallback(() => {
     const newEnabled = !edgeDetectionEnabled;
@@ -146,12 +138,16 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
   }, [edgeDetectionEnabled, edgeDetectionValue, setEdgeDetection]);
 
   const handleEdgeDetectionValue = useCallback(
-    (value: number) => setEdgeDetection({ enabled: true, value }),
+    (value: number) => {
+      setEdgeDetectionValue(value);
+      setEdgeDetection({ enabled: true, value });
+    },
     [setEdgeDetection],
   );
 
   const resetEdgeDetection = useCallback(() => {
     setEdgeDetectionEnabled(false);
+    setEdgeDetectionValue(EDGE_DETECTION.DEFAULT);
     setEdgeDetection({ enabled: false });
   }, [setEdgeDetection]);
 
@@ -190,6 +186,7 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
 
       const result = await window.electronAPI.navigateEditorPhoto(data, direction);
       if (result) {
+        setNavigating(false);
         return setQueryCallback(result);
       }
 
@@ -227,13 +224,13 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
   useEffect(() => {
     const currentPhotoId = `${data.directory}/${data.name}`;
 
-    if (imageLoaded && loadedPhotoIdRef.current !== currentPhotoId) {
+    if ((imageLoaded || imageError) && loadedPhotoIdRef.current !== currentPhotoId) {
       loadedPhotoIdRef.current = currentPhotoId;
 
       resetAll();
       resetEdgeDetection();
     }
-  }, [data.directory, data.name, imageLoaded, resetAll, resetEdgeDetection]);
+  }, [data.directory, data.name, imageLoaded, imageError, resetAll, resetEdgeDetection]);
 
   useEffect(() => {
     const canvas = canvasRef.current;

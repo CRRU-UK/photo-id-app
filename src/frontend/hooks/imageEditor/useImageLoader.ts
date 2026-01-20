@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 export const useImageLoader = (file: File) => {
   const imageRef = useRef<HTMLImageElement | null>(null);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
   useEffect(() => {
     // Ensure file is valid before creating blob URL
@@ -20,6 +21,7 @@ export const useImageLoader = (file: File) => {
       if (!isCancelled) {
         imageRef.current = image;
         setImageLoaded(true);
+        setImageError(false);
       }
     };
 
@@ -34,6 +36,7 @@ export const useImageLoader = (file: File) => {
         imageRef.current = null;
 
         setImageLoaded(false);
+        setImageError(true);
       }
     };
 
@@ -63,8 +66,9 @@ export const useImageLoader = (file: File) => {
       imageRef.current = null;
 
       setImageLoaded(false);
+      setImageError(false);
     };
   }, [file]);
 
-  return { imageRef, imageLoaded };
+  return { imageRef, imageLoaded, imageError };
 };
