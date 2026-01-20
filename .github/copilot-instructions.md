@@ -48,8 +48,9 @@
 - Prefer using async/await over raw Promises for async code.
 - Prefer using `try/catch` for error handling over `.catch()` on Promises.
 - Prefer using long math expressions broken over multiple lines for readability and shorthand assignments (e.g. `a = a + b` instead of `a += b`).
-- Prefer adding comments only for workarounds, hacks, or non-obvious code paths.
+- Prefer adding comments only for workarounds, hacks, or non-obvious code paths. Never remove existing comments, only update them if necessary instead.
 - Prefer adding JSDocs where helpful, but avoid redundant types that are already covered by TypeScript.
+- For functions with more than two parameters, prefer using objects.
 - The UI uses GitHub Primer components/icons — prefer reusing Primer primitives and icons for consistency.
 
 ### Architecture-specific conventions
@@ -99,7 +100,15 @@ When unsure, look at these files first
   - `components/` — React components for UI elements
     - `ImageEditor.tsx` — Main photo editing layout and controls
   - `hooks/` — Custom React hooks for UI logic:
-    - `useImageEditor.ts` — Photo editor state management and canvas rendering
+    - `useImageEditor.ts` — Composes image editor behaviour for the main canvas (zoom, pan, filters, export)
+    - `imageEditor/` — Feature-focused hooks used by `useImageEditor`:
+      - `useImageLoader.ts` — Load the current image `File` into an `HTMLImageElement` and expose a loaded flag
+      - `useImageFilters.ts` — Manage filter state (`ImageFilters` in `src/types.ts`) for brightness, contrast, saturation, and edge detection
+      - `useImageTransform.ts` — Manage zoom/pan transform state (`ImageTransformations` in `src/types.ts`) and coordinate conversions
+      - `useCanvasRenderer.ts` — Render the image onto the canvas with the current filters and transform (throttled for performance)
+      - `usePanInteraction.ts` — Pointer handlers for panning the image on the canvas
+      - `useZoomInteraction.ts` — Wheel and button handlers for zooming while keeping the cursor location stable
+      - `useImageExport.ts` — Apply filters and transform and export the edited image as a new `File`
 - `src/routes/` — TanStack Router route definitions (router generates `routeTree.gen.ts`)
 - `src/models/` — Data model classes:
   - `Project.ts` — Project model

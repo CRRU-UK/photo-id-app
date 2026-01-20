@@ -118,7 +118,7 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
     handlePointerUp,
     handlePointerMove,
     handleWheel,
-    resetFilters,
+    resetAll,
     exportFile,
     resetKey,
   } = useImageEditor({
@@ -140,9 +140,9 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
   }, []);
 
   const handleReset = useCallback(() => {
-    resetFilters();
+    resetAll();
     resetEdgeDetection();
-  }, [resetFilters, resetEdgeDetection]);
+  }, [resetAll, resetEdgeDetection]);
 
   useEffect(() => {
     if (edgeDetectionEnabled) {
@@ -208,14 +208,14 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
     const currentPhotoId = `${data.directory}/${data.name}`;
 
     if (previousPhotoIdRef.current !== currentPhotoId) {
-      resetFilters();
+      resetAll();
       resetEdgeDetection();
 
       setNavigating(false);
 
       previousPhotoIdRef.current = currentPhotoId;
     }
-  }, [data.directory, data.name, resetFilters, resetEdgeDetection]);
+  }, [data.directory, data.name, resetAll, resetEdgeDetection]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
