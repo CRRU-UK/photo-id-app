@@ -34,8 +34,9 @@ export const useImageLoader = (file: File) => {
     };
 
     /**
-     * Wait for blob URL to be ready before loading image to prevent misleading logs and errors
-     * in Sentry.
+     * Defer setting the image src to the next animation frame. This helps avoid race conditions
+     * where the component unmounts immediately after starting the load, which can produce
+     * misleading errors and noisy reports (for example, in Sentry).
      */
     const frameId = requestAnimationFrame(() => {
       if (!isCancelled) {
