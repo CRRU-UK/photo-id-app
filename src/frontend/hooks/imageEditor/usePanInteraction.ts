@@ -28,6 +28,7 @@ export const usePanInteraction = ({
     lastPointerRef.current.y = event.clientY;
   }, []);
 
+  // Pan the image from the last cursor position (i.e. 1:1 movement)
   const handlePointerMove = useCallback(
     (event: React.PointerEvent<HTMLCanvasElement>) => {
       if (!isPanningRef.current) {

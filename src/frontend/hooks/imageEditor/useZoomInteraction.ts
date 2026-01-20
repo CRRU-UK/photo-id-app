@@ -29,6 +29,7 @@ export const useZoomInteraction = ({
   clamp,
   onDraw,
 }: ZoomInteractionOptions) => {
+  // Zoom the image towards the cursor
   const handleWheel = useCallback(
     (event: WheelEvent) => {
       event.preventDefault();
@@ -81,6 +82,7 @@ export const useZoomInteraction = ({
     ],
   );
 
+  // Apply zoom with given factor, scales pan proportionally
   const applyZoom = useCallback(
     (zoomFactor: number) => {
       const currentZoom = getCurrentZoom();
@@ -109,10 +111,12 @@ export const useZoomInteraction = ({
     [canvasRef, getCurrentZoom, getCurrentPan, setZoom, setPan, clamp, onDraw],
   );
 
+  // Zoom in from the centre of the canvas
   const handleZoomIn = useCallback(() => {
     applyZoom(ZOOM_FACTORS.BUTTON);
   }, [applyZoom]);
 
+  // Zoom out from the centre of the canvas
   const handleZoomOut = useCallback(() => {
     applyZoom(1 / ZOOM_FACTORS.BUTTON);
   }, [applyZoom]);

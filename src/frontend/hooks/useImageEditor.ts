@@ -77,6 +77,10 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
     getTransform,
   });
 
+  /**
+   * Sets the brightness level for the image.
+   * @param value - Brightness percentage (0-200, default 100)
+   */
   const setBrightness = useCallback(
     (value: number) => {
       setBrightnessInternal(value);
@@ -85,6 +89,10 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
     [setBrightnessInternal, draw],
   );
 
+  /**
+   * Sets the contrast level for the image.
+   * @param value - Contrast percentage (0-200, default 100)
+   */
   const setContrast = useCallback(
     (value: number) => {
       setContrastInternal(value);
@@ -93,6 +101,10 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
     [setContrastInternal, draw],
   );
 
+  /**
+   * Sets the saturation level for the image.
+   * @param value - Saturation percentage (0-200, default 100)
+   */
   const setSaturate = useCallback(
     (value: number) => {
       setSaturateInternal(value);
@@ -101,6 +113,10 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
     [setSaturateInternal, draw],
   );
 
+  /**
+   * Toggles the visualization of edges on the image.
+   * @param state - Edge detection configuration with enabled state and intensity value
+   */
   const setEdgeDetection = useCallback(
     (state: Parameters<typeof setEdgeDetectionInternal>[0]) => {
       setEdgeDetectionInternal(state);
@@ -112,7 +128,9 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
   const resetAll = useCallback(() => {
     resetFiltersInternal();
     resetTransformInternal();
+
     setResetKey((prev) => prev + 1);
+
     draw();
   }, [resetFiltersInternal, resetTransformInternal, draw]);
 

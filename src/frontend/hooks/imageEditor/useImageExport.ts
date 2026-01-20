@@ -28,6 +28,7 @@ export const useImageExport = ({
     const filters = getFilters();
     const transform = getTransform();
 
+    // Create off-screen canvas for export (excludes edge detection filter)
     const exportCanvas = document.createElement("canvas");
     exportCanvas.width = image.naturalWidth;
     exportCanvas.height = image.naturalHeight;
