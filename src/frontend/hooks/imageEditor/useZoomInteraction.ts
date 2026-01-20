@@ -86,10 +86,21 @@ export const useZoomInteraction = ({
       const currentZoom = getCurrentZoom();
       const currentPan = getCurrentPan();
 
-      setZoom(Math.max(currentZoom * zoomFactor, 1));
+      const newZoom = currentZoom * zoomFactor;
+      const updatedZoom = Math.max(newZoom, 1);
+
+      if (updatedZoom === currentZoom) {
+        clamp(canvasRef.current);
+        onDraw();
+        return;
+      }
+
+      const zoomRatio = updatedZoom / currentZoom;
+
+      setZoom(updatedZoom);
       setPan({
-        x: currentPan.x * zoomFactor,
-        y: currentPan.y * zoomFactor,
+        x: currentPan.x * zoomRatio,
+        y: currentPan.y * zoomRatio,
       });
 
       clamp(canvasRef.current);
