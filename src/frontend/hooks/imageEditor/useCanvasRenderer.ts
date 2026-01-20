@@ -38,12 +38,13 @@ export const useCanvasRenderer = ({ imageRef, getFilters, getTransform, clamp }:
     }
 
     const filters = getFilters();
-    const transform = getTransform();
 
     const centreX = canvas.width / 2;
     const centreY = canvas.height / 2;
 
     clamp(canvas);
+
+    const transform = getTransform();
 
     context.translate(centreX + transform.pan.x, centreY + transform.pan.y);
     context.scale(transform.zoom, transform.zoom);
