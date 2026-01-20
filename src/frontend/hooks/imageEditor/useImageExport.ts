@@ -1,20 +1,8 @@
+import type { ImageFilters, Transform } from "@/types";
+
 import { useCallback } from "react";
 
-import type { EdgeDetectionData } from "@/types";
-
 import { getCanvasFilters } from "@/helpers";
-
-interface ImageFilters {
-  brightness: number;
-  contrast: number;
-  saturate: number;
-  edgeDetection: EdgeDetectionData;
-}
-
-interface Transform {
-  zoom: number;
-  pan: { x: number; y: number };
-}
 
 interface ImageExportOptions {
   imageRef: React.RefObject<HTMLImageElement | null>;

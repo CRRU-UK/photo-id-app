@@ -1,15 +1,8 @@
+import type { EdgeDetectionData, ImageFilters } from "@/types";
+
 import { useCallback, useRef } from "react";
 
-import type { EdgeDetectionData } from "@/types";
-
 import { IMAGE_FILTERS } from "@/constants";
-
-interface ImageFilters {
-  brightness: number;
-  contrast: number;
-  saturate: number;
-  edgeDetection: EdgeDetectionData;
-}
 
 export const useImageFilters = () => {
   const brightnessRef = useRef<number>(IMAGE_FILTERS.BRIGHTNESS.DEFAULT);

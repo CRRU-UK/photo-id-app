@@ -72,3 +72,15 @@ export type EditorNavigation = "prev" | "next";
 export type ExternalLinks = "website" | "user-guide" | "changelog";
 
 export type EdgeDetectionData = { enabled: false } | { enabled: true; value: number };
+
+export type ImageFilters = {
+  brightness: number;
+  contrast: number;
+  saturate: number;
+  edgeDetection: EdgeDetectionData;
+};
+
+export type Transform = {
+  zoom: number;
+  pan: { x: number; y: number };
+};

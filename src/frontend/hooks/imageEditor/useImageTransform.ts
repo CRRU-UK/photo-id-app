@@ -1,12 +1,9 @@
+import type { Transform } from "@/types";
+
 import { useCallback, useRef } from "react";
 
 import { IMAGE_EDITS } from "@/constants";
 import { clampPan, getImageCoordinates } from "@/helpers";
-
-interface Transform {
-  zoom: number;
-  pan: { x: number; y: number };
-}
 
 export const useImageTransform = (imageRef: React.RefObject<HTMLImageElement | null>) => {
   const zoomRef = useRef<number>(IMAGE_EDITS.ZOOM);
