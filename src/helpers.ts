@@ -69,8 +69,8 @@ export const getBoundaries = (
 export const getImageCoordinates = (
   screenX: number,
   screenY: number,
-  canvas: HTMLCanvasElement,
-  image: HTMLImageElement,
+  canvas: HTMLCanvasElement | null,
+  image: HTMLImageElement | null,
 ): { x: number; y: number } | null => {
   if (!canvas || !image) {
     return null;
