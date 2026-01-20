@@ -98,13 +98,12 @@ interface ImageEditorProps {
 }
 
 const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
-  console.log("Loaded photo edit data:", data);
+  console.debug("Loaded photo edit data:", data);
 
   const [saving, setSaving] = useState<boolean>(false);
   const [navigating, setNavigating] = useState<boolean>(false);
 
   const [edgeDetectionEnabled, setEdgeDetectionEnabled] = useState<boolean>(false);
-  const [edgeDetectionValue, setEdgeDetectionValue] = useState<number>(EDGE_DETECTION.DEFAULT);
 
   const {
     canvasRef,
@@ -112,6 +111,7 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
     setContrast,
     setSaturate,
     setEdgeDetection,
+    getFilters,
     handleZoomIn,
     handleZoomOut,
     handlePointerDown,
@@ -125,33 +125,35 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
     file: image,
   });
 
+  const currentEdgeDetection = getFilters().edgeDetection;
+  const edgeDetectionValue = currentEdgeDetection.enabled
+    ? currentEdgeDetection.value
+    : EDGE_DETECTION.DEFAULT;
+
   const handleToggleEdgeDetection = () => {
-    setEdgeDetectionEnabled((prev) => !prev);
+    const newEnabled = !edgeDetectionEnabled;
+    setEdgeDetectionEnabled(newEnabled);
+
+    if (newEnabled) {
+      return setEdgeDetection({ enabled: true, value: edgeDetectionValue });
+    }
+
+    setEdgeDetection({ enabled: false });
   };
 
   const handleEdgeDetectionValue = (value: number) => {
-    setEdgeDetectionEnabled(true);
-    setEdgeDetectionValue(value);
+    setEdgeDetection({ enabled: true, value });
   };
 
   const resetEdgeDetection = useCallback(() => {
     setEdgeDetectionEnabled(false);
-    setEdgeDetectionValue(EDGE_DETECTION.DEFAULT);
-  }, []);
+    setEdgeDetection({ enabled: false });
+  }, [setEdgeDetection]);
 
-  const handleReset = useCallback(() => {
+  const handleReset = () => {
     resetAll();
     resetEdgeDetection();
-  }, [resetAll, resetEdgeDetection]);
-
-  useEffect(() => {
-    if (edgeDetectionEnabled) {
-      setEdgeDetection({ enabled: true, value: edgeDetectionValue });
-      return;
-    }
-
-    setEdgeDetection({ enabled: false });
-  }, [edgeDetectionEnabled, edgeDetectionValue, setEdgeDetection]);
+  };
 
   const handleSave = async () => {
     setSaving(true);

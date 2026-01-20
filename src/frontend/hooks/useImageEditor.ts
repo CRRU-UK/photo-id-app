@@ -148,6 +148,7 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
     setContrast,
     setSaturate,
     setEdgeDetection,
+    getFilters,
     handleZoomIn,
     handleZoomOut,
     handlePointerDown,
