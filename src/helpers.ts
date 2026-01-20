@@ -62,3 +62,48 @@ export const getBoundaries = (
   min: (canvasSize - scaledImageSize) / 2,
   max: (scaledImageSize - canvasSize) / 2,
 });
+
+/**
+ * Convert screen coordinates to image coordinates
+ */
+export const getImageCoordinates = (
+  screenX: number,
+  screenY: number,
+  canvas: HTMLCanvasElement,
+  image: HTMLImageElement,
+): { x: number; y: number } | null => {
+  if (!canvas || !image) {
+    return null;
+  }
+
+  const rect = canvas.getBoundingClientRect();
+  const screenImageX = screenX - rect.left;
+  const screenImageY = screenY - rect.top;
+
+  const scaleX = image.naturalWidth / canvas.clientWidth;
+  const scaleY = image.naturalHeight / canvas.clientHeight;
+
+  return {
+    x: screenImageX * scaleX,
+    y: screenImageY * scaleY,
+  };
+};
+
+/**
+ * Clamp pan values to ensure image stays within canvas bounds
+ */
+export const clampPan = (
+  pan: { x: number; y: number },
+  canvasWidth: number,
+  canvasHeight: number,
+  scaledImageWidth: number,
+  scaledImageHeight: number,
+): { x: number; y: number } => {
+  const boundaryX = getBoundaries(canvasWidth, scaledImageWidth);
+  const boundaryY = getBoundaries(canvasHeight, scaledImageHeight);
+
+  return {
+    x: Math.max(boundaryX.min, Math.min(boundaryX.max, pan.x)),
+    y: Math.max(boundaryY.min, Math.min(boundaryY.max, pan.y)),
+  };
+};
