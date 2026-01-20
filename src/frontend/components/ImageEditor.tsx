@@ -11,7 +11,7 @@ import {
   ZoomOutIcon,
 } from "@primer/octicons-react";
 import { Button, ButtonGroup, FormControl, IconButton, Label, Stack } from "@primer/react";
-import { forwardRef, memo, useCallback, useEffect, useRef, useState } from "react";
+import { forwardRef, memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { EDGE_DETECTION, IMAGE_FILTERS } from "@/constants";
 import LoadingOverlay from "@/frontend/components/LoadingOverlay";
@@ -125,10 +125,14 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
 
   const [edgeDetectionEnabled, setEdgeDetectionEnabled] = useState<boolean>(false);
 
-  const currentEdgeDetection = getFilters().edgeDetection;
-  const edgeDetectionValue = currentEdgeDetection.enabled
-    ? currentEdgeDetection.value
-    : EDGE_DETECTION.DEFAULT;
+  const edgeDetectionValue = useMemo(() => {
+    const filters = getFilters();
+    const edgeDetection = filters.edgeDetection;
+    return edgeDetection.enabled ? edgeDetection.value : EDGE_DETECTION.DEFAULT;
+
+    // edgeDetectionEnabled is included to trigger recalculation when filter is toggled
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [getFilters, edgeDetectionEnabled]);
 
   const handleToggleEdgeDetection = useCallback(() => {
     const newEnabled = !edgeDetectionEnabled;
@@ -151,10 +155,10 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
     setEdgeDetection({ enabled: false });
   }, [setEdgeDetection]);
 
-  const handleReset = () => {
+  const handleReset = useCallback(() => {
     resetAll();
     resetEdgeDetection();
-  };
+  }, [resetAll, resetEdgeDetection]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -208,18 +212,26 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
   );
 
   const previousPhotoIdRef = useRef<string>(`${data.directory}/${data.name}`);
+  const loadedPhotoIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     const currentPhotoId = `${data.directory}/${data.name}`;
 
-    if (previousPhotoIdRef.current !== currentPhotoId && imageLoaded) {
+    if (previousPhotoIdRef.current !== currentPhotoId) {
       previousPhotoIdRef.current = currentPhotoId;
+
+      setNavigating(false);
+    }
+  }, [data.directory, data.name]);
+
+  useEffect(() => {
+    const currentPhotoId = `${data.directory}/${data.name}`;
+
+    if (imageLoaded && loadedPhotoIdRef.current !== currentPhotoId) {
+      loadedPhotoIdRef.current = currentPhotoId;
 
       resetAll();
       resetEdgeDetection();
-      setEdgeDetectionEnabled(false);
-
-      setNavigating(false);
     }
   }, [data.directory, data.name, imageLoaded, resetAll, resetEdgeDetection]);
 
