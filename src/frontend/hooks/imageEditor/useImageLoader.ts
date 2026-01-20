@@ -14,6 +14,7 @@ export const useImageLoader = (file: File) => {
     const image = new Image();
 
     let isCancelled = false;
+    let urlRevoked = false;
 
     image.onload = () => {
       if (!isCancelled) {
@@ -26,7 +27,10 @@ export const useImageLoader = (file: File) => {
       if (!isCancelled) {
         console.error("Failed to load image:", file.name);
 
-        URL.revokeObjectURL(url);
+        if (!urlRevoked) {
+          URL.revokeObjectURL(url);
+          urlRevoked = true;
+        }
         imageRef.current = null;
 
         setImageLoaded(false);
@@ -34,9 +38,12 @@ export const useImageLoader = (file: File) => {
     };
 
     /**
-     * Defer setting the image src to the next animation frame. This helps avoid race conditions
-     * where the component unmounts immediately after starting the load, which can produce
-     * misleading errors and noisy reports (for example, in Sentry).
+     * Defer setting the image src to the next animation frame so this work is scheduled with
+     * the browser's rendering cycle rather than during React's render/commit phase. This helps
+     * avoid doing synchronous image-loading setup on the critical path of component mounting.
+     *
+     * Note: unmount race conditions are handled via the `isCancelled` flag, not by this
+     * requestAnimationFrame delay.
      */
     const frameId = requestAnimationFrame(() => {
       if (!isCancelled) {
@@ -48,7 +55,11 @@ export const useImageLoader = (file: File) => {
       isCancelled = true;
       cancelAnimationFrame(frameId);
 
-      URL.revokeObjectURL(url);
+      image.src = ""; // Abort image load
+      if (!urlRevoked) {
+        URL.revokeObjectURL(url);
+        urlRevoked = true;
+      }
       imageRef.current = null;
 
       setImageLoaded(false);
