@@ -1,15 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 
-export const useImageLoader = (file: File | null) => {
+export const useImageLoader = (file: File) => {
   const imageRef = useRef<HTMLImageElement | null>(null);
   const [imageLoaded, setImageLoaded] = useState(false);
 
   useEffect(() => {
-    if (!file) {
-      imageRef.current = null;
-      return;
-    }
-
     const url = URL.createObjectURL(file);
     const image = new Image();
 
