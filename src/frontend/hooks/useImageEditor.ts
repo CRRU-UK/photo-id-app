@@ -42,6 +42,14 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
     clamp,
   });
 
+  const getCurrentPan = useCallback(() => {
+    return getTransform().pan;
+  }, [getTransform]);
+
+  const getCurrentZoom = useCallback(() => {
+    return getTransform().zoom;
+  }, [getTransform]);
+
   useEffect(() => {
     if (imageLoaded) {
       draw();
@@ -55,15 +63,15 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
     onDraw: draw,
     onDrawThrottled: drawThrottled,
     onCancelThrottle: cancelThrottle,
-    getCurrentPan: () => getTransform().pan,
+    getCurrentPan,
   });
 
   const { handleWheel, handleZoomIn, handleZoomOut } = useZoomInteraction({
     canvasRef,
     imageRef,
     getImageCoords,
-    getCurrentZoom: () => getTransform().zoom,
-    getCurrentPan: () => getTransform().pan,
+    getCurrentZoom,
+    getCurrentPan,
     setZoom: setZoomInternal,
     setPan: setPanInternal,
     clamp,

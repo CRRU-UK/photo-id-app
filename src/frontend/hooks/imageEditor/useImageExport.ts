@@ -47,7 +47,7 @@ export const useImageExport = ({
     context.scale(transform.zoom, transform.zoom);
     context.translate(-centreX, -centreY);
 
-    // Apply all filters, because edge detection is only for display purposes
+    // Apply all filters except edge detection
     context.filter = getCanvasFilters({
       brightness: filters.brightness,
       contrast: filters.contrast,
