@@ -72,7 +72,6 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
 
   const { exportFile } = useImageExport({
     imageRef,
-    canvasRef,
     file,
     getFilters,
     getTransform,

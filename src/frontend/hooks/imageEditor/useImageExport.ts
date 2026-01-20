@@ -6,7 +6,6 @@ import { getCanvasFilters } from "@/helpers";
 
 interface ImageExportOptions {
   imageRef: React.RefObject<HTMLImageElement | null>;
-  canvasRef: React.RefObject<HTMLCanvasElement | null>;
   file: File;
   getFilters: () => ImageFilters;
   getTransform: () => Transform;
@@ -14,16 +13,14 @@ interface ImageExportOptions {
 
 export const useImageExport = ({
   imageRef,
-  canvasRef,
   file,
   getFilters,
   getTransform,
 }: ImageExportOptions) => {
   const exportFile = useCallback(async (): Promise<File | null> => {
     const image = imageRef.current;
-    const canvas = canvasRef.current;
 
-    if (!image || !canvas) {
+    if (!image) {
       return null;
     }
 
@@ -75,7 +72,7 @@ export const useImageExport = ({
     } catch {
       return null;
     }
-  }, [imageRef, canvasRef, file, getFilters, getTransform]);
+  }, [imageRef, file, getFilters, getTransform]);
 
   return {
     exportFile,
