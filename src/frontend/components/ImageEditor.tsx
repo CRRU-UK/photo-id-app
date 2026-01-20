@@ -110,6 +110,7 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
     setContrast,
     setSaturate,
     setEdgeDetection,
+    getFilters,
     handleZoomIn,
     handleZoomOut,
     handlePointerDown,
@@ -124,22 +125,34 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
   });
 
   const [edgeDetectionEnabled, setEdgeDetectionEnabled] = useState<boolean>(false);
-  const [edgeDetectionValue, setEdgeDetectionValue] = useState<number>(EDGE_DETECTION.DEFAULT);
+
+  // Helper to get current edge detection value
+  const getCurrentEdgeDetectionValue = useCallback((): number => {
+    const filters = getFilters();
+    const { edgeDetection } = filters;
+
+    // Type guard for discriminated union
+    if (edgeDetection.enabled) {
+      return edgeDetection.value;
+    }
+
+    return EDGE_DETECTION.DEFAULT;
+  }, [getFilters]);
 
   const handleToggleEdgeDetection = useCallback(() => {
     const newEnabled = !edgeDetectionEnabled;
     setEdgeDetectionEnabled(newEnabled);
 
     if (newEnabled) {
-      return setEdgeDetection({ enabled: true, value: edgeDetectionValue });
+      return setEdgeDetection({ enabled: true, value: getCurrentEdgeDetectionValue() });
     }
 
+    // When toggling off, just disable it
     return setEdgeDetection({ enabled: false });
-  }, [edgeDetectionEnabled, edgeDetectionValue, setEdgeDetection]);
+  }, [edgeDetectionEnabled, setEdgeDetection, getCurrentEdgeDetectionValue]);
 
   const handleEdgeDetectionValue = useCallback(
     (value: number) => {
-      setEdgeDetectionValue(value);
       setEdgeDetection({ enabled: true, value });
     },
     [setEdgeDetection],
@@ -147,7 +160,6 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
 
   const resetEdgeDetection = useCallback(() => {
     setEdgeDetectionEnabled(false);
-    setEdgeDetectionValue(EDGE_DETECTION.DEFAULT);
     setEdgeDetection({ enabled: false });
   }, [setEdgeDetection]);
 
@@ -276,7 +288,7 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
             <Slider
               key={`edge-detection-${resetKey}`}
               name="Edge Detection"
-              initial={edgeDetectionValue}
+              initial={getCurrentEdgeDetectionValue()}
               min={EDGE_DETECTION.MIN}
               max={EDGE_DETECTION.MAX}
               simple
