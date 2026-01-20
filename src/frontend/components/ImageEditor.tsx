@@ -14,6 +14,7 @@ import { Button, ButtonGroup, FormControl, IconButton, Label, Stack } from "@pri
 import { memo, useCallback, useEffect, useRef, useState } from "react";
 
 import { EDGE_DETECTION, IMAGE_FILTERS } from "@/constants";
+import LoadingOverlay from "@/frontend/components/LoadingOverlay";
 
 import useImageEditor from "../hooks/useImageEditor";
 
@@ -107,6 +108,7 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
 
   const {
     canvasRef,
+    imageLoaded,
     setBrightness,
     setContrast,
     setSaturate,
@@ -185,8 +187,10 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
 
       const result = await window.electronAPI.navigateEditorPhoto(data, direction);
       if (result) {
-        setQueryCallback(result);
+        return setQueryCallback(result);
       }
+
+      setNavigating(false);
     },
     [data, navigating, setQueryCallback],
   );
@@ -205,19 +209,27 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
   );
 
   const previousPhotoIdRef = useRef<string>(`${data.directory}/${data.name}`);
+  const pendingPhotoChangeRef = useRef<boolean>(false);
 
   useEffect(() => {
     const currentPhotoId = `${data.directory}/${data.name}`;
 
     if (previousPhotoIdRef.current !== currentPhotoId) {
+      previousPhotoIdRef.current = currentPhotoId;
+      pendingPhotoChangeRef.current = true;
+    }
+  }, [data.directory, data.name]);
+
+  useEffect(() => {
+    if (pendingPhotoChangeRef.current && imageLoaded) {
       resetAll();
       resetEdgeDetection();
 
       setNavigating(false);
 
-      previousPhotoIdRef.current = currentPhotoId;
+      pendingPhotoChangeRef.current = false;
     }
-  }, [data.directory, data.name, resetAll, resetEdgeDetection]);
+  }, [imageLoaded, resetAll, resetEdgeDetection]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -238,124 +250,128 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
   }, [canvasRef, handleWheel, handleKeyDown]);
 
   return (
-    <div className="edit">
-      <CanvasImage
-        ref={canvasRef}
-        handlePointerDown={handlePointerDown}
-        handlePointerMove={handlePointerMove}
-        handlePointerUp={handlePointerUp}
-      />
+    <>
+      <LoadingOverlay data={{ show: navigating }} />
 
-      <Stack className="edge-toggle" direction="horizontal" align="center" spacing="none">
-        <IconButton
-          icon={edgeDetectionEnabled ? EyeIcon : EyeClosedIcon}
-          variant={edgeDetectionEnabled ? "primary" : "default"}
-          size="medium"
-          aria-label={edgeDetectionEnabled ? "Disable edge detection" : "Enable edge detection"}
-          onClick={handleToggleEdgeDetection}
+      <div className="edit">
+        <CanvasImage
+          ref={canvasRef}
+          handlePointerDown={handlePointerDown}
+          handlePointerMove={handlePointerMove}
+          handlePointerUp={handlePointerUp}
         />
 
-        {edgeDetectionEnabled && (
-          <Slider
-            key={`edge-detection-${resetKey}`}
-            name="Edge Detection"
-            initial={edgeDetectionValue}
-            min={EDGE_DETECTION.MIN}
-            max={EDGE_DETECTION.MAX}
-            simple
-            callback={handleEdgeDetectionValue}
+        <Stack className="edge-toggle" direction="horizontal" align="center" spacing="none">
+          <IconButton
+            icon={edgeDetectionEnabled ? EyeIcon : EyeClosedIcon}
+            variant={edgeDetectionEnabled ? "primary" : "default"}
+            size="medium"
+            aria-label={edgeDetectionEnabled ? "Disable edge detection" : "Enable edge detection"}
+            onClick={handleToggleEdgeDetection}
           />
-        )}
-      </Stack>
 
-      <div className="toolbar">
-        <Stack direction="horizontal" align="center" gap="condensed">
-          <Slider
-            key={`brightness-${resetKey}`}
-            name="Brightness"
-            initial={IMAGE_FILTERS.BRIGHTNESS.DEFAULT}
-            min={IMAGE_FILTERS.BRIGHTNESS.MIN}
-            max={IMAGE_FILTERS.BRIGHTNESS.MAX}
-            disabled={edgeDetectionEnabled}
-            callback={setBrightness}
-          />
-          <Slider
-            key={`contrast-${resetKey}`}
-            name="Contrast"
-            initial={IMAGE_FILTERS.CONTRAST.DEFAULT}
-            min={IMAGE_FILTERS.CONTRAST.MIN}
-            max={IMAGE_FILTERS.CONTRAST.MAX}
-            disabled={edgeDetectionEnabled}
-            callback={setContrast}
-          />
-          <Slider
-            key={`saturation-${resetKey}`}
-            name="Saturation"
-            initial={IMAGE_FILTERS.SATURATE.DEFAULT}
-            min={IMAGE_FILTERS.SATURATE.MIN}
-            max={IMAGE_FILTERS.SATURATE.MAX}
-            disabled={edgeDetectionEnabled}
-            callback={setSaturate}
-          />
+          {edgeDetectionEnabled && (
+            <Slider
+              key={`edge-detection-${resetKey}`}
+              name="Edge Detection"
+              initial={edgeDetectionValue}
+              min={EDGE_DETECTION.MIN}
+              max={EDGE_DETECTION.MAX}
+              simple
+              callback={handleEdgeDetectionValue}
+            />
+          )}
         </Stack>
 
-        <ButtonGroup style={{ marginLeft: "auto", marginRight: "auto" }}>
+        <div className="toolbar">
+          <Stack direction="horizontal" align="center" gap="condensed">
+            <Slider
+              key={`brightness-${resetKey}`}
+              name="Brightness"
+              initial={IMAGE_FILTERS.BRIGHTNESS.DEFAULT}
+              min={IMAGE_FILTERS.BRIGHTNESS.MIN}
+              max={IMAGE_FILTERS.BRIGHTNESS.MAX}
+              disabled={edgeDetectionEnabled}
+              callback={setBrightness}
+            />
+            <Slider
+              key={`contrast-${resetKey}`}
+              name="Contrast"
+              initial={IMAGE_FILTERS.CONTRAST.DEFAULT}
+              min={IMAGE_FILTERS.CONTRAST.MIN}
+              max={IMAGE_FILTERS.CONTRAST.MAX}
+              disabled={edgeDetectionEnabled}
+              callback={setContrast}
+            />
+            <Slider
+              key={`saturation-${resetKey}`}
+              name="Saturation"
+              initial={IMAGE_FILTERS.SATURATE.DEFAULT}
+              min={IMAGE_FILTERS.SATURATE.MIN}
+              max={IMAGE_FILTERS.SATURATE.MAX}
+              disabled={edgeDetectionEnabled}
+              callback={setSaturate}
+            />
+          </Stack>
+
+          <ButtonGroup style={{ marginLeft: "auto", marginRight: "auto" }}>
+            <Button
+              leadingVisual={ZoomOutIcon}
+              size="medium"
+              aria-label="Zoom out"
+              onClick={handleZoomOut}
+            >
+              Zoom Out
+            </Button>
+
+            <Button
+              leadingVisual={ZoomInIcon}
+              size="medium"
+              aria-label="Zoom In"
+              onClick={handleZoomIn}
+            >
+              Zoom In
+            </Button>
+          </ButtonGroup>
+
+          <ButtonGroup style={{ marginLeft: "auto", marginRight: "auto" }}>
+            <IconButton
+              icon={ChevronLeftIcon}
+              size="medium"
+              aria-label="Previous photo"
+              onClick={() => handleEditorNavigation("prev")}
+            />
+            <IconButton
+              icon={ChevronRightIcon}
+              size="medium"
+              aria-label="Next Photo"
+              onClick={() => handleEditorNavigation("next")}
+            />
+          </ButtonGroup>
+
           <Button
-            leadingVisual={ZoomOutIcon}
+            leadingVisual={XIcon}
             size="medium"
-            aria-label="Zoom out"
-            onClick={handleZoomOut}
+            variant="danger"
+            onClick={handleReset}
+            style={{ marginRight: "var(--stack-gap-normal)" }}
           >
-            Zoom Out
+            Reset
           </Button>
 
           <Button
-            leadingVisual={ZoomInIcon}
+            leadingVisual={CheckIcon}
             size="medium"
-            aria-label="Zoom In"
-            onClick={handleZoomIn}
+            variant="primary"
+            loading={saving}
+            disabled={saving}
+            onClick={handleSave}
           >
-            Zoom In
+            Save
           </Button>
-        </ButtonGroup>
-
-        <ButtonGroup style={{ marginLeft: "auto", marginRight: "auto" }}>
-          <IconButton
-            icon={ChevronLeftIcon}
-            size="medium"
-            aria-label="Previous photo"
-            onClick={() => handleEditorNavigation("prev")}
-          />
-          <IconButton
-            icon={ChevronRightIcon}
-            size="medium"
-            aria-label="Next Photo"
-            onClick={() => handleEditorNavigation("next")}
-          />
-        </ButtonGroup>
-
-        <Button
-          leadingVisual={XIcon}
-          size="medium"
-          variant="danger"
-          onClick={handleReset}
-          style={{ marginRight: "var(--stack-gap-normal)" }}
-        >
-          Reset
-        </Button>
-
-        <Button
-          leadingVisual={CheckIcon}
-          size="medium"
-          variant="primary"
-          loading={saving}
-          disabled={saving}
-          onClick={handleSave}
-        >
-          Save
-        </Button>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 
