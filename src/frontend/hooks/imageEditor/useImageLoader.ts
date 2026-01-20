@@ -5,6 +5,11 @@ export const useImageLoader = (file: File) => {
   const [imageLoaded, setImageLoaded] = useState(false);
 
   useEffect(() => {
+    // Ensure file is valid before creating blob URL
+    if (!file || file.size === 0) {
+      return;
+    }
+
     const url = URL.createObjectURL(file);
     const image = new Image();
 
@@ -28,10 +33,18 @@ export const useImageLoader = (file: File) => {
       }
     };
 
-    image.src = url;
+    /**
+     * Wait for blob URL to be ready before loading image to prevent misleading logs and errors in Sentry.
+     */
+    const frameId = requestAnimationFrame(() => {
+      if (!isCancelled) {
+        image.src = url;
+      }
+    });
 
     return () => {
       isCancelled = true;
+      cancelAnimationFrame(frameId);
 
       URL.revokeObjectURL(url);
       imageRef.current = null;
