@@ -54,11 +54,12 @@ export const useZoomInteraction = ({
       const imagePointY = (imageCoords.y - centreY - pan.y) / zoom + centreY;
 
       const delta = event.deltaY > 0 ? 1 / ZOOM_FACTORS.WHEEL : ZOOM_FACTORS.WHEEL;
+
       const newZoom = zoom * delta;
-
-      setZoom(Math.max(newZoom, 1));
-
       const updatedZoom = Math.max(newZoom, 1);
+
+      setZoom(updatedZoom);
+
       setPan({
         x: imageCoords.x - centreX - (imagePointX - centreX) * updatedZoom,
         y: imageCoords.y - centreY - (imagePointY - centreY) * updatedZoom,
