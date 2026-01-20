@@ -104,7 +104,7 @@ When unsure, look at these files first
     - `imageEditor/` — Feature-focused hooks used by `useImageEditor`:
       - `useImageLoader.ts` — Load the current image `File` into an `HTMLImageElement` and expose a loaded flag
       - `useImageFilters.ts` — Manage filter state (`ImageFilters` in `src/types.ts`) for brightness, contrast, saturation, and edge detection
-      - `useImageTransform.ts` — Manage zoom/pan transform state (`Transform` in `src/types.ts`) and coordinate conversions
+      - `useImageTransform.ts` — Manage zoom/pan transform state (`ImageTransformations` in `src/types.ts`) and coordinate conversions
       - `useCanvasRenderer.ts` — Render the image onto the canvas with the current filters and transform (throttled for performance)
       - `usePanInteraction.ts` — Pointer handlers for panning the image on the canvas
       - `useZoomInteraction.ts` — Wheel and button handlers for zooming while keeping the cursor location stable
