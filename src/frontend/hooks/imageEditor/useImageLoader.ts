@@ -34,7 +34,8 @@ export const useImageLoader = (file: File) => {
     };
 
     /**
-     * Wait for blob URL to be ready before loading image to prevent misleading logs and errors in Sentry.
+     * Wait for blob URL to be ready before loading image to prevent misleading logs and errors
+     * in Sentry.
      */
     const frameId = requestAnimationFrame(() => {
       if (!isCancelled) {
