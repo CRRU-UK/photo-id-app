@@ -109,7 +109,7 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
     [setEdgeDetectionInternal, draw],
   );
 
-  const resetFilters = useCallback(() => {
+  const resetAll = useCallback(() => {
     resetFiltersInternal();
     resetTransformInternal();
     setResetKey((prev) => prev + 1);
@@ -128,7 +128,7 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
     handlePointerUp,
     handlePointerMove,
     handleWheel,
-    resetFilters,
+    resetAll,
     exportFile,
     resetKey,
   };
