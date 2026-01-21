@@ -124,23 +124,23 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
   });
 
   const [edgeDetectionEnabled, setEdgeDetectionEnabled] = useState<boolean>(false);
-  const [edgeDetectionValue, setEdgeDetectionValue] = useState<number>(EDGE_DETECTION.DEFAULT);
+  const edgeDetectionValueRef = useRef<number>(EDGE_DETECTION.DEFAULT);
 
   const handleToggleEdgeDetection = useCallback(() => {
     const newEnabled = !edgeDetectionEnabled;
     setEdgeDetectionEnabled(newEnabled);
 
     if (newEnabled) {
-      return setEdgeDetection({ enabled: true, value: edgeDetectionValue });
+      return setEdgeDetection({ enabled: true, value: edgeDetectionValueRef.current });
     }
 
-    // When toggling off, just disable it (but keep the value in local state)
+    // When toggling off, just disable it (but keep the value in the ref)
     return setEdgeDetection({ enabled: false });
-  }, [edgeDetectionEnabled, edgeDetectionValue, setEdgeDetection]);
+  }, [edgeDetectionEnabled, setEdgeDetection]);
 
   const handleEdgeDetectionValue = useCallback(
     (value: number) => {
-      setEdgeDetectionValue(value);
+      edgeDetectionValueRef.current = value;
       setEdgeDetection({ enabled: true, value });
     },
     [setEdgeDetection],
@@ -148,7 +148,7 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
 
   const resetEdgeDetection = useCallback(() => {
     setEdgeDetectionEnabled(false);
-    setEdgeDetectionValue(EDGE_DETECTION.DEFAULT);
+    edgeDetectionValueRef.current = EDGE_DETECTION.DEFAULT;
     setEdgeDetection({ enabled: false });
   }, [setEdgeDetection]);
 
@@ -248,7 +248,8 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
       document.removeEventListener("keydown", handleKeyDown);
     };
 
-    // canvasRef is a stable ref object and doesn't need to be in dependencies
+    // We intentionally omit canvasRef from dependencies so this effect only re-runs when
+    // handleWheel or handleKeyDown change, not when canvasRef.current changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [handleWheel, handleKeyDown]);
 
@@ -277,7 +278,7 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
             <Slider
               key={`edge-detection-${resetKey}`}
               name="Edge Detection"
-              initial={edgeDetectionValue}
+              initial={edgeDetectionValueRef.current}
               min={EDGE_DETECTION.MIN}
               max={EDGE_DETECTION.MAX}
               simple
