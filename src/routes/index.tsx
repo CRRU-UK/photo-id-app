@@ -1,15 +1,7 @@
 import type { LoadingData } from "@/types";
 
 import { BookIcon, FileDirectoryIcon, FileIcon, RepoIcon } from "@primer/octicons-react";
-import {
-  BranchName,
-  Button,
-  Heading,
-  Link,
-  PageLayout,
-  Stack as PrimerStack,
-  Text,
-} from "@primer/react";
+import { BranchName, Button, Heading, Link, Stack as PrimerStack, Text } from "@primer/react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
@@ -43,18 +35,8 @@ const IndexPage = () => {
     <>
       <LoadingOverlay data={loading} />
 
-      <PageLayout
-        style={{
-          backgroundColor: "var(--bgColor-default)",
-          width: "100vw",
-          height: "100vh",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <PageLayout.Content>
+      <div className="index">
+        <PrimerStack direction="vertical" align="stretch" gap="condensed" className="content">
           <PrimerStack
             gap="spacious"
             direction="horizontal"
@@ -101,7 +83,7 @@ const IndexPage = () => {
             </div>
           </PrimerStack>
 
-          <Text style={{ marginBottom: "var(--stack-gap-spacious)" }}>
+          <Text>
             Open a project folder or a project file (<code>{PROJECT_FILE_NAME}</code>) to get
             started.
           </Text>
@@ -109,8 +91,8 @@ const IndexPage = () => {
           <PrimerStack
             direction="horizontal"
             style={{
-              marginTop: "var(--stack-gap-normal)",
-              marginBottom: "var(--stack-gap-normal)",
+              marginTop: "var(--stack-gap-spacious)",
+              marginBottom: "var(--stack-gap-spacious)",
             }}
           >
             <Button
@@ -135,37 +117,37 @@ const IndexPage = () => {
           </PrimerStack>
 
           <RecentProjects />
-        </PageLayout.Content>
-      </PageLayout>
+        </PrimerStack>
 
-      <PrimerStack
-        className="footer"
-        align="center"
-        justify="center"
-        direction="horizontal"
-        padding="spacious"
-      >
-        <img
-          style={{
-            display: "block",
-            width: "32px",
-            height: "32px",
-          }}
-          src={logo as string}
-          alt=""
-        />
-        <Text size="small">
-          By{" "}
-          <Link
-            href="#"
-            onClick={() => window.electronAPI.openExternalLink("website")}
-            muted
-            style={{ textDecoration: "underline" }}
-          >
-            Cetacean Research &amp; Rescue Unit
-          </Link>
-        </Text>
-      </PrimerStack>
+        <PrimerStack
+          className="footer"
+          align="center"
+          justify="center"
+          direction="horizontal"
+          padding="spacious"
+        >
+          <img
+            style={{
+              display: "block",
+              width: "32px",
+              height: "32px",
+            }}
+            src={logo as string}
+            alt=""
+          />
+          <Text size="small">
+            By{" "}
+            <Link
+              href="#"
+              onClick={() => window.electronAPI.openExternalLink("website")}
+              muted
+              style={{ textDecoration: "underline" }}
+            >
+              Cetacean Research &amp; Rescue Unit
+            </Link>
+          </Text>
+        </PrimerStack>
+      </div>
     </>
   );
 };

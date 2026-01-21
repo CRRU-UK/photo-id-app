@@ -17,12 +17,25 @@ textarea,
   --toolbar-height: 60px;
 }
 
-.footer {
-  z-index: 10;
-  position: absolute;
-  left: 0;
-  bottom: 0;
+.index {
+  background-color: var(--bgColor-default);
+  width: 100vw;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.index > .content {
+  margin-top: auto;
+  margin-bottom: var(--stack-gap-spacious);
   width: 100%;
+  max-width: 600px;
+}
+
+.index > .footer {
+  margin-top: auto;
 }
 
 .project {
