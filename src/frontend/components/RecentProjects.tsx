@@ -60,7 +60,7 @@ const RecentProjectsList = ({ projects, onRemove }: RecentProjectsListProps) => 
   const handleOpenProjectFile = (path: string) => window.electronAPI.openRecentProject(path);
 
   return (
-    <Timeline style={{ marginTop: "var(--stack-gap-spacious)" }}>
+    <Timeline clipSidebar style={{ marginTop: "var(--stack-gap-spacious)" }}>
       {projects.map((item) => (
         <Timeline.Item key={item.path}>
           <Timeline.Badge>

@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-
 import "@primer/primitives/dist/css/base/motion/motion.css";
 import "@primer/primitives/dist/css/functional/size/border.css";
 import "@primer/primitives/dist/css/functional/size/size.css";
@@ -18,7 +16,7 @@ import { routeTree } from "./routeTree.gen";
 import "./styles.css";
 
 Sentry.init({
-  dsn: import.meta.env.VITE_SENTRY_DSN,
+  dsn: import.meta.env.VITE_SENTRY_DSN as string,
   telemetry: false,
   tracesSampleRate: 1,
   profilesSampleRate: 1,
