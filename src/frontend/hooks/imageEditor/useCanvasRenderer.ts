@@ -33,17 +33,19 @@ export const useCanvasRenderer = ({ imageRef, getFilters, getTransform, clamp }:
     const imageWidth = image.naturalWidth;
     const imageHeight = image.naturalHeight;
 
-    if (
-      canvasSizeRef.current?.width !== imageWidth ||
-      canvasSizeRef.current?.height !== imageHeight
-    ) {
+    const sizeChanged =
+      canvasSizeRef.current?.width !== imageWidth || canvasSizeRef.current?.height !== imageHeight;
+    if (sizeChanged) {
       canvas.width = imageWidth;
       canvas.height = imageHeight;
       canvasSizeRef.current = { width: imageWidth, height: imageHeight };
     }
 
     context.setTransform(1, 0, 0, 1, 0, 0);
-    context.clearRect(0, 0, canvas.width, canvas.height);
+
+    if (!sizeChanged) {
+      context.clearRect(0, 0, canvas.width, canvas.height);
+    }
 
     const filters = getFilters();
 
