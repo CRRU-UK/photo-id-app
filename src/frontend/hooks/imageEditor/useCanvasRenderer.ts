@@ -42,10 +42,7 @@ export const useCanvasRenderer = ({ imageRef, getFilters, getTransform, clamp }:
     }
 
     context.setTransform(1, 0, 0, 1, 0, 0);
-
-    if (sizeChanged) {
-      context.clearRect(0, 0, canvas.width, canvas.height);
-    }
+    context.clearRect(0, 0, canvas.width, canvas.height);
 
     const filters = getFilters();
 

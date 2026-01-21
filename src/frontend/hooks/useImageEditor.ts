@@ -15,7 +15,7 @@ interface UseImageEditorProps {
 const useImageEditor = ({ file }: UseImageEditorProps) => {
   const [resetKey, setResetKey] = useState(0);
 
-  const { imageRef, imageLoaded, imageError } = useImageLoader(file);
+  const { imageRef, imageLoaded } = useImageLoader(file);
 
   const {
     setBrightness: setBrightnessInternal,
@@ -136,7 +136,6 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
   return {
     canvasRef,
     imageLoaded,
-    imageError,
     setBrightness,
     setContrast,
     setSaturate,

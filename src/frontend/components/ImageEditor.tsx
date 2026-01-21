@@ -105,7 +105,6 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
   const {
     canvasRef,
     imageLoaded,
-    imageError,
     setBrightness,
     setContrast,
     setSaturate,
@@ -225,13 +224,13 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
   useEffect(() => {
     const currentPhotoId = `${data.directory}/${data.name}`;
 
-    if ((imageLoaded || imageError) && loadedPhotoIdRef.current !== currentPhotoId) {
+    if (imageLoaded && loadedPhotoIdRef.current !== currentPhotoId) {
       loadedPhotoIdRef.current = currentPhotoId;
 
       resetAll();
       resetEdgeDetection();
     }
-  }, [data.directory, data.name, imageLoaded, imageError, resetAll, resetEdgeDetection]);
+  }, [data.directory, data.name, imageLoaded, resetAll, resetEdgeDetection]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
