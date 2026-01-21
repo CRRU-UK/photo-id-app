@@ -14,6 +14,7 @@ interface RenderOptions {
 export const useCanvasRenderer = ({ imageRef, getFilters, getTransform, clamp }: RenderOptions) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const throttleRef = useRef<number | null>(null);
+  const canvasSizeRef = useRef<{ width: number; height: number } | null>(null);
 
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
@@ -29,13 +30,19 @@ export const useCanvasRenderer = ({ imageRef, getFilters, getTransform, clamp }:
       return;
     }
 
+    const imageWidth = image.naturalWidth;
+    const imageHeight = image.naturalHeight;
+
+    const sizeChanged =
+      canvasSizeRef.current?.width !== imageWidth || canvasSizeRef.current?.height !== imageHeight;
+    if (sizeChanged) {
+      canvas.width = imageWidth;
+      canvas.height = imageHeight;
+      canvasSizeRef.current = { width: imageWidth, height: imageHeight };
+    }
+
     context.setTransform(1, 0, 0, 1, 0, 0);
     context.clearRect(0, 0, canvas.width, canvas.height);
-
-    if (canvas.width !== image.naturalWidth || canvas.height !== image.naturalHeight) {
-      canvas.width = image.naturalWidth;
-      canvas.height = image.naturalHeight;
-    }
 
     const filters = getFilters();
 

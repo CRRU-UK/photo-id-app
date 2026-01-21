@@ -7,7 +7,7 @@ interface PanInteractionOptions {
   onDraw: () => void;
   onDrawThrottled: () => void;
   onCancelThrottle: () => void;
-  getCurrentPan: () => { x: number; y: number };
+  getTransform: () => { pan: { x: number; y: number } };
 }
 
 export const usePanInteraction = ({
@@ -17,7 +17,7 @@ export const usePanInteraction = ({
   onDraw,
   onDrawThrottled,
   onCancelThrottle,
-  getCurrentPan,
+  getTransform,
 }: PanInteractionOptions) => {
   const isPanningRef = useRef<boolean>(false);
   const lastPointerRef = useRef({ x: 0, y: 0 });
@@ -45,13 +45,17 @@ export const usePanInteraction = ({
       const deltaX = event.clientX - lastPointerRef.current.x;
       const deltaY = event.clientY - lastPointerRef.current.y;
 
+      /**
+       * Convert screen pixel deltas to image pixel deltas. Use clientWidth/clientHeight to match
+       * the coordinate conversion in getImageCoordinates.
+       */
       const scaleX = image.naturalWidth / canvas.clientWidth;
       const scaleY = image.naturalHeight / canvas.clientHeight;
 
       const scaledDeltaX = deltaX * scaleX;
       const scaledDeltaY = deltaY * scaleY;
 
-      const currentPan = getCurrentPan();
+      const currentPan = getTransform().pan;
 
       onPan({
         x: currentPan.x + scaledDeltaX,
@@ -63,7 +67,7 @@ export const usePanInteraction = ({
 
       onDrawThrottled();
     },
-    [canvasRef, imageRef, onPan, onDrawThrottled, getCurrentPan],
+    [canvasRef, imageRef, onPan, onDrawThrottled, getTransform],
   );
 
   const handlePointerUp = useCallback(() => {

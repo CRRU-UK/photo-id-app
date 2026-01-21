@@ -11,9 +11,10 @@ import {
   ZoomOutIcon,
 } from "@primer/octicons-react";
 import { Button, ButtonGroup, FormControl, IconButton, Label, Stack } from "@primer/react";
-import { memo, useCallback, useEffect, useRef, useState } from "react";
+import { forwardRef, memo, useCallback, useEffect, useRef, useState } from "react";
 
 import { EDGE_DETECTION, IMAGE_FILTERS } from "@/constants";
+import LoadingOverlay from "@/frontend/components/LoadingOverlay";
 
 import useImageEditor from "../hooks/useImageEditor";
 
@@ -68,28 +69,26 @@ const Slider = ({
 };
 
 interface CanvasImageProps {
-  ref: React.RefObject<HTMLCanvasElement | null>;
   handlePointerDown: (event: React.PointerEvent<HTMLCanvasElement>) => void;
   handlePointerMove: (event: React.PointerEvent<HTMLCanvasElement>) => void;
   handlePointerUp: (event: React.PointerEvent<HTMLCanvasElement>) => void;
 }
 
-const CanvasImage = ({
-  ref,
-  handlePointerDown,
-  handlePointerMove,
-  handlePointerUp,
-}: CanvasImageProps) => {
-  return (
-    <canvas
-      ref={ref}
-      className="canvas"
-      onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerUp}
-    />
-  );
-};
+const CanvasImage = forwardRef<HTMLCanvasElement, CanvasImageProps>(
+  ({ handlePointerDown, handlePointerMove, handlePointerUp }, ref) => {
+    return (
+      <canvas
+        ref={ref}
+        className="canvas"
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+      />
+    );
+  },
+);
+
+CanvasImage.displayName = "CanvasImage";
 
 interface ImageEditorProps {
   data: PhotoBody;
@@ -98,16 +97,14 @@ interface ImageEditorProps {
 }
 
 const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
-  console.log("Loaded photo edit data:", data);
+  console.debug("Loaded photo edit data:", data);
 
   const [saving, setSaving] = useState<boolean>(false);
   const [navigating, setNavigating] = useState<boolean>(false);
 
-  const [edgeDetectionEnabled, setEdgeDetectionEnabled] = useState<boolean>(false);
-  const [edgeDetectionValue, setEdgeDetectionValue] = useState<number>(EDGE_DETECTION.DEFAULT);
-
   const {
     canvasRef,
+    imageLoaded,
     setBrightness,
     setContrast,
     setSaturate,
@@ -125,33 +122,39 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
     file: image,
   });
 
-  const handleToggleEdgeDetection = () => {
-    setEdgeDetectionEnabled((prev) => !prev);
-  };
+  const [edgeDetectionEnabled, setEdgeDetectionEnabled] = useState<boolean>(false);
+  const edgeDetectionValueRef = useRef<number>(EDGE_DETECTION.DEFAULT);
 
-  const handleEdgeDetectionValue = (value: number) => {
-    setEdgeDetectionEnabled(true);
-    setEdgeDetectionValue(value);
-  };
+  const handleToggleEdgeDetection = useCallback(() => {
+    const newEnabled = !edgeDetectionEnabled;
+    setEdgeDetectionEnabled(newEnabled);
+
+    if (newEnabled) {
+      return setEdgeDetection({ enabled: true, value: edgeDetectionValueRef.current });
+    }
+
+    // When toggling off, just disable it (but keep the value in the ref)
+    return setEdgeDetection({ enabled: false });
+  }, [edgeDetectionEnabled, setEdgeDetection]);
+
+  const handleEdgeDetectionValue = useCallback(
+    (value: number) => {
+      edgeDetectionValueRef.current = value;
+      setEdgeDetection({ enabled: true, value });
+    },
+    [setEdgeDetection],
+  );
 
   const resetEdgeDetection = useCallback(() => {
     setEdgeDetectionEnabled(false);
-    setEdgeDetectionValue(EDGE_DETECTION.DEFAULT);
-  }, []);
+    edgeDetectionValueRef.current = EDGE_DETECTION.DEFAULT;
+    setEdgeDetection({ enabled: false });
+  }, [setEdgeDetection]);
 
   const handleReset = useCallback(() => {
     resetAll();
     resetEdgeDetection();
   }, [resetAll, resetEdgeDetection]);
-
-  useEffect(() => {
-    if (edgeDetectionEnabled) {
-      setEdgeDetection({ enabled: true, value: edgeDetectionValue });
-      return;
-    }
-
-    setEdgeDetection({ enabled: false });
-  }, [edgeDetectionEnabled, edgeDetectionValue, setEdgeDetection]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -183,8 +186,11 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
 
       const result = await window.electronAPI.navigateEditorPhoto(data, direction);
       if (result) {
-        setQueryCallback(result);
+        setNavigating(false);
+        return setQueryCallback(result);
       }
+
+      setNavigating(false);
     },
     [data, navigating, setQueryCallback],
   );
@@ -192,168 +198,183 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
       if (event.code === "ArrowLeft") {
-        handleEditorNavigation("prev");
+        return handleEditorNavigation("prev");
       }
 
       if (event.code === "ArrowRight") {
-        handleEditorNavigation("next");
+        return handleEditorNavigation("next");
       }
     },
     [handleEditorNavigation],
   );
 
   const previousPhotoIdRef = useRef<string>(`${data.directory}/${data.name}`);
+  const loadedPhotoIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     const currentPhotoId = `${data.directory}/${data.name}`;
 
     if (previousPhotoIdRef.current !== currentPhotoId) {
-      resetAll();
-      resetEdgeDetection();
+      previousPhotoIdRef.current = currentPhotoId;
 
       setNavigating(false);
-
-      previousPhotoIdRef.current = currentPhotoId;
     }
-  }, [data.directory, data.name, resetAll, resetEdgeDetection]);
+  }, [data.directory, data.name]);
+
+  useEffect(() => {
+    const currentPhotoId = `${data.directory}/${data.name}`;
+
+    if (imageLoaded && loadedPhotoIdRef.current !== currentPhotoId) {
+      loadedPhotoIdRef.current = currentPhotoId;
+
+      resetAll();
+      resetEdgeDetection();
+    }
+  }, [data.directory, data.name, imageLoaded, resetAll, resetEdgeDetection]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
 
-    if (canvas) {
-      canvas.addEventListener("wheel", handleWheel, { passive: false });
+    if (!canvas) {
+      return;
     }
 
+    canvas.addEventListener("wheel", handleWheel, { passive: false });
     document.addEventListener("keydown", handleKeyDown);
 
     return () => {
-      if (canvas) {
-        canvas.removeEventListener("wheel", handleWheel);
-      }
-
+      canvas.removeEventListener("wheel", handleWheel);
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [canvasRef, handleWheel, handleKeyDown]);
+
+    // We intentionally omit canvasRef from dependencies so this effect only re-runs when
+    // handleWheel or handleKeyDown change, not when canvasRef.current changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [handleWheel, handleKeyDown]);
 
   return (
-    <div className="edit">
-      <CanvasImage
-        ref={canvasRef}
-        handlePointerDown={handlePointerDown}
-        handlePointerMove={handlePointerMove}
-        handlePointerUp={handlePointerUp}
-      />
+    <>
+      <LoadingOverlay data={{ show: navigating }} />
 
-      <Stack className="edge-toggle" direction="horizontal" align="center" spacing="none">
-        <IconButton
-          icon={edgeDetectionEnabled ? EyeIcon : EyeClosedIcon}
-          variant={edgeDetectionEnabled ? "primary" : "default"}
-          size="medium"
-          aria-label={edgeDetectionEnabled ? "Disable edge detection" : "Enable edge detection"}
-          onClick={handleToggleEdgeDetection}
+      <div className="edit">
+        <CanvasImage
+          ref={canvasRef}
+          handlePointerDown={handlePointerDown}
+          handlePointerMove={handlePointerMove}
+          handlePointerUp={handlePointerUp}
         />
 
-        {edgeDetectionEnabled && (
-          <Slider
-            key={`edge-detection-${resetKey}`}
-            name="Edge Detection"
-            initial={edgeDetectionValue}
-            min={EDGE_DETECTION.MIN}
-            max={EDGE_DETECTION.MAX}
-            simple
-            callback={handleEdgeDetectionValue}
+        <Stack className="edge-toggle" direction="horizontal" align="center" spacing="none">
+          <IconButton
+            icon={edgeDetectionEnabled ? EyeIcon : EyeClosedIcon}
+            variant={edgeDetectionEnabled ? "primary" : "default"}
+            size="medium"
+            aria-label={edgeDetectionEnabled ? "Disable edge detection" : "Enable edge detection"}
+            onClick={handleToggleEdgeDetection}
           />
-        )}
-      </Stack>
 
-      <div className="toolbar">
-        <Stack direction="horizontal" align="center" gap="condensed">
-          <Slider
-            key={`brightness-${resetKey}`}
-            name="Brightness"
-            initial={IMAGE_FILTERS.BRIGHTNESS.DEFAULT}
-            min={IMAGE_FILTERS.BRIGHTNESS.MIN}
-            max={IMAGE_FILTERS.BRIGHTNESS.MAX}
-            disabled={edgeDetectionEnabled}
-            callback={setBrightness}
-          />
-          <Slider
-            key={`contrast-${resetKey}`}
-            name="Contrast"
-            initial={IMAGE_FILTERS.CONTRAST.DEFAULT}
-            min={IMAGE_FILTERS.CONTRAST.MIN}
-            max={IMAGE_FILTERS.CONTRAST.MAX}
-            disabled={edgeDetectionEnabled}
-            callback={setContrast}
-          />
-          <Slider
-            key={`saturation-${resetKey}`}
-            name="Saturation"
-            initial={IMAGE_FILTERS.SATURATE.DEFAULT}
-            min={IMAGE_FILTERS.SATURATE.MIN}
-            max={IMAGE_FILTERS.SATURATE.MAX}
-            disabled={edgeDetectionEnabled}
-            callback={setSaturate}
-          />
+          {edgeDetectionEnabled && (
+            <Slider
+              key={`edge-detection-${resetKey}`}
+              name="Edge Detection"
+              initial={edgeDetectionValueRef.current}
+              min={EDGE_DETECTION.MIN}
+              max={EDGE_DETECTION.MAX}
+              simple
+              callback={handleEdgeDetectionValue}
+            />
+          )}
         </Stack>
 
-        <ButtonGroup style={{ marginLeft: "auto", marginRight: "auto" }}>
+        <div className="toolbar">
+          <Stack direction="horizontal" align="center" gap="condensed">
+            <Slider
+              key={`brightness-${resetKey}`}
+              name="Brightness"
+              initial={IMAGE_FILTERS.BRIGHTNESS.DEFAULT}
+              min={IMAGE_FILTERS.BRIGHTNESS.MIN}
+              max={IMAGE_FILTERS.BRIGHTNESS.MAX}
+              disabled={edgeDetectionEnabled}
+              callback={setBrightness}
+            />
+            <Slider
+              key={`contrast-${resetKey}`}
+              name="Contrast"
+              initial={IMAGE_FILTERS.CONTRAST.DEFAULT}
+              min={IMAGE_FILTERS.CONTRAST.MIN}
+              max={IMAGE_FILTERS.CONTRAST.MAX}
+              disabled={edgeDetectionEnabled}
+              callback={setContrast}
+            />
+            <Slider
+              key={`saturation-${resetKey}`}
+              name="Saturation"
+              initial={IMAGE_FILTERS.SATURATE.DEFAULT}
+              min={IMAGE_FILTERS.SATURATE.MIN}
+              max={IMAGE_FILTERS.SATURATE.MAX}
+              disabled={edgeDetectionEnabled}
+              callback={setSaturate}
+            />
+          </Stack>
+
+          <ButtonGroup style={{ marginLeft: "auto", marginRight: "auto" }}>
+            <Button
+              leadingVisual={ZoomOutIcon}
+              size="medium"
+              aria-label="Zoom out"
+              onClick={handleZoomOut}
+            >
+              Zoom Out
+            </Button>
+
+            <Button
+              leadingVisual={ZoomInIcon}
+              size="medium"
+              aria-label="Zoom In"
+              onClick={handleZoomIn}
+            >
+              Zoom In
+            </Button>
+          </ButtonGroup>
+
+          <ButtonGroup style={{ marginLeft: "auto", marginRight: "auto" }}>
+            <IconButton
+              icon={ChevronLeftIcon}
+              size="medium"
+              aria-label="Previous photo"
+              onClick={() => handleEditorNavigation("prev")}
+            />
+            <IconButton
+              icon={ChevronRightIcon}
+              size="medium"
+              aria-label="Next Photo"
+              onClick={() => handleEditorNavigation("next")}
+            />
+          </ButtonGroup>
+
           <Button
-            leadingVisual={ZoomOutIcon}
+            leadingVisual={XIcon}
             size="medium"
-            aria-label="Zoom out"
-            onClick={handleZoomOut}
+            variant="danger"
+            onClick={handleReset}
+            style={{ marginRight: "var(--stack-gap-normal)" }}
           >
-            Zoom Out
+            Reset
           </Button>
 
           <Button
-            leadingVisual={ZoomInIcon}
+            leadingVisual={CheckIcon}
             size="medium"
-            aria-label="Zoom In"
-            onClick={handleZoomIn}
+            variant="primary"
+            loading={saving}
+            disabled={saving}
+            onClick={handleSave}
           >
-            Zoom In
+            Save
           </Button>
-        </ButtonGroup>
-
-        <ButtonGroup style={{ marginLeft: "auto", marginRight: "auto" }}>
-          <IconButton
-            icon={ChevronLeftIcon}
-            size="medium"
-            aria-label="Previous photo"
-            onClick={() => handleEditorNavigation("prev")}
-          />
-          <IconButton
-            icon={ChevronRightIcon}
-            size="medium"
-            aria-label="Next Photo"
-            onClick={() => handleEditorNavigation("next")}
-          />
-        </ButtonGroup>
-
-        <Button
-          leadingVisual={XIcon}
-          size="medium"
-          variant="danger"
-          onClick={handleReset}
-          style={{ marginRight: "var(--stack-gap-normal)" }}
-        >
-          Reset
-        </Button>
-
-        <Button
-          leadingVisual={CheckIcon}
-          size="medium"
-          variant="primary"
-          loading={saving}
-          disabled={saving}
-          onClick={handleSave}
-        >
-          Save
-        </Button>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

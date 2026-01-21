@@ -58,21 +58,22 @@ export const useImageExport = ({
     context.drawImage(image, 0, 0);
 
     try {
-      const blob = await new Promise<Blob | null>((resolve) => {
+      const blob = await new Promise<Blob>((resolve, reject) => {
         exportCanvas.toBlob((result) => {
-          resolve(result);
+          if (result) {
+            return resolve(result);
+          }
+
+          return reject(new Error("Failed to export canvas to blob"));
         }, mime);
       });
-
-      if (!blob) {
-        return null;
-      }
 
       const name = file.name;
       const edited = new File([blob], name, { type: mime });
 
       return edited;
-    } catch {
+    } catch (error) {
+      console.error("Failed to export image:", error);
       return null;
     }
   }, [imageRef, file, getFilters, getTransform]);
