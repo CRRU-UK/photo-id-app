@@ -124,6 +124,25 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
     [setEdgeDetectionInternal, drawThrottled],
   );
 
+  /**
+   * Pans the image by a delta amount in image coordinates.
+   * @param delta - Delta pan values in image coordinates
+   */
+  const handlePan = useCallback(
+    (delta: { x: number; y: number }) => {
+      const currentTransform = getTransform();
+      const newPan = {
+        x: currentTransform.pan.x + delta.x,
+        y: currentTransform.pan.y + delta.y,
+      };
+
+      setPanInternal(newPan);
+      clamp(canvasRef.current);
+      drawThrottled();
+    },
+    [getTransform, setPanInternal, clamp, canvasRef, drawThrottled],
+  );
+
   const resetAll = useCallback(() => {
     resetFiltersInternal();
     resetTransformInternal();
@@ -135,6 +154,7 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
 
   return {
     canvasRef,
+    imageRef,
     imageLoaded,
     setBrightness,
     setContrast,
@@ -147,6 +167,7 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
     handlePointerUp,
     handlePointerMove,
     handleWheel,
+    handlePan,
     resetAll,
     exportFile,
     resetKey,

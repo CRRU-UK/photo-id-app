@@ -38,6 +38,41 @@ export const EXISTING_DATA_BUTTONS = ["Cancel", "Open Existing Data", "Replace E
 export const MISSING_RECENT_PROJECT_MESSAGE =
   "Project not found, directory or data file may have been deleted.";
 
+export const EDITOR_TOOLTIPS = {
+  ENABLE_EDGE_DETECTION: "Enable edge detection",
+  DISABLE_EDGE_DETECTION: "Disable edge detection",
+  ZOOM_OUT: "Zoom in",
+  ZOOM_IN: "Zoom out",
+  PREVIOUS_PHOTO: "Previous photo",
+  NEXT_PHOTO: "Next photo",
+  RESET: "Reset",
+  SAVE: "Save",
+};
+
+export const EDITOR_KEYBOARD_HINTS = {
+  TOGGLE_EDGE_DETECTION: `E`,
+  ZOOM_OUT: "Mod+-",
+  ZOOM_IN: "Mod+=",
+  PREVIOUS_PHOTO: "p",
+  NEXT_PHOTO: "n",
+  RESET: `Mod+R`,
+  SAVE: `Mod+S`,
+};
+
+export const EDITOR_KEYBOARD_CODES = {
+  PREVIOUS_PHOTO: "p",
+  NEXT_PHOTO: "n",
+  PAN_LEFT: "ArrowLeft",
+  PAN_RIGHT: "ArrowRight",
+  PAN_UP: "ArrowUp",
+  PAN_DOWN: "ArrowDown",
+  TOGGLE_EDGE_DETECTION: "e",
+  RESET: "r",
+  SAVE: "s",
+  ZOOM_OUT: "-",
+  ZOOM_IN: "=",
+};
+
 export enum DragAreas {
   MainSelection = "main-selection",
   DiscardedSelection = "discarded-selection",
@@ -102,6 +137,8 @@ export const ZOOM_FACTORS = {
   BUTTON: 1.2,
   WHEEL: 1.02,
 };
+
+export const PAN_AMOUNT = 100;
 
 export const EDGE_DETECTION = {
   MIN: 0,

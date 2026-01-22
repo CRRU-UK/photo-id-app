@@ -1,6 +1,6 @@
-import { sentryVitePlugin } from "@sentry/vite-plugin";
 /* eslint-disable @typescript-eslint/no-unsafe-call */
-// @ts-expect-error Unable to set to bundler
+
+import { sentryVitePlugin } from "@sentry/vite-plugin";
 import { tanstackRouter } from "@tanstack/router-plugin/vite";
 import { defineConfig } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
