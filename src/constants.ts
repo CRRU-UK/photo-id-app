@@ -54,7 +54,7 @@ export const EDITOR_TOOLTIPS = {
 };
 
 export const EDITOR_KEYBOARD_HINTS = {
-  TOGGLE_EDGE_DETECTION: `E`,
+  TOGGLE_EDGE_DETECTION: "E",
   PAN_LEFT: "ArrowLeft",
   PAN_UP: "ArrowUp",
   PAN_DOWN: "ArrowDown",
@@ -63,17 +63,17 @@ export const EDITOR_KEYBOARD_HINTS = {
   ZOOM_IN: "Mod+=",
   PREVIOUS_PHOTO: "p",
   NEXT_PHOTO: "n",
-  RESET: `Mod+R`,
-  SAVE: `Mod+S`,
+  RESET: "Mod+R",
+  SAVE: "Mod+S",
 };
 
 export const EDITOR_KEYBOARD_CODES = {
   PREVIOUS_PHOTO: "p",
   NEXT_PHOTO: "n",
   PAN_LEFT: "ArrowLeft",
-  PAN_RIGHT: "ArrowRight",
   PAN_UP: "ArrowUp",
   PAN_DOWN: "ArrowDown",
+  PAN_RIGHT: "ArrowRight",
   TOGGLE_EDGE_DETECTION: "e",
   RESET: "r",
   SAVE: "s",
