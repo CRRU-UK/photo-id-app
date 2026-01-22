@@ -3,6 +3,10 @@ import type { EditorNavigation, PhotoBody } from "@/types";
 import {
   ArrowLeftIcon,
   ArrowRightIcon,
+  ChevronDownIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  ChevronUpIcon,
   EyeClosedIcon,
   EyeIcon,
   ZoomInIcon,
@@ -17,7 +21,9 @@ import {
   EDITOR_KEYBOARD_CODES,
   EDITOR_KEYBOARD_HINTS,
   EDITOR_TOOLTIPS,
+  EditorPanDirection,
   IMAGE_FILTERS,
+  KEYBOARD_CODE_TO_PAN_DIRECTION,
   PAN_AMOUNT,
 } from "@/constants";
 import LoadingOverlay from "@/frontend/components/LoadingOverlay";
@@ -203,80 +209,83 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
     [data, navigating, setQueryCallback],
   );
 
-  const handleKeyDown = useCallback(
-    (event: KeyboardEvent) => {
+  const handlePanDirection = useCallback(
+    (direction: EditorPanDirection) => {
       const canvas = canvasRef.current;
       const image = imageRef.current;
 
-      if (
-        event.code === EDITOR_KEYBOARD_CODES.PAN_LEFT ||
-        event.code === EDITOR_KEYBOARD_CODES.PAN_RIGHT ||
-        event.code === EDITOR_KEYBOARD_CODES.PAN_UP ||
-        event.code === EDITOR_KEYBOARD_CODES.PAN_DOWN
-      ) {
-        if (!canvas || !image) {
-          return;
-        }
-
-        const scaleX = image.naturalWidth / canvas.clientWidth;
-        const scaleY = image.naturalHeight / canvas.clientHeight;
-
-        let deltaX = 0;
-        let deltaY = 0;
-
-        if (event.code === EDITOR_KEYBOARD_CODES.PAN_LEFT) {
-          deltaX = PAN_AMOUNT * scaleX;
-        } else if (event.code === EDITOR_KEYBOARD_CODES.PAN_RIGHT) {
-          deltaX = -PAN_AMOUNT * scaleX;
-        } else if (event.code === EDITOR_KEYBOARD_CODES.PAN_UP) {
-          deltaY = PAN_AMOUNT * scaleY;
-        } else if (event.code === EDITOR_KEYBOARD_CODES.PAN_DOWN) {
-          deltaY = -PAN_AMOUNT * scaleY;
-        }
-
-        event.preventDefault();
-        return handlePan({ x: deltaX, y: deltaY });
+      if (!canvas || !image) {
+        return;
       }
 
-      if (event.key === EDITOR_KEYBOARD_CODES.PREVIOUS_PHOTO) {
+      const scaleX = image.naturalWidth / canvas.clientWidth;
+      const scaleY = image.naturalHeight / canvas.clientHeight;
+
+      let deltaX = 0;
+      let deltaY = 0;
+
+      if (direction === EditorPanDirection.LEFT) {
+        deltaX = PAN_AMOUNT * scaleX;
+      } else if (direction === EditorPanDirection.RIGHT) {
+        deltaX = -PAN_AMOUNT * scaleX;
+      } else if (direction === EditorPanDirection.UP) {
+        deltaY = PAN_AMOUNT * scaleY;
+      } else if (direction === EditorPanDirection.DOWN) {
+        deltaY = -PAN_AMOUNT * scaleY;
+      }
+
+      handlePan({ x: deltaX, y: deltaY });
+    },
+    [canvasRef, imageRef, handlePan],
+  );
+
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent) => {
+      const modifierKey = event.ctrlKey || event.metaKey;
+
+      const panDirection = KEYBOARD_CODE_TO_PAN_DIRECTION?.[event.code];
+      if (!modifierKey && panDirection) {
+        event.preventDefault();
+        return handlePanDirection(panDirection);
+      }
+
+      if (!modifierKey && event.key === EDITOR_KEYBOARD_CODES.PREVIOUS_PHOTO) {
         event.preventDefault();
         return handleEditorNavigation("prev");
       }
 
-      if (event.key === EDITOR_KEYBOARD_CODES.NEXT_PHOTO) {
+      if (!modifierKey && event.key === EDITOR_KEYBOARD_CODES.NEXT_PHOTO) {
         event.preventDefault();
         return handleEditorNavigation("next");
       }
 
-      if (event.key === EDITOR_KEYBOARD_CODES.TOGGLE_EDGE_DETECTION) {
+      if (!modifierKey && event.key === EDITOR_KEYBOARD_CODES.TOGGLE_EDGE_DETECTION) {
         event.preventDefault();
         return handleToggleEdgeDetection();
       }
 
-      if ((event.ctrlKey || event.metaKey) && event.key === EDITOR_KEYBOARD_CODES.RESET) {
+      if (modifierKey && event.key === EDITOR_KEYBOARD_CODES.RESET) {
         event.preventDefault();
         return handleReset();
       }
 
-      if ((event.ctrlKey || event.metaKey) && event.key === EDITOR_KEYBOARD_CODES.SAVE) {
+      if (modifierKey && event.key === EDITOR_KEYBOARD_CODES.SAVE) {
         event.preventDefault();
         return handleSave();
       }
 
-      if ((event.ctrlKey || event.metaKey) && event.key === EDITOR_KEYBOARD_CODES.ZOOM_OUT) {
+      if (modifierKey && event.key === EDITOR_KEYBOARD_CODES.ZOOM_OUT) {
         event.preventDefault();
         return handleZoomOut();
       }
 
-      if ((event.ctrlKey || event.metaKey) && event.key === EDITOR_KEYBOARD_CODES.ZOOM_IN) {
+      if (modifierKey && event.key === EDITOR_KEYBOARD_CODES.ZOOM_IN) {
         event.preventDefault();
         return handleZoomIn();
       }
     },
     [
-      canvasRef,
-      imageRef,
-      handlePan,
+      handlePanDirection,
       handleEditorNavigation,
       handleToggleEdgeDetection,
       handleReset,
@@ -400,31 +409,59 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
             />
           </Stack>
 
-          <ButtonGroup style={{ marginLeft: "auto", marginRight: "auto" }}>
+          <ButtonGroup style={{ marginLeft: "auto", marginRight: "var(--stack-gap-spacious)" }}>
+            <IconButton
+              icon={ChevronLeftIcon}
+              size="large"
+              aria-label={EDITOR_TOOLTIPS.PAN_LEFT}
+              keybindingHint={EDITOR_KEYBOARD_HINTS.PAN_LEFT}
+              onClick={() => handlePanDirection(EditorPanDirection.LEFT)}
+            />
+            <IconButton
+              icon={ChevronUpIcon}
+              size="large"
+              aria-label={EDITOR_TOOLTIPS.PAN_UP}
+              keybindingHint={EDITOR_KEYBOARD_HINTS.PAN_UP}
+              onClick={() => handlePanDirection(EditorPanDirection.UP)}
+            />
+            <IconButton
+              icon={ChevronDownIcon}
+              size="large"
+              aria-label={EDITOR_TOOLTIPS.PAN_DOWN}
+              keybindingHint={EDITOR_KEYBOARD_HINTS.PAN_DOWN}
+              onClick={() => handlePanDirection(EditorPanDirection.DOWN)}
+            />
+            <IconButton
+              icon={ChevronRightIcon}
+              size="large"
+              aria-label={EDITOR_TOOLTIPS.PAN_RIGHT}
+              keybindingHint={EDITOR_KEYBOARD_HINTS.PAN_RIGHT}
+              onClick={() => handlePanDirection(EditorPanDirection.RIGHT)}
+            />
+          </ButtonGroup>
+
+          <ButtonGroup style={{ marginRight: "auto" }}>
             <IconButton
               icon={ZoomOutIcon}
               size="large"
               aria-label={EDITOR_TOOLTIPS.ZOOM_OUT}
               onClick={handleZoomOut}
               keybindingHint={EDITOR_KEYBOARD_HINTS.ZOOM_IN}
-            >
-              Zoom Out
-            </IconButton>
+            />
             <IconButton
               icon={ZoomInIcon}
               size="large"
               aria-label={EDITOR_TOOLTIPS.ZOOM_IN}
               onClick={handleZoomIn}
               keybindingHint={EDITOR_KEYBOARD_HINTS.ZOOM_IN}
-            >
-              Zoom In
-            </IconButton>
+            />
           </ButtonGroup>
 
-          <ButtonGroup style={{ marginLeft: "auto", marginRight: "auto" }}>
+          <ButtonGroup style={{ marginRight: "var(--stack-gap-spacious)" }}>
             <IconButton
               icon={ArrowLeftIcon}
               size="large"
+              variant="invisible"
               aria-label={EDITOR_TOOLTIPS.PREVIOUS_PHOTO}
               keybindingHint={EDITOR_KEYBOARD_HINTS.PREVIOUS_PHOTO}
               onClick={() => handleEditorNavigation("prev")}
@@ -432,6 +469,7 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
             <IconButton
               icon={ArrowRightIcon}
               size="large"
+              variant="invisible"
               aria-label={EDITOR_TOOLTIPS.NEXT_PHOTO}
               keybindingHint={EDITOR_KEYBOARD_HINTS.NEXT_PHOTO}
               onClick={() => handleEditorNavigation("next")}

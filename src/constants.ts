@@ -41,6 +41,10 @@ export const MISSING_RECENT_PROJECT_MESSAGE =
 export const EDITOR_TOOLTIPS = {
   ENABLE_EDGE_DETECTION: "Enable edge detection",
   DISABLE_EDGE_DETECTION: "Disable edge detection",
+  PAN_LEFT: "Pan left",
+  PAN_UP: "Pan up",
+  PAN_DOWN: "Pan down",
+  PAN_RIGHT: "Pan right",
   ZOOM_OUT: "Zoom in",
   ZOOM_IN: "Zoom out",
   PREVIOUS_PHOTO: "Previous photo",
@@ -51,6 +55,10 @@ export const EDITOR_TOOLTIPS = {
 
 export const EDITOR_KEYBOARD_HINTS = {
   TOGGLE_EDGE_DETECTION: `E`,
+  PAN_LEFT: "ArrowLeft",
+  PAN_UP: "ArrowUp",
+  PAN_DOWN: "ArrowDown",
+  PAN_RIGHT: "ArrowRight",
   ZOOM_OUT: "Mod+-",
   ZOOM_IN: "Mod+=",
   PREVIOUS_PHOTO: "p",
@@ -71,6 +79,20 @@ export const EDITOR_KEYBOARD_CODES = {
   SAVE: "s",
   ZOOM_OUT: "-",
   ZOOM_IN: "=",
+};
+
+export enum EditorPanDirection {
+  LEFT = "left",
+  RIGHT = "right",
+  UP = "up",
+  DOWN = "down",
+}
+
+export const KEYBOARD_CODE_TO_PAN_DIRECTION: Record<string, EditorPanDirection> = {
+  [EDITOR_KEYBOARD_CODES.PAN_LEFT]: EditorPanDirection.LEFT,
+  [EDITOR_KEYBOARD_CODES.PAN_RIGHT]: EditorPanDirection.RIGHT,
+  [EDITOR_KEYBOARD_CODES.PAN_UP]: EditorPanDirection.UP,
+  [EDITOR_KEYBOARD_CODES.PAN_DOWN]: EditorPanDirection.DOWN,
 };
 
 export enum DragAreas {
@@ -138,7 +160,7 @@ export const ZOOM_FACTORS = {
   WHEEL: 1.02,
 };
 
-export const PAN_AMOUNT = 100;
+export const PAN_AMOUNT = 50;
 
 export const EDGE_DETECTION = {
   MIN: 0,
