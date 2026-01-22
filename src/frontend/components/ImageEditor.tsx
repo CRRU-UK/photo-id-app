@@ -446,7 +446,7 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
               size="large"
               aria-label={EDITOR_TOOLTIPS.ZOOM_OUT}
               onClick={handleZoomOut}
-              keybindingHint={EDITOR_KEYBOARD_HINTS.ZOOM_IN}
+              keybindingHint={EDITOR_KEYBOARD_HINTS.ZOOM_OUT}
             />
             <IconButton
               icon={ZoomInIcon}
