@@ -365,8 +365,8 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
                 ? EDITOR_TOOLTIPS.DISABLE_EDGE_DETECTION
                 : EDITOR_TOOLTIPS.ENABLE_EDGE_DETECTION
             }
-            onClick={handleToggleEdgeDetection}
             keybindingHint={EDITOR_KEYBOARD_HINTS.TOGGLE_EDGE_DETECTION}
+            onClick={handleToggleEdgeDetection}
           />
 
           {edgeDetectionEnabled && (
@@ -483,9 +483,9 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
           <Button
             size="large"
             variant="danger"
-            onClick={handleReset}
             style={{ marginRight: "var(--stack-gap-normal)" }}
             trailingVisual={<KeybindingHint keys={EDITOR_KEYBOARD_HINTS.RESET} />}
+            onClick={handleReset}
           >
             {EDITOR_TOOLTIPS.RESET}
           </Button>
@@ -495,8 +495,8 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
             variant="primary"
             loading={saving}
             disabled={saving}
-            onClick={handleSave}
             trailingVisual={<KeybindingHint keys={EDITOR_KEYBOARD_HINTS.SAVE} />}
+            onClick={handleSave}
           >
             {EDITOR_TOOLTIPS.SAVE}
           </Button>
