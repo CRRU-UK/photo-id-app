@@ -1,19 +1,31 @@
 import type { EditorNavigation, PhotoBody } from "@/types";
 
 import {
-  CheckIcon,
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  ChevronDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  ChevronUpIcon,
   EyeClosedIcon,
   EyeIcon,
-  XIcon,
   ZoomInIcon,
   ZoomOutIcon,
 } from "@primer/octicons-react";
 import { Button, ButtonGroup, FormControl, IconButton, Label, Stack } from "@primer/react";
+import { KeybindingHint } from "@primer/react/experimental";
 import { forwardRef, memo, useCallback, useEffect, useRef, useState } from "react";
 
-import { EDGE_DETECTION, IMAGE_FILTERS } from "@/constants";
+import {
+  EDGE_DETECTION,
+  EDITOR_KEYBOARD_CODES,
+  EDITOR_KEYBOARD_HINTS,
+  EDITOR_TOOLTIPS,
+  EditorPanDirection,
+  IMAGE_FILTERS,
+  KEYBOARD_CODE_TO_PAN_DIRECTION,
+  PAN_AMOUNT,
+} from "@/constants";
 import LoadingOverlay from "@/frontend/components/LoadingOverlay";
 
 import useImageEditor from "../hooks/useImageEditor";
@@ -104,6 +116,7 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
 
   const {
     canvasRef,
+    imageRef,
     imageLoaded,
     setBrightness,
     setContrast,
@@ -115,6 +128,7 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
     handlePointerUp,
     handlePointerMove,
     handleWheel,
+    handlePan,
     resetAll,
     exportFile,
     resetKey,
@@ -156,7 +170,7 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
     resetEdgeDetection();
   }, [resetAll, resetEdgeDetection]);
 
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
     setSaving(true);
 
     try {
@@ -174,7 +188,7 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
     } finally {
       setSaving(false);
     }
-  };
+  }, [data, exportFile]);
 
   const handleEditorNavigation = useCallback(
     async (direction: EditorNavigation) => {
@@ -195,17 +209,92 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
     [data, navigating, setQueryCallback],
   );
 
+  const handlePanDirection = useCallback(
+    (direction: EditorPanDirection) => {
+      const canvas = canvasRef.current;
+      const image = imageRef.current;
+
+      if (!canvas || !image) {
+        return;
+      }
+
+      const scaleX = image.naturalWidth / canvas.clientWidth;
+      const scaleY = image.naturalHeight / canvas.clientHeight;
+
+      let deltaX = 0;
+      let deltaY = 0;
+
+      if (direction === EditorPanDirection.LEFT) {
+        deltaX = PAN_AMOUNT * scaleX;
+      } else if (direction === EditorPanDirection.RIGHT) {
+        deltaX = -PAN_AMOUNT * scaleX;
+      } else if (direction === EditorPanDirection.UP) {
+        deltaY = PAN_AMOUNT * scaleY;
+      } else if (direction === EditorPanDirection.DOWN) {
+        deltaY = -PAN_AMOUNT * scaleY;
+      }
+
+      handlePan({ x: deltaX, y: deltaY });
+    },
+    [canvasRef, imageRef, handlePan],
+  );
+
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
-      if (event.code === "ArrowLeft") {
+      const modifierKey = event.ctrlKey || event.metaKey;
+
+      const panDirection = KEYBOARD_CODE_TO_PAN_DIRECTION?.[event.code];
+      if (!modifierKey && panDirection) {
+        event.preventDefault();
+        return handlePanDirection(panDirection);
+      }
+
+      const key = event.key.toLowerCase();
+
+      if (!modifierKey && key === EDITOR_KEYBOARD_CODES.PREVIOUS_PHOTO) {
+        event.preventDefault();
         return handleEditorNavigation("prev");
       }
 
-      if (event.code === "ArrowRight") {
+      if (!modifierKey && key === EDITOR_KEYBOARD_CODES.NEXT_PHOTO) {
+        event.preventDefault();
         return handleEditorNavigation("next");
       }
+
+      if (!modifierKey && key === EDITOR_KEYBOARD_CODES.TOGGLE_EDGE_DETECTION) {
+        event.preventDefault();
+        return handleToggleEdgeDetection();
+      }
+
+      if (modifierKey && key === EDITOR_KEYBOARD_CODES.RESET) {
+        event.preventDefault();
+        return handleReset();
+      }
+
+      if (modifierKey && key === EDITOR_KEYBOARD_CODES.SAVE) {
+        event.preventDefault();
+        return handleSave();
+      }
+
+      if (modifierKey && key === EDITOR_KEYBOARD_CODES.ZOOM_OUT) {
+        event.preventDefault();
+        return handleZoomOut();
+      }
+
+      if (modifierKey && key === EDITOR_KEYBOARD_CODES.ZOOM_IN) {
+        event.preventDefault();
+        return handleZoomIn();
+      }
     },
-    [handleEditorNavigation],
+    [
+      handlePanDirection,
+      handleEditorNavigation,
+      handleToggleEdgeDetection,
+      handleReset,
+      handleSave,
+      handleZoomOut,
+      handleZoomIn,
+    ],
   );
 
   const previousPhotoIdRef = useRef<string>(`${data.directory}/${data.name}`);
@@ -269,8 +358,13 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
             icon={edgeDetectionEnabled ? EyeIcon : EyeClosedIcon}
             variant={edgeDetectionEnabled ? "primary" : "default"}
             size="medium"
-            aria-label={edgeDetectionEnabled ? "Disable edge detection" : "Enable edge detection"}
+            aria-label={
+              edgeDetectionEnabled
+                ? EDITOR_TOOLTIPS.DISABLE_EDGE_DETECTION
+                : EDITOR_TOOLTIPS.ENABLE_EDGE_DETECTION
+            }
             onClick={handleToggleEdgeDetection}
+            keybindingHint={EDITOR_KEYBOARD_HINTS.TOGGLE_EDGE_DETECTION}
           />
 
           {edgeDetectionEnabled && (
@@ -317,60 +411,92 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
             />
           </Stack>
 
-          <ButtonGroup style={{ marginLeft: "auto", marginRight: "auto" }}>
-            <Button
-              leadingVisual={ZoomOutIcon}
-              size="medium"
-              aria-label="Zoom out"
-              onClick={handleZoomOut}
-            >
-              Zoom Out
-            </Button>
-
-            <Button
-              leadingVisual={ZoomInIcon}
-              size="medium"
-              aria-label="Zoom In"
-              onClick={handleZoomIn}
-            >
-              Zoom In
-            </Button>
-          </ButtonGroup>
-
-          <ButtonGroup style={{ marginLeft: "auto", marginRight: "auto" }}>
+          <ButtonGroup style={{ marginLeft: "auto", marginRight: "var(--stack-gap-spacious)" }}>
             <IconButton
               icon={ChevronLeftIcon}
-              size="medium"
-              aria-label="Previous photo"
-              onClick={() => handleEditorNavigation("prev")}
+              size="large"
+              aria-label={EDITOR_TOOLTIPS.PAN_LEFT}
+              keybindingHint={EDITOR_KEYBOARD_HINTS.PAN_LEFT}
+              onClick={() => handlePanDirection(EditorPanDirection.LEFT)}
+            />
+            <IconButton
+              icon={ChevronUpIcon}
+              size="large"
+              aria-label={EDITOR_TOOLTIPS.PAN_UP}
+              keybindingHint={EDITOR_KEYBOARD_HINTS.PAN_UP}
+              onClick={() => handlePanDirection(EditorPanDirection.UP)}
+            />
+            <IconButton
+              icon={ChevronDownIcon}
+              size="large"
+              aria-label={EDITOR_TOOLTIPS.PAN_DOWN}
+              keybindingHint={EDITOR_KEYBOARD_HINTS.PAN_DOWN}
+              onClick={() => handlePanDirection(EditorPanDirection.DOWN)}
             />
             <IconButton
               icon={ChevronRightIcon}
-              size="medium"
-              aria-label="Next Photo"
+              size="large"
+              aria-label={EDITOR_TOOLTIPS.PAN_RIGHT}
+              keybindingHint={EDITOR_KEYBOARD_HINTS.PAN_RIGHT}
+              onClick={() => handlePanDirection(EditorPanDirection.RIGHT)}
+            />
+          </ButtonGroup>
+
+          <ButtonGroup style={{ marginRight: "auto" }}>
+            <IconButton
+              icon={ZoomOutIcon}
+              size="large"
+              aria-label={EDITOR_TOOLTIPS.ZOOM_OUT}
+              onClick={handleZoomOut}
+              keybindingHint={EDITOR_KEYBOARD_HINTS.ZOOM_OUT}
+            />
+            <IconButton
+              icon={ZoomInIcon}
+              size="large"
+              aria-label={EDITOR_TOOLTIPS.ZOOM_IN}
+              onClick={handleZoomIn}
+              keybindingHint={EDITOR_KEYBOARD_HINTS.ZOOM_IN}
+            />
+          </ButtonGroup>
+
+          <ButtonGroup style={{ marginRight: "var(--stack-gap-spacious)" }}>
+            <IconButton
+              icon={ArrowLeftIcon}
+              size="large"
+              variant="invisible"
+              aria-label={EDITOR_TOOLTIPS.PREVIOUS_PHOTO}
+              keybindingHint={EDITOR_KEYBOARD_HINTS.PREVIOUS_PHOTO}
+              onClick={() => handleEditorNavigation("prev")}
+            />
+            <IconButton
+              icon={ArrowRightIcon}
+              size="large"
+              variant="invisible"
+              aria-label={EDITOR_TOOLTIPS.NEXT_PHOTO}
+              keybindingHint={EDITOR_KEYBOARD_HINTS.NEXT_PHOTO}
               onClick={() => handleEditorNavigation("next")}
             />
           </ButtonGroup>
 
           <Button
-            leadingVisual={XIcon}
-            size="medium"
+            size="large"
             variant="danger"
             onClick={handleReset}
             style={{ marginRight: "var(--stack-gap-normal)" }}
+            trailingVisual={<KeybindingHint keys={EDITOR_KEYBOARD_HINTS.RESET} />}
           >
-            Reset
+            {EDITOR_TOOLTIPS.RESET}
           </Button>
 
           <Button
-            leadingVisual={CheckIcon}
-            size="medium"
+            size="large"
             variant="primary"
             loading={saving}
             disabled={saving}
             onClick={handleSave}
+            trailingVisual={<KeybindingHint keys={EDITOR_KEYBOARD_HINTS.SAVE} />}
           >
-            Save
+            {EDITOR_TOOLTIPS.SAVE}
           </Button>
         </div>
       </div>
