@@ -39,6 +39,8 @@ import {
   PROJECT_EXPORT_DIRECTORY,
 } from "@/constants";
 
+import { version } from "../package.json";
+
 Sentry.init({
   dsn: process.env.SENTRY_DSN,
   integrations: [Sentry.consoleLoggingIntegration({ levels: ["log", "warn", "error"] })],
@@ -268,7 +270,7 @@ app.whenReady().then(() => {
     }
 
     if (link === "changelog") {
-      shell.openExternal(EXTERNAL_LINKS.CHANGELOG);
+      shell.openExternal(EXTERNAL_LINKS.CHANGELOG.replace("$VERSION", `v${version}`));
     }
 
     return { action: "deny" };

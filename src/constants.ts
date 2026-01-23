@@ -128,7 +128,7 @@ export const INITIAL_MATCHED_STACKS = 52;
 export enum EXTERNAL_LINKS {
   WEBSITE = "https://crru.org.uk",
   USER_GUIDE = "https://photoidapp.crru.org.uk",
-  CHANGELOG = "https://github.com/CRRU-UK/photo-id-app/releases/latest",
+  CHANGELOG = "https://github.com/CRRU-UK/photo-id-app/releases/$VERSION",
 }
 
 export const IMAGE_FILTERS = {

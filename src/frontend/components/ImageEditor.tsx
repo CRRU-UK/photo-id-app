@@ -1,12 +1,12 @@
 import type { EditorNavigation, PhotoBody } from "@/types";
 
 import {
+  ArrowDownIcon,
   ArrowLeftIcon,
   ArrowRightIcon,
-  ChevronDownIcon,
+  ArrowUpIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-  ChevronUpIcon,
   EyeClosedIcon,
   EyeIcon,
   ZoomInIcon,
@@ -57,11 +57,13 @@ const Slider = ({
 
   return (
     <FormControl disabled={disabled}>
-      <FormControl.Label visuallyHidden={simple}>
-        {name}
-        <Label variant="secondary">
-          <pre>{value}</pre>
-        </Label>
+      <FormControl.Label visuallyHidden={simple} style={{ width: "100%" }}>
+        <Stack direction="horizontal" align="center" justify="space-between">
+          {name}
+          <Label variant="secondary">
+            <pre>{value}</pre>
+          </Label>
+        </Stack>
       </FormControl.Label>
 
       <input
@@ -363,8 +365,8 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
                 ? EDITOR_TOOLTIPS.DISABLE_EDGE_DETECTION
                 : EDITOR_TOOLTIPS.ENABLE_EDGE_DETECTION
             }
-            onClick={handleToggleEdgeDetection}
             keybindingHint={EDITOR_KEYBOARD_HINTS.TOGGLE_EDGE_DETECTION}
+            onClick={handleToggleEdgeDetection}
           />
 
           {edgeDetectionEnabled && (
@@ -413,28 +415,28 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
 
           <ButtonGroup style={{ marginLeft: "auto", marginRight: "var(--stack-gap-spacious)" }}>
             <IconButton
-              icon={ChevronLeftIcon}
+              icon={ArrowLeftIcon}
               size="large"
               aria-label={EDITOR_TOOLTIPS.PAN_LEFT}
               keybindingHint={EDITOR_KEYBOARD_HINTS.PAN_LEFT}
               onClick={() => handlePanDirection(EditorPanDirection.LEFT)}
             />
             <IconButton
-              icon={ChevronUpIcon}
+              icon={ArrowUpIcon}
               size="large"
               aria-label={EDITOR_TOOLTIPS.PAN_UP}
               keybindingHint={EDITOR_KEYBOARD_HINTS.PAN_UP}
               onClick={() => handlePanDirection(EditorPanDirection.UP)}
             />
             <IconButton
-              icon={ChevronDownIcon}
+              icon={ArrowDownIcon}
               size="large"
               aria-label={EDITOR_TOOLTIPS.PAN_DOWN}
               keybindingHint={EDITOR_KEYBOARD_HINTS.PAN_DOWN}
               onClick={() => handlePanDirection(EditorPanDirection.DOWN)}
             />
             <IconButton
-              icon={ChevronRightIcon}
+              icon={ArrowRightIcon}
               size="large"
               aria-label={EDITOR_TOOLTIPS.PAN_RIGHT}
               keybindingHint={EDITOR_KEYBOARD_HINTS.PAN_RIGHT}
@@ -447,21 +449,21 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
               icon={ZoomOutIcon}
               size="large"
               aria-label={EDITOR_TOOLTIPS.ZOOM_OUT}
-              onClick={handleZoomOut}
               keybindingHint={EDITOR_KEYBOARD_HINTS.ZOOM_OUT}
+              onClick={handleZoomOut}
             />
             <IconButton
               icon={ZoomInIcon}
               size="large"
               aria-label={EDITOR_TOOLTIPS.ZOOM_IN}
-              onClick={handleZoomIn}
               keybindingHint={EDITOR_KEYBOARD_HINTS.ZOOM_IN}
+              onClick={handleZoomIn}
             />
           </ButtonGroup>
 
           <ButtonGroup style={{ marginRight: "var(--stack-gap-spacious)" }}>
             <IconButton
-              icon={ArrowLeftIcon}
+              icon={ChevronLeftIcon}
               size="large"
               variant="invisible"
               aria-label={EDITOR_TOOLTIPS.PREVIOUS_PHOTO}
@@ -469,7 +471,7 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
               onClick={() => handleEditorNavigation("prev")}
             />
             <IconButton
-              icon={ArrowRightIcon}
+              icon={ChevronRightIcon}
               size="large"
               variant="invisible"
               aria-label={EDITOR_TOOLTIPS.NEXT_PHOTO}
@@ -481,9 +483,9 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
           <Button
             size="large"
             variant="danger"
-            onClick={handleReset}
             style={{ marginRight: "var(--stack-gap-normal)" }}
             trailingVisual={<KeybindingHint keys={EDITOR_KEYBOARD_HINTS.RESET} />}
+            onClick={handleReset}
           >
             {EDITOR_TOOLTIPS.RESET}
           </Button>
@@ -493,8 +495,8 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
             variant="primary"
             loading={saving}
             disabled={saving}
-            onClick={handleSave}
             trailingVisual={<KeybindingHint keys={EDITOR_KEYBOARD_HINTS.SAVE} />}
+            onClick={handleSave}
           >
             {EDITOR_TOOLTIPS.SAVE}
           </Button>
