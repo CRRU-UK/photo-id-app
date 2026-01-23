@@ -249,37 +249,39 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
         return handlePanDirection(panDirection);
       }
 
-      if (!modifierKey && event.key === EDITOR_KEYBOARD_CODES.PREVIOUS_PHOTO) {
+      const key = event.key.toLowerCase();
+
+      if (!modifierKey && key === EDITOR_KEYBOARD_CODES.PREVIOUS_PHOTO) {
         event.preventDefault();
         return handleEditorNavigation("prev");
       }
 
-      if (!modifierKey && event.key === EDITOR_KEYBOARD_CODES.NEXT_PHOTO) {
+      if (!modifierKey && key === EDITOR_KEYBOARD_CODES.NEXT_PHOTO) {
         event.preventDefault();
         return handleEditorNavigation("next");
       }
 
-      if (!modifierKey && event.key === EDITOR_KEYBOARD_CODES.TOGGLE_EDGE_DETECTION) {
+      if (!modifierKey && key === EDITOR_KEYBOARD_CODES.TOGGLE_EDGE_DETECTION) {
         event.preventDefault();
         return handleToggleEdgeDetection();
       }
 
-      if (modifierKey && event.key === EDITOR_KEYBOARD_CODES.RESET) {
+      if (modifierKey && key === EDITOR_KEYBOARD_CODES.RESET) {
         event.preventDefault();
         return handleReset();
       }
 
-      if (modifierKey && event.key === EDITOR_KEYBOARD_CODES.SAVE) {
+      if (modifierKey && key === EDITOR_KEYBOARD_CODES.SAVE) {
         event.preventDefault();
         return handleSave();
       }
 
-      if (modifierKey && event.key === EDITOR_KEYBOARD_CODES.ZOOM_OUT) {
+      if (modifierKey && key === EDITOR_KEYBOARD_CODES.ZOOM_OUT) {
         event.preventDefault();
         return handleZoomOut();
       }
 
-      if (modifierKey && event.key === EDITOR_KEYBOARD_CODES.ZOOM_IN) {
+      if (modifierKey && key === EDITOR_KEYBOARD_CODES.ZOOM_IN) {
         event.preventDefault();
         return handleZoomIn();
       }
