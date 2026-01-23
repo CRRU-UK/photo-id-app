@@ -50,12 +50,15 @@ const Sidebar = () => {
           <IconButton
             icon={ReplyIcon}
             variant="invisible"
+            size="large"
             aria-label="Close project"
             onClick={() => handleCloseProject()}
           />
 
           <ActionMenu open={actionsOpen} onOpenChange={setActionsOpen}>
-            <ActionMenu.Button leadingVisual={ThreeBarsIcon}>Actions</ActionMenu.Button>
+            <ActionMenu.Button leadingVisual={ThreeBarsIcon} size="large">
+              Actions
+            </ActionMenu.Button>
             <ActionMenu.Overlay>
               <ActionList>
                 <ActionList.Item
