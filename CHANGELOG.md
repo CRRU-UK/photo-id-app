@@ -1,5 +1,19 @@
 # photo-id
 
+## 0.4.0
+
+### Minor Changes
+
+- 9f9d6e5: Add edge detection filter
+- 4ba42a2: Add custom image editor
+
+### Patch Changes
+
+- 97ee9b0: Refactor `useImageEditor` into smaller hooks
+- b69b67b: Update photo editor keyboard shortcuts
+- 5355dc8: Minor UI updates
+- cbf72a7: Optimise image editor performance
+
 ## 0.3.1
 
 ### Patch Changes
