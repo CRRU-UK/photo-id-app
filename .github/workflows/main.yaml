@@ -16,7 +16,7 @@ jobs:
     name: Test app
 
     steps:
-      - uses: actions/checkout@v6.0.1
+      - uses: actions/checkout@v6.0.2
 
       - uses: actions/setup-node@v6.2.0
         with:
