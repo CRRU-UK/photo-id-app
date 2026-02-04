@@ -14,8 +14,9 @@ import {
 
 import { ColumnsIcon } from "@primer/octicons-react";
 import { SegmentedControl, Stack, UnderlineNav } from "@primer/react";
+import { KeybindingHint } from "@primer/react/experimental";
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { MATCHED_STACKS_PER_PAGE, PROJECT_STORAGE_NAME } from "@/constants";
 
@@ -59,23 +60,6 @@ const ProjectPage = () => {
     return new ProjectModel(projectData);
   }, []);
 
-  const handleKeyUp = () => setIsCopying(false);
-  const handleKeyDown = (event: KeyboardEvent) => setIsCopying(event.ctrlKey || event.altKey);
-
-  useEffect(() => {
-    // Rename this and also handle adding edited to photo (but need to account for reversion)
-    window.electronAPI.onUpdatePhoto((data) => project.updatePhoto(data));
-    window.electronAPI.onLoading((data) => setLoading(data));
-
-    document.addEventListener("keyup", handleKeyDown);
-    document.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      document.removeEventListener("keyup", handleKeyUp);
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [project]);
-
   useEffect(() => {
     if (draggingPhoto && isCopying) {
       return document.body.classList.add("copying");
@@ -116,6 +100,7 @@ const ProjectPage = () => {
   const handleColumnsChange = (i: number) => setColumns(i + 1);
 
   const matchedArray = Array.from(project.matched);
+  const matchedPageCount = Math.ceil(matchedArray.length / MATCHED_STACKS_PER_PAGE);
 
   const matchedRows = matchedArray.slice(
     currentPage * MATCHED_STACKS_PER_PAGE,
@@ -134,11 +119,50 @@ const ProjectPage = () => {
           return setCurrentPage(index);
         }}
         key={`${first}-${last}`}
+        leadingVisual={<KeybindingHint keys={String(index + 1)} />}
       >
         {getAlphabetLetter(first)}-{getAlphabetLetter(last)}
       </UnderlineNav.Item>
     );
   });
+
+  const handleKeyUp = useCallback(() => setIsCopying(false), []);
+
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent) => {
+      if (event.ctrlKey || event.altKey) {
+        return setIsCopying(event.ctrlKey || event.altKey);
+      }
+
+      const keyNumber = Number(event.key);
+      if (!Number.isInteger(keyNumber)) {
+        return;
+      }
+
+      const pageIndex = keyNumber - 1;
+      if (pageIndex < 0 || pageIndex >= matchedPageCount) {
+        return;
+      }
+
+      event.preventDefault();
+      setCurrentPage(pageIndex);
+    },
+    [matchedPageCount],
+  );
+
+  useEffect(() => {
+    // Rename this and also handle adding edited to photo (but need to account for reversion)
+    window.electronAPI.onUpdatePhoto((data) => project.updatePhoto(data));
+    window.electronAPI.onLoading((data) => setLoading(data));
+
+    document.addEventListener("keyup", handleKeyUp);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("keyup", handleKeyUp);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [project, handleKeyDown, handleKeyUp]);
 
   const pointerSensor = useSensor(PointerSensor, { activationConstraint: { distance: 5 } });
   const sensors = useSensors(pointerSensor);
