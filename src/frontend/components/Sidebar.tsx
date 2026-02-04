@@ -1,8 +1,9 @@
 import { FileMovedIcon, ReplyIcon, ThreeBarsIcon } from "@primer/octicons-react";
 import { ActionList, ActionMenu, IconButton, Stack as PrimerStack } from "@primer/react";
 import { useNavigate } from "@tanstack/react-router";
-import { useContext, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 
+import { PROJECT_KEYBOARD_HINTS } from "@/constants";
 import ProjectContext from "@/contexts/ProjectContext";
 import DiscardedSelection from "@/frontend/components/DiscardedSelection";
 import MainSelection from "@/frontend/components/MainSelection";
@@ -15,10 +16,10 @@ const Sidebar = () => {
 
   const navigate = useNavigate();
 
-  const handleCloseProject = () => {
+  const handleCloseProject = useCallback(() => {
     window.electronAPI.closeProject();
     navigate({ to: "/" });
-  };
+  }, [navigate]);
 
   const handleExport = async () => {
     setExporting(true);
@@ -28,6 +29,21 @@ const Sidebar = () => {
     setActionsOpen(false);
     setExporting(false);
   };
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        handleCloseProject();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [handleCloseProject]);
 
   return (
     <div className="sidebar">
@@ -53,6 +69,7 @@ const Sidebar = () => {
             size="large"
             aria-label="Close project"
             onClick={() => handleCloseProject()}
+            keybindingHint={PROJECT_KEYBOARD_HINTS.CLOSE_PROJECT}
           />
 
           <ActionMenu open={actionsOpen} onOpenChange={setActionsOpen}>

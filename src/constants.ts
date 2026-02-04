@@ -38,6 +38,12 @@ export const EXISTING_DATA_BUTTONS = ["Cancel", "Open Existing Data", "Replace E
 export const MISSING_RECENT_PROJECT_MESSAGE =
   "Project not found, directory or data file may have been deleted.";
 
+export const PROJECT_KEYBOARD_HINTS = {
+  OPEN_PROJECT_FOLDER: "Mod+O",
+  OPEN_PROJECT_FILE: "Mod+Shift+O",
+  CLOSE_PROJECT: "Esc",
+};
+
 export const EDITOR_TOOLTIPS = {
   ENABLE_EDGE_DETECTION: "Enable edge detection",
   DISABLE_EDGE_DETECTION: "Disable edge detection",

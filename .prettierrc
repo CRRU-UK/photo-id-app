@@ -11,7 +11,7 @@
   "bracketSameLine": false,
   "arrowParens": "always",
   "proseWrap": "preserve",
-  "endOfLine": "lf",
+  "endOfLine": "auto",
   "overrides": [
     {
       "files": "**/*.json",
@@ -21,6 +21,12 @@
     }
   ],
   "importOrderSeparation": true,
-  "importOrder": ["^@/(.*)$", "^[./]"],
-  "plugins": ["@trivago/prettier-plugin-sort-imports", "prettier-plugin-organize-imports"]
+  "importOrder": [
+    "^@/(.*)$",
+    "^[./]"
+  ],
+  "plugins": [
+    "@trivago/prettier-plugin-sort-imports",
+    "prettier-plugin-organize-imports"
+  ]
 }
