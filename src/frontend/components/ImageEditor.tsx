@@ -27,9 +27,8 @@ import {
   PAN_AMOUNT,
 } from "@/constants";
 import LoadingOverlay from "@/frontend/components/LoadingOverlay";
+import useImageEditor from "@/frontend/hooks/useImageEditor";
 import { computeIsEdited } from "@/helpers";
-
-import useImageEditor from "../hooks/useImageEditor";
 
 interface SliderProps {
   name: string;
