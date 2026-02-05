@@ -161,7 +161,7 @@ const Stack = observer(({ collection }: StackProps) => {
                     collection.photos.size <= 0 || revertingPhoto || !currentPhoto?.isEdited
                   }
                   loading={revertingPhoto}
-                  onClick={handleRevertPhoto}
+                  onSelect={handleRevertPhoto}
                 >
                   <ActionList.LeadingVisual>
                     <UndoIcon />

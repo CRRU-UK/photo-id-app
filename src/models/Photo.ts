@@ -17,14 +17,16 @@ class Photo {
   private readonly thumbnail: string;
   private readonly project: Project;
   version: number;
-  private edits: PhotoEdits;
+  edits: PhotoEdits;
 
   constructor({ directory, name, thumbnail, edits }: PhotoOptions, project: Project) {
     makeObservable(this, {
+      edits: observable,
       fileName: computed,
       thumbnailFileName: computed,
       thumbnailFullPath: computed,
       isEdited: computed,
+      editsData: computed,
       updatePhoto: action,
       version: observable,
     });
