@@ -26,7 +26,6 @@ class Photo {
       thumbnailFileName: computed,
       thumbnailFullPath: computed,
       isEdited: computed,
-      editsData: computed,
       updatePhoto: action,
       version: observable,
     });
@@ -55,10 +54,6 @@ class Photo {
   get thumbnailFullPath(): string {
     const path = [this.directory, this.thumbnail].join("/");
     return `${path}?${this.version}`;
-  }
-
-  get editsData(): PhotoEdits {
-    return this.edits;
   }
 
   toBody(): PhotoBody {
