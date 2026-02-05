@@ -27,6 +27,7 @@ import {
   PAN_AMOUNT,
 } from "@/constants";
 import LoadingOverlay from "@/frontend/components/LoadingOverlay";
+import { computeIsEdited } from "@/helpers";
 
 import useImageEditor from "../hooks/useImageEditor";
 
@@ -194,15 +195,18 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
       const filters = getFilters();
       const transform = getTransform();
 
+      const edits = {
+        brightness: filters.brightness,
+        contrast: filters.contrast,
+        saturate: filters.saturate,
+        zoom: transform.zoom,
+        pan: transform.pan,
+      };
+
       await window.electronAPI.savePhotoFile({
         ...data,
-        edits: {
-          brightness: filters.brightness,
-          contrast: filters.contrast,
-          saturate: filters.saturate,
-          zoom: transform.zoom,
-          pan: transform.pan,
-        },
+        edits,
+        isEdited: computeIsEdited(edits),
       });
     } catch (error) {
       console.error("Failed to save edited photo file:", error);

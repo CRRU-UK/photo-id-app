@@ -22,8 +22,8 @@ const createPhotoThumbnail = async (photo: PhotoBody): Promise<string> => {
 const revertPhotoToOriginal = async (data: PhotoBody): Promise<PhotoBody> => {
   const photo: PhotoBody = {
     ...data,
-    edited: null,
     edits: DEFAULT_PHOTO_EDITS,
+    isEdited: false,
   };
 
   const thumbnail = await createPhotoThumbnail(photo);

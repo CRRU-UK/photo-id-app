@@ -117,9 +117,9 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
     const photo: PhotoBody = {
       directory,
       name: photoName,
-      edited: null,
       thumbnail: "",
       edits: DEFAULT_PHOTO_EDITS,
+      isEdited: false,
     };
 
     const result = await createPhotoThumbnail(photo);
@@ -152,9 +152,9 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
       photos: photos.map((name, index) => ({
         directory,
         name,
-        edited: null,
         thumbnail: thumbnails[index],
         edits: DEFAULT_PHOTO_EDITS,
+        isEdited: false,
       })),
       index: 0,
     },
@@ -250,6 +250,14 @@ const handleExportMatches = async (data: string) => {
       const baseExportName = `${photoName}${label}_${path.basename(photo.name, originalExtension)}`;
 
       const sourcePath = path.join(project.directory, photo.name);
+      const exportedName = `${baseExportName}${originalExtension}`;
+      const exportedPath = path.join(exportsDirectory, exportedName);
+
+      if (!photo.isEdited) {
+        await fs.promises.copyFile(sourcePath, exportedPath);
+        continue;
+      }
+
       const renderedBuffer = await renderFullImageWithEdits({
         sourcePath,
         edits: photo.edits,
@@ -259,10 +267,10 @@ const handleExportMatches = async (data: string) => {
         originalExtension.toLowerCase() === ".jpg" || originalExtension.toLowerCase() === ".jpeg";
       const exportExtension = useJpeg ? originalExtension : ".png";
 
-      const exportedName = `${baseExportName}${exportExtension}`;
-      const exportedPath = path.join(exportsDirectory, exportedName);
+      const finalExportedName = `${baseExportName}${exportExtension}`;
+      const finalExportedPath = path.join(exportsDirectory, finalExportedName);
 
-      await fs.promises.writeFile(exportedPath, renderedBuffer);
+      await fs.promises.writeFile(finalExportedPath, renderedBuffer);
     }
   };
 
@@ -292,16 +300,6 @@ const handleDuplicatePhotoFile = async (data: PhotoBody): Promise<PhotoBody> => 
 
   await fs.promises.copyFile(originalPath, path.join(data.directory, newOriginalPath));
 
-  let newEditedPath = null;
-  if (data.edited) {
-    const editedPath = path.join(data.directory, data.edited);
-    const editedExtension = path.extname(data.edited);
-    newEditedPath = data.edited.replace(editedExtension, `_duplicate_${time}${editedExtension}`);
-
-    // If edited photo is present, use it as the original photo instead
-    await fs.promises.copyFile(editedPath, path.join(data.directory, newEditedPath));
-  }
-
   const thumbnailExtension = path.extname(data.thumbnail);
   const newThumbnailPath = data.thumbnail.replace(
     thumbnailExtension,
@@ -313,9 +311,9 @@ const handleDuplicatePhotoFile = async (data: PhotoBody): Promise<PhotoBody> => 
   return {
     directory: data.directory,
     name: newOriginalPath,
-    edited: newEditedPath,
     thumbnail: newThumbnailPath,
     edits: data.edits,
+    isEdited: data.isEdited,
   };
 };
 
