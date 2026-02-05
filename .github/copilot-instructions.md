@@ -110,7 +110,6 @@ When unsure, look at these files first
       - `useCanvasRenderer.ts` — Render the image onto the canvas with the current filters and transform (throttled for performance)
       - `usePanInteraction.ts` — Pointer handlers for panning the image on the canvas
       - `useZoomInteraction.ts` — Wheel and button handlers for zooming while keeping the cursor location stable
-      - `useImageExport.ts` — Apply filters and transform and export the edited image as a new `File`
 - `src/routes/` — TanStack Router route definitions (router generates `routeTree.gen.ts`)
 - `src/models/` — Data model classes:
   - `Project.ts` — Project model

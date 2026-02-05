@@ -337,6 +337,7 @@ const ImageEditor = ({ data, image, setQueryCallback, onImageLoaded }: ImageEdit
 
   useEffect(() => {
     const currentPhotoId = `${data.directory}/${data.name}`;
+    let frameId: number | undefined;
 
     if (imageLoaded && loadedPhotoIdRef.current !== currentPhotoId) {
       loadedPhotoIdRef.current = currentPhotoId;
@@ -352,11 +353,17 @@ const ImageEditor = ({ data, image, setQueryCallback, onImageLoaded }: ImageEdit
 
       draw();
 
-      requestAnimationFrame(() => {
+      frameId = requestAnimationFrame(() => {
         setNavigating(false);
         onImageLoaded?.();
       });
     }
+
+    return () => {
+      if (frameId !== undefined) {
+        cancelAnimationFrame(frameId);
+      }
+    };
   }, [
     data.directory,
     data.name,
