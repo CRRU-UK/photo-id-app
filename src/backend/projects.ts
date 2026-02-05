@@ -226,8 +226,14 @@ const handleSaveProject = async (data: string) => {
 /**
  * Handles exporting matches.
  */
-const handleExportMatches = async (data: string) => {
+const handleExportMatches = async (mainWindow: Electron.BrowserWindow, data: string) => {
   const project = JSON.parse(data) as ProjectBody;
+
+  mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, {
+    show: true,
+    text: "Exporting matches",
+    progressValue: 0,
+  } as LoadingData);
 
   const exportsDirectory = path.join(project.directory, PROJECT_EXPORT_DIRECTORY);
   if (fs.existsSync(exportsDirectory)) {
@@ -238,6 +244,12 @@ const handleExportMatches = async (data: string) => {
   } else {
     await fs.promises.mkdir(exportsDirectory);
   }
+
+  let progress = 0;
+  const totalPhotos = project.matched.reduce(
+    (acc, match) => acc + match.left.photos.length + match.right.photos.length,
+    0,
+  );
 
   const handleSide = async (id: string, side: CollectionBody, label: "L" | "R") => {
     for (const photo of side.photos) {
@@ -271,6 +283,14 @@ const handleExportMatches = async (data: string) => {
       const finalExportedPath = path.join(exportsDirectory, finalExportedName);
 
       await fs.promises.writeFile(finalExportedPath, renderedBuffer);
+
+      progress++;
+      mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, {
+        show: true,
+        text: "Exporting matches",
+        progressValue: Math.ceil((progress / totalPhotos) * 100),
+        progressText: `Exporting match ${progress} of ${totalPhotos}`,
+      } as LoadingData);
     }
   };
 
@@ -281,6 +301,8 @@ const handleExportMatches = async (data: string) => {
       handleSide(matchID, match.right, "R"),
     ]);
   }
+
+  mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, { show: false });
 };
 
 /**

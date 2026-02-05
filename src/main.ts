@@ -211,9 +211,12 @@ app.whenReady().then(() => {
   });
 
   ipcMain.handle(IPC_EVENTS.EXPORT_MATCHES, async (event, data: string): Promise<void> => {
-    const projectData = JSON.parse(data) as ProjectBody;
+    const webContents = event.sender;
+    const window = BrowserWindow.fromWebContents(webContents) as BrowserWindow;
 
-    await handleExportMatches(data);
+    await handleExportMatches(window, data);
+
+    const projectData = JSON.parse(data) as ProjectBody;
 
     shell.openPath(path.join(projectData.directory, PROJECT_EXPORT_DIRECTORY));
   });
