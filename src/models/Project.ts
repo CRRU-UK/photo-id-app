@@ -141,13 +141,7 @@ class Project {
   }
 
   public async duplicatePhotoToStack(to: Collection, photo: Photo): Promise<this> {
-    const result = await window.electronAPI.duplicatePhotoFile({
-      directory: photo.directory,
-      name: photo.fileName,
-      thumbnail: photo.thumbnailFileName,
-      edits: photo.editsData,
-      isEdited: photo.isEdited,
-    });
+    const result = await window.electronAPI.duplicatePhotoFile(photo.toBody());
 
     const newPhoto = new Photo(
       {

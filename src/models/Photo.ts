@@ -58,7 +58,7 @@ class Photo {
   }
 
   get editsData(): PhotoEdits {
-    return { ...this.edits, pan: { ...this.edits.pan } };
+    return this.edits;
   }
 
   toBody(): PhotoBody {
@@ -66,7 +66,7 @@ class Photo {
       directory: this.directory,
       name: this.fileName,
       thumbnail: this.thumbnailFileName,
-      edits: this.editsData,
+      edits: { ...this.edits, pan: { ...this.edits.pan } },
       isEdited: this.isEdited,
     };
   }

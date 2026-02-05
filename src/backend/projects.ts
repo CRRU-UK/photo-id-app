@@ -263,9 +263,9 @@ const handleExportMatches = async (data: string) => {
         edits: photo.edits,
       });
 
-      const useJpeg =
+      const useJPEG =
         originalExtension.toLowerCase() === ".jpg" || originalExtension.toLowerCase() === ".jpeg";
-      const exportExtension = useJpeg ? originalExtension : ".png";
+      const exportExtension = useJPEG ? originalExtension : ".png";
 
       const finalExportedName = `${baseExportName}${exportExtension}`;
       const finalExportedPath = path.join(exportsDirectory, finalExportedName);

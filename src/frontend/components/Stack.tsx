@@ -19,7 +19,6 @@ import { useState } from "react";
 
 import type Collection from "@/models/Collection";
 import type Photo from "@/models/Photo";
-import type { PhotoBody } from "@/types";
 
 interface StackImageProps {
   photo: Photo;
@@ -61,15 +60,7 @@ const Stack = observer(({ collection }: StackProps) => {
   });
 
   const handleOpenEdit = () => {
-    const data: PhotoBody = {
-      directory: currentPhoto!.directory,
-      name: currentPhoto!.fileName,
-      thumbnail: currentPhoto!.thumbnailFileName,
-      edits: currentPhoto!.editsData,
-      isEdited: currentPhoto!.isEdited,
-    };
-
-    window.electronAPI.openEditWindow(data);
+    window.electronAPI.openEditWindow(currentPhoto!.toBody());
   };
 
   const handleRevertPhoto = async () => {
@@ -79,15 +70,7 @@ const Stack = observer(({ collection }: StackProps) => {
 
     setRevertingPhoto(true);
 
-    const data: PhotoBody = {
-      directory: currentPhoto!.directory,
-      name: currentPhoto!.fileName,
-      thumbnail: currentPhoto!.thumbnailFileName,
-      edits: currentPhoto!.editsData,
-      isEdited: currentPhoto!.isEdited,
-    };
-
-    const newData = await window.electronAPI.revertPhotoFile(data);
+    const newData = await window.electronAPI.revertPhotoFile(currentPhoto!.toBody());
     currentPhoto!.updatePhoto(newData);
 
     setActionsOpen(false);
