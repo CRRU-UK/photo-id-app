@@ -114,6 +114,13 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
   const thumbnails: string[] = [];
 
   for (const [index, photoName] of photos.entries()) {
+    mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, {
+      show: true,
+      text: "Preparing project",
+      progressValue: (index / photos.length) * 100,
+      progressText: `Processing photo ${index + 1} of ${photos.length}`,
+    } as LoadingData);
+
     const photo: PhotoBody = {
       directory,
       name: photoName,
@@ -124,13 +131,6 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
 
     const result = await createPhotoThumbnail(photo);
     thumbnails.push(result);
-
-    mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, {
-      show: true,
-      text: "Preparing project",
-      progressValue: Math.ceil((index / photos.length) * 100),
-      progressText: `Processing photo ${index + 1} of ${photos.length}`,
-    } as LoadingData);
   }
 
   const now = new Date().toISOString();
@@ -257,7 +257,7 @@ const handleExportMatches = async (mainWindow: Electron.BrowserWindow, data: str
       mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, {
         show: true,
         text: "Exporting matches",
-        progressValue: Math.ceil((progress / totalPhotos) * 100),
+        progressValue: (progress / totalPhotos) * 100,
         progressText: `Exporting match ${progress} of ${totalPhotos}`,
       } as LoadingData);
 
