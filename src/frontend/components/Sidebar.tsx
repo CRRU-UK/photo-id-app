@@ -32,7 +32,8 @@ const Sidebar = () => {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
+      const modifierKey = event.ctrlKey || event.metaKey;
+      if (modifierKey && event.key === "w") {
         event.preventDefault();
         handleCloseProject();
       }

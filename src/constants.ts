@@ -41,7 +41,7 @@ export const MISSING_RECENT_PROJECT_MESSAGE =
 export const PROJECT_KEYBOARD_HINTS = {
   OPEN_PROJECT_FOLDER: "Mod+O",
   OPEN_PROJECT_FILE: "Mod+Shift+O",
-  CLOSE_PROJECT: "Esc",
+  CLOSE_PROJECT: "Mod+W",
 };
 
 export const EDITOR_TOOLTIPS = {
