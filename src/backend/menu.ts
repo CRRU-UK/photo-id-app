@@ -93,7 +93,7 @@ const getMenu = (mainWindow: BrowserWindow) => {
           },
         },
         {
-          label: "Cetacean Research && Rescue Unit website",
+          label: "CRRU Website",
           click: async () => {
             await shell.openExternal(EXTERNAL_LINKS.WEBSITE);
           },

@@ -2,10 +2,11 @@ import type { LoadingData } from "@/types";
 
 import { BookIcon, FileDirectoryIcon, FileIcon, RepoIcon } from "@primer/octicons-react";
 import { BranchName, Button, Heading, Link, Stack as PrimerStack, Text } from "@primer/react";
+import { KeybindingHint } from "@primer/react/experimental";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
-import { PROJECT_FILE_NAME, PROJECT_STORAGE_NAME } from "@/constants";
+import { PROJECT_FILE_NAME, PROJECT_KEYBOARD_HINTS, PROJECT_STORAGE_NAME } from "@/constants";
 import LoadingOverlay from "@/frontend/components/LoadingOverlay";
 import RecentProjects from "@/frontend/components/RecentProjects";
 
@@ -101,6 +102,7 @@ const IndexPage = () => {
               size="large"
               block
               leadingVisual={FileDirectoryIcon}
+              trailingVisual={<KeybindingHint keys={PROJECT_KEYBOARD_HINTS.OPEN_PROJECT_FOLDER} />}
             >
               Start New Project
             </Button>
@@ -111,6 +113,7 @@ const IndexPage = () => {
               size="large"
               block
               leadingVisual={FileIcon}
+              trailingVisual={<KeybindingHint keys={PROJECT_KEYBOARD_HINTS.OPEN_PROJECT_FILE} />}
             >
               Open Project File
             </Button>
