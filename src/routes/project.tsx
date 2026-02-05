@@ -130,6 +130,10 @@ const ProjectPage = () => {
 
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
+      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+
       if (event.ctrlKey || event.altKey) {
         return setIsCopying(event.ctrlKey || event.altKey);
       }
