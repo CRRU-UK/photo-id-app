@@ -52,8 +52,8 @@ class Project {
   }
 
   private mapPhotoBodyToCollection(directory: Directory, collection: CollectionBody): Collection {
-    const photos = collection.photos.map(({ name, edited, thumbnail }) => {
-      const photo = new Photo({ directory, name, edited, thumbnail }, this);
+    const photos = collection.photos.map(({ name, edited, thumbnail, edits }) => {
+      const photo = new Photo({ directory, name, edited, thumbnail, edits }, this);
       this.allPhotos.add(photo);
       return photo;
     });
@@ -70,6 +70,7 @@ class Project {
       name: photo.fileName,
       edited: photo.editedFileName || null,
       thumbnail: photo.thumbnailFileName,
+      edits: photo.editsData,
     }));
 
     return { photos, index: collection.index, name: collection.name };
@@ -151,6 +152,7 @@ class Project {
       name: photo.fileName,
       edited: photo.editedFileName || null,
       thumbnail: photo.thumbnailFileName,
+      edits: photo.editsData,
     });
 
     const newPhoto = new Photo(
@@ -159,6 +161,7 @@ class Project {
         name: result.name,
         edited: result.edited,
         thumbnail: result.thumbnail,
+        edits: result.edits,
       },
       this,
     );

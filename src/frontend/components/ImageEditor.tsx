@@ -116,6 +116,14 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
   const [saving, setSaving] = useState<boolean>(false);
   const [navigating, setNavigating] = useState<boolean>(false);
 
+  const edits = data.edits;
+
+  const [sliderInitials, setSliderInitials] = useState({
+    brightness: edits.brightness,
+    contrast: edits.contrast,
+    saturate: edits.saturate,
+  });
+
   const {
     canvasRef,
     imageRef,
@@ -124,6 +132,8 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
     setContrast,
     setSaturate,
     setEdgeDetection,
+    getFilters,
+    getTransform,
     handleZoomIn,
     handleZoomOut,
     handlePointerDown,
@@ -132,6 +142,7 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
     handleWheel,
     handlePan,
     resetAll,
+    applyEdits,
     exportFile,
     resetKey,
   } = useImageEditor({
@@ -170,6 +181,11 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
   const handleReset = useCallback(() => {
     resetAll();
     resetEdgeDetection();
+    setSliderInitials({
+      brightness: IMAGE_FILTERS.BRIGHTNESS.DEFAULT,
+      contrast: IMAGE_FILTERS.CONTRAST.DEFAULT,
+      saturate: IMAGE_FILTERS.SATURATE.DEFAULT,
+    });
   }, [resetAll, resetEdgeDetection]);
 
   const handleSave = useCallback(async () => {
@@ -184,13 +200,28 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
 
       const editedFileData = await editedFile.arrayBuffer();
 
-      await window.electronAPI.savePhotoFile(data, editedFileData);
+      const filters = getFilters();
+      const transform = getTransform();
+
+      await window.electronAPI.savePhotoFile(
+        {
+          ...data,
+          edits: {
+            brightness: filters.brightness,
+            contrast: filters.contrast,
+            saturate: filters.saturate,
+            zoom: transform.zoom,
+            pan: transform.pan,
+          },
+        },
+        editedFileData,
+      );
     } catch (error) {
       console.error("Failed to save edited photo file:", error);
     } finally {
       setSaving(false);
     }
-  }, [data, exportFile]);
+  }, [data, exportFile, getFilters, getTransform]);
 
   const handleEditorNavigation = useCallback(
     async (direction: EditorNavigation) => {
@@ -318,10 +349,15 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
     if (imageLoaded && loadedPhotoIdRef.current !== currentPhotoId) {
       loadedPhotoIdRef.current = currentPhotoId;
 
-      resetAll();
+      applyEdits(edits);
+      setSliderInitials({
+        brightness: edits.brightness,
+        contrast: edits.contrast,
+        saturate: edits.saturate,
+      });
       resetEdgeDetection();
     }
-  }, [data.directory, data.name, imageLoaded, resetAll, resetEdgeDetection]);
+  }, [data.directory, data.name, imageLoaded, applyEdits, resetEdgeDetection, edits]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -387,7 +423,7 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
             <Slider
               key={`brightness-${resetKey}`}
               name="Brightness"
-              initial={IMAGE_FILTERS.BRIGHTNESS.DEFAULT}
+              initial={sliderInitials.brightness}
               min={IMAGE_FILTERS.BRIGHTNESS.MIN}
               max={IMAGE_FILTERS.BRIGHTNESS.MAX}
               disabled={edgeDetectionEnabled}
@@ -396,7 +432,7 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
             <Slider
               key={`contrast-${resetKey}`}
               name="Contrast"
-              initial={IMAGE_FILTERS.CONTRAST.DEFAULT}
+              initial={sliderInitials.contrast}
               min={IMAGE_FILTERS.CONTRAST.MIN}
               max={IMAGE_FILTERS.CONTRAST.MAX}
               disabled={edgeDetectionEnabled}
@@ -405,7 +441,7 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
             <Slider
               key={`saturation-${resetKey}`}
               name="Saturation"
-              initial={IMAGE_FILTERS.SATURATE.DEFAULT}
+              initial={sliderInitials.saturate}
               min={IMAGE_FILTERS.SATURATE.MIN}
               max={IMAGE_FILTERS.SATURATE.MAX}
               disabled={edgeDetectionEnabled}

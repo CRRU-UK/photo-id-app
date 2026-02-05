@@ -15,11 +15,20 @@ export type Match = {
 
 export type Matches = Set<Match>;
 
+export type PhotoEdits = {
+  brightness: number;
+  contrast: number;
+  saturate: number;
+  zoom: number;
+  pan: { x: number; y: number };
+};
+
 export type PhotoBody = {
   directory: Directory;
   name: FileName;
   edited: FileName | null;
   thumbnail: FileName;
+  edits: PhotoEdits;
 };
 
 export type CollectionBody = {

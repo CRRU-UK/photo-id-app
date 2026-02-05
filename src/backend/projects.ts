@@ -14,6 +14,7 @@ import type {
 import { createPhotoThumbnail } from "@/backend/photos";
 import { addRecentProject } from "@/backend/recents";
 import {
+  DEFAULT_PHOTO_EDITS,
   DEFAULT_WINDOW_TITLE,
   EXISTING_DATA_BUTTONS,
   EXISTING_DATA_MESSAGE,
@@ -150,6 +151,7 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
         name,
         edited: null,
         thumbnail: thumbnails[index],
+        edits: DEFAULT_PHOTO_EDITS,
       })),
       index: 0,
     },
@@ -303,6 +305,7 @@ const handleDuplicatePhotoFile = async (data: PhotoBody): Promise<PhotoBody> => 
     name: newOriginalPath,
     edited: newEditedPath,
     thumbnail: newThumbnailPath,
+    edits: data.edits,
   };
 };
 

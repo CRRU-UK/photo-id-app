@@ -152,6 +152,34 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
     draw();
   }, [resetFiltersInternal, resetTransformInternal, draw]);
 
+  const applyEdits = useCallback(
+    (value: {
+      brightness: number;
+      contrast: number;
+      saturate: number;
+      zoom: number;
+      pan: { x: number; y: number };
+    }) => {
+      setBrightnessInternal(value.brightness);
+      setContrastInternal(value.contrast);
+      setSaturateInternal(value.saturate);
+      setZoomInternal(value.zoom);
+      setPanInternal({ x: value.pan.x, y: value.pan.y });
+
+      setResetKey((prev) => prev + 1);
+
+      draw();
+    },
+    [
+      setBrightnessInternal,
+      setContrastInternal,
+      setSaturateInternal,
+      setZoomInternal,
+      setPanInternal,
+      draw,
+    ],
+  );
+
   return {
     canvasRef,
     imageRef,
@@ -161,6 +189,7 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
     setSaturate,
     setEdgeDetection,
     getFilters,
+    getTransform,
     handleZoomIn,
     handleZoomOut,
     handlePointerDown,
@@ -169,6 +198,7 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
     handleWheel,
     handlePan,
     resetAll,
+    applyEdits,
     exportFile,
     resetKey,
   };
