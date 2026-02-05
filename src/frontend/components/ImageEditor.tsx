@@ -353,12 +353,8 @@ const ImageEditor = ({ data, image, setQueryCallback, onImageLoaded }: ImageEdit
       draw();
 
       requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          setTimeout(() => {
-            setNavigating(false);
-            onImageLoaded?.();
-          }, 80);
-        });
+        setNavigating(false);
+        onImageLoaded?.();
       });
     }
   }, [
