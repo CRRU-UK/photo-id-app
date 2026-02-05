@@ -9,7 +9,7 @@ import ImageEditor from "@/frontend/components/ImageEditor";
 import LoadingOverlay from "@/frontend/components/LoadingOverlay";
 
 const fetchLocalFile = async (data: PhotoBody) => {
-  const response = await fetch(`file://${data.directory}/${data?.edited || data.name}`);
+  const response = await fetch(`file://${data.directory}/${data.name}`);
   const blob = await response.blob();
   return new File([blob], data.name, { type: blob.type || "image/*" });
 };

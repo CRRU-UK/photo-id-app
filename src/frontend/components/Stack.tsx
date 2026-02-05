@@ -66,6 +66,7 @@ const Stack = observer(({ collection }: StackProps) => {
       name: currentPhoto!.fileName,
       edited: currentPhoto!.editedFileName,
       thumbnail: currentPhoto!.thumbnailFileName,
+      edits: currentPhoto!.editsData,
     };
 
     window.electronAPI.openEditWindow(data);
@@ -83,6 +84,7 @@ const Stack = observer(({ collection }: StackProps) => {
       name: currentPhoto!.fileName,
       edited: currentPhoto!.editedFileName,
       thumbnail: currentPhoto!.thumbnailFileName,
+      edits: currentPhoto!.editsData,
     };
 
     const newData = await window.electronAPI.revertPhotoFile(data);

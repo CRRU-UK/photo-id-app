@@ -2,7 +2,12 @@ import fs from "node:fs";
 import path from "node:path";
 import sharp, { type Sharp } from "sharp";
 
-import { PROJECT_EDITS_DIRECTORY, PROJECT_THUMBNAIL_DIRECTORY, THUMBNAIL_SIZE } from "@/constants";
+import {
+  DEFAULT_PHOTO_EDITS,
+  PROJECT_EDITS_DIRECTORY,
+  PROJECT_THUMBNAIL_DIRECTORY,
+  THUMBNAIL_SIZE,
+} from "@/constants";
 import type { PhotoBody } from "@/types";
 
 /**
@@ -72,6 +77,7 @@ const revertPhotoToOriginal = async (data: PhotoBody): Promise<PhotoBody> => {
   return {
     ...data,
     edited: null,
+    edits: DEFAULT_PHOTO_EDITS,
   };
 };
 

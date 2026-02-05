@@ -1,5 +1,5 @@
 import type Project from "@/models/Project";
-import type { Directory, FileName, PhotoBody } from "@/types";
+import type { Directory, FileName, PhotoBody, PhotoEdits } from "@/types";
 
 import { action, computed, makeObservable, observable } from "mobx";
 
@@ -8,6 +8,7 @@ interface PhotoOptions {
   name: FileName;
   edited?: FileName | null;
   thumbnail: FileName;
+  edits: PhotoEdits;
 }
 
 class Photo {
@@ -17,8 +18,12 @@ class Photo {
   private readonly thumbnail: string;
   private readonly project: Project;
   version: number;
+  private edits: PhotoEdits;
 
-  constructor({ directory, name, edited = null, thumbnail }: PhotoOptions, project: Project) {
+  constructor(
+    { directory, name, edited = null, thumbnail, edits }: PhotoOptions,
+    project: Project,
+  ) {
     makeObservable(this, {
       fileName: computed,
       editedFileName: computed,
@@ -33,6 +38,7 @@ class Photo {
     this.edited = edited;
     this.thumbnail = thumbnail;
     this.version = 1;
+    this.edits = { ...edits, pan: { ...edits.pan } };
 
     this.project = project;
   }
@@ -54,8 +60,23 @@ class Photo {
     return `${path}?${this.version}`;
   }
 
+  get editsData(): PhotoEdits {
+    return { ...this.edits, pan: { ...this.edits.pan } };
+  }
+
+  toBody(): PhotoBody {
+    return {
+      directory: this.directory,
+      name: this.fileName,
+      edited: this.editedFileName,
+      thumbnail: this.thumbnailFileName,
+      edits: this.editsData,
+    };
+  }
+
   public updatePhoto(data: PhotoBody): this {
     this.edited = data.edited;
+    this.edits = { ...data.edits, pan: { ...data.edits.pan } };
     this.version++;
 
     this.project.save();
