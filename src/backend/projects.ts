@@ -253,6 +253,14 @@ const handleExportMatches = async (mainWindow: Electron.BrowserWindow, data: str
 
   const handleSide = async (id: string, side: CollectionBody, label: "L" | "R") => {
     for (const photo of side.photos) {
+      progress++;
+      mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, {
+        show: true,
+        text: "Exporting matches",
+        progressValue: Math.ceil((progress / totalPhotos) * 100),
+        progressText: `Exporting match ${progress} of ${totalPhotos}`,
+      } as LoadingData);
+
       let photoName = id;
       if (side.name && side.name !== "") {
         photoName = side.name.padStart(3, "0");
@@ -283,14 +291,6 @@ const handleExportMatches = async (mainWindow: Electron.BrowserWindow, data: str
       const finalExportedPath = path.join(exportsDirectory, finalExportedName);
 
       await fs.promises.writeFile(finalExportedPath, renderedBuffer);
-
-      progress++;
-      mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, {
-        show: true,
-        text: "Exporting matches",
-        progressValue: Math.ceil((progress / totalPhotos) * 100),
-        progressText: `Exporting match ${progress} of ${totalPhotos}`,
-      } as LoadingData);
     }
   };
 
