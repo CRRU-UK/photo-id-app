@@ -109,9 +109,10 @@ interface ImageEditorProps {
   data: PhotoBody;
   image: File;
   setQueryCallback: React.Dispatch<React.SetStateAction<string>>;
+  onImageLoaded?: () => void;
 }
 
-const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
+const ImageEditor = ({ data, image, setQueryCallback, onImageLoaded }: ImageEditorProps) => {
   console.debug("Loaded photo edit data:", data);
 
   const [saving, setSaving] = useState<boolean>(false);
@@ -129,6 +130,7 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
     canvasRef,
     imageRef,
     imageLoaded,
+    draw,
     setBrightness,
     setContrast,
     setSaturate,
@@ -330,8 +332,6 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
 
     if (previousPhotoIdRef.current !== currentPhotoId) {
       previousPhotoIdRef.current = currentPhotoId;
-
-      setNavigating(false);
     }
   }, [data.directory, data.name]);
 
@@ -347,9 +347,30 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
         contrast: edits.contrast,
         saturate: edits.saturate,
       });
+
       resetEdgeDetection();
+
+      draw();
+
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setTimeout(() => {
+            setNavigating(false);
+            onImageLoaded?.();
+          }, 80);
+        });
+      });
     }
-  }, [data.directory, data.name, imageLoaded, applyEdits, resetEdgeDetection, edits]);
+  }, [
+    data.directory,
+    data.name,
+    imageLoaded,
+    applyEdits,
+    resetEdgeDetection,
+    edits,
+    draw,
+    onImageLoaded,
+  ]);
 
   useEffect(() => {
     const canvas = canvasRef.current;

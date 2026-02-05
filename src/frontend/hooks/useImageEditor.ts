@@ -184,6 +184,7 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
     canvasRef,
     imageRef,
     imageLoaded,
+    draw,
     setBrightness,
     setContrast,
     setSaturate,
