@@ -14,7 +14,7 @@ interface PhotoOptions {
 class Photo {
   readonly directory;
   private readonly name: string;
-  private readonly thumbnail: string;
+  thumbnail: string;
   private readonly project: Project;
   version: number;
   edits: PhotoEdits;
@@ -23,6 +23,7 @@ class Photo {
     makeObservable(this, {
       edits: observable,
       fileName: computed,
+      thumbnail: observable,
       thumbnailFileName: computed,
       thumbnailFullPath: computed,
       isEdited: computed,
@@ -68,6 +69,7 @@ class Photo {
 
   public updatePhoto(data: PhotoBody): this {
     this.edits = { ...data.edits, pan: { ...data.edits.pan } };
+    this.thumbnail = data.thumbnail;
     this.version++;
 
     this.project.save();
