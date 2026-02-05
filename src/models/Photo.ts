@@ -64,6 +64,16 @@ class Photo {
     return { ...this.edits, pan: { ...this.edits.pan } };
   }
 
+  toBody(): PhotoBody {
+    return {
+      directory: this.directory,
+      name: this.fileName,
+      edited: this.editedFileName,
+      thumbnail: this.thumbnailFileName,
+      edits: this.editsData,
+    };
+  }
+
   public updatePhoto(data: PhotoBody): this {
     this.edited = data.edited;
     this.edits = { ...data.edits, pan: { ...data.edits.pan } };
