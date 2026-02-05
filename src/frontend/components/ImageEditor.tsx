@@ -143,7 +143,6 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
     handlePan,
     resetAll,
     applyEdits,
-    exportFile,
     resetKey,
   } = useImageEditor({
     file: image,
@@ -192,36 +191,25 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
     setSaving(true);
 
     try {
-      const editedFile = await exportFile();
-
-      if (!editedFile) {
-        return;
-      }
-
-      const editedFileData = await editedFile.arrayBuffer();
-
       const filters = getFilters();
       const transform = getTransform();
 
-      await window.electronAPI.savePhotoFile(
-        {
-          ...data,
-          edits: {
-            brightness: filters.brightness,
-            contrast: filters.contrast,
-            saturate: filters.saturate,
-            zoom: transform.zoom,
-            pan: transform.pan,
-          },
+      await window.electronAPI.savePhotoFile({
+        ...data,
+        edits: {
+          brightness: filters.brightness,
+          contrast: filters.contrast,
+          saturate: filters.saturate,
+          zoom: transform.zoom,
+          pan: transform.pan,
         },
-        editedFileData,
-      );
+      });
     } catch (error) {
       console.error("Failed to save edited photo file:", error);
     } finally {
       setSaving(false);
     }
-  }, [data, exportFile, getFilters, getTransform]);
+  }, [data, getFilters, getTransform]);
 
   const handleEditorNavigation = useCallback(
     async (direction: EditorNavigation) => {

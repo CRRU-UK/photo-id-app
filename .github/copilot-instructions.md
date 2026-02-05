@@ -60,14 +60,14 @@
 - IPC naming is explicit. Prefer using the `IPC_EVENTS` enum from `src/constants.ts` instead of raw strings.
 - File operations and project persistence happen on the main side (`src/backend/*.ts`). Frontend should call preload helpers and assume I/O is async.
 - Edit-window lifecycle: when navigating editor photos, the renderer calls `window.electronAPI.navigateEditorPhoto(data, direction)` which returns a base64-encoded JSON string that the edit route sets back into its query param.
-- Thumbnails and edits are stored next to the project: see constants `PROJECT_EDITS_DIRECTORY` and `PROJECT_THUMBNAIL_DIRECTORY` in `src/constants.ts`.
+- Thumbnails are stored next to the project: see `PROJECT_THUMBNAIL_DIRECTORY` in `src/constants.ts`.
 - Avoid editing generated files: `src/routeTree.gen.ts` and other generator outputs.
 
 ## Integration points / external deps
 
 - Electron + electron-forge + vite: packaging handled by `electron-forge` + forge Vite plugin (configs at project root: `vite.*.mts`, `forge.config.ts`).
 - Sentry: integrated in both main (`@sentry/electron`) and renderer (`@sentry/electron/renderer`). Environment variables: `VITE_SENTRY_DSN` (renderer) and `SENTRY_DSN` (main). See `.env.example`.
-- Native image processing: `sharp` is used in backend image helpers.
+- Native image processing: `@napi-rs/canvas` is used in backend image helpers.
 
 ## If you need to change behaviour
 
@@ -124,7 +124,7 @@ When unsure, look at these files first
 ## Considerations
 
 - The app is often run on machines with limited hardware. Be conservative with memory and avoid loading many full-resolution images into memory at once.
-- Favour streaming, thumbnails (`src/backend/photos.ts`), and on-disk edits over keeping large buffers in renderer memory. Use the backend helpers for file I/O and image processing (`sharp`).
+- Favour streaming, thumbnails (`src/backend/photos.ts`), and on-disk edits over keeping large buffers in renderer memory. Use the backend helpers for file I/O and image processing (`@napi-rs/canvas`).
 - In React, avoid retaining large binary blobs in state across long sessions; prefer references to on-disk filenames and load File/ArrayBuffer only when needed (see `src/routes/edit.tsx` and `src/frontend/hooks/usePhotoEditor.ts`).
 
 ## Key Guidelines

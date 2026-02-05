@@ -117,8 +117,6 @@ export const PROJECT_FILE_NAME = "data.json";
 
 export const PROJECT_STORAGE_NAME = "currentProject";
 
-export const PROJECT_EDITS_DIRECTORY = ".edits";
-
 export const PROJECT_THUMBNAIL_DIRECTORY = ".thumbnails";
 
 export const PROJECT_EXPORT_DIRECTORY = "matched";
