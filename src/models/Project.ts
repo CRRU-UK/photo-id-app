@@ -65,7 +65,7 @@ class Project {
   }
 
   private mapCollectionToBody(collection: Collection): CollectionBody {
-    const photos = Array.from(collection.photos).map<PhotoBody>((photo) => photo.toBody());
+    const photos: PhotoBody[] = Array.from(collection.photos).map((photo) => photo.toBody());
 
     return { photos, index: collection.index, name: collection.name };
   }
