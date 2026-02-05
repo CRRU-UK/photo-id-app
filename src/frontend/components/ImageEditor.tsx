@@ -27,8 +27,8 @@ import {
   PAN_AMOUNT,
 } from "@/constants";
 import LoadingOverlay from "@/frontend/components/LoadingOverlay";
-
-import useImageEditor from "../hooks/useImageEditor";
+import useImageEditor from "@/frontend/hooks/useImageEditor";
+import { computeIsEdited } from "@/helpers";
 
 interface SliderProps {
   name: string;
@@ -108,9 +108,10 @@ interface ImageEditorProps {
   data: PhotoBody;
   image: File;
   setQueryCallback: React.Dispatch<React.SetStateAction<string>>;
+  onImageLoaded?: () => void;
 }
 
-const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
+const ImageEditor = ({ data, image, setQueryCallback, onImageLoaded }: ImageEditorProps) => {
   console.debug("Loaded photo edit data:", data);
 
   const [saving, setSaving] = useState<boolean>(false);
@@ -128,6 +129,7 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
     canvasRef,
     imageRef,
     imageLoaded,
+    draw,
     setBrightness,
     setContrast,
     setSaturate,
@@ -143,7 +145,6 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
     handlePan,
     resetAll,
     applyEdits,
-    exportFile,
     resetKey,
   } = useImageEditor({
     file: image,
@@ -192,36 +193,28 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
     setSaving(true);
 
     try {
-      const editedFile = await exportFile();
-
-      if (!editedFile) {
-        return;
-      }
-
-      const editedFileData = await editedFile.arrayBuffer();
-
       const filters = getFilters();
       const transform = getTransform();
 
-      await window.electronAPI.savePhotoFile(
-        {
-          ...data,
-          edits: {
-            brightness: filters.brightness,
-            contrast: filters.contrast,
-            saturate: filters.saturate,
-            zoom: transform.zoom,
-            pan: transform.pan,
-          },
-        },
-        editedFileData,
-      );
+      const edits = {
+        brightness: filters.brightness,
+        contrast: filters.contrast,
+        saturate: filters.saturate,
+        zoom: transform.zoom,
+        pan: transform.pan,
+      };
+
+      await window.electronAPI.savePhotoFile({
+        ...data,
+        edits,
+        isEdited: computeIsEdited(edits),
+      });
     } catch (error) {
       console.error("Failed to save edited photo file:", error);
     } finally {
       setSaving(false);
     }
-  }, [data, exportFile, getFilters, getTransform]);
+  }, [data, getFilters, getTransform]);
 
   const handleEditorNavigation = useCallback(
     async (direction: EditorNavigation) => {
@@ -338,13 +331,12 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
 
     if (previousPhotoIdRef.current !== currentPhotoId) {
       previousPhotoIdRef.current = currentPhotoId;
-
-      setNavigating(false);
     }
   }, [data.directory, data.name]);
 
   useEffect(() => {
     const currentPhotoId = `${data.directory}/${data.name}`;
+    let frameId: number | undefined;
 
     if (imageLoaded && loadedPhotoIdRef.current !== currentPhotoId) {
       loadedPhotoIdRef.current = currentPhotoId;
@@ -355,9 +347,32 @@ const ImageEditor = ({ data, image, setQueryCallback }: ImageEditorProps) => {
         contrast: edits.contrast,
         saturate: edits.saturate,
       });
+
       resetEdgeDetection();
+
+      draw();
+
+      frameId = requestAnimationFrame(() => {
+        setNavigating(false);
+        onImageLoaded?.();
+      });
     }
-  }, [data.directory, data.name, imageLoaded, applyEdits, resetEdgeDetection, edits]);
+
+    return () => {
+      if (frameId !== undefined) {
+        cancelAnimationFrame(frameId);
+      }
+    };
+  }, [
+    data.directory,
+    data.name,
+    imageLoaded,
+    applyEdits,
+    resetEdgeDetection,
+    edits,
+    draw,
+    onImageLoaded,
+  ]);
 
   useEffect(() => {
     const canvas = canvasRef.current;

@@ -19,7 +19,7 @@ export default defineConfig({
   ],
   build: {
     rollupOptions: {
-      external: ["sharp"],
+      external: ["@napi-rs/canvas"],
       output: {
         sourcemap: true,
       },

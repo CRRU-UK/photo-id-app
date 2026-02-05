@@ -52,8 +52,8 @@ class Project {
   }
 
   private mapPhotoBodyToCollection(directory: Directory, collection: CollectionBody): Collection {
-    const photos = collection.photos.map(({ name, edited, thumbnail, edits }) => {
-      const photo = new Photo({ directory, name, edited, thumbnail, edits }, this);
+    const photos = collection.photos.map(({ name, thumbnail, edits }) => {
+      const photo = new Photo({ directory, name, thumbnail, edits }, this);
       this.allPhotos.add(photo);
       return photo;
     });
@@ -141,19 +141,12 @@ class Project {
   }
 
   public async duplicatePhotoToStack(to: Collection, photo: Photo): Promise<this> {
-    const result = await window.electronAPI.duplicatePhotoFile({
-      directory: photo.directory,
-      name: photo.fileName,
-      edited: photo.editedFileName || null,
-      thumbnail: photo.thumbnailFileName,
-      edits: photo.editsData,
-    });
+    const result = await window.electronAPI.duplicatePhotoFile(photo.toBody());
 
     const newPhoto = new Photo(
       {
         directory: result.directory,
         name: result.name,
-        edited: result.edited,
         thumbnail: result.thumbnail,
         edits: result.edits,
       },

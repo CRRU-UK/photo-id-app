@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import type { LoadingData, PhotoBody } from "@/types";
 
@@ -24,24 +24,34 @@ const EditPage = () => {
 
   useEffect(() => {
     async function fetchData() {
-      const parsedData = JSON.parse(atob(query)) as PhotoBody;
-      setData(parsedData);
+      setLoading({ show: true });
 
+      const parsedData = JSON.parse(atob(query)) as PhotoBody;
       document.title = `${DEFAULT_WINDOW_TITLE} - ${parsedData.directory}/${parsedData.name}`;
 
       const response = await fetchLocalFile(parsedData);
+      setData(parsedData);
       setFile(response);
-
-      setLoading({ show: false });
     }
 
     fetchData();
   }, [query]);
 
+  const handleImageLoaded = useCallback(() => {
+    setLoading({ show: false });
+  }, []);
+
   return (
     <>
       <LoadingOverlay data={loading} />
-      {data && file && <ImageEditor data={data} image={file} setQueryCallback={setQuery} />}
+      {data && file && (
+        <ImageEditor
+          data={data}
+          image={file}
+          setQueryCallback={setQuery}
+          onImageLoaded={handleImageLoaded}
+        />
+      )}
     </>
   );
 };

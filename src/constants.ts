@@ -30,7 +30,7 @@ export enum IPC_EVENTS {
 
 export const DEFAULT_WINDOW_TITLE = "Photo ID";
 
-export const PHOTO_FILE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".tiff"];
+export const PHOTO_FILE_EXTENSIONS = [".jpg", ".jpeg", ".png"];
 
 export const EXISTING_DATA_MESSAGE =
   "A data file already exists for this folder - choose whether to resume the existing data, replace/reset the existing data, or cancel.";
@@ -116,8 +116,6 @@ export const BOX_HOVER_STYLES = {
 export const PROJECT_FILE_NAME = "data.json";
 
 export const PROJECT_STORAGE_NAME = "currentProject";
-
-export const PROJECT_EDITS_DIRECTORY = ".edits";
 
 export const PROJECT_THUMBNAIL_DIRECTORY = ".thumbnails";
 

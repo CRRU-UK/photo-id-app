@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   chunkArray,
   clampPan,
+  computeIsEdited,
   getAlphabetLetter,
   getBoundaries,
   getCanvasFilters,
@@ -272,5 +273,31 @@ describe(clampPan, () => {
     });
 
     expect(result).toStrictEqual({ x: 100, y: 100 });
+  });
+});
+
+describe(computeIsEdited, () => {
+  it("returns true if any edit value differs from defaults", () => {
+    const edits = {
+      brightness: 120,
+      contrast: 80,
+      saturate: 150,
+      zoom: 1,
+      pan: { x: 0, y: 0 },
+    };
+
+    expect(computeIsEdited(edits)).toBe(true);
+  });
+
+  it("returns false if all edit values are the same as defaults", () => {
+    const edits = {
+      brightness: 100,
+      contrast: 100,
+      saturate: 100,
+      zoom: 1,
+      pan: { x: 0, y: 0 },
+    };
+
+    expect(computeIsEdited(edits)).toBe(false);
   });
 });

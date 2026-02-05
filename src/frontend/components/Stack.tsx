@@ -19,7 +19,6 @@ import { useState } from "react";
 
 import type Collection from "@/models/Collection";
 import type Photo from "@/models/Photo";
-import type { PhotoBody } from "@/types";
 
 interface StackImageProps {
   photo: Photo;
@@ -61,15 +60,7 @@ const Stack = observer(({ collection }: StackProps) => {
   });
 
   const handleOpenEdit = () => {
-    const data: PhotoBody = {
-      directory: currentPhoto!.directory,
-      name: currentPhoto!.fileName,
-      edited: currentPhoto!.editedFileName,
-      thumbnail: currentPhoto!.thumbnailFileName,
-      edits: currentPhoto!.editsData,
-    };
-
-    window.electronAPI.openEditWindow(data);
+    window.electronAPI.openEditWindow(currentPhoto!.toBody());
   };
 
   const handleRevertPhoto = async () => {
@@ -79,15 +70,7 @@ const Stack = observer(({ collection }: StackProps) => {
 
     setRevertingPhoto(true);
 
-    const data: PhotoBody = {
-      directory: currentPhoto!.directory,
-      name: currentPhoto!.fileName,
-      edited: currentPhoto!.editedFileName,
-      thumbnail: currentPhoto!.thumbnailFileName,
-      edits: currentPhoto!.editsData,
-    };
-
-    const newData = await window.electronAPI.revertPhotoFile(data);
+    const newData = await window.electronAPI.revertPhotoFile(currentPhoto!.toBody());
     currentPhoto!.updatePhoto(newData);
 
     setActionsOpen(false);
@@ -157,9 +140,11 @@ const Stack = observer(({ collection }: StackProps) => {
               <ActionList>
                 <ActionList.Item
                   variant="danger"
-                  disabled={collection.photos.size <= 0 || revertingPhoto}
+                  disabled={
+                    collection.photos.size <= 0 || revertingPhoto || !currentPhoto?.isEdited
+                  }
                   loading={revertingPhoto}
-                  onClick={handleRevertPhoto}
+                  onSelect={handleRevertPhoto}
                 >
                   <ActionList.LeadingVisual>
                     <UndoIcon />

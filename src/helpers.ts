@@ -1,6 +1,6 @@
-import type { EdgeDetectionData } from "@/types";
+import type { EdgeDetectionData, PhotoEdits } from "@/types";
 
-import { EDGE_DETECTION } from "@/constants";
+import { DEFAULT_PHOTO_EDITS, EDGE_DETECTION } from "@/constants";
 
 export const getAlphabetLetter = (index: number): string => {
   let result = "";
@@ -121,3 +121,16 @@ export const clampPan = ({
     y: Math.max(boundaryY.min, Math.min(boundaryY.max, pan.y)),
   };
 };
+
+/**
+ * Determines if photo edits differ from default values.
+ * @param edits - Photo edits to check
+ * @returns Returns `true` if any edit value differs from defaults, otherwise `false`.
+ */
+export const computeIsEdited = (edits: PhotoEdits): boolean =>
+  edits.brightness !== DEFAULT_PHOTO_EDITS.brightness ||
+  edits.contrast !== DEFAULT_PHOTO_EDITS.contrast ||
+  edits.saturate !== DEFAULT_PHOTO_EDITS.saturate ||
+  edits.zoom !== DEFAULT_PHOTO_EDITS.zoom ||
+  edits.pan.x !== DEFAULT_PHOTO_EDITS.pan.x ||
+  edits.pan.y !== DEFAULT_PHOTO_EDITS.pan.y;

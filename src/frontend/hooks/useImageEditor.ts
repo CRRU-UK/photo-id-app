@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 
 import { useCanvasRenderer } from "./imageEditor/useCanvasRenderer";
-import { useImageExport } from "./imageEditor/useImageExport";
 import { useImageFilters } from "./imageEditor/useImageFilters";
 import { useImageLoader } from "./imageEditor/useImageLoader";
 import { useImageTransform } from "./imageEditor/useImageTransform";
@@ -67,13 +66,6 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
     setPan: setPanInternal,
     clamp,
     onDraw: draw,
-  });
-
-  const { exportFile } = useImageExport({
-    imageRef,
-    file,
-    getFilters,
-    getTransform,
   });
 
   /**
@@ -184,6 +176,7 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
     canvasRef,
     imageRef,
     imageLoaded,
+    draw,
     setBrightness,
     setContrast,
     setSaturate,
@@ -199,7 +192,6 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
     handlePan,
     resetAll,
     applyEdits,
-    exportFile,
     resetKey,
   };
 };

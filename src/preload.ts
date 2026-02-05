@@ -12,8 +12,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ipcRenderer.invoke(IPC_EVENTS.REMOVE_RECENT_PROJECT, path),
   exportMatches: (data: string): Promise<void> =>
     ipcRenderer.invoke(IPC_EVENTS.EXPORT_MATCHES, data),
-  savePhotoFile: (data: PhotoBody, photo: ArrayBuffer): Promise<void> =>
-    ipcRenderer.invoke(IPC_EVENTS.SAVE_PHOTO_FILE, data, photo),
+  savePhotoFile: (data: PhotoBody): Promise<void> =>
+    ipcRenderer.invoke(IPC_EVENTS.SAVE_PHOTO_FILE, data),
   revertPhotoFile: (data: PhotoBody): Promise<PhotoBody> =>
     ipcRenderer.invoke(IPC_EVENTS.REVERT_PHOTO_FILE, data),
   navigateEditorPhoto: (data: PhotoBody, direction: EditorNavigation) =>

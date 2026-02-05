@@ -1,84 +1,37 @@
 import fs from "node:fs";
 import path from "node:path";
-import sharp, { type Sharp } from "sharp";
 
-import {
-  DEFAULT_PHOTO_EDITS,
-  PROJECT_EDITS_DIRECTORY,
-  PROJECT_THUMBNAIL_DIRECTORY,
-  THUMBNAIL_SIZE,
-} from "@/constants";
+import { renderThumbnailWithEdits } from "@/backend/imageRenderer";
+import { DEFAULT_PHOTO_EDITS, PROJECT_THUMBNAIL_DIRECTORY } from "@/constants";
 import type { PhotoBody } from "@/types";
 
-/**
- * Saves a photo to the edited directory from buffer data, creates a thumbnail for it,
- * then returns the edited path to send back to the renderer.
- */
-const savePhotoFromBuffer = async (photo: PhotoBody, data: ArrayBuffer) => {
-  const targetPath = path.join(PROJECT_EDITS_DIRECTORY, photo.name);
-  const buffer = Buffer.from(data);
+const createPhotoThumbnail = async (photo: PhotoBody): Promise<string> => {
+  const sourcePath = path.join(photo.directory, photo.name);
+  const thumbnailData = await renderThumbnailWithEdits({
+    sourcePath,
+    edits: photo.edits,
+  });
 
-  await fs.promises.writeFile(path.join(photo.directory, targetPath), buffer, "utf8");
-
-  await createPhotoThumbnail(targetPath, photo.directory);
-
-  return targetPath;
-};
-
-const duplicatePhotoFiles = async (
-  targetPhotoPath: string,
-  projectDirectory: string,
-): Promise<string> => {
-  const originalPath = path.join(projectDirectory, targetPhotoPath);
-  const editsPath = path.join(projectDirectory, PROJECT_EDITS_DIRECTORY, targetPhotoPath);
-
-  await fs.promises.copyFile(originalPath, editsPath);
-
-  return path.join(PROJECT_EDITS_DIRECTORY, targetPhotoPath);
-};
-
-const createPhotoThumbnail = async (
-  targetPhotoPath: string,
-  projectDirectory: string,
-): Promise<string> => {
-  const image: Sharp = sharp(path.join(projectDirectory, targetPhotoPath));
-
-  const metadata = await image.metadata();
-  const isLandscape = metadata.width >= metadata.height;
-  const width = isLandscape ? THUMBNAIL_SIZE : null;
-  const height = isLandscape ? null : THUMBNAIL_SIZE;
-
-  const thumbnailData = await image
-    .resize(width, height, {
-      fit: "inside",
-      withoutEnlargement: true,
-    })
-    .toBuffer();
-
-  const thumbnailDirectory = path.join(projectDirectory, PROJECT_THUMBNAIL_DIRECTORY);
-  const thumbnailPath = path.join(thumbnailDirectory, path.basename(targetPhotoPath));
+  const thumbnailDirectory = path.join(photo.directory, PROJECT_THUMBNAIL_DIRECTORY);
+  const thumbnailPath = path.join(thumbnailDirectory, path.basename(photo.name));
   await fs.promises.writeFile(thumbnailPath, thumbnailData);
 
-  return path.join(PROJECT_THUMBNAIL_DIRECTORY, targetPhotoPath);
+  return path.join(PROJECT_THUMBNAIL_DIRECTORY, photo.name);
 };
 
 const revertPhotoToOriginal = async (data: PhotoBody): Promise<PhotoBody> => {
-  if (!data.edited) {
-    console.error("Unable to revert photo to original as edited version does not exist:", data);
-    return data;
-  }
+  const photo: PhotoBody = {
+    ...data,
+    edits: DEFAULT_PHOTO_EDITS,
+    isEdited: false,
+  };
 
-  // Delete edited file when reverting
-  await Promise.all([
-    fs.promises.unlink(path.join(data.directory, data.edited)),
-    createPhotoThumbnail(data.name, data.directory),
-  ]);
+  const thumbnail = await createPhotoThumbnail(photo);
 
   return {
-    ...data,
-    edited: null,
-    edits: DEFAULT_PHOTO_EDITS,
+    ...photo,
+    thumbnail,
   };
 };
 
-export { createPhotoThumbnail, duplicatePhotoFiles, revertPhotoToOriginal, savePhotoFromBuffer };
+export { createPhotoThumbnail, revertPhotoToOriginal };

@@ -21,7 +21,7 @@ import type {
 } from "@/types";
 
 import { getMenu } from "@/backend/menu";
-import { revertPhotoToOriginal, savePhotoFromBuffer } from "@/backend/photos";
+import { createPhotoThumbnail, revertPhotoToOriginal } from "@/backend/photos";
 import {
   handleDuplicatePhotoFile,
   handleEditorNavigate,
@@ -218,19 +218,16 @@ app.whenReady().then(() => {
     shell.openPath(path.join(projectData.directory, PROJECT_EXPORT_DIRECTORY));
   });
 
-  ipcMain.handle(
-    IPC_EVENTS.SAVE_PHOTO_FILE,
-    async (event, data: PhotoBody, photo: ArrayBuffer): Promise<void> => {
-      const editedPath = await savePhotoFromBuffer(data, photo);
+  ipcMain.handle(IPC_EVENTS.SAVE_PHOTO_FILE, async (event, data: PhotoBody): Promise<void> => {
+    const thumbnail = await createPhotoThumbnail(data);
 
-      const photoData: PhotoBody = {
-        ...data,
-        edited: editedPath,
-      };
+    const photoData: PhotoBody = {
+      ...data,
+      thumbnail,
+    };
 
-      mainWindow.webContents.send(IPC_EVENTS.UPDATE_PHOTO, photoData);
-    },
-  );
+    mainWindow.webContents.send(IPC_EVENTS.UPDATE_PHOTO, photoData);
+  });
 
   ipcMain.handle(
     IPC_EVENTS.NAVIGATE_EDITOR_PHOTO,
