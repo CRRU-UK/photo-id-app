@@ -17,6 +17,18 @@ textarea,
   --toolbar-height: 60px;
 }
 
+.theme-icon-light,
+.theme-icon-dark {
+  display: none;
+  width: 100px;
+  height: auto;
+}
+
+html[data-color-mode="light"] .theme-icon-light,
+html[data-color-mode="dark"] .theme-icon-dark {
+  display: block;
+}
+
 .index {
   z-index: 0;
   background-color: var(--bgColor-default);
@@ -106,6 +118,19 @@ body.copying *:hover {
 
 .project > .content > .grid[data-columns="2"] {
   column-count: 2;
+}
+
+.project .photo-stack {
+  position: relative;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4/3;
+  object-fit: cover;
+  background: var(--bgColor-emphasis);
+}
+
+html[data-color-mode="light"] .project .photo-stack {
+  background: var(--bgColor-neutral-muted);
 }
 
 .edit {

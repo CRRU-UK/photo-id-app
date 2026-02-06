@@ -24,7 +24,8 @@ import LoadingOverlay from "@/frontend/components/LoadingOverlay";
 import RecentProjects from "@/frontend/components/RecentProjects";
 import Settings from "@/frontend/components/Settings";
 
-import icon from "@/frontend/img/icon.svg";
+import iconDark from "@/frontend/img/icon-dark.svg";
+import iconLight from "@/frontend/img/icon-light.svg";
 import logo from "@/frontend/img/logo.png";
 
 import { version } from "../../package.json";
@@ -73,15 +74,10 @@ const IndexPage = () => {
             justify="start"
             style={{ marginBottom: "var(--stack-gap-spacious)" }}
           >
-            <img
-              style={{
-                display: "block",
-                width: "100px",
-                height: "auto",
-              }}
-              src={icon}
-              alt=""
-            />
+            <div>
+              <img className="theme-icon theme-icon-light" src={iconLight} alt="" />
+              <img className="theme-icon theme-icon-dark" src={iconDark} alt="" />
+            </div>
 
             <div>
               <PrimerStack direction="horizontal" align="center" justify="start" gap="normal">
