@@ -4,6 +4,7 @@ import type {
   PhotoBody,
   ProjectBody,
   RecentProject,
+  SettingsData,
 } from "./src/types";
 
 export interface IElectronAPI {
@@ -15,6 +16,8 @@ export interface IElectronAPI {
   revertPhotoFile: (data: PhotoBody) => Promise<PhotoBody>;
   navigateEditorPhoto: (data: PhotoBody, direction: EditorNavigation) => Promise<string | null>;
   duplicatePhotoFile: (data: PhotoBody) => Promise<PhotoBody>;
+  getSettings: () => Promise<SettingsData>;
+  updateSettings: (settings: SettingsData) => Promise<void>;
 
   // Methods (renderer-to-main)
   openProjectFolder: () => void;
@@ -30,6 +33,7 @@ export interface IElectronAPI {
   onLoadProject: (callback: (value: ProjectBody) => void) => () => void;
   onOpenSettings: (callback: () => void) => () => void;
   onUpdatePhoto: (callback: (data: PhotoBody) => void) => () => void;
+  onSettingsUpdated: (callback: (data: SettingsData) => void) => () => void;
 }
 
 declare global {

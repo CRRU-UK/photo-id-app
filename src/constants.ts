@@ -23,6 +23,9 @@ export enum IPC_EVENTS {
   SET_LOADING = "ui:setLoading",
   OPEN_EXTERNAL_LINK = "ui:openExternalLink",
   OPEN_SETTINGS = "ui:openSettings",
+  GET_SETTINGS = "ui:getSettings",
+  UPDATE_SETTINGS = "ui:updateSettings",
+  SETTINGS_UPDATED = "ui:settingsUpdated",
 
   // Editor
   OPEN_EDIT_WINDOW = "edit:openEditWindow",
@@ -129,6 +132,8 @@ export const PROJECT_EXPORT_DIRECTORY = "matched";
 export const THUMBNAIL_SIZE = 1000;
 
 export const RECENT_PROJECTS_FILE_NAME = "recent-projects.json";
+
+export const SETTINGS_FILE_NAME = "settings.json";
 
 export const MAX_RECENT_PROJECTS = 5;
 

@@ -18,6 +18,7 @@ import type {
   PhotoBody,
   ProjectBody,
   RecentProject,
+  SettingsData,
 } from "@/types";
 
 import { getMenu } from "@/backend/menu";
@@ -32,6 +33,7 @@ import {
   handleSaveProject,
 } from "@/backend/projects";
 import { getRecentProjects, removeRecentProject } from "@/backend/recents";
+import { getSettings, updateSettings } from "@/backend/settings";
 import {
   DEFAULT_WINDOW_TITLE,
   EXTERNAL_LINKS,
@@ -259,6 +261,23 @@ app.whenReady().then(() => {
     const result = await handleDuplicatePhotoFile(data);
     return result;
   });
+
+  ipcMain.handle(IPC_EVENTS.GET_SETTINGS, async (): Promise<SettingsData> => {
+    const result = await getSettings();
+    return result;
+  });
+
+  ipcMain.handle(
+    IPC_EVENTS.UPDATE_SETTINGS,
+    async (event, settings: SettingsData): Promise<void> => {
+    await updateSettings(settings);
+    // Notify all windows of settings change
+      const allWindows = BrowserWindow.getAllWindows();
+      for (const window of allWindows) {
+        window.webContents.send(IPC_EVENTS.SETTINGS_UPDATED, settings);
+      }
+    },
+  );
 
   ipcMain.on(IPC_EVENTS.OPEN_EXTERNAL_LINK, (event, link: ExternalLinks) => {
     if (link === "website") {
