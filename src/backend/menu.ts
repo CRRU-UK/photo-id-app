@@ -19,6 +19,7 @@ const getMenu = (mainWindow: BrowserWindow) => {
                 label: "Preferences...",
                 accelerator: "CmdOrCtrl+,",
                 click() {
+                  mainWindow.focus();
                   mainWindow.webContents.send(IPC_EVENTS.OPEN_SETTINGS);
                 },
               },
@@ -57,6 +58,7 @@ const getMenu = (mainWindow: BrowserWindow) => {
                 label: "Settings",
                 accelerator: "CmdOrCtrl+,",
                 click() {
+                  mainWindow.focus();
                   mainWindow.webContents.send(IPC_EVENTS.OPEN_SETTINGS);
                 },
               },

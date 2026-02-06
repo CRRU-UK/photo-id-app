@@ -279,6 +279,13 @@ app.whenReady().then(() => {
     },
   );
 
+  ipcMain.on(IPC_EVENTS.OPEN_SETTINGS, () => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.focus();
+      mainWindow.webContents.send(IPC_EVENTS.OPEN_SETTINGS);
+    }
+  });
+
   ipcMain.on(IPC_EVENTS.OPEN_EXTERNAL_LINK, (event, link: ExternalLinks) => {
     if (link === "website") {
       shell.openExternal(EXTERNAL_LINKS.WEBSITE);
