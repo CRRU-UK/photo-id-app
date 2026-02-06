@@ -17,21 +17,7 @@ import { routeTree } from "./routeTree.gen";
 
 import "./styles.css";
 
-Sentry.init({
-  dsn: import.meta.env.VITE_SENTRY_DSN as string,
-  telemetry: false,
-  tracesSampleRate: 1,
-  profilesSampleRate: 1,
-  replaysSessionSampleRate: 1,
-  replaysOnErrorSampleRate: 1,
-  integrations: [
-    Sentry.browserTracingIntegration(),
-    Sentry.browserProfilingIntegration(),
-    Sentry.replayIntegration(),
-    Sentry.consoleLoggingIntegration({ levels: ["log", "warn", "error"] }),
-  ],
-  _experiments: { enableLogs: true },
-});
+// Sentry will be initialized conditionally based on telemetry settings in the App component
 
 const memoryHistory = createHashHistory();
 const router = createRouter({ routeTree, history: memoryHistory });
@@ -62,6 +48,38 @@ const applyTheme = (colorMode: "light" | "dark") => {
   document.documentElement.dataset.darkTheme = colorMode;
 };
 
+const initializeSentry = () => {
+  const sentryDsn = import.meta.env.VITE_SENTRY_DSN as string;
+
+  if (!sentryDsn) {
+    console.debug("Sentry is disabled in renderer");
+    return;
+  }
+
+  console.debug("Sentry is enabled in renderer");
+
+  // Check if Sentry is already initialized
+  if (Sentry.getClient()) {
+    return;
+  }
+
+  Sentry.init({
+    dsn: sentryDsn,
+    telemetry: false,
+    tracesSampleRate: 1,
+    profilesSampleRate: 1,
+    replaysSessionSampleRate: 1,
+    replaysOnErrorSampleRate: 1,
+    integrations: [
+      Sentry.browserTracingIntegration(),
+      Sentry.browserProfilingIntegration(),
+      Sentry.replayIntegration(),
+      Sentry.consoleLoggingIntegration({ levels: ["log", "warn", "error"] }),
+    ],
+    _experiments: { enableLogs: true },
+  });
+};
+
 const App = () => {
   const [colorMode, setColorMode] = useState<"light" | "dark">("dark");
   const [settings, setSettings] = useState<SettingsData | null>(null);
@@ -74,6 +92,11 @@ const App = () => {
         const effectiveMode = getEffectiveColorMode(loadedSettings.themeMode);
         setColorMode(effectiveMode);
         applyTheme(effectiveMode);
+
+        // Initialize Sentry conditionally based on telemetry setting
+        if (loadedSettings.telemetry === "enabled") {
+          initializeSentry();
+        }
       } catch (error) {
         console.error("Error loading settings:", error);
         // Default to dark if settings can't be loaded
@@ -83,7 +106,7 @@ const App = () => {
 
     loadSettings();
 
-    // Listen for settings updates
+    // Listen for settings updates (theme applies immediately; telemetry requires restart)
     const unsubscribe = window.electronAPI.onSettingsUpdated((updatedSettings: SettingsData) => {
       setSettings(updatedSettings);
       const effectiveMode = getEffectiveColorMode(updatedSettings.themeMode);

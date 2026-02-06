@@ -33,7 +33,7 @@ import {
   handleSaveProject,
 } from "@/backend/projects";
 import { getRecentProjects, removeRecentProject } from "@/backend/recents";
-import { getSettings, updateSettings } from "@/backend/settings";
+import { getSettings, getSettingsSync, updateSettings } from "@/backend/settings";
 import {
   DEFAULT_WINDOW_TITLE,
   EXTERNAL_LINKS,
@@ -43,12 +43,20 @@ import {
 
 import { version } from "../package.json";
 
-Sentry.init({
-  dsn: process.env.SENTRY_DSN,
-  integrations: [Sentry.consoleLoggingIntegration({ levels: ["log", "warn", "error"] })],
-  enableRendererProfiling: true,
-  _experiments: { enableLogs: true },
-});
+// Initialize Sentry only if telemetry is enabled
+const settings = getSettingsSync();
+if (settings.telemetry === "enabled" && process.env.SENTRY_DSN) {
+  console.debug("Sentry is enabled in main");
+
+  Sentry.init({
+    dsn: process.env.SENTRY_DSN,
+    integrations: [Sentry.consoleLoggingIntegration({ levels: ["log", "warn", "error"] })],
+    enableRendererProfiling: true,
+    _experiments: { enableLogs: true },
+  });
+} else {
+  console.debug("Sentry is disabled in main");
+}
 
 updateElectronApp();
 
@@ -269,9 +277,10 @@ app.whenReady().then(() => {
 
   ipcMain.handle(
     IPC_EVENTS.UPDATE_SETTINGS,
-    async (event, settings: SettingsData): Promise<void> => {
-    await updateSettings(settings);
-    // Notify all windows of settings change
+    async (_event, settings: SettingsData): Promise<void> => {
+      await updateSettings(settings);
+
+      // Notify all windows of settings change
       const allWindows = BrowserWindow.getAllWindows();
       for (const window of allWindows) {
         window.webContents.send(IPC_EVENTS.SETTINGS_UPDATED, settings);

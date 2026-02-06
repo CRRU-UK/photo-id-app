@@ -96,6 +96,9 @@ export type ImageTransformations = {
 
 export type ThemeMode = "light" | "dark" | "auto";
 
+export type Telemetry = "enabled" | "disabled";
+
 export type SettingsData = {
   themeMode: ThemeMode;
+  telemetry: Telemetry;
 };

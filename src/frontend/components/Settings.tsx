@@ -1,9 +1,9 @@
 import type { ChangeEvent, RefObject } from "react";
 import { useEffect, useState } from "react";
 
-import { Dialog, FormControl, Select } from "@primer/react";
+import { Dialog, FormControl, Select, Stack } from "@primer/react";
 
-import type { SettingsData, ThemeMode } from "@/types";
+import type { SettingsData, Telemetry, ThemeMode } from "@/types";
 
 interface SettingsProps {
   open: boolean;
@@ -66,6 +66,12 @@ const Settings = ({ open, onClose, onOpenRequest, returnFocusRef }: SettingsProp
     }
   };
 
+  const handleTelemetryChange = (value: string) => {
+    if (settings) {
+      setSettings({ ...settings, telemetry: value as Telemetry });
+    }
+  };
+
   if (!open) {
     return null;
   }
@@ -89,23 +95,45 @@ const Settings = ({ open, onClose, onOpenRequest, returnFocusRef }: SettingsProp
       width="xlarge"
     >
       {settings && (
-        <FormControl>
-          <FormControl.Label>Theme Mode</FormControl.Label>
-          <Select
-            size="large"
-            value={settings.themeMode}
-            onChange={(event: ChangeEvent<HTMLSelectElement>) =>
-              handleThemeModeChange(event.target.value)
-            }
-          >
-            <Select.Option value="light">Light</Select.Option>
-            <Select.Option value="dark">Dark</Select.Option>
-            <Select.Option value="auto">Auto</Select.Option>
-          </Select>
-          <FormControl.Caption>
-            Choose your preferred theme. &quot;Auto&quot; will follow your system preference.
-          </FormControl.Caption>
-        </FormControl>
+        <Stack direction="vertical" gap="spacious">
+          <FormControl>
+            <FormControl.Label>Theme Mode</FormControl.Label>
+            <Select
+              size="large"
+              value={settings.themeMode}
+              onChange={(event: ChangeEvent<HTMLSelectElement>) =>
+                handleThemeModeChange(event.target.value)
+              }
+            >
+              <Select.Option value="light">Light</Select.Option>
+              <Select.Option value="dark">Dark</Select.Option>
+              <Select.Option value="auto">Auto</Select.Option>
+            </Select>
+            <FormControl.Caption>
+              Choose your preferred theme. &quot;Auto&quot; will follow your system preference.
+            </FormControl.Caption>
+          </FormControl>
+
+          <FormControl>
+            <FormControl.Label>Telemetry</FormControl.Label>
+            <Select
+              size="large"
+              value={settings.telemetry}
+              onChange={(event: ChangeEvent<HTMLSelectElement>) =>
+                handleTelemetryChange(event.target.value)
+              }
+            >
+              <Select.Option value="disabled">Disabled</Select.Option>
+              <Select.Option value="enabled">Enabled</Select.Option>
+            </Select>
+            <FormControl.Caption>
+              Choose whether to send anonymous usage data to help with fixing bugs and improving the
+              app. Data is anonymized, including images used in session replays. <br />
+              <br />
+              <b>Note: This requires a restart of the app to take effect.</b>
+            </FormControl.Caption>
+          </FormControl>
+        </Stack>
       )}
     </Dialog>
   );
