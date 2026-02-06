@@ -1,7 +1,7 @@
 import type { ChangeEvent, RefObject } from "react";
 import { useEffect, useState } from "react";
 
-import { Dialog, FormControl } from "@primer/react";
+import { Dialog, FormControl, Select } from "@primer/react";
 
 import type { SettingsData, ThemeMode } from "@/types";
 
@@ -87,31 +87,21 @@ const Settings = ({ open, onClose, onOpenRequest, returnFocusRef }: SettingsProp
         },
       ]}
       width="xlarge"
-      className="settings"
     >
       {settings && (
         <FormControl>
           <FormControl.Label>Theme Mode</FormControl.Label>
-          <select
+          <Select
+            size="large"
             value={settings.themeMode}
             onChange={(event: ChangeEvent<HTMLSelectElement>) =>
               handleThemeModeChange(event.target.value)
             }
-            style={{
-              width: "100%",
-              padding:
-                "var(--control-medium-size, 32px) var(--control-medium-paddingInline-normal, 12px)",
-              fontSize: "var(--text-body-size-medium, 14px)",
-              border: "1px solid var(--borderColor-default)",
-              borderRadius: "var(--borderRadius-medium, 6px)",
-              backgroundColor: "var(--bgColor-default)",
-              color: "var(--fgColor-default)",
-            }}
           >
-            <option value="light">Light</option>
-            <option value="dark">Dark</option>
-            <option value="auto">Auto</option>
-          </select>
+            <Select.Option value="light">Light</Select.Option>
+            <Select.Option value="dark">Dark</Select.Option>
+            <Select.Option value="auto">Auto</Select.Option>
+          </Select>
           <FormControl.Caption>
             Choose your preferred theme. &quot;Auto&quot; will follow your system preference.
           </FormControl.Caption>

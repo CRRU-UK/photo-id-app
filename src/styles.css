@@ -18,6 +18,7 @@ textarea,
 }
 
 .index {
+  z-index: 0;
   background-color: var(--bgColor-default);
   width: 100vw;
   min-height: 100vh;
@@ -202,9 +203,4 @@ body.copying *:hover {
   font-weight: var(--base-text-weight-semibold);
   font-family: var(--BaseStyles-fontFamily);
   color: var(--BaseStyles-fgColor, var(--fgColor-default, var(--color-fg-default)));
-}
-
-.settings {
-  /* By default sits below the timeline icon */
-  z-index: 1000;
 }
