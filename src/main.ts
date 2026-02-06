@@ -33,7 +33,7 @@ import {
   handleSaveProject,
 } from "@/backend/projects";
 import { getRecentProjects, removeRecentProject } from "@/backend/recents";
-import { getSettings, getSettingsSync, updateSettings } from "@/backend/settings";
+import { getSettings, updateSettings } from "@/backend/settings";
 import {
   DEFAULT_WINDOW_TITLE,
   EXTERNAL_LINKS,
@@ -44,7 +44,7 @@ import {
 import { version } from "../package.json";
 
 // Initialize Sentry only if telemetry is enabled
-const settings = getSettingsSync();
+const settings = await getSettings();
 if (settings.telemetry === "enabled" && process.env.SENTRY_DSN) {
   console.debug("Sentry is enabled in main");
 

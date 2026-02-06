@@ -17,8 +17,6 @@ import { routeTree } from "./routeTree.gen";
 
 import "./styles.css";
 
-// Sentry will be initialized conditionally based on telemetry settings in the App component
-
 const memoryHistory = createHashHistory();
 const router = createRouter({ routeTree, history: memoryHistory });
 
@@ -36,6 +34,7 @@ const getEffectiveColorMode = (themeMode: ThemeMode): "light" | "dark" => {
     const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
     return prefersDark ? "dark" : "light";
   }
+
   return themeMode;
 };
 
@@ -89,17 +88,16 @@ const App = () => {
       try {
         const loadedSettings = await window.electronAPI.getSettings();
         setSettings(loadedSettings);
+
         const effectiveMode = getEffectiveColorMode(loadedSettings.themeMode);
         setColorMode(effectiveMode);
         applyTheme(effectiveMode);
 
-        // Initialize Sentry conditionally based on telemetry setting
         if (loadedSettings.telemetry === "enabled") {
           initializeSentry();
         }
       } catch (error) {
         console.error("Error loading settings:", error);
-        // Default to dark if settings can't be loaded
         applyTheme("dark");
       }
     };
@@ -109,6 +107,7 @@ const App = () => {
     // Listen for settings updates (theme applies immediately; telemetry requires restart)
     const unsubscribe = window.electronAPI.onSettingsUpdated((updatedSettings: SettingsData) => {
       setSettings(updatedSettings);
+
       const effectiveMode = getEffectiveColorMode(updatedSettings.themeMode);
       setColorMode(effectiveMode);
       applyTheme(effectiveMode);

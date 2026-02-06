@@ -50,6 +50,7 @@ const Settings = ({ open, onClose, onOpenRequest, returnFocusRef }: SettingsProp
     }
 
     setIsLoading(true);
+
     try {
       await window.electronAPI.updateSettings(settings);
       onClose();

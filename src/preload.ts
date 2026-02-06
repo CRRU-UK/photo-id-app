@@ -50,7 +50,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
   openEditWindow: (data: PhotoBody) => ipcRenderer.send(IPC_EVENTS.OPEN_EDIT_WINDOW, data),
   openExternalLink: (link: ExternalLinks) => ipcRenderer.send(IPC_EVENTS.OPEN_EXTERNAL_LINK, link),
 
-  // Listeners (main-to-renderer); each returns an unsubscribe function for cleanup
+  // Listeners (main-to-renderer)
   onLoading: (callback: (...params: unknown[]) => void) =>
     subscribeIpc(IPC_EVENTS.SET_LOADING, callback),
   onLoadProject: (callback: (...params: unknown[]) => void) =>
