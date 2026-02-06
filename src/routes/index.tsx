@@ -1,14 +1,28 @@
 import type { LoadingData } from "@/types";
 
-import { BookIcon, FileDirectoryIcon, FileIcon, RepoIcon } from "@primer/octicons-react";
-import { BranchName, Button, Heading, Link, Stack as PrimerStack, Text } from "@primer/react";
+import { BookIcon, FileDirectoryIcon, FileIcon, GearIcon, RepoIcon } from "@primer/octicons-react";
+import {
+  BranchName,
+  Button,
+  Heading,
+  IconButton,
+  Link,
+  Stack as PrimerStack,
+  Text,
+} from "@primer/react";
 import { KeybindingHint } from "@primer/react/experimental";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-import { PROJECT_FILE_NAME, PROJECT_KEYBOARD_HINTS, PROJECT_STORAGE_NAME } from "@/constants";
+import {
+  GLOBAL_KEYBOARD_HINTS,
+  PROJECT_FILE_NAME,
+  PROJECT_KEYBOARD_HINTS,
+  PROJECT_STORAGE_NAME,
+} from "@/constants";
 import LoadingOverlay from "@/frontend/components/LoadingOverlay";
 import RecentProjects from "@/frontend/components/RecentProjects";
+import Settings from "@/frontend/components/Settings";
 
 import icon from "@/frontend/img/icon.svg";
 import logo from "@/frontend/img/logo.png";
@@ -17,15 +31,22 @@ import { version } from "../../package.json";
 
 const IndexPage = () => {
   const [loading, setLoading] = useState<LoadingData>({ show: false });
+  const [settingsOpen, setSettingsOpen] = useState<boolean>(false);
+  const settingsButtonRef = useRef<HTMLButtonElement>(null);
 
   const navigate = useNavigate();
 
   useEffect(() => {
-    window.electronAPI.onLoading((data) => setLoading(data));
-    window.electronAPI.onLoadProject((data) => {
+    const unsubscribeLoading = window.electronAPI.onLoading((data) => setLoading(data));
+    const unsubscribeLoadProject = window.electronAPI.onLoadProject((data) => {
       localStorage.setItem(PROJECT_STORAGE_NAME, JSON.stringify(data));
       return navigate({ to: "/project" });
     });
+
+    return () => {
+      unsubscribeLoading();
+      unsubscribeLoadProject();
+    };
   }, [navigate]);
 
   const handleOpenProjectFolder = () => window.electronAPI.openProjectFolder();
@@ -35,6 +56,13 @@ const IndexPage = () => {
   return (
     <>
       <LoadingOverlay data={loading} />
+
+      <Settings
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        onOpenRequest={() => setSettingsOpen(true)}
+        returnFocusRef={settingsButtonRef}
+      />
 
       <div className="index">
         <PrimerStack direction="vertical" align="stretch" gap="condensed" className="content">
@@ -82,6 +110,16 @@ const IndexPage = () => {
                 </Link>
               </PrimerStack>
             </div>
+
+            <IconButton
+              ref={settingsButtonRef}
+              icon={GearIcon}
+              size="large"
+              aria-label="Settings"
+              keybindingHint={GLOBAL_KEYBOARD_HINTS.OPEN_SETTINGS}
+              onClick={() => setSettingsOpen(!settingsOpen)}
+              style={{ marginLeft: "auto" }}
+            />
           </PrimerStack>
 
           <Text>

@@ -4,6 +4,17 @@ import { contextBridge, ipcRenderer } from "electron";
 
 import { IPC_EVENTS } from "@/constants";
 
+/**
+ * Subscribe to an IPC channel and return an unsubscribe function. Ensures listeners are removed
+ * when the renderer cleans up (e.g. on route change), avoiding duplicate handlers and
+ * setState-on-unmounted warnings.
+ */
+function subscribeIpc(channel: string, callback: (...args: unknown[]) => void): () => void {
+  const handler = (_event: Electron.IpcRendererEvent, ...args: unknown[]) => callback(...args);
+  ipcRenderer.on(channel, handler);
+  return () => ipcRenderer.removeListener(channel, handler);
+}
+
 contextBridge.exposeInMainWorld("electronAPI", {
   // Invocations (main and renderer)
   getRecentProjects: (): Promise<RecentProject[]> =>
@@ -30,11 +41,13 @@ contextBridge.exposeInMainWorld("electronAPI", {
   openEditWindow: (data: PhotoBody) => ipcRenderer.send(IPC_EVENTS.OPEN_EDIT_WINDOW, data),
   openExternalLink: (link: ExternalLinks) => ipcRenderer.send(IPC_EVENTS.OPEN_EXTERNAL_LINK, link),
 
-  // Listeners (main-to-renderer)
+  // Listeners (main-to-renderer); each returns an unsubscribe function for cleanup
   onLoading: (callback: (...params: unknown[]) => void) =>
-    ipcRenderer.on(IPC_EVENTS.SET_LOADING, (_event, value) => callback(value)),
+    subscribeIpc(IPC_EVENTS.SET_LOADING, callback),
   onLoadProject: (callback: (...params: unknown[]) => void) =>
-    ipcRenderer.on(IPC_EVENTS.LOAD_PROJECT, (_event, value) => callback(value)),
+    subscribeIpc(IPC_EVENTS.LOAD_PROJECT, callback),
+  onOpenSettings: (callback: () => void) =>
+    subscribeIpc(IPC_EVENTS.OPEN_SETTINGS, () => callback()),
   onUpdatePhoto: (callback: (...params: unknown[]) => void) =>
-    ipcRenderer.on(IPC_EVENTS.UPDATE_PHOTO, (_event, value) => callback(value)),
+    subscribeIpc(IPC_EVENTS.UPDATE_PHOTO, callback),
 });

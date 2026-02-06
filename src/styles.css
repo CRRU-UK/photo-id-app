@@ -203,3 +203,8 @@ body.copying *:hover {
   font-family: var(--BaseStyles-fontFamily);
   color: var(--BaseStyles-fgColor, var(--fgColor-default, var(--color-fg-default)));
 }
+
+.settings {
+  /* By default sits below the timeline icon */
+  z-index: 1000;
+}

@@ -25,10 +25,11 @@ export interface IElectronAPI {
   openEditWindow: (data: PhotoBody) => void;
   openExternalLink: (link: ExternalLinks) => void;
 
-  // Listeners (main-to-renderer)
-  onLoading: (callback: (data: LoadingData) => void) => void;
-  onLoadProject: (callback: (value: ProjectBody) => void) => void;
-  onUpdatePhoto: (callback: (data: PhotoBody) => void) => void;
+  // Listeners (main-to-renderer); each returns an unsubscribe function for cleanup
+  onLoading: (callback: (data: LoadingData) => void) => () => void;
+  onLoadProject: (callback: (value: ProjectBody) => void) => () => void;
+  onOpenSettings: (callback: () => void) => () => void;
+  onUpdatePhoto: (callback: (data: PhotoBody) => void) => () => void;
 }
 
 declare global {

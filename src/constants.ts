@@ -22,6 +22,7 @@ export enum IPC_EVENTS {
   // UI
   SET_LOADING = "ui:setLoading",
   OPEN_EXTERNAL_LINK = "ui:openExternalLink",
+  OPEN_SETTINGS = "ui:openSettings",
 
   // Editor
   OPEN_EDIT_WINDOW = "edit:openEditWindow",
@@ -39,6 +40,10 @@ export const EXISTING_DATA_BUTTONS = ["Cancel", "Open Existing Data", "Replace E
 
 export const MISSING_RECENT_PROJECT_MESSAGE =
   "Project not found, directory or data file may have been deleted.";
+
+export const GLOBAL_KEYBOARD_HINTS = {
+  OPEN_SETTINGS: "Mod+,",
+};
 
 export const PROJECT_KEYBOARD_HINTS = {
   OPEN_PROJECT_FOLDER: "Mod+O",
