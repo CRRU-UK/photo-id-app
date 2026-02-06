@@ -93,3 +93,12 @@ export type ImageTransformations = {
   zoom: number;
   pan: { x: number; y: number };
 };
+
+export type ThemeMode = "light" | "dark" | "auto";
+
+export type Telemetry = "enabled" | "disabled";
+
+export type SettingsData = {
+  themeMode: ThemeMode;
+  telemetry: Telemetry;
+};

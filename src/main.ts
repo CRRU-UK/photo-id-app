@@ -18,6 +18,7 @@ import type {
   PhotoBody,
   ProjectBody,
   RecentProject,
+  SettingsData,
 } from "@/types";
 
 import { getMenu } from "@/backend/menu";
@@ -32,6 +33,7 @@ import {
   handleSaveProject,
 } from "@/backend/projects";
 import { getRecentProjects, removeRecentProject } from "@/backend/recents";
+import { getSettings, updateSettings } from "@/backend/settings";
 import {
   DEFAULT_WINDOW_TITLE,
   EXTERNAL_LINKS,
@@ -40,13 +42,6 @@ import {
 } from "@/constants";
 
 import { version } from "../package.json";
-
-Sentry.init({
-  dsn: process.env.SENTRY_DSN,
-  integrations: [Sentry.consoleLoggingIntegration({ levels: ["log", "warn", "error"] })],
-  enableRendererProfiling: true,
-  _experiments: { enableLogs: true },
-});
 
 updateElectronApp();
 
@@ -119,7 +114,21 @@ app.on("activate", async () => {
   }
 });
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
+  const settings = await getSettings();
+  if (settings.telemetry === "enabled" && process.env.SENTRY_DSN) {
+    console.debug("Sentry is enabled in main");
+
+    Sentry.init({
+      dsn: process.env.SENTRY_DSN,
+      integrations: [Sentry.consoleLoggingIntegration({ levels: ["log", "warn", "error"] })],
+      enableRendererProfiling: true,
+      _experiments: { enableLogs: true },
+    });
+  } else {
+    console.debug("Sentry is disabled in main");
+  }
+
   if (!production) {
     installExtension([REACT_DEVELOPER_TOOLS, MOBX_DEVTOOLS]);
   }
@@ -258,6 +267,31 @@ app.whenReady().then(() => {
   ipcMain.handle(IPC_EVENTS.DUPLICATE_PHOTO_FILE, async (event, data: PhotoBody) => {
     const result = await handleDuplicatePhotoFile(data);
     return result;
+  });
+
+  ipcMain.handle(IPC_EVENTS.GET_SETTINGS, async (): Promise<SettingsData> => {
+    const result = await getSettings();
+    return result;
+  });
+
+  ipcMain.handle(
+    IPC_EVENTS.UPDATE_SETTINGS,
+    async (_event, settings: SettingsData): Promise<void> => {
+      await updateSettings(settings);
+
+      // Notify all windows of settings change
+      const allWindows = BrowserWindow.getAllWindows();
+      for (const window of allWindows) {
+        window.webContents.send(IPC_EVENTS.SETTINGS_UPDATED, settings);
+      }
+    },
+  );
+
+  ipcMain.on(IPC_EVENTS.OPEN_SETTINGS, () => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.focus();
+      mainWindow.webContents.send(IPC_EVENTS.OPEN_SETTINGS);
+    }
   });
 
   ipcMain.on(IPC_EVENTS.OPEN_EXTERNAL_LINK, (event, link: ExternalLinks) => {

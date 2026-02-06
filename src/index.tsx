@@ -6,30 +6,15 @@ import "@primer/primitives/dist/css/functional/themes/light.css";
 import "@primer/primitives/dist/css/primitives.css";
 
 import { BaseStyles, ThemeProvider } from "@primer/react";
-import * as Sentry from "@sentry/electron/renderer";
 import { RouterProvider, createHashHistory, createRouter } from "@tanstack/react-router";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 
+import { SettingsProvider, useSettings } from "@/contexts/SettingsContext";
+
 import { routeTree } from "./routeTree.gen";
 
 import "./styles.css";
-
-Sentry.init({
-  dsn: import.meta.env.VITE_SENTRY_DSN as string,
-  telemetry: false,
-  tracesSampleRate: 1,
-  profilesSampleRate: 1,
-  replaysSessionSampleRate: 1,
-  replaysOnErrorSampleRate: 1,
-  integrations: [
-    Sentry.browserTracingIntegration(),
-    Sentry.browserProfilingIntegration(),
-    Sentry.replayIntegration(),
-    Sentry.consoleLoggingIntegration({ levels: ["log", "warn", "error"] }),
-  ],
-  _experiments: { enableLogs: true },
-});
 
 const memoryHistory = createHashHistory();
 const router = createRouter({ routeTree, history: memoryHistory });
@@ -40,15 +25,29 @@ declare module "@tanstack/react-router" {
   }
 }
 
-const container = document.getElementById("root") as HTMLDivElement;
-const root = createRoot(container);
+const AppContent = () => {
+  const { colorMode } = useSettings();
 
-root.render(
-  <StrictMode>
-    <ThemeProvider colorMode="dark">
+  return (
+    <ThemeProvider colorMode={colorMode}>
       <BaseStyles>
         <RouterProvider router={router} />
       </BaseStyles>
     </ThemeProvider>
-  </StrictMode>,
-);
+  );
+};
+
+const App = () => {
+  return (
+    <StrictMode>
+      <SettingsProvider>
+        <AppContent />
+      </SettingsProvider>
+    </StrictMode>
+  );
+};
+
+const container = document.getElementById("root") as HTMLDivElement;
+const root = createRoot(container);
+
+root.render(<App />);

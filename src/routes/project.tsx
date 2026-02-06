@@ -24,6 +24,7 @@ import ProjectContext from "@/contexts/ProjectContext";
 
 import LoadingOverlay from "@/frontend/components/LoadingOverlay";
 import Selections from "@/frontend/components/Selections";
+import Settings from "@/frontend/components/Settings";
 import Sidebar from "@/frontend/components/Sidebar";
 
 import { chunkArray, getAlphabetLetter } from "@/helpers";
@@ -50,6 +51,7 @@ const ProjectPage = () => {
   const [draggingCollectionFrom, setDraggingCollectionFrom] = useState<Collection | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(0);
   const [loading, setLoading] = useState<LoadingData>({ show: false });
+  const [settingsOpen, setSettingsOpen] = useState<boolean>(false);
   const [isCopying, setIsCopying] = useState<boolean>(false);
   const [columns, setColumns] = useState<number>(2);
 
@@ -155,14 +157,17 @@ const ProjectPage = () => {
   );
 
   useEffect(() => {
-    // Rename this and also handle adding edited to photo (but need to account for reversion)
-    window.electronAPI.onUpdatePhoto((data) => project.updatePhoto(data));
-    window.electronAPI.onLoading((data) => setLoading(data));
+    const unsubscribeUpdatePhoto = window.electronAPI.onUpdatePhoto((data) =>
+      project.updatePhoto(data),
+    );
+    const unsubscribeLoading = window.electronAPI.onLoading((data) => setLoading(data));
 
     document.addEventListener("keyup", handleKeyUp);
     document.addEventListener("keydown", handleKeyDown);
 
     return () => {
+      unsubscribeUpdatePhoto();
+      unsubscribeLoading();
       document.removeEventListener("keyup", handleKeyUp);
       document.removeEventListener("keydown", handleKeyDown);
     };
@@ -174,6 +179,12 @@ const ProjectPage = () => {
   return (
     <ProjectContext value={project}>
       <LoadingOverlay data={loading} />
+
+      <Settings
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        onOpenRequest={() => setSettingsOpen(true)}
+      />
 
       <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
         <DragOverlay dropAnimation={null}>

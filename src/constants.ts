@@ -1,4 +1,4 @@
-import type { PhotoEdits } from "@/types";
+import type { PhotoEdits, SettingsData } from "@/types";
 
 export enum IPC_EVENTS {
   // Projects
@@ -22,6 +22,10 @@ export enum IPC_EVENTS {
   // UI
   SET_LOADING = "ui:setLoading",
   OPEN_EXTERNAL_LINK = "ui:openExternalLink",
+  OPEN_SETTINGS = "ui:openSettings",
+  GET_SETTINGS = "ui:getSettings",
+  UPDATE_SETTINGS = "ui:updateSettings",
+  SETTINGS_UPDATED = "ui:settingsUpdated",
 
   // Editor
   OPEN_EDIT_WINDOW = "edit:openEditWindow",
@@ -39,6 +43,10 @@ export const EXISTING_DATA_BUTTONS = ["Cancel", "Open Existing Data", "Replace E
 
 export const MISSING_RECENT_PROJECT_MESSAGE =
   "Project not found, directory or data file may have been deleted.";
+
+export const GLOBAL_KEYBOARD_HINTS = {
+  OPEN_SETTINGS: "Mod+,",
+};
 
 export const PROJECT_KEYBOARD_HINTS = {
   OPEN_PROJECT_FOLDER: "Mod+O",
@@ -125,6 +133,8 @@ export const THUMBNAIL_SIZE = 1000;
 
 export const RECENT_PROJECTS_FILE_NAME = "recent-projects.json";
 
+export const SETTINGS_FILE_NAME = "settings.json";
+
 export const MAX_RECENT_PROJECTS = 5;
 
 export const MATCHED_STACKS_PER_PAGE = 8;
@@ -181,4 +191,9 @@ export const EDGE_DETECTION = {
   MAX: 100,
   DEFAULT: 50,
   CONTRAST: 50,
+};
+
+export const DEFAULT_SETTINGS: SettingsData = {
+  themeMode: "dark",
+  telemetry: "disabled",
 };

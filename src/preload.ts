@@ -1,8 +1,25 @@
-import type { EditorNavigation, ExternalLinks, PhotoBody, RecentProject } from "@/types";
+import type {
+  EditorNavigation,
+  ExternalLinks,
+  PhotoBody,
+  RecentProject,
+  SettingsData,
+} from "@/types";
 
 import { contextBridge, ipcRenderer } from "electron";
 
 import { IPC_EVENTS } from "@/constants";
+
+/**
+ * Subscribe to an IPC channel and return an unsubscribe function. Ensures listeners are removed
+ * when the renderer cleans up (e.g. on route change), avoiding duplicate handlers and
+ * setState-on-unmounted warnings.
+ */
+function subscribeIpc(channel: string, callback: (...args: unknown[]) => void): () => void {
+  const handler = (_event: Electron.IpcRendererEvent, ...args: unknown[]) => callback(...args);
+  ipcRenderer.on(channel, handler);
+  return () => ipcRenderer.removeListener(channel, handler);
+}
 
 contextBridge.exposeInMainWorld("electronAPI", {
   // Invocations (main and renderer)
@@ -20,6 +37,9 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ipcRenderer.invoke(IPC_EVENTS.NAVIGATE_EDITOR_PHOTO, data, direction),
   duplicatePhotoFile: (data: PhotoBody): Promise<PhotoBody> =>
     ipcRenderer.invoke(IPC_EVENTS.DUPLICATE_PHOTO_FILE, data),
+  getSettings: (): Promise<SettingsData> => ipcRenderer.invoke(IPC_EVENTS.GET_SETTINGS),
+  updateSettings: (settings: SettingsData): Promise<void> =>
+    ipcRenderer.invoke(IPC_EVENTS.UPDATE_SETTINGS, settings),
 
   // Methods (renderer-to-main)
   openProjectFolder: () => ipcRenderer.send(IPC_EVENTS.OPEN_FOLDER),
@@ -32,9 +52,13 @@ contextBridge.exposeInMainWorld("electronAPI", {
 
   // Listeners (main-to-renderer)
   onLoading: (callback: (...params: unknown[]) => void) =>
-    ipcRenderer.on(IPC_EVENTS.SET_LOADING, (_event, value) => callback(value)),
+    subscribeIpc(IPC_EVENTS.SET_LOADING, callback),
   onLoadProject: (callback: (...params: unknown[]) => void) =>
-    ipcRenderer.on(IPC_EVENTS.LOAD_PROJECT, (_event, value) => callback(value)),
+    subscribeIpc(IPC_EVENTS.LOAD_PROJECT, callback),
+  onOpenSettings: (callback: () => void) =>
+    subscribeIpc(IPC_EVENTS.OPEN_SETTINGS, () => callback()),
   onUpdatePhoto: (callback: (...params: unknown[]) => void) =>
-    ipcRenderer.on(IPC_EVENTS.UPDATE_PHOTO, (_event, value) => callback(value)),
+    subscribeIpc(IPC_EVENTS.UPDATE_PHOTO, callback),
+  onSettingsUpdated: (callback: (...params: unknown[]) => void) =>
+    subscribeIpc(IPC_EVENTS.SETTINGS_UPDATED, callback),
 });

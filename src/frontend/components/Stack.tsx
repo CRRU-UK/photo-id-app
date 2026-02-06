@@ -82,16 +82,7 @@ const Stack = observer(({ collection }: StackProps) => {
 
   return (
     <>
-      <div
-        style={{
-          position: "relative",
-          width: "100%",
-          height: "auto",
-          aspectRatio: "4/3",
-          objectFit: "cover",
-          background: "var(--bgColor-emphasis)",
-        }}
-      >
+      <div className="photo-stack">
         <div
           ref={setDraggableNodeRef}
           {...listeners}
