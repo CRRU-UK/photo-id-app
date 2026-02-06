@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 
 import { Dialog, FormControl, Select, Stack } from "@primer/react";
 
+import { useSettings } from "@/contexts/SettingsContext";
 import type { SettingsData, Telemetry, ThemeMode } from "@/types";
 
 interface SettingsProps {
@@ -13,7 +14,8 @@ interface SettingsProps {
 }
 
 const Settings = ({ open, onClose, onOpenRequest, returnFocusRef }: SettingsProps) => {
-  const [settings, setSettings] = useState<SettingsData | null>(null);
+  const { settings: contextSettings, updateSettings } = useSettings();
+  const [draftSettings, setDraftSettings] = useState<SettingsData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -25,34 +27,27 @@ const Settings = ({ open, onClose, onOpenRequest, returnFocusRef }: SettingsProp
   }, [onOpenRequest]);
 
   useEffect(() => {
-    if (open) {
-      loadSettings();
+    if (open && contextSettings) {
+      setDraftSettings({ ...contextSettings });
+    } else if (!open) {
+      setDraftSettings(null);
     }
-  }, [open]);
-
-  const loadSettings = async () => {
-    try {
-      const loadedSettings = await window.electronAPI.getSettings();
-      setSettings(loadedSettings);
-    } catch (error) {
-      console.error("Error loading settings:", error);
-    }
-  };
+  }, [open, contextSettings]);
 
   const handleClose = () => {
-    setSettings(null);
+    setDraftSettings(null);
     onClose();
   };
 
   const handleSave = async () => {
-    if (!settings) {
+    if (!draftSettings) {
       return;
     }
 
     setIsLoading(true);
 
     try {
-      await window.electronAPI.updateSettings(settings);
+      await updateSettings(draftSettings);
       onClose();
     } catch (error) {
       console.error("Error saving settings:", error);
@@ -62,14 +57,14 @@ const Settings = ({ open, onClose, onOpenRequest, returnFocusRef }: SettingsProp
   };
 
   const handleThemeModeChange = (value: string) => {
-    if (settings) {
-      setSettings({ ...settings, themeMode: value as ThemeMode });
+    if (draftSettings) {
+      setDraftSettings({ ...draftSettings, themeMode: value as ThemeMode });
     }
   };
 
   const handleTelemetryChange = (value: string) => {
-    if (settings) {
-      setSettings({ ...settings, telemetry: value as Telemetry });
+    if (draftSettings) {
+      setDraftSettings({ ...draftSettings, telemetry: value as Telemetry });
     }
   };
 
@@ -90,18 +85,18 @@ const Settings = ({ open, onClose, onOpenRequest, returnFocusRef }: SettingsProp
           onClick: (): void => {
             void handleSave();
           },
-          disabled: isLoading || !settings,
+          disabled: isLoading || !draftSettings,
         },
       ]}
       width="xlarge"
     >
-      {settings && (
+      {draftSettings && (
         <Stack direction="vertical" gap="spacious">
           <FormControl>
             <FormControl.Label>Theme Mode</FormControl.Label>
             <Select
               size="large"
-              value={settings.themeMode}
+              value={draftSettings.themeMode}
               onChange={(event: ChangeEvent<HTMLSelectElement>) =>
                 handleThemeModeChange(event.target.value)
               }
@@ -119,7 +114,7 @@ const Settings = ({ open, onClose, onOpenRequest, returnFocusRef }: SettingsProp
             <FormControl.Label>Telemetry</FormControl.Label>
             <Select
               size="large"
-              value={settings.telemetry}
+              value={draftSettings.telemetry}
               onChange={(event: ChangeEvent<HTMLSelectElement>) =>
                 handleTelemetryChange(event.target.value)
               }

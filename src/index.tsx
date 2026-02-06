@@ -6,12 +6,11 @@ import "@primer/primitives/dist/css/functional/themes/light.css";
 import "@primer/primitives/dist/css/primitives.css";
 
 import { BaseStyles, ThemeProvider } from "@primer/react";
-import * as Sentry from "@sentry/electron/renderer";
 import { RouterProvider, createHashHistory, createRouter } from "@tanstack/react-router";
-import { StrictMode, useEffect, useState } from "react";
+import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 
-import type { SettingsData, ThemeMode } from "@/types";
+import { SettingsProvider, useSettings } from "@/contexts/SettingsContext";
 
 import { routeTree } from "./routeTree.gen";
 
@@ -26,125 +25,24 @@ declare module "@tanstack/react-router" {
   }
 }
 
-/**
- * Gets the effective color mode based on theme mode setting and system preference.
- */
-const getEffectiveColorMode = (themeMode: ThemeMode): "light" | "dark" => {
-  if (themeMode === "auto") {
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    return prefersDark ? "dark" : "light";
-  }
+const AppContent = () => {
+  const { colorMode } = useSettings();
 
-  return themeMode;
-};
-
-/**
- * Applies the theme to the document based on the color mode.
- */
-const applyTheme = (colorMode: "light" | "dark") => {
-  document.documentElement.dataset.colorMode = colorMode;
-  document.documentElement.dataset.lightTheme = colorMode;
-  document.documentElement.dataset.darkTheme = colorMode;
-};
-
-const initializeSentry = () => {
-  const sentryDsn = import.meta.env.VITE_SENTRY_DSN as string;
-
-  if (!sentryDsn) {
-    console.debug("Sentry is disabled in renderer");
-    return;
-  }
-
-  console.debug("Sentry is enabled in renderer");
-
-  // Check if Sentry is already initialized
-  if (Sentry.getClient()) {
-    return;
-  }
-
-  Sentry.init({
-    dsn: sentryDsn,
-    telemetry: false,
-    tracesSampleRate: 1,
-    profilesSampleRate: 1,
-    replaysSessionSampleRate: 1,
-    replaysOnErrorSampleRate: 1,
-    integrations: [
-      Sentry.browserTracingIntegration(),
-      Sentry.browserProfilingIntegration(),
-      Sentry.replayIntegration(),
-      Sentry.consoleLoggingIntegration({ levels: ["log", "warn", "error"] }),
-    ],
-    _experiments: { enableLogs: true },
-  });
+  return (
+    <ThemeProvider colorMode={colorMode}>
+      <BaseStyles>
+        <RouterProvider router={router} />
+      </BaseStyles>
+    </ThemeProvider>
+  );
 };
 
 const App = () => {
-  const [colorMode, setColorMode] = useState<"light" | "dark">("dark");
-  const [settings, setSettings] = useState<SettingsData | null>(null);
-
-  useEffect(() => {
-    const loadSettings = async () => {
-      try {
-        const loadedSettings = await window.electronAPI.getSettings();
-        setSettings(loadedSettings);
-
-        const effectiveMode = getEffectiveColorMode(loadedSettings.themeMode);
-        setColorMode(effectiveMode);
-        applyTheme(effectiveMode);
-
-        if (loadedSettings.telemetry === "enabled") {
-          initializeSentry();
-        }
-      } catch (error) {
-        console.error("Error loading settings:", error);
-        applyTheme("dark");
-      }
-    };
-
-    loadSettings();
-
-    // Listen for settings updates (theme applies immediately; telemetry requires restart)
-    const unsubscribe = window.electronAPI.onSettingsUpdated((updatedSettings: SettingsData) => {
-      setSettings(updatedSettings);
-
-      const effectiveMode = getEffectiveColorMode(updatedSettings.themeMode);
-      setColorMode(effectiveMode);
-      applyTheme(effectiveMode);
-    });
-
-    return () => {
-      unsubscribe();
-    };
-  }, []);
-
-  useEffect(() => {
-    // Listen for system theme changes when in auto mode
-    if (settings?.themeMode !== "auto") {
-      return;
-    }
-
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-    const handleSystemThemeChange = () => {
-      const effectiveMode = getEffectiveColorMode("auto");
-      setColorMode(effectiveMode);
-      applyTheme(effectiveMode);
-    };
-
-    mediaQuery.addEventListener("change", handleSystemThemeChange);
-
-    return () => {
-      mediaQuery.removeEventListener("change", handleSystemThemeChange);
-    };
-  }, [settings?.themeMode]);
-
   return (
     <StrictMode>
-      <ThemeProvider colorMode={colorMode}>
-        <BaseStyles>
-          <RouterProvider router={router} />
-        </BaseStyles>
-      </ThemeProvider>
+      <SettingsProvider>
+        <AppContent />
+      </SettingsProvider>
     </StrictMode>
   );
 };

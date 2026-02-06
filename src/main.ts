@@ -43,21 +43,6 @@ import {
 
 import { version } from "../package.json";
 
-// Initialize Sentry only if telemetry is enabled
-const settings = await getSettings();
-if (settings.telemetry === "enabled" && process.env.SENTRY_DSN) {
-  console.debug("Sentry is enabled in main");
-
-  Sentry.init({
-    dsn: process.env.SENTRY_DSN,
-    integrations: [Sentry.consoleLoggingIntegration({ levels: ["log", "warn", "error"] })],
-    enableRendererProfiling: true,
-    _experiments: { enableLogs: true },
-  });
-} else {
-  console.debug("Sentry is disabled in main");
-}
-
 updateElectronApp();
 
 const production = app.isPackaged;
@@ -129,7 +114,21 @@ app.on("activate", async () => {
   }
 });
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
+  const settings = await getSettings();
+  if (settings.telemetry === "enabled" && process.env.SENTRY_DSN) {
+    console.debug("Sentry is enabled in main");
+
+    Sentry.init({
+      dsn: process.env.SENTRY_DSN,
+      integrations: [Sentry.consoleLoggingIntegration({ levels: ["log", "warn", "error"] })],
+      enableRendererProfiling: true,
+      _experiments: { enableLogs: true },
+    });
+  } else {
+    console.debug("Sentry is disabled in main");
+  }
+
   if (!production) {
     installExtension([REACT_DEVELOPER_TOOLS, MOBX_DEVTOOLS]);
   }
