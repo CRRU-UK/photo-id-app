@@ -101,7 +101,7 @@ export const SettingsProvider = ({ children }: SettingsProviderProps) => {
         console.error("Error loading settings:", error);
 
         setSettings(DEFAULT_SETTINGS);
-        applyTheme(getEffectiveColorMode(DEFAULT_SETTINGS.themeMode));
+        applySettingsToTheme(DEFAULT_SETTINGS);
       }
     };
 
