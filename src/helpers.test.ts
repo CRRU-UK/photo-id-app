@@ -323,9 +323,8 @@ describe(encodeEditPayload, () => {
     const encoded = encodeEditPayload(data);
 
     expectTypeOf(encoded).toBeString();
-    expect(encoded).toMatch(
-      "eyJkaXJlY3RvcnkiOiIvcGF0aC90by9wcm9qZWN0IiwibmFtZSI6InBob3RvLmpwZyIsInRodW1ibmFpbCI6Ii50aHVtYm5haWxzL3Bob3RvLmpwZyIsImVkaXRzIjp7ImJyaWdodG5lc3MiOjEwMCwiY29udHJhc3QiOjEwMCwic2F0dXJhdGUiOjEwMCwiem9vbSI6MSwicGFuIjp7IngiOjAsInkiOjB9fSwiaXNFZGl0ZWQiOmZhbHNlfQ==",
-    );
+
+    expect(decodeEditPayload(encodeEditPayload(data))).toStrictEqual(data);
   });
 });
 

@@ -8,6 +8,7 @@ import {
   REACT_DEVELOPER_TOOLS,
 } from "electron-devtools-installer";
 import started from "electron-squirrel-startup";
+import fs from "node:fs";
 import path from "node:path";
 import url from "node:url";
 import { updateElectronApp } from "update-electron-app";
@@ -24,6 +25,7 @@ import type {
 import { getMenu } from "@/backend/menu";
 import { createPhotoThumbnail, revertPhotoToOriginal } from "@/backend/photos";
 import {
+  getCurrentProjectDirectory,
   handleDuplicatePhotoFile,
   handleEditorNavigate,
   handleExportMatches,
@@ -31,6 +33,8 @@ import {
   handleOpenFilePrompt,
   handleOpenProjectFile,
   handleSaveProject,
+  loadPersistedCurrentProject,
+  setCurrentProject,
 } from "@/backend/projects";
 import { getRecentProjects, removeRecentProject } from "@/backend/recents";
 import { getSettings, updateSettings } from "@/backend/settings";
@@ -40,6 +44,7 @@ import {
   EXTERNAL_LINKS,
   IPC_EVENTS,
   PROJECT_EXPORT_DIRECTORY,
+  PROJECT_FILE_NAME,
 } from "@/constants";
 import { encodeEditPayload } from "@/helpers";
 
@@ -114,6 +119,8 @@ app.on("activate", async () => {
 });
 
 app.whenReady().then(async () => {
+  await loadPersistedCurrentProject();
+
   const settings = await getSettings();
   if (settings.telemetry === "enabled" && process.env.SENTRY_DSN) {
     console.debug("Sentry is enabled in main");
@@ -163,7 +170,25 @@ app.whenReady().then(async () => {
     },
   );
 
+  ipcMain.handle(IPC_EVENTS.GET_CURRENT_PROJECT, async (): Promise<ProjectBody | null> => {
+    const directory = getCurrentProjectDirectory();
+
+    if (directory === null) {
+      return null;
+    }
+
+    const filePath = path.join(directory, PROJECT_FILE_NAME);
+
+    try {
+      const content = await fs.promises.readFile(filePath, "utf8");
+      return JSON.parse(content) as ProjectBody;
+    } catch {
+      return null;
+    }
+  });
+
   ipcMain.on(IPC_EVENTS.CLOSE_PROJECT, () => {
+    setCurrentProject(null);
     windowManager.closeAllEditWindows();
 
     const mainWindow = windowManager.getMainWindow();

@@ -9,6 +9,7 @@ import type {
 
 export interface IElectronAPI {
   // Invocations (main and renderer)
+  getCurrentProject: () => Promise<ProjectBody | null>;
   getRecentProjects: () => Promise<RecentProject[]>;
   removeRecentProject: (path: string) => Promise<RecentProject[]>;
   exportMatches: (data: string) => Promise<void>;

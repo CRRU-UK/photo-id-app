@@ -29,7 +29,54 @@ import {
 } from "@/constants";
 import { getAlphabetLetter } from "@/helpers";
 
+const CURRENT_PROJECT_FILE_NAME = "current-project.json";
+
+let currentProjectDirectory: string | null = null;
+
+const getCurrentProjectFilePath = (): string =>
+  path.join(app.getPath("userData"), CURRENT_PROJECT_FILE_NAME);
+
+/**
+ * Loads the persisted current project path from userData (e.g. after app restart).
+ * Call once when the app is ready, before the renderer asks for the current project.
+ */
+export const loadPersistedCurrentProject = async (): Promise<void> => {
+  const filePath = getCurrentProjectFilePath();
+
+  try {
+    const content = await fs.promises.readFile(filePath, "utf8");
+    const parsed = JSON.parse(content) as { directory: string | null };
+
+    if (typeof parsed.directory === "string" && parsed.directory.length > 0) {
+      currentProjectDirectory = parsed.directory;
+    }
+  } catch {
+    currentProjectDirectory = null;
+  }
+};
+
+/**
+ * Returns the directory of the currently open project, or null if none.
+ */
+export const getCurrentProjectDirectory = (): string | null => currentProjectDirectory;
+
+/**
+ * Sets the current project directory (when a project is loaded or closed).
+ * Persists to userData so the project can be restored after reload or app restart.
+ */
+export const setCurrentProject = (directory: string | null): void => {
+  currentProjectDirectory = directory;
+  const filePath = getCurrentProjectFilePath();
+
+  const content = JSON.stringify({ directory: currentProjectDirectory });
+
+  fs.promises.writeFile(filePath, content, "utf8").catch((error) => {
+    console.error("Failed to persist current project path:", error);
+  });
+};
+
 const sendData = (mainWindow: Electron.BrowserWindow, data: ProjectBody) => {
+  setCurrentProject(data.directory);
   mainWindow.setTitle(`${DEFAULT_WINDOW_TITLE} - ${data.directory}`);
   mainWindow.webContents.send(IPC_EVENTS.LOAD_PROJECT, data);
   mainWindow.focus();

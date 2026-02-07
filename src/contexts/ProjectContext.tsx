@@ -10,6 +10,7 @@ import {
 } from "react";
 
 import ProjectModel from "@/models/Project";
+import type { ProjectBody } from "@/types";
 
 interface ProjectContextValue {
   project: ProjectModel | null;
@@ -37,6 +38,23 @@ export const ProjectProvider = ({ children }: ProjectProviderProps) => {
       unsubscribeLoadProject();
     };
   }, [setProject]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    void window.electronAPI.getCurrentProject().then((data: ProjectBody | null) => {
+      if (cancelled || data === null) {
+        return;
+      }
+
+      setProject(new ProjectModel(data));
+      pendingNavigateToProjectRef.current = true;
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (project !== null && pendingNavigateToProjectRef.current) {

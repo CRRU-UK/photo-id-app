@@ -25,6 +25,8 @@ function subscribeIpc<T>(channel: string, callback: (data: T) => void): () => vo
 
 contextBridge.exposeInMainWorld("electronAPI", {
   // Invocations (main and renderer)
+  getCurrentProject: (): Promise<ProjectBody | null> =>
+    ipcRenderer.invoke(IPC_EVENTS.GET_CURRENT_PROJECT),
   getRecentProjects: (): Promise<RecentProject[]> =>
     ipcRenderer.invoke(IPC_EVENTS.GET_RECENT_PROJECTS),
   removeRecentProject: (path: string): Promise<RecentProject[]> =>

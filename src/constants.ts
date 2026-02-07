@@ -5,6 +5,7 @@ export enum IPC_EVENTS {
   OPEN_FOLDER = "project:openFolderPrompt",
   OPEN_FILE = "project:openFilePrompt",
   OPEN_PROJECT_FILE = "project:openProjectFile",
+  GET_CURRENT_PROJECT = "project:getCurrentProject",
   GET_RECENT_PROJECTS = "project:getRecentProjects",
   REMOVE_RECENT_PROJECT = "project:removeRecentProject",
   SAVE_PROJECT = "project:saveProject",
