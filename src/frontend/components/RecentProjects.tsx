@@ -16,8 +16,6 @@ const RecentProjects = () => {
   const [recentProjects, setRecentProjects] = useState<RecentProject[] | null>(null);
 
   useEffect(() => {
-    window.electronAPI.getRecentProjects();
-
     async function getRecentProjects() {
       const data = await window.electronAPI.getRecentProjects();
       setRecentProjects(data);

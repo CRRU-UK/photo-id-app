@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useCanvasRenderer } from "./imageEditor/useCanvasRenderer";
 import { useImageFilters } from "./imageEditor/useImageFilters";
@@ -172,28 +172,52 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
     ],
   );
 
-  return {
-    canvasRef,
-    imageRef,
-    imageLoaded,
-    draw,
-    setBrightness,
-    setContrast,
-    setSaturate,
-    setEdgeDetection,
-    getFilters,
-    getTransform,
-    handleZoomIn,
-    handleZoomOut,
-    handlePointerDown,
-    handlePointerUp,
-    handlePointerMove,
-    handleWheel,
-    handlePan,
-    resetAll,
-    applyEdits,
-    resetKey,
-  };
+  return useMemo(
+    () => ({
+      canvasRef,
+      imageRef,
+      imageLoaded,
+      draw,
+      setBrightness,
+      setContrast,
+      setSaturate,
+      setEdgeDetection,
+      getFilters,
+      getTransform,
+      handleZoomIn,
+      handleZoomOut,
+      handlePointerDown,
+      handlePointerUp,
+      handlePointerMove,
+      handleWheel,
+      handlePan,
+      resetAll,
+      applyEdits,
+      resetKey,
+    }),
+    [
+      canvasRef,
+      imageRef,
+      imageLoaded,
+      draw,
+      setBrightness,
+      setContrast,
+      setSaturate,
+      setEdgeDetection,
+      getFilters,
+      getTransform,
+      handleZoomIn,
+      handleZoomOut,
+      handlePointerDown,
+      handlePointerUp,
+      handlePointerMove,
+      handleWheel,
+      handlePan,
+      resetAll,
+      applyEdits,
+      resetKey,
+    ],
+  );
 };
 
 export default useImageEditor;

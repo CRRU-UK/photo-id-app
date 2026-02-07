@@ -57,20 +57,22 @@ const Settings = ({ open, onClose, onOpenRequest, returnFocusRef }: SettingsProp
   };
 
   const handleThemeModeChange = (value: string) => {
-    if (draftSettings) {
-      setDraftSettings({ ...draftSettings, themeMode: value as ThemeMode });
+    if (draft) {
+      setDraftSettings({ ...draft, themeMode: value as ThemeMode });
     }
   };
 
   const handleTelemetryChange = (value: string) => {
-    if (draftSettings) {
-      setDraftSettings({ ...draftSettings, telemetry: value as Telemetry });
+    if (draft) {
+      setDraftSettings({ ...draft, telemetry: value as Telemetry });
     }
   };
 
   if (!open) {
     return null;
   }
+
+  const draft = draftSettings ?? contextSettings;
 
   return (
     <Dialog
@@ -85,18 +87,18 @@ const Settings = ({ open, onClose, onOpenRequest, returnFocusRef }: SettingsProp
           onClick: (): void => {
             void handleSave();
           },
-          disabled: isLoading || !draftSettings,
+          disabled: isLoading || !draft,
         },
       ]}
       width="xlarge"
     >
-      {draftSettings && (
+      {draft && (
         <Stack direction="vertical" gap="spacious">
           <FormControl>
             <FormControl.Label>Theme Mode</FormControl.Label>
             <Select
               size="large"
-              value={draftSettings.themeMode}
+              value={draft.themeMode}
               onChange={(event: ChangeEvent<HTMLSelectElement>) =>
                 handleThemeModeChange(event.target.value)
               }
@@ -114,7 +116,7 @@ const Settings = ({ open, onClose, onOpenRequest, returnFocusRef }: SettingsProp
             <FormControl.Label>Telemetry</FormControl.Label>
             <Select
               size="large"
-              value={draftSettings.telemetry}
+              value={draft.telemetry}
               onChange={(event: ChangeEvent<HTMLSelectElement>) =>
                 handleTelemetryChange(event.target.value)
               }

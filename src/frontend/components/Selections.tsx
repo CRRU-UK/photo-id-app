@@ -1,5 +1,6 @@
 import { useDroppable } from "@dnd-kit/core";
 import { Label, Stack as PrimerStack, Text, TextInput } from "@primer/react";
+import { observer } from "mobx-react-lite";
 import { useEffect, useState } from "react";
 
 import type Collection from "@/models/Collection";
@@ -15,7 +16,7 @@ interface SelectionStackProps {
   collection: Collection;
 }
 
-const SelectionStack = ({ id, side, collection }: SelectionStackProps) => {
+const SelectionStack = observer(({ id, side, collection }: SelectionStackProps) => {
   const [selectionName, setSelectionName] = useState<string>(collection.name || "");
 
   useEffect(() => {
@@ -68,13 +69,13 @@ const SelectionStack = ({ id, side, collection }: SelectionStackProps) => {
       <Stack collection={collection} />
     </div>
   );
-};
+});
 
 interface SelectionsProps {
   matches: Match[];
 }
 
-const Selections = ({ matches }: SelectionsProps) =>
+const Selections = observer(({ matches }: SelectionsProps) =>
   matches.map((match) => (
     <PrimerStack
       direction="horizontal"
@@ -84,6 +85,7 @@ const Selections = ({ matches }: SelectionsProps) =>
       <SelectionStack id={match.id} side="Left" collection={match.left} />
       <SelectionStack id={match.id} side="Right" collection={match.right} />
     </PrimerStack>
-  ));
+  )),
+);
 
 export default Selections;

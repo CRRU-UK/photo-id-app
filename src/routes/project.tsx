@@ -1,6 +1,6 @@
 import type Collection from "@/models/Collection";
 import type Photo from "@/models/Photo";
-import type { DraggableEndData, DraggableStartData, LoadingData, ProjectBody } from "@/types";
+import type { DraggableEndData, DraggableStartData, LoadingData } from "@/types";
 
 import {
   DndContext,
@@ -15,12 +15,12 @@ import {
 import { ColumnsIcon } from "@primer/octicons-react";
 import { SegmentedControl, Stack, UnderlineNav } from "@primer/react";
 import { KeybindingHint } from "@primer/react/experimental";
-import { createFileRoute } from "@tanstack/react-router";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { observer } from "mobx-react-lite";
+import { useCallback, useEffect, useState } from "react";
 
-import { MATCHED_STACKS_PER_PAGE, PROJECT_STORAGE_NAME } from "@/constants";
-
-import ProjectContext from "@/contexts/ProjectContext";
+import { MATCHED_STACKS_PER_PAGE } from "@/constants";
+import { useProject } from "@/contexts/ProjectContext";
 
 import LoadingOverlay from "@/frontend/components/LoadingOverlay";
 import Selections from "@/frontend/components/Selections";
@@ -28,8 +28,6 @@ import Settings from "@/frontend/components/Settings";
 import Sidebar from "@/frontend/components/Sidebar";
 
 import { chunkArray, getAlphabetLetter } from "@/helpers";
-
-import ProjectModel from "@/models/Project";
 
 const DraggableImage = ({ photo }: { photo: Photo }) => (
   <img
@@ -46,7 +44,7 @@ const DraggableImage = ({ photo }: { photo: Photo }) => (
   />
 );
 
-const ProjectPage = () => {
+const ProjectPage = observer(() => {
   const [draggingPhoto, setDraggingPhoto] = useState<Photo | null>(null);
   const [draggingCollectionFrom, setDraggingCollectionFrom] = useState<Collection | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(0);
@@ -55,12 +53,18 @@ const ProjectPage = () => {
   const [isCopying, setIsCopying] = useState<boolean>(false);
   const [columns, setColumns] = useState<number>(2);
 
-  const project = useMemo(() => {
-    const projectData = JSON.parse(
-      localStorage.getItem(PROJECT_STORAGE_NAME) as string,
-    ) as ProjectBody;
-    return new ProjectModel(projectData);
-  }, []);
+  const navigate = useNavigate();
+  const { project } = useProject();
+
+  useEffect(() => {
+    if (project === null) {
+      navigate({ to: "/" });
+    }
+  }, [project, navigate]);
+
+  if (project === null) {
+    return null;
+  }
 
   useEffect(() => {
     if (draggingPhoto && isCopying) {
@@ -177,7 +181,7 @@ const ProjectPage = () => {
   const sensors = useSensors(pointerSensor);
 
   return (
-    <ProjectContext value={project}>
+    <>
       <LoadingOverlay data={loading} />
 
       <Settings
@@ -213,9 +217,9 @@ const ProjectPage = () => {
           </div>
         </div>
       </DndContext>
-    </ProjectContext>
+    </>
   );
-};
+});
 
 export const Route = createFileRoute("/project")({
   component: ProjectPage,

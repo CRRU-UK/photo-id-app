@@ -14,15 +14,12 @@ import { KeybindingHint } from "@primer/react/experimental";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 
-import {
-  GLOBAL_KEYBOARD_HINTS,
-  PROJECT_FILE_NAME,
-  PROJECT_KEYBOARD_HINTS,
-  PROJECT_STORAGE_NAME,
-} from "@/constants";
+import { GLOBAL_KEYBOARD_HINTS, PROJECT_FILE_NAME, PROJECT_KEYBOARD_HINTS } from "@/constants";
+import { useProject } from "@/contexts/ProjectContext";
 import LoadingOverlay from "@/frontend/components/LoadingOverlay";
 import RecentProjects from "@/frontend/components/RecentProjects";
 import Settings from "@/frontend/components/Settings";
+import ProjectModel from "@/models/Project";
 
 import iconDark from "@/frontend/img/icon-dark.svg";
 import iconLight from "@/frontend/img/icon-light.svg";
@@ -36,11 +33,12 @@ const IndexPage = () => {
   const settingsButtonRef = useRef<HTMLButtonElement>(null);
 
   const navigate = useNavigate();
+  const { setProject } = useProject();
 
   useEffect(() => {
     const unsubscribeLoading = window.electronAPI.onLoading((data) => setLoading(data));
     const unsubscribeLoadProject = window.electronAPI.onLoadProject((data) => {
-      localStorage.setItem(PROJECT_STORAGE_NAME, JSON.stringify(data));
+      setProject(new ProjectModel(data));
       return navigate({ to: "/project" });
     });
 
@@ -48,7 +46,7 @@ const IndexPage = () => {
       unsubscribeLoading();
       unsubscribeLoadProject();
     };
-  }, [navigate]);
+  }, [navigate, setProject]);
 
   const handleOpenProjectFolder = () => window.electronAPI.openProjectFolder();
 

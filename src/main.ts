@@ -40,6 +40,7 @@ import {
   IPC_EVENTS,
   PROJECT_EXPORT_DIRECTORY,
 } from "@/constants";
+import { encodeEditPayload } from "@/helpers";
 
 import { version } from "../package.json";
 
@@ -190,22 +191,24 @@ app.whenReady().then(async () => {
     });
 
     editWindows.push(editWindow);
+    editWindow.on("closed", () => {
+      editWindows = editWindows.filter((window) => window !== editWindow);
+    });
 
     if (!production) {
       editWindow.webContents.openDevTools();
     }
 
-    const encodedData = btoa(JSON.stringify(data));
+    const encodedData = encodeEditPayload(data);
     if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
-      editWindow.loadURL(`${MAIN_WINDOW_VITE_DEV_SERVER_URL}?data=${encodedData}#/edit`);
+      editWindow.loadURL(`${MAIN_WINDOW_VITE_DEV_SERVER_URL}#/edit?data=${encodedData}`);
     } else {
       editWindow.loadURL(
         url.format({
           protocol: "file",
           slashes: true,
           pathname: basePath,
-          hash: "#/edit",
-          search: `?data=${encodedData}`,
+          hash: `#/edit?data=${encodedData}`,
         }),
       );
     }
@@ -251,8 +254,7 @@ app.whenReady().then(async () => {
         return null;
       }
 
-      const encodedData = btoa(JSON.stringify(result));
-      return encodedData;
+      return encodeEditPayload(result);
     },
   );
 
@@ -294,7 +296,7 @@ app.whenReady().then(async () => {
     }
   });
 
-  ipcMain.on(IPC_EVENTS.OPEN_EXTERNAL_LINK, (event, link: ExternalLinks) => {
+  ipcMain.on(IPC_EVENTS.OPEN_EXTERNAL_LINK, (_event, link: ExternalLinks) => {
     if (link === "website") {
       shell.openExternal(EXTERNAL_LINKS.WEBSITE);
     }
@@ -306,7 +308,5 @@ app.whenReady().then(async () => {
     if (link === "changelog") {
       shell.openExternal(EXTERNAL_LINKS.CHANGELOG.replace("$VERSION", `v${version}`));
     }
-
-    return { action: "deny" };
   });
 });

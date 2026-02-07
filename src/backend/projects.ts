@@ -345,23 +345,27 @@ const handleDuplicatePhotoFile = async (data: PhotoBody): Promise<PhotoBody> => 
 const findPhotoInProject = (project: ProjectBody, photo: PhotoBody): CollectionBody | null => {
   const { name } = photo;
 
-  const inUnassigned = project.unassigned.photos.some((photo: PhotoBody) => photo.name === name);
+  const inUnassigned = project.unassigned.photos.some(
+    (candidate: PhotoBody) => candidate.name === name,
+  );
   if (inUnassigned) {
     return project.unassigned;
   }
 
-  const inDiscarded = project.discarded.photos.some((photo: PhotoBody) => photo.name === name);
+  const inDiscarded = project.discarded.photos.some(
+    (candidate: PhotoBody) => candidate.name === name,
+  );
   if (inDiscarded) {
     return project.discarded;
   }
 
   for (const match of project.matched) {
-    const inLeft = match.left.photos.some((photo: PhotoBody) => photo.name === name);
+    const inLeft = match.left.photos.some((candidate: PhotoBody) => candidate.name === name);
     if (inLeft) {
       return match.left;
     }
 
-    const inRight = match.right.photos.some((photo: PhotoBody) => photo.name === name);
+    const inRight = match.right.photos.some((candidate: PhotoBody) => candidate.name === name);
     if (inRight) {
       return match.right;
     }

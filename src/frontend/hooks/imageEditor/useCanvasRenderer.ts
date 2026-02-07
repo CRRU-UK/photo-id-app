@@ -4,6 +4,8 @@ import { useCallback, useEffect, useRef } from "react";
 
 import { getCanvasFilters } from "@/helpers";
 
+const TRAILING_DRAW_DEBOUNCE_MS = 100;
+
 interface RenderOptions {
   imageRef: React.RefObject<HTMLImageElement | null>;
   getFilters: () => ImageFilters;
@@ -14,6 +16,7 @@ interface RenderOptions {
 export const useCanvasRenderer = ({ imageRef, getFilters, getTransform, clamp }: RenderOptions) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const throttleRef = useRef<number | null>(null);
+  const debounceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const canvasSizeRef = useRef<{ width: number; height: number } | null>(null);
 
   const draw = useCallback(() => {
@@ -67,6 +70,22 @@ export const useCanvasRenderer = ({ imageRef, getFilters, getTransform, clamp }:
     context.drawImage(image, 0, 0);
   }, [imageRef, getFilters, getTransform, clamp]);
 
+  /**
+   * Schedules a single draw after TRAILING_DRAW_DEBOUNCE_MS of no further calls.
+   * Ensures a final render after interactions stop (e.g. slider release).
+   */
+  const drawDebounced = useCallback(() => {
+    if (debounceTimeoutRef.current !== null) {
+      clearTimeout(debounceTimeoutRef.current);
+      debounceTimeoutRef.current = null;
+    }
+
+    debounceTimeoutRef.current = setTimeout(() => {
+      draw();
+      debounceTimeoutRef.current = null;
+    }, TRAILING_DRAW_DEBOUNCE_MS);
+  }, [draw]);
+
   const drawThrottled = useCallback(() => {
     if (throttleRef.current !== null) {
       return;
@@ -76,12 +95,19 @@ export const useCanvasRenderer = ({ imageRef, getFilters, getTransform, clamp }:
       draw();
       throttleRef.current = null;
     });
-  }, [draw]);
+
+    drawDebounced();
+  }, [draw, drawDebounced]);
 
   const cancelThrottle = useCallback(() => {
     if (throttleRef.current !== null) {
       cancelAnimationFrame(throttleRef.current);
       throttleRef.current = null;
+    }
+
+    if (debounceTimeoutRef.current !== null) {
+      clearTimeout(debounceTimeoutRef.current);
+      debounceTimeoutRef.current = null;
     }
   }, []);
 

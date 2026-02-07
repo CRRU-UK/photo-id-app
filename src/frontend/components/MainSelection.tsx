@@ -1,4 +1,5 @@
 import type Collection from "@/models/Collection";
+import { observer } from "mobx-react-lite";
 
 import { useDroppable } from "@dnd-kit/core";
 import { Stack as PrimerStack, ProgressBar, Text } from "@primer/react";
@@ -39,7 +40,7 @@ export interface MainSelectionProps {
   total: number;
 }
 
-const MainSelection = ({ collection, total }: MainSelectionProps) => {
+const MainSelection = observer(({ collection, total }: MainSelectionProps) => {
   const { isOver, setNodeRef: setDroppableNodeRef } = useDroppable({
     id: DragAreas.MainSelection,
     data: { collection },
@@ -78,6 +79,6 @@ const MainSelection = ({ collection, total }: MainSelectionProps) => {
       )}
     </div>
   );
-};
+});
 
 export default MainSelection;
