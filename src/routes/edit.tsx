@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import type { SetStateAction } from "react";
 import { useCallback, useEffect, useState } from "react";
 
 import type { LoadingData, PhotoBody } from "@/types";
@@ -15,13 +16,24 @@ const fetchLocalFile = async (data: PhotoBody) => {
   return new File([blob], data.name, { type: blob.type || "image/*" });
 };
 
+const getDataParamFromSearch = (): string | null =>
+  new URLSearchParams(window.location.search).get("data");
+
 const EditPage = () => {
-  const dataParam = new URLSearchParams(window.location.search).get("data");
-  const [query, setQuery] = useState<string | null>(dataParam);
+  const [query, setQuery] = useState<string | null>(getDataParamFromSearch);
   const [loading, setLoading] = useState<LoadingData>({ show: true });
   const [data, setData] = useState<PhotoBody | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const setQueryCallback = useCallback((next: SetStateAction<string>) => {
+    setQuery((prev) => {
+      const value = typeof next === "function" ? next(prev ?? "") : next;
+      const search = `?data=${encodeURIComponent(value)}`;
+      window.history.replaceState(undefined, "", `${window.location.pathname}${search}#/edit`);
+      return value;
+    });
+  }, []);
 
   useEffect(() => {
     const queryValue = query;
@@ -74,7 +86,7 @@ const EditPage = () => {
         <ImageEditor
           data={data}
           image={file}
-          setQueryCallback={(next) => setQuery(next)}
+          setQueryCallback={setQueryCallback}
           onImageLoaded={handleImageLoaded}
         />
       )}

@@ -31,22 +31,30 @@ const IndexPage = () => {
   const [loading, setLoading] = useState<LoadingData>({ show: false });
   const [settingsOpen, setSettingsOpen] = useState<boolean>(false);
   const settingsButtonRef = useRef<HTMLButtonElement>(null);
+  const pendingNavigateToProjectRef = useRef<boolean>(false);
 
   const navigate = useNavigate();
-  const { setProject } = useProject();
+  const { project, setProject } = useProject();
 
   useEffect(() => {
     const unsubscribeLoading = window.electronAPI.onLoading((data) => setLoading(data));
     const unsubscribeLoadProject = window.electronAPI.onLoadProject((data) => {
       setProject(new ProjectModel(data));
-      return navigate({ to: "/project" });
+      pendingNavigateToProjectRef.current = true;
     });
 
     return () => {
       unsubscribeLoading();
       unsubscribeLoadProject();
     };
-  }, [navigate, setProject]);
+  }, [setProject]);
+
+  useEffect(() => {
+    if (project !== null && pendingNavigateToProjectRef.current) {
+      pendingNavigateToProjectRef.current = false;
+      navigate({ to: "/project" });
+    }
+  }, [project, navigate]);
 
   const handleOpenProjectFolder = () => window.electronAPI.openProjectFolder();
 

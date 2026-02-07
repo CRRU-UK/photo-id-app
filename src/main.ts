@@ -201,14 +201,15 @@ app.whenReady().then(async () => {
 
     const encodedData = encodeEditPayload(data);
     if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
-      editWindow.loadURL(`${MAIN_WINDOW_VITE_DEV_SERVER_URL}#/edit?data=${encodedData}`);
+      editWindow.loadURL(`${MAIN_WINDOW_VITE_DEV_SERVER_URL}?data=${encodedData}#/edit`);
     } else {
       editWindow.loadURL(
         url.format({
           protocol: "file",
           slashes: true,
           pathname: basePath,
-          hash: `#/edit?data=${encodedData}`,
+          hash: "#/edit",
+          search: `?data=${encodedData}`,
         }),
       );
     }
