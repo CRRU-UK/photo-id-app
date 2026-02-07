@@ -104,8 +104,6 @@ const createMainWindow = async () => {
   }
 };
 
-app.on("ready", createMainWindow);
-
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
     app.quit();
@@ -335,4 +333,6 @@ app.whenReady().then(async () => {
       shell.openExternal(EXTERNAL_LINKS.CHANGELOG.replace("$VERSION", `v${version}`));
     }
   });
+
+  await createMainWindow();
 });
