@@ -1,6 +1,36 @@
-import type { EdgeDetectionData, PhotoEdits } from "@/types";
+import type { EdgeDetectionData, PhotoBody, PhotoEdits } from "@/types";
 
 import { DEFAULT_PHOTO_EDITS, EDGE_DETECTION } from "@/constants";
+
+/**
+ * Encodes photo data for the edit window URL query.
+ */
+export const encodeEditPayload = (data: PhotoBody): string => {
+  const json = JSON.stringify(data);
+  if (typeof Buffer === "undefined") {
+    const bytes = new TextEncoder().encode(json);
+    return btoa(String.fromCodePoint(...bytes));
+  }
+  return Buffer.from(json, "utf8").toString("base64");
+};
+
+/**
+ * Decodes photo data from the edit window URL query.
+ */
+export const decodeEditPayload = (encoded: string): PhotoBody => {
+  let decoded: string;
+
+  if (typeof Buffer === "undefined") {
+    const binary = atob(encoded);
+    decoded = new TextDecoder().decode(
+      Uint8Array.from(binary, (character) => character.codePointAt(0) ?? 0),
+    );
+  } else {
+    decoded = Buffer.from(encoded, "base64").toString("utf8");
+  }
+
+  return JSON.parse(decoded) as PhotoBody;
+};
 
 export const getAlphabetLetter = (index: number): string => {
   let result = "";

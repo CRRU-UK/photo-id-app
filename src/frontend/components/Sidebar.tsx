@@ -1,15 +1,16 @@
 import { FileMovedIcon, ReplyIcon, ThreeBarsIcon } from "@primer/octicons-react";
 import { ActionList, ActionMenu, IconButton, Stack as PrimerStack } from "@primer/react";
 import { useNavigate } from "@tanstack/react-router";
-import { useCallback, useContext, useEffect, useState } from "react";
+import { observer } from "mobx-react-lite";
+import { useCallback, useEffect, useState } from "react";
 
 import { PROJECT_KEYBOARD_HINTS } from "@/constants";
-import ProjectContext from "@/contexts/ProjectContext";
+import { useProject } from "@/contexts/ProjectContext";
 import DiscardedSelection from "@/frontend/components/DiscardedSelection";
 import MainSelection from "@/frontend/components/MainSelection";
 
-const Sidebar = () => {
-  const project = useContext(ProjectContext);
+const Sidebar = observer(() => {
+  const { project, setProject } = useProject();
 
   const [actionsOpen, setActionsOpen] = useState<boolean>(false);
   const [exporting, setExporting] = useState<boolean>(false);
@@ -17,9 +18,14 @@ const Sidebar = () => {
   const navigate = useNavigate();
 
   const handleCloseProject = useCallback(() => {
+    setProject(null);
     window.electronAPI.closeProject();
     navigate({ to: "/" });
-  }, [navigate]);
+  }, [navigate, setProject]);
+
+  if (project === null) {
+    return null;
+  }
 
   const handleExport = async () => {
     setExporting(true);
@@ -96,6 +102,6 @@ const Sidebar = () => {
       </PrimerStack>
     </div>
   );
-};
+});
 
 export default Sidebar;

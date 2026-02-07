@@ -11,15 +11,10 @@ import {
   Text,
 } from "@primer/react";
 import { KeybindingHint } from "@primer/react/experimental";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 
-import {
-  GLOBAL_KEYBOARD_HINTS,
-  PROJECT_FILE_NAME,
-  PROJECT_KEYBOARD_HINTS,
-  PROJECT_STORAGE_NAME,
-} from "@/constants";
+import { GLOBAL_KEYBOARD_HINTS, PROJECT_FILE_NAME, PROJECT_KEYBOARD_HINTS } from "@/constants";
 import LoadingOverlay from "@/frontend/components/LoadingOverlay";
 import RecentProjects from "@/frontend/components/RecentProjects";
 import Settings from "@/frontend/components/Settings";
@@ -35,20 +30,13 @@ const IndexPage = () => {
   const [settingsOpen, setSettingsOpen] = useState<boolean>(false);
   const settingsButtonRef = useRef<HTMLButtonElement>(null);
 
-  const navigate = useNavigate();
-
   useEffect(() => {
     const unsubscribeLoading = window.electronAPI.onLoading((data) => setLoading(data));
-    const unsubscribeLoadProject = window.electronAPI.onLoadProject((data) => {
-      localStorage.setItem(PROJECT_STORAGE_NAME, JSON.stringify(data));
-      return navigate({ to: "/project" });
-    });
 
     return () => {
       unsubscribeLoading();
-      unsubscribeLoadProject();
     };
-  }, [navigate]);
+  }, []);
 
   const handleOpenProjectFolder = () => window.electronAPI.openProjectFolder();
 

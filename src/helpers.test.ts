@@ -1,9 +1,11 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, expectTypeOf, it } from "vitest";
 
 import {
   chunkArray,
   clampPan,
   computeIsEdited,
+  decodeEditPayload,
+  encodeEditPayload,
   getAlphabetLetter,
   getBoundaries,
   getCanvasFilters,
@@ -299,5 +301,52 @@ describe(computeIsEdited, () => {
     };
 
     expect(computeIsEdited(edits)).toBe(false);
+  });
+});
+
+describe(encodeEditPayload, () => {
+  it("encodes photo body to base64 string", () => {
+    const data = {
+      directory: "/path/to/project",
+      name: "photo.jpg",
+      thumbnail: ".thumbnails/photo.jpg",
+      edits: {
+        brightness: 100,
+        contrast: 100,
+        saturate: 100,
+        zoom: 1,
+        pan: { x: 0, y: 0 },
+      },
+      isEdited: false,
+    };
+
+    const encoded = encodeEditPayload(data);
+
+    expectTypeOf(encoded).toBeString();
+
+    expect(decodeEditPayload(encodeEditPayload(data))).toStrictEqual(data);
+  });
+});
+
+describe(decodeEditPayload, () => {
+  it("decodes base64 string back to photo body", () => {
+    const data = {
+      directory: "/path/to/project",
+      name: "photo.jpg",
+      thumbnail: ".thumbnails/photo.jpg",
+      edits: {
+        brightness: 100,
+        contrast: 100,
+        saturate: 100,
+        zoom: 1,
+        pan: { x: 0, y: 0 },
+      },
+      isEdited: false,
+    };
+
+    const encoded = encodeEditPayload(data);
+    const decoded = decodeEditPayload(encoded);
+
+    expect(decoded).toStrictEqual(data);
   });
 });

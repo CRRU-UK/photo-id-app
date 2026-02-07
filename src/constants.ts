@@ -5,6 +5,7 @@ export enum IPC_EVENTS {
   OPEN_FOLDER = "project:openFolderPrompt",
   OPEN_FILE = "project:openFilePrompt",
   OPEN_PROJECT_FILE = "project:openProjectFile",
+  GET_CURRENT_PROJECT = "project:getCurrentProject",
   GET_RECENT_PROJECTS = "project:getRecentProjects",
   REMOVE_RECENT_PROJECT = "project:removeRecentProject",
   SAVE_PROJECT = "project:saveProject",
@@ -123,8 +124,6 @@ export const BOX_HOVER_STYLES = {
 
 export const PROJECT_FILE_NAME = "data.json";
 
-export const PROJECT_STORAGE_NAME = "currentProject";
-
 export const PROJECT_THUMBNAIL_DIRECTORY = ".thumbnails";
 
 export const PROJECT_EXPORT_DIRECTORY = "matched";
@@ -132,6 +131,8 @@ export const PROJECT_EXPORT_DIRECTORY = "matched";
 export const THUMBNAIL_SIZE = 1000;
 
 export const RECENT_PROJECTS_FILE_NAME = "recent-projects.json";
+
+export const CURRENT_PROJECT_FILE_NAME = "current-project.json";
 
 export const SETTINGS_FILE_NAME = "settings.json";
 

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Dialog, FormControl, Select, Stack } from "@primer/react";
 
 import { useSettings } from "@/contexts/SettingsContext";
-import type { SettingsData, Telemetry, ThemeMode } from "@/types";
+import type { Telemetry, ThemeMode } from "@/types";
 
 interface SettingsProps {
   open: boolean;
@@ -15,7 +15,6 @@ interface SettingsProps {
 
 const Settings = ({ open, onClose, onOpenRequest, returnFocusRef }: SettingsProps) => {
   const { settings: contextSettings, updateSettings } = useSettings();
-  const [draftSettings, setDraftSettings] = useState<SettingsData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -26,29 +25,18 @@ const Settings = ({ open, onClose, onOpenRequest, returnFocusRef }: SettingsProp
     return window.electronAPI.onOpenSettings(onOpenRequest);
   }, [onOpenRequest]);
 
-  useEffect(() => {
-    if (open && contextSettings) {
-      setDraftSettings({ ...contextSettings });
-    } else if (!open) {
-      setDraftSettings(null);
-    }
-  }, [open, contextSettings]);
-
-  const handleClose = () => {
-    setDraftSettings(null);
-    onClose();
-  };
-
-  const handleSave = async () => {
-    if (!draftSettings) {
+  const handleThemeModeChange = async (value: string) => {
+    if (!contextSettings) {
       return;
     }
 
     setIsLoading(true);
 
     try {
-      await updateSettings(draftSettings);
-      onClose();
+      await updateSettings({
+        ...contextSettings,
+        themeMode: value as ThemeMode,
+      });
     } catch (error) {
       console.error("Error saving settings:", error);
     } finally {
@@ -56,15 +44,22 @@ const Settings = ({ open, onClose, onOpenRequest, returnFocusRef }: SettingsProp
     }
   };
 
-  const handleThemeModeChange = (value: string) => {
-    if (draftSettings) {
-      setDraftSettings({ ...draftSettings, themeMode: value as ThemeMode });
+  const handleTelemetryChange = async (value: string) => {
+    if (!contextSettings) {
+      return;
     }
-  };
 
-  const handleTelemetryChange = (value: string) => {
-    if (draftSettings) {
-      setDraftSettings({ ...draftSettings, telemetry: value as Telemetry });
+    setIsLoading(true);
+
+    try {
+      await updateSettings({
+        ...contextSettings,
+        telemetry: value as Telemetry,
+      });
+    } catch (error) {
+      console.error("Error saving settings:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -75,34 +70,25 @@ const Settings = ({ open, onClose, onOpenRequest, returnFocusRef }: SettingsProp
   return (
     <Dialog
       title="Settings"
-      onClose={handleClose}
+      onClose={onClose}
       returnFocusRef={returnFocusRef ?? undefined}
-      footerButtons={[
-        { buttonType: "default", content: "Cancel", onClick: handleClose },
-        {
-          buttonType: "primary",
-          content: "Save",
-          onClick: (): void => {
-            void handleSave();
-          },
-          disabled: isLoading || !draftSettings,
-        },
-      ]}
+      footerButtons={[{ buttonType: "default", content: "Close", onClick: onClose }]}
       width="xlarge"
     >
-      {draftSettings && (
+      {contextSettings && (
         <Stack direction="vertical" gap="spacious">
           <FormControl>
             <FormControl.Label>Theme Mode</FormControl.Label>
             <Select
               size="large"
-              value={draftSettings.themeMode}
+              value={contextSettings.themeMode}
               onChange={(event: ChangeEvent<HTMLSelectElement>) =>
-                handleThemeModeChange(event.target.value)
+                void handleThemeModeChange(event.target.value)
               }
+              disabled={isLoading}
             >
               <Select.Option value="light">Light</Select.Option>
-              <Select.Option value="dark">Dark</Select.Option>
+              <Select.Option value="dark">Dark (Default)</Select.Option>
               <Select.Option value="auto">Auto</Select.Option>
             </Select>
             <FormControl.Caption>
@@ -114,12 +100,13 @@ const Settings = ({ open, onClose, onOpenRequest, returnFocusRef }: SettingsProp
             <FormControl.Label>Telemetry</FormControl.Label>
             <Select
               size="large"
-              value={draftSettings.telemetry}
+              value={contextSettings.telemetry}
               onChange={(event: ChangeEvent<HTMLSelectElement>) =>
-                handleTelemetryChange(event.target.value)
+                void handleTelemetryChange(event.target.value)
               }
+              disabled={isLoading}
             >
-              <Select.Option value="disabled">Disabled</Select.Option>
+              <Select.Option value="disabled">Disabled (Default)</Select.Option>
               <Select.Option value="enabled">Enabled</Select.Option>
             </Select>
             <FormControl.Caption>

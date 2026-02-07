@@ -15,6 +15,7 @@ import { renderFullImageWithEdits } from "@/backend/imageRenderer";
 import { createPhotoThumbnail } from "@/backend/photos";
 import { addRecentProject } from "@/backend/recents";
 import {
+  CURRENT_PROJECT_FILE_NAME,
   DEFAULT_PHOTO_EDITS,
   DEFAULT_WINDOW_TITLE,
   EXISTING_DATA_BUTTONS,
@@ -29,7 +30,52 @@ import {
 } from "@/constants";
 import { getAlphabetLetter } from "@/helpers";
 
+let currentProjectDirectory: string | null = null;
+
+const getCurrentProjectFilePath = (): string =>
+  path.join(app.getPath("userData"), CURRENT_PROJECT_FILE_NAME);
+
+/**
+ * Loads the persisted current project path from userData (e.g. after app restart).
+ * Call once when the app is ready, before the renderer asks for the current project.
+ */
+export const loadPersistedCurrentProject = async (): Promise<void> => {
+  const filePath = getCurrentProjectFilePath();
+
+  try {
+    const content = await fs.promises.readFile(filePath, "utf8");
+    const parsed = JSON.parse(content) as { directory: string | null };
+
+    if (typeof parsed.directory === "string" && parsed.directory.length > 0) {
+      currentProjectDirectory = parsed.directory;
+    }
+  } catch {
+    currentProjectDirectory = null;
+  }
+};
+
+/**
+ * Returns the directory of the currently open project, or null if none.
+ */
+export const getCurrentProjectDirectory = (): string | null => currentProjectDirectory;
+
+/**
+ * Sets the current project directory (when a project is loaded or closed).
+ * Persists to userData so the project can be restored after reload or app restart.
+ */
+export const setCurrentProject = (directory: string | null): void => {
+  currentProjectDirectory = directory;
+  const filePath = getCurrentProjectFilePath();
+
+  const content = JSON.stringify({ directory: currentProjectDirectory });
+
+  fs.promises.writeFile(filePath, content, "utf8").catch((error) => {
+    console.error("Failed to persist current project path:", error);
+  });
+};
+
 const sendData = (mainWindow: Electron.BrowserWindow, data: ProjectBody) => {
+  setCurrentProject(data.directory);
   mainWindow.setTitle(`${DEFAULT_WINDOW_TITLE} - ${data.directory}`);
   mainWindow.webContents.send(IPC_EVENTS.LOAD_PROJECT, data);
   mainWindow.focus();
@@ -345,23 +391,27 @@ const handleDuplicatePhotoFile = async (data: PhotoBody): Promise<PhotoBody> => 
 const findPhotoInProject = (project: ProjectBody, photo: PhotoBody): CollectionBody | null => {
   const { name } = photo;
 
-  const inUnassigned = project.unassigned.photos.some((photo: PhotoBody) => photo.name === name);
+  const inUnassigned = project.unassigned.photos.some(
+    (candidate: PhotoBody) => candidate.name === name,
+  );
   if (inUnassigned) {
     return project.unassigned;
   }
 
-  const inDiscarded = project.discarded.photos.some((photo: PhotoBody) => photo.name === name);
+  const inDiscarded = project.discarded.photos.some(
+    (candidate: PhotoBody) => candidate.name === name,
+  );
   if (inDiscarded) {
     return project.discarded;
   }
 
   for (const match of project.matched) {
-    const inLeft = match.left.photos.some((photo: PhotoBody) => photo.name === name);
+    const inLeft = match.left.photos.some((candidate: PhotoBody) => candidate.name === name);
     if (inLeft) {
       return match.left;
     }
 
-    const inRight = match.right.photos.some((photo: PhotoBody) => photo.name === name);
+    const inRight = match.right.photos.some((candidate: PhotoBody) => candidate.name === name);
     if (inRight) {
       return match.right;
     }
