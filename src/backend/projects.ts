@@ -15,6 +15,7 @@ import { renderFullImageWithEdits } from "@/backend/imageRenderer";
 import { createPhotoThumbnail } from "@/backend/photos";
 import { addRecentProject } from "@/backend/recents";
 import {
+  CURRENT_PROJECT_FILE_NAME,
   DEFAULT_PHOTO_EDITS,
   DEFAULT_WINDOW_TITLE,
   EXISTING_DATA_BUTTONS,
@@ -28,8 +29,6 @@ import {
   PROJECT_THUMBNAIL_DIRECTORY,
 } from "@/constants";
 import { getAlphabetLetter } from "@/helpers";
-
-const CURRENT_PROJECT_FILE_NAME = "current-project.json";
 
 let currentProjectDirectory: string | null = null;
 

@@ -132,6 +132,8 @@ export const THUMBNAIL_SIZE = 1000;
 
 export const RECENT_PROJECTS_FILE_NAME = "recent-projects.json";
 
+export const CURRENT_PROJECT_FILE_NAME = "current-project.json";
+
 export const SETTINGS_FILE_NAME = "settings.json";
 
 export const MAX_RECENT_PROJECTS = 5;

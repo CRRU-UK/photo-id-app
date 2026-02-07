@@ -80,10 +80,11 @@ class Project {
       data = JSON.parse(json) as ProjectBody;
     }
 
-    const { version, directory, unassigned, matched, discarded, created, lastModified } =
+    const { id, version, directory, unassigned, matched, discarded, created, lastModified } =
       data as ProjectBody;
 
     runInAction(() => {
+      this.id = id ?? "";
       this.version = version;
       this.directory = directory;
       this.unassigned = this.mapPhotoBodyToCollection(directory, unassigned);
