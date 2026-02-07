@@ -19,12 +19,19 @@ const fetchLocalFile = async (data: PhotoBody) => {
 const getDataParamFromSearch = (): string | null =>
   new URLSearchParams(window.location.search).get("data");
 
+const getInitialLoading = (): LoadingData => ({
+  show: getDataParamFromSearch() !== null,
+});
+
+const getInitialError = (): string | null =>
+  getDataParamFromSearch() === null ? "Missing photo data" : null;
+
 const EditPage = () => {
   const [query, setQuery] = useState<string | null>(getDataParamFromSearch);
-  const [loading, setLoading] = useState<LoadingData>({ show: true });
+  const [loading, setLoading] = useState<LoadingData>(getInitialLoading);
   const [data, setData] = useState<PhotoBody | null>(null);
   const [file, setFile] = useState<File | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(getInitialError);
 
   const setQueryCallback = useCallback((next: SetStateAction<string>) => {
     setQuery((prev) => {
@@ -41,8 +48,6 @@ const EditPage = () => {
     const queryValue = query;
 
     if (queryValue === null) {
-      setLoading({ show: false });
-      setError("Missing photo data");
       return;
     }
 
@@ -61,7 +66,6 @@ const EditPage = () => {
       } catch (err) {
         console.error("Error loading edit data:", err);
         setError("Failed to load photo");
-      } finally {
         setLoading({ show: false });
       }
     }

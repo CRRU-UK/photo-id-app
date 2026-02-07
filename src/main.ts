@@ -193,9 +193,10 @@ app.whenReady().then(async () => {
     }
 
     const encodedData = encodeEditPayload(data);
+    const encodedQuery = encodeURIComponent(encodedData);
 
     if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
-      editWindow.loadURL(`${MAIN_WINDOW_VITE_DEV_SERVER_URL}?data=${encodedData}#/edit`);
+      editWindow.loadURL(`${MAIN_WINDOW_VITE_DEV_SERVER_URL}?data=${encodedQuery}#/edit`);
     } else {
       editWindow.loadURL(
         url.format({
@@ -203,7 +204,7 @@ app.whenReady().then(async () => {
           slashes: true,
           pathname: basePath,
           hash: "#/edit",
-          search: `?data=${encodedData}`,
+          search: `?data=${encodedQuery}`,
         }),
       );
     }
