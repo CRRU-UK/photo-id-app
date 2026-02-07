@@ -9,7 +9,7 @@ export const encodeEditPayload = (data: PhotoBody): string => {
   const json = JSON.stringify(data);
   if (typeof Buffer === "undefined") {
     const bytes = new TextEncoder().encode(json);
-    return btoa(String.fromCharCode(...bytes));
+    return btoa(String.fromCodePoint(...bytes));
   }
   return Buffer.from(json, "utf8").toString("base64");
 };
@@ -22,7 +22,7 @@ export const decodeEditPayload = (encoded: string): PhotoBody => {
   if (typeof Buffer === "undefined") {
     const binary = atob(encoded);
     decoded = new TextDecoder().decode(
-      Uint8Array.from(binary, (character) => character.charCodeAt(0)),
+      Uint8Array.from(binary, (character) => character.codePointAt(0) ?? 0),
     );
   } else {
     decoded = Buffer.from(encoded, "base64").toString("utf8");
