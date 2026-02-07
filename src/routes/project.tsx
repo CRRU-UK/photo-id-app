@@ -62,16 +62,72 @@ const ProjectPage = observer(() => {
     }
   }, [project, navigate]);
 
-  if (project === null) {
-    return null;
-  }
-
   useEffect(() => {
     if (draggingPhoto && isCopying) {
       return document.body.classList.add("copying");
     }
     return document.body.classList.remove("copying");
   }, [draggingPhoto, isCopying]);
+
+  const matchedArray = project === null ? [] : Array.from(project.matched);
+  const matchedPageCount =
+    project === null ? 0 : Math.ceil(matchedArray.length / MATCHED_STACKS_PER_PAGE);
+
+  const handleKeyUp = useCallback(() => setIsCopying(false), []);
+
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent) => {
+      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+
+      if (event.ctrlKey || event.altKey) {
+        return setIsCopying(event.ctrlKey || event.altKey);
+      }
+
+      const keyNumber = Number(event.key);
+      if (!Number.isInteger(keyNumber)) {
+        return;
+      }
+
+      const pageIndex = keyNumber - 1;
+      if (pageIndex < 0 || pageIndex >= matchedPageCount) {
+        return;
+      }
+
+      event.preventDefault();
+      setCurrentPage(pageIndex);
+    },
+    [matchedPageCount],
+  );
+
+  useEffect(() => {
+    if (project === null) {
+      return () => {};
+    }
+
+    const unsubscribeUpdatePhoto = window.electronAPI.onUpdatePhoto((data) =>
+      project.updatePhoto(data),
+    );
+    const unsubscribeLoading = window.electronAPI.onLoading((data) => setLoading(data));
+
+    document.addEventListener("keyup", handleKeyUp);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      unsubscribeUpdatePhoto();
+      unsubscribeLoading();
+      document.removeEventListener("keyup", handleKeyUp);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [project, handleKeyDown, handleKeyUp]);
+
+  const pointerSensor = useSensor(PointerSensor, { activationConstraint: { distance: 5 } });
+  const sensors = useSensors(pointerSensor);
+
+  if (project === null) {
+    return null;
+  }
 
   const handleDragStart = (event: DragStartEvent) => {
     const { collection, currentPhoto } = event.active.data.current as unknown as DraggableStartData;
@@ -105,9 +161,6 @@ const ProjectPage = observer(() => {
 
   const handleColumnsChange = (i: number) => setColumns(i + 1);
 
-  const matchedArray = Array.from(project.matched);
-  const matchedPageCount = Math.ceil(matchedArray.length / MATCHED_STACKS_PER_PAGE);
-
   const matchedRows = matchedArray.slice(
     currentPage * MATCHED_STACKS_PER_PAGE,
     (currentPage + 1) * MATCHED_STACKS_PER_PAGE,
@@ -131,54 +184,6 @@ const ProjectPage = observer(() => {
       </UnderlineNav.Item>
     );
   });
-
-  const handleKeyUp = useCallback(() => setIsCopying(false), []);
-
-  const handleKeyDown = useCallback(
-    (event: KeyboardEvent) => {
-      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
-        return;
-      }
-
-      if (event.ctrlKey || event.altKey) {
-        return setIsCopying(event.ctrlKey || event.altKey);
-      }
-
-      const keyNumber = Number(event.key);
-      if (!Number.isInteger(keyNumber)) {
-        return;
-      }
-
-      const pageIndex = keyNumber - 1;
-      if (pageIndex < 0 || pageIndex >= matchedPageCount) {
-        return;
-      }
-
-      event.preventDefault();
-      setCurrentPage(pageIndex);
-    },
-    [matchedPageCount],
-  );
-
-  useEffect(() => {
-    const unsubscribeUpdatePhoto = window.electronAPI.onUpdatePhoto((data) =>
-      project.updatePhoto(data),
-    );
-    const unsubscribeLoading = window.electronAPI.onLoading((data) => setLoading(data));
-
-    document.addEventListener("keyup", handleKeyUp);
-    document.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      unsubscribeUpdatePhoto();
-      unsubscribeLoading();
-      document.removeEventListener("keyup", handleKeyUp);
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [project, handleKeyDown, handleKeyUp]);
-
-  const pointerSensor = useSensor(PointerSensor, { activationConstraint: { distance: 5 } });
-  const sensors = useSensors(pointerSensor);
 
   return (
     <>

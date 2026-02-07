@@ -11,15 +11,13 @@ import {
   Text,
 } from "@primer/react";
 import { KeybindingHint } from "@primer/react/experimental";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 
 import { GLOBAL_KEYBOARD_HINTS, PROJECT_FILE_NAME, PROJECT_KEYBOARD_HINTS } from "@/constants";
-import { useProject } from "@/contexts/ProjectContext";
 import LoadingOverlay from "@/frontend/components/LoadingOverlay";
 import RecentProjects from "@/frontend/components/RecentProjects";
 import Settings from "@/frontend/components/Settings";
-import ProjectModel from "@/models/Project";
 
 import iconDark from "@/frontend/img/icon-dark.svg";
 import iconLight from "@/frontend/img/icon-light.svg";
@@ -31,30 +29,14 @@ const IndexPage = () => {
   const [loading, setLoading] = useState<LoadingData>({ show: false });
   const [settingsOpen, setSettingsOpen] = useState<boolean>(false);
   const settingsButtonRef = useRef<HTMLButtonElement>(null);
-  const pendingNavigateToProjectRef = useRef<boolean>(false);
-
-  const navigate = useNavigate();
-  const { project, setProject } = useProject();
 
   useEffect(() => {
     const unsubscribeLoading = window.electronAPI.onLoading((data) => setLoading(data));
-    const unsubscribeLoadProject = window.electronAPI.onLoadProject((data) => {
-      setProject(new ProjectModel(data));
-      pendingNavigateToProjectRef.current = true;
-    });
 
     return () => {
       unsubscribeLoading();
-      unsubscribeLoadProject();
     };
-  }, [setProject]);
-
-  useEffect(() => {
-    if (project !== null && pendingNavigateToProjectRef.current) {
-      pendingNavigateToProjectRef.current = false;
-      navigate({ to: "/project" });
-    }
-  }, [project, navigate]);
+  }, []);
 
   const handleOpenProjectFolder = () => window.electronAPI.openProjectFolder();
 

@@ -1,4 +1,13 @@
-import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
+import { useNavigate } from "@tanstack/react-router";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 
 import ProjectModel from "@/models/Project";
 
@@ -15,6 +24,26 @@ interface ProjectProviderProps {
 
 export const ProjectProvider = ({ children }: ProjectProviderProps) => {
   const [project, setProject] = useState<ProjectModel | null>(null);
+  const pendingNavigateToProjectRef = useRef<boolean>(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const unsubscribeLoadProject = window.electronAPI.onLoadProject((data) => {
+      setProject(new ProjectModel(data));
+      pendingNavigateToProjectRef.current = true;
+    });
+
+    return () => {
+      unsubscribeLoadProject();
+    };
+  }, [setProject]);
+
+  useEffect(() => {
+    if (project !== null && pendingNavigateToProjectRef.current) {
+      pendingNavigateToProjectRef.current = false;
+      navigate({ to: "/project" });
+    }
+  }, [project, navigate]);
 
   const value = useMemo<ProjectContextValue>(() => ({ project, setProject }), [project]);
 
