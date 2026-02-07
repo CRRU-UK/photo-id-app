@@ -87,6 +87,8 @@ export const useCanvasRenderer = ({ imageRef, getFilters, getTransform, clamp }:
   }, [draw]);
 
   const drawThrottled = useCallback(() => {
+    drawDebounced();
+
     if (throttleRef.current !== null) {
       return;
     }
@@ -95,8 +97,6 @@ export const useCanvasRenderer = ({ imageRef, getFilters, getTransform, clamp }:
       draw();
       throttleRef.current = null;
     });
-
-    drawDebounced();
   }, [draw, drawDebounced]);
 
   const cancelThrottle = useCallback(() => {
