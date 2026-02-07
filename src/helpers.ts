@@ -19,6 +19,7 @@ export const encodeEditPayload = (data: PhotoBody): string => {
  */
 export const decodeEditPayload = (encoded: string): PhotoBody => {
   let decoded: string;
+
   if (typeof Buffer === "undefined") {
     const binary = atob(encoded);
     decoded = new TextDecoder().decode(
@@ -27,6 +28,7 @@ export const decodeEditPayload = (encoded: string): PhotoBody => {
   } else {
     decoded = Buffer.from(encoded, "base64").toString("utf8");
   }
+
   return JSON.parse(decoded) as PhotoBody;
 };
 

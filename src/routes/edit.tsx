@@ -30,7 +30,9 @@ const EditPage = () => {
     setQuery((prev) => {
       const value = typeof next === "function" ? next(prev ?? "") : next;
       const search = `?data=${encodeURIComponent(value)}`;
+
       window.history.replaceState(undefined, "", `${window.location.pathname}${search}#/edit`);
+
       return value;
     });
   }, []);
@@ -53,6 +55,7 @@ const EditPage = () => {
         document.title = `${DEFAULT_WINDOW_TITLE} - ${parsedData.directory}/${parsedData.name}`;
 
         const response = await fetchLocalFile(parsedData);
+
         setData(parsedData);
         setFile(response);
       } catch (err) {

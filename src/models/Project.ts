@@ -94,6 +94,7 @@ class Project {
         left: this.mapPhotoBodyToCollection(directory, left),
         right: this.mapPhotoBodyToCollection(directory, right),
       }));
+
       this.matched = new Set(matchedSets);
 
       this.created = new Date(created);

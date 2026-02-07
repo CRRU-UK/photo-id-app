@@ -157,7 +157,7 @@ app.whenReady().then(async () => {
 
   ipcMain.handle(
     IPC_EVENTS.REMOVE_RECENT_PROJECT,
-    async (event, path: string): Promise<RecentProject[]> => {
+    async (_event, path: string): Promise<RecentProject[]> => {
       const result = await removeRecentProject(path);
       return result;
     },
@@ -193,6 +193,7 @@ app.whenReady().then(async () => {
     }
 
     const encodedData = encodeEditPayload(data);
+
     if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
       editWindow.loadURL(`${MAIN_WINDOW_VITE_DEV_SERVER_URL}?data=${encodedData}#/edit`);
     } else {
@@ -288,6 +289,7 @@ app.whenReady().then(async () => {
 
   ipcMain.on(IPC_EVENTS.OPEN_SETTINGS, () => {
     const mainWindow = windowManager.getMainWindow();
+
     if (mainWindow) {
       mainWindow.focus();
       mainWindow.webContents.send(IPC_EVENTS.OPEN_SETTINGS);

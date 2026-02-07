@@ -10,6 +10,7 @@ class WindowManager {
 
   setMainWindow(window: BrowserWindow): void {
     this.mainWindow = window;
+
     window.on("closed", () => {
       this.mainWindow = null;
     });
@@ -21,6 +22,7 @@ class WindowManager {
 
   addEditWindow(window: BrowserWindow): void {
     this.editWindows.add(window);
+
     window.on("closed", () => {
       this.editWindows.delete(window);
     });
@@ -32,6 +34,7 @@ class WindowManager {
         window.close();
       }
     }
+
     this.editWindows.clear();
   }
 }

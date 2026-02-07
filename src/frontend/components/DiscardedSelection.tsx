@@ -1,10 +1,10 @@
-import type Collection from "@/models/Collection";
+import { useDroppable } from "@dnd-kit/core";
+import { Text } from "@primer/react";
 import { observer } from "mobx-react-lite";
 
 import { BOX_HOVER_STYLES, DragAreas } from "@/constants";
 import Stack from "@/frontend/components/Stack";
-import { useDroppable } from "@dnd-kit/core";
-import { Text } from "@primer/react";
+import type Collection from "@/models/Collection";
 
 export interface DiscardedSelectionProps {
   collection: Collection;
