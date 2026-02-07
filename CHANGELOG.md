@@ -1,5 +1,24 @@
 # photo-id
 
+## 0.4.0
+
+### Minor Changes
+
+- 9f9d6e5: Add edge detection filter
+- 4405338: Handle edits on-demand
+- 0e0f5cc: Add settings for telemetry and theme
+- 4ba42a2: Add custom image editor
+- c5f8f23: Persist photo edits (brightness, contrast, saturate, pan, and zoom) in project data
+
+### Patch Changes
+
+- 97ee9b0: Refactor `useImageEditor` into smaller hooks
+- b69b67b: Update photo editor keyboard shortcuts
+- c7279ad: Add project view keyboard shortcuts
+- 5355dc8: Minor UI updates
+- eb4b8c3: Add export progress indicator
+- cbf72a7: Optimise image editor performance
+
 ## 0.3.1
 
 ### Patch Changes
