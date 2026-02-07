@@ -34,6 +34,7 @@ import {
 } from "@/backend/projects";
 import { getRecentProjects, removeRecentProject } from "@/backend/recents";
 import { getSettings, updateSettings } from "@/backend/settings";
+import { windowManager } from "@/backend/WindowManager";
 import {
   DEFAULT_WINDOW_TITLE,
   EXTERNAL_LINKS,
@@ -54,10 +55,8 @@ if (started) {
 
 const basePath = path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`);
 
-let mainWindow: BrowserWindow;
-
 const createMainWindow = async () => {
-  mainWindow = new BrowserWindow({
+  const mainWindow = new BrowserWindow({
     width: 1400,
     height: 800,
     webPreferences: {
@@ -70,6 +69,7 @@ const createMainWindow = async () => {
   mainWindow.maximize();
 
   mainWindow.on("closed", () => app.quit());
+  windowManager.setMainWindow(mainWindow);
 
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
     await mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
@@ -98,8 +98,6 @@ const createMainWindow = async () => {
     mainWindow.webContents.openDevTools();
   }
 };
-
-let editWindows: BrowserWindow[] = [];
 
 app.on("ready", createMainWindow);
 
@@ -166,14 +164,12 @@ app.whenReady().then(async () => {
   );
 
   ipcMain.on(IPC_EVENTS.CLOSE_PROJECT, () => {
-    for (const window of editWindows) {
-      if (!window.isDestroyed() && window.closable) {
-        window.close();
-      }
-    }
+    windowManager.closeAllEditWindows();
 
-    editWindows = [];
-    mainWindow.setTitle(DEFAULT_WINDOW_TITLE);
+    const mainWindow = windowManager.getMainWindow();
+    if (mainWindow) {
+      mainWindow.setTitle(DEFAULT_WINDOW_TITLE);
+    }
   });
 
   ipcMain.on(IPC_EVENTS.OPEN_EDIT_WINDOW, (event, data: PhotoBody): void => {
@@ -190,10 +186,7 @@ app.whenReady().then(async () => {
       fullscreenable: false,
     });
 
-    editWindows.push(editWindow);
-    editWindow.on("closed", () => {
-      editWindows = editWindows.filter((window) => window !== editWindow);
-    });
+    windowManager.addEditWindow(editWindow);
 
     if (!production) {
       editWindow.webContents.openDevTools();
@@ -242,7 +235,10 @@ app.whenReady().then(async () => {
       thumbnail,
     };
 
-    mainWindow.webContents.send(IPC_EVENTS.UPDATE_PHOTO, photoData);
+    const mainWindow = windowManager.getMainWindow();
+    if (mainWindow) {
+      mainWindow.webContents.send(IPC_EVENTS.UPDATE_PHOTO, photoData);
+    }
   });
 
   ipcMain.handle(
@@ -291,7 +287,8 @@ app.whenReady().then(async () => {
   );
 
   ipcMain.on(IPC_EVENTS.OPEN_SETTINGS, () => {
-    if (mainWindow && !mainWindow.isDestroyed()) {
+    const mainWindow = windowManager.getMainWindow();
+    if (mainWindow) {
       mainWindow.focus();
       mainWindow.webContents.send(IPC_EVENTS.OPEN_SETTINGS);
     }
