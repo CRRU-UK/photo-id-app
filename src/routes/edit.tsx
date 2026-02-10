@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import type { LoadingData, PhotoBody } from "@/types";
 
-import { DEFAULT_WINDOW_TITLE } from "@/constants";
+import { DEFAULT_WINDOW_TITLE, ROUTES } from "@/constants";
 import { decodeEditPayload } from "@/helpers";
 
 import ImageEditor from "@/frontend/components/ImageEditor";
@@ -38,7 +38,11 @@ const EditPage = () => {
       const value = typeof next === "function" ? next(prev ?? "") : next;
       const search = `?data=${encodeURIComponent(value)}`;
 
-      window.history.replaceState(undefined, "", `${window.location.pathname}${search}#/edit`);
+      window.history.replaceState(
+        undefined,
+        "",
+        `${window.location.pathname}${search}#${ROUTES.EDIT}`,
+      );
 
       return value;
     });

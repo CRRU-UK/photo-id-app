@@ -45,6 +45,7 @@ import {
   IPC_EVENTS,
   PROJECT_EXPORT_DIRECTORY,
   PROJECT_FILE_NAME,
+  ROUTES,
 } from "@/constants";
 import { encodeEditPayload } from "@/helpers";
 
@@ -219,14 +220,14 @@ app.whenReady().then(async () => {
     const encodedQuery = encodeURIComponent(encodedData);
 
     if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
-      editWindow.loadURL(`${MAIN_WINDOW_VITE_DEV_SERVER_URL}?data=${encodedQuery}#/edit`);
+      editWindow.loadURL(`${MAIN_WINDOW_VITE_DEV_SERVER_URL}?data=${encodedQuery}#${ROUTES.EDIT}`);
     } else {
       editWindow.loadURL(
         url.format({
           protocol: "file",
           slashes: true,
           pathname: basePath,
-          hash: "#/edit",
+          hash: `#${ROUTES.EDIT}`,
           search: `?data=${encodedQuery}`,
         }),
       );

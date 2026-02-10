@@ -1,5 +1,7 @@
 import { describe, expect, expectTypeOf, it } from "vitest";
 
+import { ROUTES } from "./constants";
+
 import {
   chunkArray,
   clampPan,
@@ -10,6 +12,7 @@ import {
   getBoundaries,
   getCanvasFilters,
   getImageCoordinates,
+  isEditWindow,
 } from "./helpers";
 
 describe(getAlphabetLetter, () => {
@@ -348,5 +351,23 @@ describe(decodeEditPayload, () => {
     const decoded = decodeEditPayload(encoded);
 
     expect(decoded).toStrictEqual(data);
+  });
+});
+
+describe(isEditWindow, () => {
+  it("returns true if window is an edit window", () => {
+    const window = { location: { hash: `#${ROUTES.EDIT}` } } as unknown as Window;
+
+    expect(isEditWindow(window)).toBe(true);
+  });
+
+  it("returns false if window is not an edit window", () => {
+    const window = { location: { hash: `#${ROUTES.PROJECT}` } } as unknown as Window;
+
+    expect(isEditWindow(window)).toBe(false);
+  });
+
+  it("returns false if window is null", () => {
+    expect(isEditWindow(null as unknown as Window)).toBe(false);
   });
 });

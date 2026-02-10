@@ -33,6 +33,12 @@ export enum IPC_EVENTS {
   NAVIGATE_EDITOR_PHOTO = "edit:navigateEditorPhoto",
 }
 
+export enum ROUTES {
+  INDEX = "/",
+  PROJECT = "/project",
+  EDIT = "/edit",
+}
+
 export const DEFAULT_WINDOW_TITLE = "Photo ID";
 
 export const PHOTO_FILE_EXTENSIONS = [".jpg", ".jpeg", ".png"];
