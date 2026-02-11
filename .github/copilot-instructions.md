@@ -2,6 +2,7 @@
 
 - The Photo ID app is a research tool that can be used for photo-identification methodologies for longitudinal mark-recapture studies. It allows for the organisation and matching of photographs containing unique identification markings (such as cetacean dorsal fins). It includes tools for editing and visually filtering photographs to help with identification of marks.
 - It is NOT a cataloguing tool, but a tool to group photos and edit them to more easily see indentifiable marks. These photos can then be exported and used in external cataloguing software.
+- See `docs/technical/specifications.md` for specifications and requirements for user journeys and flows.
 
 ## High-level architecture
 
@@ -110,6 +111,7 @@ When unsure, look at these files first
       - `useCanvasRenderer.ts` — Render the image onto the canvas with the current filters and transform (throttled for performance)
       - `usePanInteraction.ts` — Pointer handlers for panning the image on the canvas
       - `useZoomInteraction.ts` — Wheel and button handlers for zooming while keeping the cursor location stable
+      - `useImageExport.ts` — Apply filters and transform and export the edited image as a new `File`
 - `src/routes/` — TanStack Router route definitions (router generates `routeTree.gen.ts`)
 - `src/models/` — Data model classes:
   - `Project.ts` — Project model
