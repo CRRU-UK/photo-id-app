@@ -33,6 +33,10 @@ The following describes the specifications and requirements of user journeys and
 - When the main window is closed or the app exits, all of the edit windows should also be closed
 - When closing the project view with the keyboard shortcut, it should navigate to the index view instead of closing the window
 - When closing the index view with the keyboard shortcut, it should close the window and application
+- Restarting the app should NEVER load a project automatically, and instead show the index view instead
+  - The exception to this is during development, i.e. hot-reload, should retain the project view if a project is already open
+- DevTools should ONLY be shown during development, and NEVER shown in the production build
+- Users should NEVER be able to refresh or modify the webview outside of the designed application flow
 
 ## Views
 
