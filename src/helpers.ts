@@ -1,6 +1,6 @@
 import type { EdgeDetectionData, PhotoBody, PhotoEdits } from "@/types";
 
-import { DEFAULT_PHOTO_EDITS, EDGE_DETECTION } from "@/constants";
+import { DEFAULT_PHOTO_EDITS, EDGE_DETECTION, ROUTES } from "@/constants";
 
 /**
  * Encodes photo data for the edit window URL query.
@@ -164,3 +164,10 @@ export const computeIsEdited = (edits: PhotoEdits): boolean =>
   edits.zoom !== DEFAULT_PHOTO_EDITS.zoom ||
   edits.pan.x !== DEFAULT_PHOTO_EDITS.pan.x ||
   edits.pan.y !== DEFAULT_PHOTO_EDITS.pan.y;
+
+/**
+ * Determines if the given hash is an edit window.
+ * @param hash - Hash to check
+ * @returns Returns `true` if the hash is an edit window, otherwise `false`.
+ */
+export const isEditWindow = (hash: string): boolean => hash.startsWith(`#${ROUTES.EDIT}`);

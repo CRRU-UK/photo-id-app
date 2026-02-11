@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from "react";
 
+import { isEditWindow } from "@/helpers";
 import ProjectModel from "@/models/Project";
 import type { ProjectBody } from "@/types";
 
@@ -27,8 +28,13 @@ export const ProjectProvider = ({ children }: ProjectProviderProps) => {
   const [project, setProject] = useState<ProjectModel | null>(null);
   const pendingNavigateToProjectRef = useRef<boolean>(false);
   const navigate = useNavigate();
+  const inEditWindow = isEditWindow(window.location.hash);
 
   useEffect(() => {
+    if (inEditWindow) {
+      return;
+    }
+
     const unsubscribeLoadProject = window.electronAPI.onLoadProject((data) => {
       setProject(new ProjectModel(data));
       pendingNavigateToProjectRef.current = true;
@@ -37,9 +43,13 @@ export const ProjectProvider = ({ children }: ProjectProviderProps) => {
     return () => {
       unsubscribeLoadProject();
     };
-  }, [setProject]);
+  }, [inEditWindow, setProject]);
 
   useEffect(() => {
+    if (inEditWindow) {
+      return;
+    }
+
     let cancelled = false;
 
     void window.electronAPI.getCurrentProject().then((data: ProjectBody | null) => {
@@ -54,7 +64,7 @@ export const ProjectProvider = ({ children }: ProjectProviderProps) => {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [inEditWindow]);
 
   useEffect(() => {
     if (project !== null && pendingNavigateToProjectRef.current) {

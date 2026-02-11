@@ -19,7 +19,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { observer } from "mobx-react-lite";
 import { useCallback, useEffect, useState } from "react";
 
-import { MATCHED_STACKS_PER_PAGE } from "@/constants";
+import { MATCHED_STACKS_PER_PAGE, ROUTES } from "@/constants";
 import { useProject } from "@/contexts/ProjectContext";
 
 import LoadingOverlay from "@/frontend/components/LoadingOverlay";
@@ -58,7 +58,7 @@ const ProjectPage = observer(() => {
 
   useEffect(() => {
     if (project === null) {
-      navigate({ to: "/" });
+      navigate({ to: ROUTES.INDEX });
     }
   }, [project, navigate]);
 
@@ -226,6 +226,6 @@ const ProjectPage = observer(() => {
   );
 });
 
-export const Route = createFileRoute("/project")({
+export const Route = createFileRoute(ROUTES.PROJECT)({
   component: ProjectPage,
 });
