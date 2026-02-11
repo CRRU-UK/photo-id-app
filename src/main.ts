@@ -33,7 +33,6 @@ import {
   handleOpenFilePrompt,
   handleOpenProjectFile,
   handleSaveProject,
-  loadPersistedCurrentProject,
   setCurrentProject,
 } from "@/backend/projects";
 import { getRecentProjects, removeRecentProject } from "@/backend/recents";
@@ -118,8 +117,6 @@ app.on("activate", async () => {
 });
 
 app.whenReady().then(async () => {
-  await loadPersistedCurrentProject();
-
   const settings = await getSettings();
   if (settings.telemetry === "enabled" && process.env.SENTRY_DSN) {
     console.debug("Sentry is enabled in main");
