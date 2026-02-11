@@ -1,6 +1,6 @@
 import { describe, expect, expectTypeOf, it } from "vitest";
 
-import { ROUTES } from "./constants";
+import { ROUTES } from "@/constants";
 
 import {
   chunkArray,
