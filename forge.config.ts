@@ -11,9 +11,6 @@ import path from "node:path";
 
 const config: ForgeConfig = {
   packagerConfig: {
-    asar: {
-      unpack: "**/node_modules/{sharp,@img}/**/*",
-    },
     icon: path.join(__dirname, "src", "assets", "icon"),
     executableName: "photo-id",
     extraResource: [path.resolve(__dirname, "./.env")],
@@ -53,7 +50,7 @@ const config: ForgeConfig = {
     {
       name: "@timfish/forge-externals-plugin",
       config: {
-        externals: ["sharp"],
+        externals: ["@napi-rs/canvas"],
         includeDeps: true,
       },
     },

@@ -15,11 +15,20 @@ export type Match = {
 
 export type Matches = Set<Match>;
 
+export type PhotoEdits = {
+  brightness: number;
+  contrast: number;
+  saturate: number;
+  zoom: number;
+  pan: { x: number; y: number };
+};
+
 export type PhotoBody = {
   directory: Directory;
   name: FileName;
-  edited: FileName | null;
   thumbnail: FileName;
+  edits: PhotoEdits;
+  isEdited: boolean;
 };
 
 export type CollectionBody = {
@@ -70,3 +79,26 @@ export type LoadingData = {
 export type EditorNavigation = "prev" | "next";
 
 export type ExternalLinks = "website" | "user-guide" | "changelog";
+
+export type EdgeDetectionData = { enabled: false } | { enabled: true; value: number };
+
+export type ImageFilters = {
+  brightness: number;
+  contrast: number;
+  saturate: number;
+  edgeDetection: EdgeDetectionData;
+};
+
+export type ImageTransformations = {
+  zoom: number;
+  pan: { x: number; y: number };
+};
+
+export type ThemeMode = "light" | "dark" | "auto";
+
+export type Telemetry = "enabled" | "disabled";
+
+export type SettingsData = {
+  themeMode: ThemeMode;
+  telemetry: Telemetry;
+};

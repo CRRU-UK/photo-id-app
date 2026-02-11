@@ -11,9 +11,12 @@ import type {
   ProjectBody,
 } from "@/types";
 
+import { renderFullImageWithEdits } from "@/backend/imageRenderer";
 import { createPhotoThumbnail } from "@/backend/photos";
 import { addRecentProject } from "@/backend/recents";
 import {
+  CURRENT_PROJECT_FILE_NAME,
+  DEFAULT_PHOTO_EDITS,
   DEFAULT_WINDOW_TITLE,
   EXISTING_DATA_BUTTONS,
   EXISTING_DATA_MESSAGE,
@@ -21,14 +24,58 @@ import {
   IPC_EVENTS,
   MISSING_RECENT_PROJECT_MESSAGE,
   PHOTO_FILE_EXTENSIONS,
-  PROJECT_EDITS_DIRECTORY,
   PROJECT_EXPORT_DIRECTORY,
   PROJECT_FILE_NAME,
   PROJECT_THUMBNAIL_DIRECTORY,
 } from "@/constants";
 import { getAlphabetLetter } from "@/helpers";
 
+let currentProjectDirectory: string | null = null;
+
+const getCurrentProjectFilePath = (): string =>
+  path.join(app.getPath("userData"), CURRENT_PROJECT_FILE_NAME);
+
+/**
+ * Loads the persisted current project path from userData (e.g. after app restart).
+ * Call once when the app is ready, before the renderer asks for the current project.
+ */
+export const loadPersistedCurrentProject = async (): Promise<void> => {
+  const filePath = getCurrentProjectFilePath();
+
+  try {
+    const content = await fs.promises.readFile(filePath, "utf8");
+    const parsed = JSON.parse(content) as { directory: string | null };
+
+    if (typeof parsed.directory === "string" && parsed.directory.length > 0) {
+      currentProjectDirectory = parsed.directory;
+    }
+  } catch {
+    currentProjectDirectory = null;
+  }
+};
+
+/**
+ * Returns the directory of the currently open project, or null if none.
+ */
+export const getCurrentProjectDirectory = (): string | null => currentProjectDirectory;
+
+/**
+ * Sets the current project directory (when a project is loaded or closed).
+ * Persists to userData so the project can be restored after reload or app restart.
+ */
+export const setCurrentProject = (directory: string | null): void => {
+  currentProjectDirectory = directory;
+  const filePath = getCurrentProjectFilePath();
+
+  const content = JSON.stringify({ directory: currentProjectDirectory });
+
+  fs.promises.writeFile(filePath, content, "utf8").catch((error) => {
+    console.error("Failed to persist current project path:", error);
+  });
+};
+
 const sendData = (mainWindow: Electron.BrowserWindow, data: ProjectBody) => {
+  setCurrentProject(data.directory);
   mainWindow.setTitle(`${DEFAULT_WINDOW_TITLE} - ${data.directory}`);
   mainWindow.webContents.send(IPC_EVENTS.LOAD_PROJECT, data);
   mainWindow.focus();
@@ -105,11 +152,6 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
     return true;
   });
 
-  const editsDirectory = path.join(directory, PROJECT_EDITS_DIRECTORY);
-  if (!fs.existsSync(editsDirectory)) {
-    await fs.promises.mkdir(editsDirectory);
-  }
-
   const thumbnailDirectory = path.join(directory, PROJECT_THUMBNAIL_DIRECTORY);
   if (!fs.existsSync(thumbnailDirectory)) {
     await fs.promises.mkdir(thumbnailDirectory);
@@ -117,16 +159,24 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
 
   const thumbnails: string[] = [];
 
-  for (const [index, photo] of photos.entries()) {
-    const result = await createPhotoThumbnail(photo, directory);
-    thumbnails.push(result);
-
+  for (const [index, photoName] of photos.entries()) {
     mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, {
       show: true,
       text: "Preparing project",
-      progressValue: Math.ceil((index / photos.length) * 100),
+      progressValue: (index / photos.length) * 100,
       progressText: `Processing photo ${index + 1} of ${photos.length}`,
     } as LoadingData);
+
+    const photo: PhotoBody = {
+      directory,
+      name: photoName,
+      thumbnail: "",
+      edits: DEFAULT_PHOTO_EDITS,
+      isEdited: false,
+    };
+
+    const result = await createPhotoThumbnail(photo);
+    thumbnails.push(result);
   }
 
   const now = new Date().toISOString();
@@ -148,8 +198,9 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
       photos: photos.map((name, index) => ({
         directory,
         name,
-        edited: null,
         thumbnail: thumbnails[index],
+        edits: DEFAULT_PHOTO_EDITS,
+        isEdited: false,
       })),
       index: 0,
     },
@@ -221,8 +272,14 @@ const handleSaveProject = async (data: string) => {
 /**
  * Handles exporting matches.
  */
-const handleExportMatches = async (data: string) => {
+const handleExportMatches = async (mainWindow: Electron.BrowserWindow, data: string) => {
   const project = JSON.parse(data) as ProjectBody;
+
+  mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, {
+    show: true,
+    text: "Exporting matches",
+    progressValue: 0,
+  } as LoadingData);
 
   const exportsDirectory = path.join(project.directory, PROJECT_EXPORT_DIRECTORY);
   if (fs.existsSync(exportsDirectory)) {
@@ -234,23 +291,52 @@ const handleExportMatches = async (data: string) => {
     await fs.promises.mkdir(exportsDirectory);
   }
 
+  let progress = 0;
+  const totalPhotos = project.matched.reduce(
+    (acc, match) => acc + match.left.photos.length + match.right.photos.length,
+    0,
+  );
+
   const handleSide = async (id: string, side: CollectionBody, label: "L" | "R") => {
     for (const photo of side.photos) {
+      progress++;
+      mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, {
+        show: true,
+        text: "Exporting matches",
+        progressValue: (progress / totalPhotos) * 100,
+        progressText: `Exporting match ${progress} of ${totalPhotos}`,
+      } as LoadingData);
+
       let photoName = id;
       if (side.name && side.name !== "") {
         photoName = side.name.padStart(3, "0");
       }
 
-      const exportedName = `${photoName}${label}_${photo.name}`;
+      const originalExtension = path.extname(photo.name);
+      const baseExportName = `${photoName}${label}_${path.basename(photo.name, originalExtension)}`;
 
-      let targetPath = path.join(project.directory, photo.name);
-      if (photo.edited) {
-        targetPath = path.join(project.directory, photo.edited);
-      }
-
+      const sourcePath = path.join(project.directory, photo.name);
+      const exportedName = `${baseExportName}${originalExtension}`;
       const exportedPath = path.join(exportsDirectory, exportedName);
 
-      await fs.promises.copyFile(targetPath, exportedPath);
+      if (!photo.isEdited) {
+        await fs.promises.copyFile(sourcePath, exportedPath);
+        continue;
+      }
+
+      const renderedBuffer = await renderFullImageWithEdits({
+        sourcePath,
+        edits: photo.edits,
+      });
+
+      const useJPEG =
+        originalExtension.toLowerCase() === ".jpg" || originalExtension.toLowerCase() === ".jpeg";
+      const exportExtension = useJPEG ? originalExtension : ".png";
+
+      const finalExportedName = `${baseExportName}${exportExtension}`;
+      const finalExportedPath = path.join(exportsDirectory, finalExportedName);
+
+      await fs.promises.writeFile(finalExportedPath, renderedBuffer);
     }
   };
 
@@ -261,6 +347,8 @@ const handleExportMatches = async (data: string) => {
       handleSide(matchID, match.right, "R"),
     ]);
   }
+
+  mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, { show: false });
 };
 
 /**
@@ -280,16 +368,6 @@ const handleDuplicatePhotoFile = async (data: PhotoBody): Promise<PhotoBody> => 
 
   await fs.promises.copyFile(originalPath, path.join(data.directory, newOriginalPath));
 
-  let newEditedPath = null;
-  if (data.edited) {
-    const editedPath = path.join(data.directory, data.edited);
-    const editedExtension = path.extname(data.edited);
-    newEditedPath = data.edited.replace(editedExtension, `_duplicate_${time}${editedExtension}`);
-
-    // If edited photo is present, use it as the original photo instead
-    await fs.promises.copyFile(editedPath, path.join(data.directory, newEditedPath));
-  }
-
   const thumbnailExtension = path.extname(data.thumbnail);
   const newThumbnailPath = data.thumbnail.replace(
     thumbnailExtension,
@@ -301,8 +379,9 @@ const handleDuplicatePhotoFile = async (data: PhotoBody): Promise<PhotoBody> => 
   return {
     directory: data.directory,
     name: newOriginalPath,
-    edited: newEditedPath,
     thumbnail: newThumbnailPath,
+    edits: data.edits,
+    isEdited: data.isEdited,
   };
 };
 
@@ -312,23 +391,27 @@ const handleDuplicatePhotoFile = async (data: PhotoBody): Promise<PhotoBody> => 
 const findPhotoInProject = (project: ProjectBody, photo: PhotoBody): CollectionBody | null => {
   const { name } = photo;
 
-  const inUnassigned = project.unassigned.photos.some((photo: PhotoBody) => photo.name === name);
+  const inUnassigned = project.unassigned.photos.some(
+    (candidate: PhotoBody) => candidate.name === name,
+  );
   if (inUnassigned) {
     return project.unassigned;
   }
 
-  const inDiscarded = project.discarded.photos.some((photo: PhotoBody) => photo.name === name);
+  const inDiscarded = project.discarded.photos.some(
+    (candidate: PhotoBody) => candidate.name === name,
+  );
   if (inDiscarded) {
     return project.discarded;
   }
 
   for (const match of project.matched) {
-    const inLeft = match.left.photos.some((photo: PhotoBody) => photo.name === name);
+    const inLeft = match.left.photos.some((candidate: PhotoBody) => candidate.name === name);
     if (inLeft) {
       return match.left;
     }
 
-    const inRight = match.right.photos.some((photo: PhotoBody) => photo.name === name);
+    const inRight = match.right.photos.some((candidate: PhotoBody) => candidate.name === name);
     if (inRight) {
       return match.right;
     }

@@ -5,6 +5,19 @@ import path from "node:path";
 import { MAX_RECENT_PROJECTS, RECENT_PROJECTS_FILE_NAME } from "@/constants";
 import type { RecentProject } from "@/types";
 
+/**
+ * Deduplicates recent projects by path (first occurrence wins) and returns at most max items.
+ */
+export const dedupeRecentProjects = (items: RecentProject[], max: number): RecentProject[] =>
+  items
+    .reduce((accumulator, current) => {
+      if (!accumulator.some((item) => item.path === current.path)) {
+        accumulator.push(current);
+      }
+      return accumulator;
+    }, [] as RecentProject[])
+    .slice(0, max);
+
 const userDataPath = app.getPath("userData");
 const recentProjectsFile = path.join(userDataPath, RECENT_PROJECTS_FILE_NAME);
 
@@ -42,15 +55,7 @@ const addRecentProject = async ({
 
   const lastProject = { name, path, lastOpened: new Date().toISOString() };
 
-  // TODO: Probably a simpler way of doing this
-  const data = [lastProject, ...recentProjects]
-    .reduce((accumulator, currentValue) => {
-      if (!accumulator.some((item) => item.path === currentValue.path)) {
-        accumulator.push(currentValue);
-      }
-      return accumulator;
-    }, [] as RecentProject[])
-    .slice(0, MAX_RECENT_PROJECTS);
+  const data = dedupeRecentProjects([lastProject, ...recentProjects], MAX_RECENT_PROJECTS);
 
   await updateRecentProjects(data);
 

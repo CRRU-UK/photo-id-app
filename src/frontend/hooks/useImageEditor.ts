@@ -1,348 +1,223 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { IMAGE_EDITS, IMAGE_FILTERS, ZOOM_FACTORS } from "@/constants";
-import { getBoundaries, getCanvasFilters } from "@/helpers";
+import { useCanvasRenderer } from "./imageEditor/useCanvasRenderer";
+import { useImageFilters } from "./imageEditor/useImageFilters";
+import { useImageLoader } from "./imageEditor/useImageLoader";
+import { useImageTransform } from "./imageEditor/useImageTransform";
+import { usePanInteraction } from "./imageEditor/usePanInteraction";
+import { useZoomInteraction } from "./imageEditor/useZoomInteraction";
 
 interface UseImageEditorProps {
   file: File;
 }
 
 const useImageEditor = ({ file }: UseImageEditorProps) => {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const imageRef = useRef<HTMLImageElement | null>(null);
-
-  const brightnessRef = useRef<number>(IMAGE_FILTERS.BRIGHTNESS.DEFAULT);
-  const contrastRef = useRef<number>(IMAGE_FILTERS.CONTRAST.DEFAULT);
-  const saturateRef = useRef<number>(IMAGE_FILTERS.SATURATE.DEFAULT);
-  const zoomRef = useRef<number>(IMAGE_EDITS.ZOOM);
-
-  const isPanningRef = useRef<boolean>(false);
-  const panRef = useRef({ x: IMAGE_EDITS.PAN_X, y: IMAGE_EDITS.PAN_Y });
-  const lastPointerRef = useRef({ x: 0, y: 0 });
-  const throttleRef = useRef<number | null>(null);
-
   const [resetKey, setResetKey] = useState(0);
 
-  // Convert screen coordinates to image coordinates
-  const getImageCoordinates = useCallback(
-    (screenX: number, screenY: number): { x: number; y: number } | null => {
-      const canvas = canvasRef.current;
-      const image = imageRef.current;
+  const { imageRef, imageLoaded } = useImageLoader(file);
 
-      if (!canvas || !image) {
-        return null;
-      }
+  const {
+    setBrightness: setBrightnessInternal,
+    setContrast: setContrastInternal,
+    setSaturate: setSaturateInternal,
+    setEdgeDetection: setEdgeDetectionInternal,
+    resetFilters: resetFiltersInternal,
+    getFilters,
+  } = useImageFilters();
 
-      const rect = canvas.getBoundingClientRect();
-      const screenImageX = screenX - rect.left;
-      const screenImageY = screenY - rect.top;
+  const {
+    getTransform,
+    setZoom: setZoomInternal,
+    setPan: setPanInternal,
+    clamp,
+    getImageCoords,
+    resetTransform: resetTransformInternal,
+  } = useImageTransform(imageRef);
 
-      const scaleX = image.naturalWidth / canvas.clientWidth;
-      const scaleY = image.naturalHeight / canvas.clientHeight;
-
-      return {
-        x: screenImageX * scaleX,
-        y: screenImageY * scaleY,
-      };
-    },
-    [],
-  );
-
-  // Ensures the image is within the canvas bounds
-  const clamp = useCallback(() => {
-    const canvas = canvasRef.current;
-    const image = imageRef.current;
-
-    if (!canvas || !image) {
-      return;
-    }
-
-    const zoom = zoomRef.current;
-    const scaledImageWidth = image.naturalWidth * zoom;
-    const scaledImageHeight = image.naturalHeight * zoom;
-
-    const boundaryX = getBoundaries(canvas.width, scaledImageWidth);
-    const boundaryY = getBoundaries(canvas.height, scaledImageHeight);
-
-    panRef.current.x = Math.max(boundaryX.min, Math.min(boundaryX.max, panRef.current.x));
-    panRef.current.y = Math.max(boundaryY.min, Math.min(boundaryY.max, panRef.current.y));
-  }, []);
-
-  const draw = useCallback(() => {
-    const canvas = canvasRef.current;
-    const image = imageRef.current;
-
-    if (!canvas || !image) {
-      return;
-    }
-
-    const context = canvas.getContext("2d");
-
-    if (!context) {
-      return;
-    }
-
-    context.setTransform(1, 0, 0, 1, 0, 0);
-    context.clearRect(0, 0, canvas.width, canvas.height);
-
-    if (canvas.width !== image.naturalWidth || canvas.height !== image.naturalHeight) {
-      canvas.width = image.naturalWidth;
-      canvas.height = image.naturalHeight;
-    }
-
-    const zoom = zoomRef.current;
-    const centreX = canvas.width / 2;
-    const centreY = canvas.height / 2;
-
-    clamp();
-
-    context.translate(centreX + panRef.current.x, centreY + panRef.current.y);
-    context.scale(zoom, zoom);
-    context.translate(-centreX, -centreY);
-
-    context.filter = getCanvasFilters({
-      brightness: brightnessRef.current,
-      contrast: contrastRef.current,
-      saturate: saturateRef.current,
-    });
-
-    context.drawImage(image, 0, 0);
-  }, [clamp]);
+  const { canvasRef, draw, drawThrottled, cancelThrottle } = useCanvasRenderer({
+    imageRef,
+    getFilters,
+    getTransform,
+    clamp,
+  });
 
   useEffect(() => {
-    if (!file) {
-      return;
-    }
-
-    const url = URL.createObjectURL(file);
-    const image = new Image();
-
-    image.onload = () => {
-      imageRef.current = image;
+    if (imageLoaded) {
       draw();
-    };
-
-    image.src = url;
-
-    return () => {
-      URL.revokeObjectURL(url);
-      imageRef.current = null;
-
-      // Cancel any pending requestAnimationFrame
-      if (throttleRef.current !== null) {
-        cancelAnimationFrame(throttleRef.current);
-        throttleRef.current = null;
-      }
-    };
-  }, [file, draw]);
-
-  const exportFile = useCallback(async (): Promise<File | null> => {
-    const canvas = canvasRef.current;
-    if (!canvas) {
-      return null;
     }
+  }, [imageLoaded, draw]);
 
-    const mime = file.type;
+  const { handlePointerDown, handlePointerMove, handlePointerUp } = usePanInteraction({
+    canvasRef,
+    imageRef,
+    onPan: setPanInternal,
+    onDraw: draw,
+    onDrawThrottled: drawThrottled,
+    onCancelThrottle: cancelThrottle,
+    getTransform,
+  });
 
-    return new Promise((resolve) => {
-      canvas.toBlob((blob) => {
-        if (!blob) {
-          return resolve(null);
-        }
-
-        const name = file.name;
-        const edited = new File([blob], name, { type: mime });
-
-        resolve(edited);
-      }, mime);
-    });
-  }, [file]);
-
-  const handlePointerDown = useCallback((event: React.PointerEvent<HTMLCanvasElement>) => {
-    isPanningRef.current = true;
-    lastPointerRef.current.x = event.clientX;
-    lastPointerRef.current.y = event.clientY;
-  }, []);
-
-  // Pan the image from the last cursor position (i.e. 1:1 movement)
-  const handlePointerMove = useCallback(
-    (event: React.PointerEvent<HTMLCanvasElement>) => {
-      if (!isPanningRef.current) {
-        return;
-      }
-
-      const canvas = canvasRef.current;
-      const image = imageRef.current;
-
-      if (!canvas || !image) {
-        return;
-      }
-
-      const deltaX = event.clientX - lastPointerRef.current.x;
-      const deltaY = event.clientY - lastPointerRef.current.y;
-
-      const scaleX = image.naturalWidth / canvas.clientWidth;
-      const scaleY = image.naturalHeight / canvas.clientHeight;
-
-      const scaledDeltaX = deltaX * scaleX;
-      const scaledDeltaY = deltaY * scaleY;
-
-      panRef.current.x = panRef.current.x + scaledDeltaX;
-      panRef.current.y = panRef.current.y + scaledDeltaY;
-
-      lastPointerRef.current.x = event.clientX;
-      lastPointerRef.current.y = event.clientY;
-
-      // Use requestAnimationFrame to throttle draw calls during panning
-      if (throttleRef.current === null) {
-        throttleRef.current = requestAnimationFrame(() => {
-          draw();
-          throttleRef.current = null;
-        });
-      }
-    },
-    [draw],
-  );
-
-  const handlePointerUp = useCallback(() => {
-    isPanningRef.current = false;
-
-    // Cancel any pending animation frame
-    if (throttleRef.current !== null) {
-      cancelAnimationFrame(throttleRef.current);
-      throttleRef.current = null;
-    }
-
-    // Ensure final position is within bounds
-    clamp();
-    draw();
-  }, [clamp, draw]);
-
-  // Zoom the image towards where the cursor currently is
-  const handleWheel = useCallback(
-    (event: WheelEvent) => {
-      event.preventDefault();
-
-      const canvas = canvasRef.current;
-      const image = imageRef.current;
-
-      if (!canvas || !image) {
-        return;
-      }
-
-      const imageCoords = getImageCoordinates(event.clientX, event.clientY);
-      if (!imageCoords) {
-        return;
-      }
-
-      const zoom = zoomRef.current;
-      const centreX = canvas.width / 2;
-      const centreY = canvas.height / 2;
-
-      const imagePointX = (imageCoords.x - centreX - panRef.current.x) / zoom + centreX;
-      const imagePointY = (imageCoords.y - centreY - panRef.current.y) / zoom + centreY;
-
-      const delta = event.deltaY > 0 ? 1 / ZOOM_FACTORS.WHEEL : ZOOM_FACTORS.WHEEL;
-      const newZoom = zoomRef.current * delta;
-
-      zoomRef.current = Math.max(newZoom, 1);
-      panRef.current.x = imageCoords.x - centreX - (imagePointX - centreX) * zoomRef.current;
-      panRef.current.y = imageCoords.y - centreY - (imagePointY - centreY) * zoomRef.current;
-
-      clamp();
-      draw();
-    },
-    [clamp, draw, getImageCoordinates],
-  );
-
-  // Apply zoom with given factor, scales pan proportionally
-  const applyZoom = useCallback(
-    (zoomFactor: number) => {
-      zoomRef.current = Math.max(zoomRef.current * zoomFactor, 1);
-      panRef.current.x = panRef.current.x * zoomFactor;
-      panRef.current.y = panRef.current.y * zoomFactor;
-
-      clamp();
-      draw();
-    },
-    [clamp, draw],
-  );
-
-  // Zoom in from the centre of the canvas
-  const handleZoomIn = useCallback(() => {
-    applyZoom(ZOOM_FACTORS.BUTTON);
-  }, [applyZoom]);
-
-  // Zoom out from the centre of the canvas
-  const handleZoomOut = useCallback(() => {
-    applyZoom(1 / ZOOM_FACTORS.BUTTON);
-  }, [applyZoom]);
+  const { handleWheel, handleZoomIn, handleZoomOut } = useZoomInteraction({
+    canvasRef,
+    imageRef,
+    getImageCoords,
+    getTransform,
+    setZoom: setZoomInternal,
+    setPan: setPanInternal,
+    clamp,
+    onDraw: draw,
+  });
 
   /**
    * Sets the brightness level for the image.
-   * @param value - Brightness percentage value (0-200, where 100 is normal)
+   * @param value - Brightness percentage (0-200, default 100)
    */
   const setBrightness = useCallback(
     (value: number) => {
-      brightnessRef.current = value;
-
-      draw();
+      setBrightnessInternal(value);
+      drawThrottled();
     },
-    [draw],
+    [setBrightnessInternal, drawThrottled],
   );
 
   /**
    * Sets the contrast level for the image.
-   * @param value - Contrast percentage value (0-200, where 100 is normal)
+   * @param value - Contrast percentage (0-200, default 100)
    */
   const setContrast = useCallback(
     (value: number) => {
-      contrastRef.current = value;
-
-      draw();
+      setContrastInternal(value);
+      drawThrottled();
     },
-    [draw],
+    [setContrastInternal, drawThrottled],
   );
 
   /**
    * Sets the saturation level for the image.
-   * @param value - Saturation percentage value (0-200, where 100 is normal)
+   * @param value - Saturation percentage (0-200, default 100)
    */
   const setSaturate = useCallback(
     (value: number) => {
-      saturateRef.current = value;
+      setSaturateInternal(value);
+      drawThrottled();
+    },
+    [setSaturateInternal, drawThrottled],
+  );
+
+  /**
+   * Toggles the visualization of edges on the image.
+   * @param state - Edge detection configuration with enabled state and intensity value
+   */
+  const setEdgeDetection = useCallback(
+    (state: Parameters<typeof setEdgeDetectionInternal>[0]) => {
+      setEdgeDetectionInternal(state);
+      drawThrottled();
+    },
+    [setEdgeDetectionInternal, drawThrottled],
+  );
+
+  /**
+   * Pans the image by a delta amount in image coordinates.
+   * @param delta - Delta pan values in image coordinates
+   */
+  const handlePan = useCallback(
+    (delta: { x: number; y: number }) => {
+      const currentTransform = getTransform();
+      const newPan = {
+        x: currentTransform.pan.x + delta.x,
+        y: currentTransform.pan.y + delta.y,
+      };
+
+      setPanInternal(newPan);
+      clamp(canvasRef.current);
+      drawThrottled();
+    },
+    [getTransform, setPanInternal, clamp, canvasRef, drawThrottled],
+  );
+
+  const resetAll = useCallback(() => {
+    resetFiltersInternal();
+    resetTransformInternal();
+
+    setResetKey((prev) => prev + 1);
+
+    draw();
+  }, [resetFiltersInternal, resetTransformInternal, draw]);
+
+  const applyEdits = useCallback(
+    (value: {
+      brightness: number;
+      contrast: number;
+      saturate: number;
+      zoom: number;
+      pan: { x: number; y: number };
+    }) => {
+      setBrightnessInternal(value.brightness);
+      setContrastInternal(value.contrast);
+      setSaturateInternal(value.saturate);
+      setZoomInternal(value.zoom);
+      setPanInternal({ x: value.pan.x, y: value.pan.y });
+
+      setResetKey((prev) => prev + 1);
 
       draw();
     },
-    [draw],
+    [
+      setBrightnessInternal,
+      setContrastInternal,
+      setSaturateInternal,
+      setZoomInternal,
+      setPanInternal,
+      draw,
+    ],
   );
 
-  const resetFilters = useCallback(() => {
-    brightnessRef.current = IMAGE_FILTERS.BRIGHTNESS.DEFAULT;
-    contrastRef.current = IMAGE_FILTERS.CONTRAST.DEFAULT;
-    saturateRef.current = IMAGE_FILTERS.SATURATE.DEFAULT;
-    zoomRef.current = IMAGE_EDITS.ZOOM;
-    panRef.current = { x: IMAGE_EDITS.PAN_X, y: IMAGE_EDITS.PAN_Y };
-
-    setResetKey((prev) => prev + 1);
-    draw();
-  }, [draw]);
-
-  return {
-    canvasRef,
-    setBrightness,
-    setContrast,
-    setSaturate,
-    handleZoomIn,
-    handleZoomOut,
-    handlePointerDown,
-    handlePointerUp,
-    handlePointerMove,
-    handleWheel,
-    resetFilters,
-    exportFile,
-    resetKey,
-  };
+  return useMemo(
+    () => ({
+      canvasRef,
+      imageRef,
+      imageLoaded,
+      draw,
+      setBrightness,
+      setContrast,
+      setSaturate,
+      setEdgeDetection,
+      getFilters,
+      getTransform,
+      handleZoomIn,
+      handleZoomOut,
+      handlePointerDown,
+      handlePointerUp,
+      handlePointerMove,
+      handleWheel,
+      handlePan,
+      resetAll,
+      applyEdits,
+      resetKey,
+    }),
+    [
+      canvasRef,
+      imageRef,
+      imageLoaded,
+      draw,
+      setBrightness,
+      setContrast,
+      setSaturate,
+      setEdgeDetection,
+      getFilters,
+      getTransform,
+      handleZoomIn,
+      handleZoomOut,
+      handlePointerDown,
+      handlePointerUp,
+      handlePointerMove,
+      handleWheel,
+      handlePan,
+      resetAll,
+      applyEdits,
+      resetKey,
+    ],
+  );
 };
 
 export default useImageEditor;

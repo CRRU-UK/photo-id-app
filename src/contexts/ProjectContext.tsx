@@ -1,7 +1,91 @@
-import { createContext } from "react";
+import { useNavigate } from "@tanstack/react-router";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 
+import { isEditWindow } from "@/helpers";
 import ProjectModel from "@/models/Project";
+import type { ProjectBody } from "@/types";
 
-const ProjectContext = createContext<ProjectModel>(new ProjectModel());
+interface ProjectContextValue {
+  project: ProjectModel | null;
+  setProject: (project: ProjectModel | null) => void;
+}
+
+const ProjectContext = createContext<ProjectContextValue | null>(null);
+
+interface ProjectProviderProps {
+  children: ReactNode;
+}
+
+export const ProjectProvider = ({ children }: ProjectProviderProps) => {
+  const [project, setProject] = useState<ProjectModel | null>(null);
+  const pendingNavigateToProjectRef = useRef<boolean>(false);
+  const navigate = useNavigate();
+  const inEditWindow = isEditWindow(window.location.hash);
+
+  useEffect(() => {
+    if (inEditWindow) {
+      return;
+    }
+
+    const unsubscribeLoadProject = window.electronAPI.onLoadProject((data) => {
+      setProject(new ProjectModel(data));
+      pendingNavigateToProjectRef.current = true;
+    });
+
+    return () => {
+      unsubscribeLoadProject();
+    };
+  }, [inEditWindow, setProject]);
+
+  useEffect(() => {
+    if (inEditWindow) {
+      return;
+    }
+
+    let cancelled = false;
+
+    void window.electronAPI.getCurrentProject().then((data: ProjectBody | null) => {
+      if (cancelled || data === null) {
+        return;
+      }
+
+      setProject(new ProjectModel(data));
+      pendingNavigateToProjectRef.current = true;
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [inEditWindow]);
+
+  useEffect(() => {
+    if (project !== null && pendingNavigateToProjectRef.current) {
+      pendingNavigateToProjectRef.current = false;
+      navigate({ to: "/project" });
+    }
+  }, [project, navigate]);
+
+  const value = useMemo<ProjectContextValue>(() => ({ project, setProject }), [project]);
+
+  return <ProjectContext.Provider value={value}>{children}</ProjectContext.Provider>;
+};
+
+export const useProject = (): ProjectContextValue => {
+  const context = useContext(ProjectContext);
+
+  if (context === null) {
+    throw new Error("useProject must be used within a ProjectProvider");
+  }
+
+  return context;
+};
 
 export default ProjectContext;

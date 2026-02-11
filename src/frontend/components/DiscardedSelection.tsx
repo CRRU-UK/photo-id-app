@@ -1,15 +1,16 @@
-import { BOX_HOVER_STYLES, DragAreas } from "@/constants";
-import Stack from "@/frontend/components/Stack";
 import { useDroppable } from "@dnd-kit/core";
 import { Text } from "@primer/react";
+import { observer } from "mobx-react-lite";
 
+import { BOX_HOVER_STYLES, DragAreas } from "@/constants";
+import Stack from "@/frontend/components/Stack";
 import type Collection from "@/models/Collection";
 
 export interface DiscardedSelectionProps {
   collection: Collection;
 }
 
-const DiscardedSelection = ({ collection }: DiscardedSelectionProps) => {
+const DiscardedSelection = observer(({ collection }: DiscardedSelectionProps) => {
   const { isOver, setNodeRef: setDroppableNodeRef } = useDroppable({
     id: DragAreas.DiscardedSelection,
     data: { collection },
@@ -44,6 +45,6 @@ const DiscardedSelection = ({ collection }: DiscardedSelectionProps) => {
       <Stack collection={collection} />
     </div>
   );
-};
+});
 
 export default DiscardedSelection;

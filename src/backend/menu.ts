@@ -2,7 +2,7 @@ import type { BrowserWindow } from "electron";
 import { app, shell } from "electron";
 
 import { handleOpenDirectoryPrompt, handleOpenFilePrompt } from "@/backend/projects";
-import { EXTERNAL_LINKS } from "@/constants";
+import { EXTERNAL_LINKS, IPC_EVENTS } from "@/constants";
 
 const getMenu = (mainWindow: BrowserWindow) => {
   const isMac = process.platform === "darwin";
@@ -14,6 +14,15 @@ const getMenu = (mainWindow: BrowserWindow) => {
             label: app.name,
             submenu: [
               { role: "about" },
+              { type: "separator" },
+              {
+                label: "Preferences...",
+                accelerator: "CmdOrCtrl+,",
+                click() {
+                  mainWindow.focus();
+                  mainWindow.webContents.send(IPC_EVENTS.OPEN_SETTINGS);
+                },
+              },
               { type: "separator" },
               { role: "services" },
               { type: "separator" },
@@ -43,6 +52,18 @@ const getMenu = (mainWindow: BrowserWindow) => {
             handleOpenFilePrompt(mainWindow);
           },
         },
+        ...(!isMac
+          ? [
+              {
+                label: "Settings",
+                accelerator: "CmdOrCtrl+,",
+                click() {
+                  mainWindow.focus();
+                  mainWindow.webContents.send(IPC_EVENTS.OPEN_SETTINGS);
+                },
+              },
+            ]
+          : []),
         isMac ? { role: "close" } : { role: "quit" },
       ],
     },
@@ -93,7 +114,7 @@ const getMenu = (mainWindow: BrowserWindow) => {
           },
         },
         {
-          label: "Cetacean Research && Rescue Unit website",
+          label: "CRRU Website",
           click: async () => {
             await shell.openExternal(EXTERNAL_LINKS.WEBSITE);
           },

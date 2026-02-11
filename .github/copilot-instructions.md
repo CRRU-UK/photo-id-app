@@ -41,29 +41,33 @@
 
 ### Code standards and style
 
-- Prefer using constants when appropriate (see `src/constants.ts`).
+- Prefer using and centralising constants (see `src/constants.ts`) and types (see `src/types.ts`).
 - Prefer abstracting small blocks of logic into helper functions (see `src/helpers.ts`).
 - Prefer using full variable and parameter names for clarity (e.g. `error` instead of `e`).
 - Prefer using longer functions that are easier to read over clever one-liners.
 - Prefer using async/await over raw Promises for async code.
 - Prefer using `try/catch` for error handling over `.catch()` on Promises.
 - Prefer using long math expressions broken over multiple lines for readability and shorthand assignments (e.g. `a = a + b` instead of `a += b`).
-- Prefer adding comments only for workarounds, hacks, or non-obvious code paths.
+- Prefer early returns instead of nested `else if` and `else` blocks.
+- Prefer adding comments only for workarounds, hacks, or non-obvious code paths. Never remove existing comments, only update them if necessary instead.
+- Prefer adding JSDocs where helpful, but avoid redundant types that are already covered by TypeScript.
+- For functions with more than two parameters, prefer using objects.
 - The UI uses GitHub Primer components/icons — prefer reusing Primer primitives and icons for consistency.
+- Do not remove console logs.
 
 ### Architecture-specific conventions
 
 - IPC naming is explicit. Prefer using the `IPC_EVENTS` enum from `src/constants.ts` instead of raw strings.
 - File operations and project persistence happen on the main side (`src/backend/*.ts`). Frontend should call preload helpers and assume I/O is async.
 - Edit-window lifecycle: when navigating editor photos, the renderer calls `window.electronAPI.navigateEditorPhoto(data, direction)` which returns a base64-encoded JSON string that the edit route sets back into its query param.
-- Thumbnails and edits are stored next to the project: see constants `PROJECT_EDITS_DIRECTORY` and `PROJECT_THUMBNAIL_DIRECTORY` in `src/constants.ts`.
+- Thumbnails are stored next to the project: see `PROJECT_THUMBNAIL_DIRECTORY` in `src/constants.ts`.
 - Avoid editing generated files: `src/routeTree.gen.ts` and other generator outputs.
 
 ## Integration points / external deps
 
 - Electron + electron-forge + vite: packaging handled by `electron-forge` + forge Vite plugin (configs at project root: `vite.*.mts`, `forge.config.ts`).
 - Sentry: integrated in both main (`@sentry/electron`) and renderer (`@sentry/electron/renderer`). Environment variables: `VITE_SENTRY_DSN` (renderer) and `SENTRY_DSN` (main). See `.env.example`.
-- Native image processing: `sharp` is used in backend image helpers.
+- Native image processing: `@napi-rs/canvas` is used in backend image helpers.
 
 ## If you need to change behaviour
 
@@ -98,7 +102,14 @@ When unsure, look at these files first
   - `components/` — React components for UI elements
     - `ImageEditor.tsx` — Main photo editing layout and controls
   - `hooks/` — Custom React hooks for UI logic:
-    - `useImageEditor.ts` — Photo editor state management and canvas rendering
+    - `useImageEditor.ts` — Composes image editor behaviour for the main canvas (zoom, pan, filters, export)
+    - `imageEditor/` — Feature-focused hooks used by `useImageEditor`:
+      - `useImageLoader.ts` — Load the current image `File` into an `HTMLImageElement` and expose a loaded flag
+      - `useImageFilters.ts` — Manage filter state (`ImageFilters` in `src/types.ts`) for brightness, contrast, saturation, and edge detection
+      - `useImageTransform.ts` — Manage zoom/pan transform state (`ImageTransformations` in `src/types.ts`) and coordinate conversions
+      - `useCanvasRenderer.ts` — Render the image onto the canvas with the current filters and transform (throttled for performance)
+      - `usePanInteraction.ts` — Pointer handlers for panning the image on the canvas
+      - `useZoomInteraction.ts` — Wheel and button handlers for zooming while keeping the cursor location stable
 - `src/routes/` — TanStack Router route definitions (router generates `routeTree.gen.ts`)
 - `src/models/` — Data model classes:
   - `Project.ts` — Project model
@@ -112,7 +123,7 @@ When unsure, look at these files first
 ## Considerations
 
 - The app is often run on machines with limited hardware. Be conservative with memory and avoid loading many full-resolution images into memory at once.
-- Favour streaming, thumbnails (`src/backend/photos.ts`), and on-disk edits over keeping large buffers in renderer memory. Use the backend helpers for file I/O and image processing (`sharp`).
+- Favour streaming, thumbnails (`src/backend/photos.ts`), and on-disk edits over keeping large buffers in renderer memory. Use the backend helpers for file I/O and image processing (`@napi-rs/canvas`).
 - In React, avoid retaining large binary blobs in state across long sessions; prefer references to on-disk filenames and load File/ArrayBuffer only when needed (see `src/routes/edit.tsx` and `src/frontend/hooks/usePhotoEditor.ts`).
 
 ## Key Guidelines

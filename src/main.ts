@@ -8,6 +8,7 @@ import {
   REACT_DEVELOPER_TOOLS,
 } from "electron-devtools-installer";
 import started from "electron-squirrel-startup";
+import fs from "node:fs";
 import path from "node:path";
 import url from "node:url";
 import { updateElectronApp } from "update-electron-app";
@@ -18,11 +19,13 @@ import type {
   PhotoBody,
   ProjectBody,
   RecentProject,
+  SettingsData,
 } from "@/types";
 
 import { getMenu } from "@/backend/menu";
-import { revertPhotoToOriginal, savePhotoFromBuffer } from "@/backend/photos";
+import { createPhotoThumbnail, revertPhotoToOriginal } from "@/backend/photos";
 import {
+  getCurrentProjectDirectory,
   handleDuplicatePhotoFile,
   handleEditorNavigate,
   handleExportMatches,
@@ -30,21 +33,23 @@ import {
   handleOpenFilePrompt,
   handleOpenProjectFile,
   handleSaveProject,
+  loadPersistedCurrentProject,
+  setCurrentProject,
 } from "@/backend/projects";
 import { getRecentProjects, removeRecentProject } from "@/backend/recents";
+import { getSettings, updateSettings } from "@/backend/settings";
+import { windowManager } from "@/backend/WindowManager";
 import {
   DEFAULT_WINDOW_TITLE,
   EXTERNAL_LINKS,
   IPC_EVENTS,
   PROJECT_EXPORT_DIRECTORY,
+  PROJECT_FILE_NAME,
+  ROUTES,
 } from "@/constants";
+import { encodeEditPayload } from "@/helpers";
 
-Sentry.init({
-  dsn: process.env.SENTRY_DSN,
-  integrations: [Sentry.consoleLoggingIntegration({ levels: ["log", "warn", "error"] })],
-  enableRendererProfiling: true,
-  _experiments: { enableLogs: true },
-});
+import { version } from "../package.json";
 
 updateElectronApp();
 
@@ -56,10 +61,8 @@ if (started) {
 
 const basePath = path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`);
 
-let mainWindow: BrowserWindow;
-
 const createMainWindow = async () => {
-  mainWindow = new BrowserWindow({
+  const mainWindow = new BrowserWindow({
     width: 1400,
     height: 800,
     webPreferences: {
@@ -72,6 +75,7 @@ const createMainWindow = async () => {
   mainWindow.maximize();
 
   mainWindow.on("closed", () => app.quit());
+  windowManager.setMainWindow(mainWindow);
 
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
     await mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
@@ -101,10 +105,6 @@ const createMainWindow = async () => {
   }
 };
 
-let editWindows: BrowserWindow[] = [];
-
-app.on("ready", createMainWindow);
-
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
     app.quit();
@@ -117,7 +117,23 @@ app.on("activate", async () => {
   }
 });
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
+  await loadPersistedCurrentProject();
+
+  const settings = await getSettings();
+  if (settings.telemetry === "enabled" && process.env.SENTRY_DSN) {
+    console.debug("Sentry is enabled in main");
+
+    Sentry.init({
+      dsn: process.env.SENTRY_DSN,
+      integrations: [Sentry.consoleLoggingIntegration({ levels: ["log", "warn", "error"] })],
+      enableRendererProfiling: true,
+      _experiments: { enableLogs: true },
+    });
+  } else {
+    console.debug("Sentry is disabled in main");
+  }
+
   if (!production) {
     installExtension([REACT_DEVELOPER_TOOLS, MOBX_DEVTOOLS]);
   }
@@ -147,21 +163,37 @@ app.whenReady().then(() => {
 
   ipcMain.handle(
     IPC_EVENTS.REMOVE_RECENT_PROJECT,
-    async (event, path: string): Promise<RecentProject[]> => {
+    async (_event, path: string): Promise<RecentProject[]> => {
       const result = await removeRecentProject(path);
       return result;
     },
   );
 
-  ipcMain.on(IPC_EVENTS.CLOSE_PROJECT, () => {
-    for (const window of editWindows) {
-      if (!window.isDestroyed() && window.closable) {
-        window.close();
-      }
+  ipcMain.handle(IPC_EVENTS.GET_CURRENT_PROJECT, async (): Promise<ProjectBody | null> => {
+    const directory = getCurrentProjectDirectory();
+
+    if (directory === null) {
+      return null;
     }
 
-    editWindows = [];
-    mainWindow.setTitle(DEFAULT_WINDOW_TITLE);
+    const filePath = path.join(directory, PROJECT_FILE_NAME);
+
+    try {
+      const content = await fs.promises.readFile(filePath, "utf8");
+      return JSON.parse(content) as ProjectBody;
+    } catch {
+      return null;
+    }
+  });
+
+  ipcMain.on(IPC_EVENTS.CLOSE_PROJECT, () => {
+    setCurrentProject(null);
+    windowManager.closeAllEditWindows();
+
+    const mainWindow = windowManager.getMainWindow();
+    if (mainWindow) {
+      mainWindow.setTitle(DEFAULT_WINDOW_TITLE);
+    }
   });
 
   ipcMain.on(IPC_EVENTS.OPEN_EDIT_WINDOW, (event, data: PhotoBody): void => {
@@ -178,23 +210,25 @@ app.whenReady().then(() => {
       fullscreenable: false,
     });
 
-    editWindows.push(editWindow);
+    windowManager.addEditWindow(editWindow);
 
     if (!production) {
       editWindow.webContents.openDevTools();
     }
 
-    const encodedData = btoa(JSON.stringify(data));
+    const encodedData = encodeEditPayload(data);
+    const encodedQuery = encodeURIComponent(encodedData);
+
     if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
-      editWindow.loadURL(`${MAIN_WINDOW_VITE_DEV_SERVER_URL}?data=${encodedData}#/edit`);
+      editWindow.loadURL(`${MAIN_WINDOW_VITE_DEV_SERVER_URL}?data=${encodedQuery}#${ROUTES.EDIT}`);
     } else {
       editWindow.loadURL(
         url.format({
           protocol: "file",
           slashes: true,
           pathname: basePath,
-          hash: "#/edit",
-          search: `?data=${encodedData}`,
+          hash: `#${ROUTES.EDIT}`,
+          search: `?data=${encodedQuery}`,
         }),
       );
     }
@@ -209,26 +243,29 @@ app.whenReady().then(() => {
   });
 
   ipcMain.handle(IPC_EVENTS.EXPORT_MATCHES, async (event, data: string): Promise<void> => {
-    const projectData = JSON.parse(data) as ProjectBody;
+    const webContents = event.sender;
+    const window = BrowserWindow.fromWebContents(webContents) as BrowserWindow;
 
-    await handleExportMatches(data);
+    await handleExportMatches(window, data);
+
+    const projectData = JSON.parse(data) as ProjectBody;
 
     shell.openPath(path.join(projectData.directory, PROJECT_EXPORT_DIRECTORY));
   });
 
-  ipcMain.handle(
-    IPC_EVENTS.SAVE_PHOTO_FILE,
-    async (event, data: PhotoBody, photo: ArrayBuffer): Promise<void> => {
-      const editedPath = await savePhotoFromBuffer(data, photo);
+  ipcMain.handle(IPC_EVENTS.SAVE_PHOTO_FILE, async (event, data: PhotoBody): Promise<void> => {
+    const thumbnail = await createPhotoThumbnail(data);
 
-      const photoData: PhotoBody = {
-        ...data,
-        edited: editedPath,
-      };
+    const photoData: PhotoBody = {
+      ...data,
+      thumbnail,
+    };
 
+    const mainWindow = windowManager.getMainWindow();
+    if (mainWindow) {
       mainWindow.webContents.send(IPC_EVENTS.UPDATE_PHOTO, photoData);
-    },
-  );
+    }
+  });
 
   ipcMain.handle(
     IPC_EVENTS.NAVIGATE_EDITOR_PHOTO,
@@ -240,8 +277,7 @@ app.whenReady().then(() => {
         return null;
       }
 
-      const encodedData = btoa(JSON.stringify(result));
-      return encodedData;
+      return encodeEditPayload(result);
     },
   );
 
@@ -258,7 +294,34 @@ app.whenReady().then(() => {
     return result;
   });
 
-  ipcMain.on(IPC_EVENTS.OPEN_EXTERNAL_LINK, (event, link: ExternalLinks) => {
+  ipcMain.handle(IPC_EVENTS.GET_SETTINGS, async (): Promise<SettingsData> => {
+    const result = await getSettings();
+    return result;
+  });
+
+  ipcMain.handle(
+    IPC_EVENTS.UPDATE_SETTINGS,
+    async (_event, settings: SettingsData): Promise<void> => {
+      await updateSettings(settings);
+
+      // Notify all windows of settings change
+      const allWindows = BrowserWindow.getAllWindows();
+      for (const window of allWindows) {
+        window.webContents.send(IPC_EVENTS.SETTINGS_UPDATED, settings);
+      }
+    },
+  );
+
+  ipcMain.on(IPC_EVENTS.OPEN_SETTINGS, () => {
+    const mainWindow = windowManager.getMainWindow();
+
+    if (mainWindow) {
+      mainWindow.focus();
+      mainWindow.webContents.send(IPC_EVENTS.OPEN_SETTINGS);
+    }
+  });
+
+  ipcMain.on(IPC_EVENTS.OPEN_EXTERNAL_LINK, (_event, link: ExternalLinks) => {
     if (link === "website") {
       shell.openExternal(EXTERNAL_LINKS.WEBSITE);
     }
@@ -268,9 +331,9 @@ app.whenReady().then(() => {
     }
 
     if (link === "changelog") {
-      shell.openExternal(EXTERNAL_LINKS.CHANGELOG);
+      shell.openExternal(EXTERNAL_LINKS.CHANGELOG.replace("$VERSION", `v${version}`));
     }
-
-    return { action: "deny" };
   });
+
+  await createMainWindow();
 });

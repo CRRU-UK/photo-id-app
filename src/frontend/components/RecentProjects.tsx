@@ -16,8 +16,6 @@ const RecentProjects = () => {
   const [recentProjects, setRecentProjects] = useState<RecentProject[] | null>(null);
 
   useEffect(() => {
-    window.electronAPI.getRecentProjects();
-
     async function getRecentProjects() {
       const data = await window.electronAPI.getRecentProjects();
       setRecentProjects(data);
@@ -60,7 +58,7 @@ const RecentProjectsList = ({ projects, onRemove }: RecentProjectsListProps) => 
   const handleOpenProjectFile = (path: string) => window.electronAPI.openRecentProject(path);
 
   return (
-    <Timeline style={{ marginTop: "var(--stack-gap-spacious)" }}>
+    <Timeline clipSidebar style={{ marginTop: "var(--stack-gap-spacious)" }}>
       {projects.map((item) => (
         <Timeline.Item key={item.path}>
           <Timeline.Badge>

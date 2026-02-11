@@ -1,7 +1,6 @@
-import { PROJECT_STORAGE_NAME } from "@/constants";
 import type { CollectionBody, Directory, Matches, PhotoBody, ProjectBody } from "@/types";
 
-import { makeObservable, observable } from "mobx";
+import { makeObservable, observable, runInAction } from "mobx";
 
 import Collection from "./Collection";
 import Photo from "./Photo";
@@ -52,8 +51,8 @@ class Project {
   }
 
   private mapPhotoBodyToCollection(directory: Directory, collection: CollectionBody): Collection {
-    const photos = collection.photos.map(({ name, edited, thumbnail }) => {
-      const photo = new Photo({ directory, name, edited, thumbnail }, this);
+    const photos = collection.photos.map(({ name, thumbnail, edits }) => {
+      const photo = new Photo({ directory, name, thumbnail, edits }, this);
       this.allPhotos.add(photo);
       return photo;
     });
@@ -65,16 +64,15 @@ class Project {
   }
 
   private mapCollectionToBody(collection: Collection): CollectionBody {
-    const photos = Array.from(collection.photos).map((photo) => ({
-      directory: photo.directory,
-      name: photo.fileName,
-      edited: photo.editedFileName || null,
-      thumbnail: photo.thumbnailFileName,
-    }));
+    const photos: PhotoBody[] = Array.from(collection.photos).map((photo) => photo.toBody());
 
     return { photos, index: collection.index, name: collection.name };
   }
 
+  /**
+   * Loads project state from JSON. runInAction batches all observable updates into a single
+   * transaction so observers re-run once instead of on every property change.
+   */
   public loadFromJSON(json: ProjectBody | string): this {
     let data = json;
 
@@ -82,24 +80,27 @@ class Project {
       data = JSON.parse(json) as ProjectBody;
     }
 
-    const { version, directory, unassigned, matched, discarded, created, lastModified } =
+    const { id, version, directory, unassigned, matched, discarded, created, lastModified } =
       data as ProjectBody;
 
-    this.version = version;
-    this.directory = directory;
+    runInAction(() => {
+      this.id = id ?? "";
+      this.version = version;
+      this.directory = directory;
+      this.unassigned = this.mapPhotoBodyToCollection(directory, unassigned);
+      this.discarded = this.mapPhotoBodyToCollection(directory, discarded);
 
-    this.unassigned = this.mapPhotoBodyToCollection(directory, unassigned);
-    this.discarded = this.mapPhotoBodyToCollection(directory, discarded);
+      const matchedSets = matched.map(({ id, left, right }) => ({
+        id,
+        left: this.mapPhotoBodyToCollection(directory, left),
+        right: this.mapPhotoBodyToCollection(directory, right),
+      }));
 
-    const matchedSets = matched.map(({ id, left, right }) => ({
-      id,
-      left: this.mapPhotoBodyToCollection(directory, left),
-      right: this.mapPhotoBodyToCollection(directory, right),
-    }));
-    this.matched = new Set(matchedSets);
+      this.matched = new Set(matchedSets);
 
-    this.created = new Date(created);
-    this.lastModified = new Date(lastModified);
+      this.created = new Date(created);
+      this.lastModified = new Date(lastModified);
+    });
 
     console.debug("Loaded project from data:", this);
     return this;
@@ -129,7 +130,6 @@ class Project {
     this.lastModified = new Date();
 
     const data = this.returnAsJSONString();
-    window.localStorage.setItem(PROJECT_STORAGE_NAME, data);
     window.electronAPI.saveProject(data);
   }
 
@@ -146,19 +146,14 @@ class Project {
   }
 
   public async duplicatePhotoToStack(to: Collection, photo: Photo): Promise<this> {
-    const result = await window.electronAPI.duplicatePhotoFile({
-      directory: photo.directory,
-      name: photo.fileName,
-      edited: photo.editedFileName || null,
-      thumbnail: photo.thumbnailFileName,
-    });
+    const result = await window.electronAPI.duplicatePhotoFile(photo.toBody());
 
     const newPhoto = new Photo(
       {
         directory: result.directory,
         name: result.name,
-        edited: result.edited,
         thumbnail: result.thumbnail,
+        edits: result.edits,
       },
       this,
     );

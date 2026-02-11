@@ -13,12 +13,42 @@ textarea,
   outline: none;
 }
 
-.footer {
-  z-index: 10;
-  position: absolute;
-  left: 0;
-  bottom: 0;
+:root {
+  --toolbar-height: 60px;
+}
+
+.theme-icon-light,
+.theme-icon-dark {
+  display: none;
+  width: 100px;
+  height: auto;
+}
+
+html[data-color-mode="light"] .theme-icon-light,
+html[data-color-mode="dark"] .theme-icon-dark {
+  display: block;
+}
+
+.index {
+  z-index: 0;
+  background-color: var(--bgColor-default);
+  width: 100vw;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.index > .content {
+  margin-top: auto;
+  margin-bottom: var(--stack-gap-spacious);
   width: 100%;
+  max-width: 600px;
+}
+
+.index > .footer {
+  margin-top: auto;
 }
 
 .project {
@@ -90,6 +120,19 @@ body.copying *:hover {
   column-count: 2;
 }
 
+.project .photo-stack {
+  position: relative;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4/3;
+  object-fit: cover;
+  background: var(--bgColor-emphasis);
+}
+
+html[data-color-mode="light"] .project .photo-stack {
+  background: var(--bgColor-neutral-muted);
+}
+
 .edit {
   position: relative;
   width: 100vw;
@@ -107,7 +150,7 @@ body.copying *:hover {
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  height: 60px;
+  height: var(--toolbar-height);
   border-top: var(--borderWidth-default) var(--borderColor-muted) solid;
   background: var(--bgColor-muted);
 }
@@ -135,13 +178,24 @@ body.copying *:hover {
   pointer-events: none;
 }
 
+.edit > .edge-toggle {
+  z-index: 10;
+  position: absolute;
+  padding: var(--stack-gap-condensed);
+  left: var(--stack-gap-normal);
+  bottom: calc(var(--stack-gap-normal) + var(--toolbar-height));
+  border: var(--borderWidth-default) var(--borderColor-muted) solid;
+  background: var(--bgColor-muted);
+  border-radius: var(--borderRadius-default);
+}
+
 .edit > .canvas {
   z-index: 0;
   position: absolute;
   left: 0;
   top: 0;
   width: 100%;
-  height: calc(100% - 60px);
+  height: calc(100% - var(--toolbar-height));
   object-fit: contain;
 }
 

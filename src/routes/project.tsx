@@ -1,6 +1,6 @@
 import type Collection from "@/models/Collection";
 import type Photo from "@/models/Photo";
-import type { DraggableEndData, DraggableStartData, LoadingData, ProjectBody } from "@/types";
+import type { DraggableEndData, DraggableStartData, LoadingData } from "@/types";
 
 import {
   DndContext,
@@ -14,20 +14,20 @@ import {
 
 import { ColumnsIcon } from "@primer/octicons-react";
 import { SegmentedControl, Stack, UnderlineNav } from "@primer/react";
-import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { KeybindingHint } from "@primer/react/experimental";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { observer } from "mobx-react-lite";
+import { useCallback, useEffect, useState } from "react";
 
-import { MATCHED_STACKS_PER_PAGE, PROJECT_STORAGE_NAME } from "@/constants";
-
-import ProjectContext from "@/contexts/ProjectContext";
+import { MATCHED_STACKS_PER_PAGE, ROUTES } from "@/constants";
+import { useProject } from "@/contexts/ProjectContext";
 
 import LoadingOverlay from "@/frontend/components/LoadingOverlay";
 import Selections from "@/frontend/components/Selections";
+import Settings from "@/frontend/components/Settings";
 import Sidebar from "@/frontend/components/Sidebar";
 
 import { chunkArray, getAlphabetLetter } from "@/helpers";
-
-import ProjectModel from "@/models/Project";
 
 const DraggableImage = ({ photo }: { photo: Photo }) => (
   <img
@@ -44,37 +44,23 @@ const DraggableImage = ({ photo }: { photo: Photo }) => (
   />
 );
 
-const ProjectPage = () => {
+const ProjectPage = observer(() => {
   const [draggingPhoto, setDraggingPhoto] = useState<Photo | null>(null);
   const [draggingCollectionFrom, setDraggingCollectionFrom] = useState<Collection | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(0);
   const [loading, setLoading] = useState<LoadingData>({ show: false });
+  const [settingsOpen, setSettingsOpen] = useState<boolean>(false);
   const [isCopying, setIsCopying] = useState<boolean>(false);
   const [columns, setColumns] = useState<number>(2);
 
-  const project = useMemo(() => {
-    const projectData = JSON.parse(
-      localStorage.getItem(PROJECT_STORAGE_NAME) as string,
-    ) as ProjectBody;
-    return new ProjectModel(projectData);
-  }, []);
-
-  const handleKeyUp = () => setIsCopying(false);
-  const handleKeyDown = (event: KeyboardEvent) => setIsCopying(event.ctrlKey || event.altKey);
+  const navigate = useNavigate();
+  const { project } = useProject();
 
   useEffect(() => {
-    // Rename this and also handle adding edited to photo (but need to account for reversion)
-    window.electronAPI.onUpdatePhoto((data) => project.updatePhoto(data));
-    window.electronAPI.onLoading((data) => setLoading(data));
-
-    document.addEventListener("keyup", handleKeyDown);
-    document.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      document.removeEventListener("keyup", handleKeyUp);
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [project]);
+    if (project === null) {
+      navigate({ to: ROUTES.INDEX });
+    }
+  }, [project, navigate]);
 
   useEffect(() => {
     if (draggingPhoto && isCopying) {
@@ -82,6 +68,66 @@ const ProjectPage = () => {
     }
     return document.body.classList.remove("copying");
   }, [draggingPhoto, isCopying]);
+
+  const matchedArray = project === null ? [] : Array.from(project.matched);
+  const matchedPageCount =
+    project === null ? 0 : Math.ceil(matchedArray.length / MATCHED_STACKS_PER_PAGE);
+
+  const handleKeyUp = useCallback(() => setIsCopying(false), []);
+
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent) => {
+      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+
+      if (event.ctrlKey || event.altKey) {
+        return setIsCopying(event.ctrlKey || event.altKey);
+      }
+
+      const keyNumber = Number(event.key);
+      if (!Number.isInteger(keyNumber)) {
+        return;
+      }
+
+      const pageIndex = keyNumber - 1;
+      if (pageIndex < 0 || pageIndex >= matchedPageCount) {
+        return;
+      }
+
+      event.preventDefault();
+      setCurrentPage(pageIndex);
+    },
+    [matchedPageCount],
+  );
+
+  useEffect(() => {
+    if (project === null) {
+      return () => {};
+    }
+
+    const unsubscribeUpdatePhoto = window.electronAPI.onUpdatePhoto((data) =>
+      project.updatePhoto(data),
+    );
+    const unsubscribeLoading = window.electronAPI.onLoading((data) => setLoading(data));
+
+    document.addEventListener("keyup", handleKeyUp);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      unsubscribeUpdatePhoto();
+      unsubscribeLoading();
+      document.removeEventListener("keyup", handleKeyUp);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [project, handleKeyDown, handleKeyUp]);
+
+  const pointerSensor = useSensor(PointerSensor, { activationConstraint: { distance: 5 } });
+  const sensors = useSensors(pointerSensor);
+
+  if (project === null) {
+    return null;
+  }
 
   const handleDragStart = (event: DragStartEvent) => {
     const { collection, currentPhoto } = event.active.data.current as unknown as DraggableStartData;
@@ -115,8 +161,6 @@ const ProjectPage = () => {
 
   const handleColumnsChange = (i: number) => setColumns(i + 1);
 
-  const matchedArray = Array.from(project.matched);
-
   const matchedRows = matchedArray.slice(
     currentPage * MATCHED_STACKS_PER_PAGE,
     (currentPage + 1) * MATCHED_STACKS_PER_PAGE,
@@ -134,18 +178,22 @@ const ProjectPage = () => {
           return setCurrentPage(index);
         }}
         key={`${first}-${last}`}
+        leadingVisual={<KeybindingHint keys={String(index + 1)} />}
       >
         {getAlphabetLetter(first)}-{getAlphabetLetter(last)}
       </UnderlineNav.Item>
     );
   });
 
-  const pointerSensor = useSensor(PointerSensor, { activationConstraint: { distance: 5 } });
-  const sensors = useSensors(pointerSensor);
-
   return (
-    <ProjectContext value={project}>
+    <>
       <LoadingOverlay data={loading} />
+
+      <Settings
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        onOpenRequest={() => setSettingsOpen(true)}
+      />
 
       <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
         <DragOverlay dropAnimation={null}>
@@ -174,10 +222,10 @@ const ProjectPage = () => {
           </div>
         </div>
       </DndContext>
-    </ProjectContext>
+    </>
   );
-};
+});
 
-export const Route = createFileRoute("/project")({
+export const Route = createFileRoute(ROUTES.PROJECT)({
   component: ProjectPage,
 });
