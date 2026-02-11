@@ -188,8 +188,8 @@ export const DEFAULT_PHOTO_EDITS: PhotoEdits = {
 
 export const ZOOM_FACTORS = {
   BUTTON: 1.2,
-  WHEEL_PIXEL: 1.02, // Trackpad
-  WHEEL_LINE: 1.08, // Mouse wheel
+  WHEEL_DELTA_PIXEL_FACTOR: 1.02, // Trackpad
+  WHEEL_DELTA_LINE_FACTOR: 1.08, // Mouse wheel
 };
 
 export const PAN_AMOUNT = 50;

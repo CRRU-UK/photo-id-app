@@ -53,9 +53,11 @@ export const useZoomInteraction = ({
       const imagePointX = (imageCoords.x - centreX - pan.x) / zoom + centreX;
       const imagePointY = (imageCoords.y - centreY - pan.y) / zoom + centreY;
 
-      const isPixelScroll = event.deltaMode === WheelEvent.DOM_DELTA_PIXEL;
-      const wheelFactor = isPixelScroll ? ZOOM_FACTORS.WHEEL_PIXEL : ZOOM_FACTORS.WHEEL_LINE;
-      const delta = event.deltaY > 0 ? 1 / wheelFactor : wheelFactor;
+      const isPixelDelta = event.deltaMode === WheelEvent.DOM_DELTA_PIXEL;
+      const wheelFactorByDeltaMode = isPixelDelta
+        ? ZOOM_FACTORS.WHEEL_DELTA_PIXEL_FACTOR
+        : ZOOM_FACTORS.WHEEL_DELTA_LINE_FACTOR;
+      const delta = event.deltaY > 0 ? 1 / wheelFactorByDeltaMode : wheelFactorByDeltaMode;
 
       const newZoom = zoom * delta;
       const updatedZoom = Math.max(newZoom, 1);
