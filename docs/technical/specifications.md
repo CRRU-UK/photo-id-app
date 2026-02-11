@@ -126,8 +126,8 @@ The project view is accessed when opening a project. It allows the user to:
   - Omitting the ID uses the stack ID instead (e.g. "AL", "BR")
 - All images in matched stacks are exported
 - There are a set number of matched stacks - a user CANNOT add or remove matched stacks
-- Matched stacks are displayed in chunks, with pagination allowing the user to navigate between these chunks
-- A column toggle allows the user to view stacks by one or two stacks in a row
+- Matched stacks are displayed in chunks (pages), with pagination allowing the user to navigate between these chunks by clicking the page labels or by keyboard navigation
+- A column toggle allows the user to view stacks by one or two stacks in a row by clicking the toggle
 
 ## Edit View
 
