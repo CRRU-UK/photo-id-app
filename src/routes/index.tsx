@@ -14,7 +14,12 @@ import { KeybindingHint } from "@primer/react/experimental";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 
-import { GLOBAL_KEYBOARD_HINTS, PROJECT_FILE_NAME, PROJECT_KEYBOARD_HINTS } from "@/constants";
+import {
+  GLOBAL_KEYBOARD_HINTS,
+  PROJECT_FILE_NAME,
+  PROJECT_KEYBOARD_HINTS,
+  ROUTES,
+} from "@/constants";
 import LoadingOverlay from "@/frontend/components/LoadingOverlay";
 import RecentProjects from "@/frontend/components/RecentProjects";
 import Settings from "@/frontend/components/Settings";
@@ -177,6 +182,6 @@ const IndexPage = () => {
   );
 };
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute(ROUTES.INDEX)({
   component: IndexPage,
 });

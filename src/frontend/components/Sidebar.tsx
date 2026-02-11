@@ -4,7 +4,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { observer } from "mobx-react-lite";
 import { useCallback, useEffect, useState } from "react";
 
-import { PROJECT_KEYBOARD_HINTS } from "@/constants";
+import { PROJECT_KEYBOARD_HINTS, ROUTES } from "@/constants";
 import { useProject } from "@/contexts/ProjectContext";
 import DiscardedSelection from "@/frontend/components/DiscardedSelection";
 import MainSelection from "@/frontend/components/MainSelection";
@@ -20,7 +20,7 @@ const Sidebar = observer(() => {
   const handleCloseProject = useCallback(() => {
     setProject(null);
     window.electronAPI.closeProject();
-    navigate({ to: "/" });
+    navigate({ to: ROUTES.INDEX });
   }, [navigate, setProject]);
 
   if (project === null) {

@@ -105,6 +105,6 @@ const EditPage = () => {
   );
 };
 
-export const Route = createFileRoute("/edit")({
+export const Route = createFileRoute(ROUTES.EDIT)({
   component: EditPage,
 });
