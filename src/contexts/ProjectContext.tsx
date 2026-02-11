@@ -30,7 +30,7 @@ export const ProjectProvider = ({ children }: ProjectProviderProps) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (isEditWindow(window)) {
+    if (isEditWindow(window.location.hash)) {
       return () => {};
     }
 
@@ -45,7 +45,7 @@ export const ProjectProvider = ({ children }: ProjectProviderProps) => {
   }, [setProject]);
 
   useEffect(() => {
-    if (isEditWindow(window)) {
+    if (isEditWindow(window.location.hash)) {
       return () => {};
     }
 

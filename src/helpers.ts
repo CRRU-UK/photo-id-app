@@ -166,14 +166,8 @@ export const computeIsEdited = (edits: PhotoEdits): boolean =>
   edits.pan.y !== DEFAULT_PHOTO_EDITS.pan.y;
 
 /**
- * Determines if the given window is an edit window.
- * @param window - Window to check
- * @returns Returns `true` if the window is an edit window, otherwise `false`.
+ * Determines if the given hash is an edit window.
+ * @param hash - Hash to check
+ * @returns Returns `true` if the hash is an edit window, otherwise `false`.
  */
-export const isEditWindow = (window: Window): boolean => {
-  if (!window) {
-    return false;
-  }
-
-  return window.location.hash.startsWith(`#${ROUTES.EDIT}`);
-};
+export const isEditWindow = (hash: string): boolean => hash.startsWith(`#${ROUTES.EDIT}`);

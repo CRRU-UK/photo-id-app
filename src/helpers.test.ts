@@ -356,18 +356,14 @@ describe(decodeEditPayload, () => {
 
 describe(isEditWindow, () => {
   it("returns true if window is an edit window", () => {
-    const window = { location: { hash: `#${ROUTES.EDIT}` } } as unknown as Window;
+    const hash = `#${ROUTES.EDIT}`;
 
-    expect(isEditWindow(window)).toBe(true);
+    expect(isEditWindow(hash)).toBe(true);
   });
 
-  it("returns false if window is not an edit window", () => {
-    const window = { location: { hash: `#${ROUTES.PROJECT}` } } as unknown as Window;
+  it("returns false if hash is not an edit window", () => {
+    const hash = `#${ROUTES.PROJECT}`;
 
-    expect(isEditWindow(window)).toBe(false);
-  });
-
-  it("returns false if window is null", () => {
-    expect(isEditWindow(null as unknown as Window)).toBe(false);
+    expect(isEditWindow(hash)).toBe(false);
   });
 });
