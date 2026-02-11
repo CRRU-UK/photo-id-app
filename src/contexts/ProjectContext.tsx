@@ -28,10 +28,11 @@ export const ProjectProvider = ({ children }: ProjectProviderProps) => {
   const [project, setProject] = useState<ProjectModel | null>(null);
   const pendingNavigateToProjectRef = useRef<boolean>(false);
   const navigate = useNavigate();
+  const inEditWindow = isEditWindow(window.location.hash);
 
   useEffect(() => {
-    if (isEditWindow(window.location.hash)) {
-      return () => {};
+    if (inEditWindow) {
+      return;
     }
 
     const unsubscribeLoadProject = window.electronAPI.onLoadProject((data) => {
@@ -42,11 +43,11 @@ export const ProjectProvider = ({ children }: ProjectProviderProps) => {
     return () => {
       unsubscribeLoadProject();
     };
-  }, [setProject]);
+  }, [inEditWindow, setProject]);
 
   useEffect(() => {
-    if (isEditWindow(window.location.hash)) {
-      return () => {};
+    if (inEditWindow) {
+      return;
     }
 
     let cancelled = false;
@@ -63,7 +64,7 @@ export const ProjectProvider = ({ children }: ProjectProviderProps) => {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [inEditWindow]);
 
   useEffect(() => {
     if (project !== null && pendingNavigateToProjectRef.current) {
