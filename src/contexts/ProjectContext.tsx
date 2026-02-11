@@ -56,7 +56,6 @@ export const ProjectProvider = ({ children }: ProjectProviderProps) => {
       if (cancelled || data === null) {
         return;
       }
-
       setProject(new ProjectModel(data));
       pendingNavigateToProjectRef.current = true;
     });
