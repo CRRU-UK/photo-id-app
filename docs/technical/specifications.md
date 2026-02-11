@@ -10,7 +10,7 @@ The following describes the specifications and requirements of user journeys and
 - The Electron app uses only internal pages and URLs, therefore all behaviours and routes should be fully deterministic
 - Query parameters are ONLY used in edit windows for loading photos
 - Data handling (e.g. project and settings data) should be versioned and guarded against schemas, with migrations and fallbacks when needed
-- All project data, stacks, thumbnails, and edit metadata are persisted via the backend (`photos.ts`, `projects.ts)` and accessed from the renderer only via `window.electronAPI` IPC calls
+- All project data, stacks, thumbnails, and edit metadata are persisted via the backend (`photos.ts`, `projects.ts`) and accessed from the renderer only via `window.electronAPI` IPC calls
 - The edit window URL always encodes its state via `?data=...` as base64 JSON - navigation between photos in an edit window must respect this contract
 - Thumbnails are stored alongside `data.json` in `.thumbnails/` (see `PROJECT_THUMBNAIL_DIRECTORY`), and saving edits must regenerate the relevant thumbnail
 
@@ -30,7 +30,7 @@ The following describes the specifications and requirements of user journeys and
 - If a photo cannot be loaded in an edit window, it should show the error message and NOT redirect anywhere else
 - Edit windows can be closed without the app exiting
 - When a project is closed (i.e. the user navigates from the project view to the index view), all of the edit windows should be automatically closed
-- When the main window is closed or the app exists, all of the edit windows should also be closed
+- When the main window is closed or the app exits, all of the edit windows should also be closed
 - When closing the project view with the keyboard shortcut, it should navigate to the index view instead of closing the window
 - When closing the index view with the keyboard shortcut, it should close the window and application
 
@@ -62,11 +62,11 @@ The index view is the default view when opening the app. It allows the user to:
 - The settings overlay can be opened by clicking the settings button, with the keyboard shortcut, or from the window menu
 - The settings overlay can also be opened from the project view with the keyboard shortcut or window menu
 - The application theme can be changed from the settings
-  - Them changes propagate and affect all windows
+  - Theme changes propagate and affect all windows
 - Telemetry (frontend and backend) can be changed from the settings
   - This setting requires an application restart due to being integrated into the Node process and cannot be toggled in runtime
 - Changing a field value should automatically update the settings in both the frontend and backend, unless otherwise stated
-- Settings should used default values on new installations
+- Settings should use default values on new installations
 - Settings should persist between sessions
 - ONLY the main window should have the settings overlay - edit windows should NEVER display the settings overlay
 - Opening the settings overlay with the keyboard shortcut should focus the main window
@@ -110,20 +110,20 @@ The project view is accessed when opening a project. It allows the user to:
 - Photos in the unassigned stack are never exported
 - There is ONLY one unassigned stack
 
-### Discarded
+#### Discarded
 
-- Photos can moved into the discarded stack if they are not going to be used (i.e. have no identifiable marks or are of low quality)
+- Photos can be moved into the discarded stack if they are not going to be used (i.e. have no identifiable marks or are of low quality)
 - Photos in the discarded stack are never exported
 - There is ONLY one discarded stack
 
-### Matched
+#### Matched
 
 - Photos can be moved into matched stacks when they contain identifiable marks
 - Matched stacks contain a pair of stacks, one for the left (L) and right (R) side of the animal
   - A stack can still be exported with just one side populated (i.e. if no photos of the other side were taken)
 - These sides can contain multiple photos of the same side of the animal
-- An optional ID can be added that is used when exporting the images
-  - Omitting the ID should TBA
+- An optional ID can be added that is used when exporting the images (e.g. "001L", "002L")
+  - Omitting the ID uses the stack ID instead (e.g. "AL", "BR")
 - All images in matched stacks are exported
 - There are a set number of matched stacks - a user CANNOT add or remove matched stacks
 - Matched stacks are displayed in chunks, with pagination allowing the user to navigate between these chunks
@@ -137,14 +137,14 @@ The project view is accessed when opening a project. It allows the user to:
   - Zooming (which also crops the photo) can be done using the buttons, mousewheel, or keyboard shortcuts
     - The user can NOT zoom out further than the original photo dimensions
     - Zooming towards or away from an edge should constrain/clamp the photo within the canvas
-    - There is not maximum level of zoom
+    - There is no maximum level of zoom
   - Panning the image can be done using the buttons, clicking and dragging, or keyboard shortcuts
     - The user can NOT pan outside of the original photo dimensions
     - Panning towards an edge should constrain/clamp the photo within the canvas
 - These edits can be saved to a photo by using the save button or shortcut
 - Re-opening a photo in the edit view should pre-populate its edit values, i.e. they should persist between edits and NOT compound on re-opening and re-editing the photo
 - Resetting the edits should return all of the sliders back to their default
-- A 'edge detection' toggle and slider is used for aiding in the identification of marks in a photo
+- An 'edge detection' toggle and slider is used for aiding in the identification of marks in a photo
   - It does NOT get used when saving or exporting photos, and is purely a 'cosmetic' filter
   - Edge detection values do NOT get saved in the project data and are ephemeral
 - Saving a photo generates a new thumbnail that updates in the project view, and updates the edit data in the project
