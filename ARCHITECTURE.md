@@ -1,11 +1,12 @@
----
-title: Specifications
-description: Specifications and requirements for user journeys and flows.
----
+# Technical
+
+Technical information, specifications, requirements, and user journeys.
+
+## Specifications
 
 The following describes the specifications and requirements of user journeys and flows, and is intended for end-to-end tests and coding agent context.
 
-## General
+### General
 
 - The Electron app uses only internal pages and URLs, therefore all behaviours and routes should be fully deterministic
 - Query parameters are ONLY used in edit windows for loading photos
@@ -14,7 +15,7 @@ The following describes the specifications and requirements of user journeys and
 - The edit window URL always encodes its state via `?data=...` as base64 JSON - navigation between photos in an edit window must respect this contract
 - Thumbnails are stored alongside `data.json` in `.thumbnails/` (see `PROJECT_THUMBNAIL_DIRECTORY`), and saving edits must regenerate the relevant thumbnail
 
-## Windows
+### Windows
 
 - There can only be ONE main window, which is created when the app starts
 - Only ONE main window should be used for the application process - multiple main windows should NOT be used
@@ -38,9 +39,9 @@ The following describes the specifications and requirements of user journeys and
 - DevTools should ONLY be shown during development, and NEVER shown in the production build
 - Users should NEVER be able to refresh or modify the webview outside of the designed application flow
 
-## Views
+### Views
 
-### Index view
+#### Index view
 
 The index view is the default view when opening the app. It allows the user to:
 
@@ -51,7 +52,7 @@ The index view is the default view when opening the app. It allows the user to:
 - Open the user guide documentation or changelog (based on the current tag) in an external browser
 - Open the settings
 
-#### Recent projects
+##### Recent projects
 
 - This shows a list of recent projects by last-opened date descending
 - Last-opened is determined by the time when a project was last successfully opened in the project view
@@ -61,7 +62,7 @@ The index view is the default view when opening the app. It allows the user to:
 - The recent project list has a maximum number of entries to show
 - Recent projects are stored per user profile
 
-#### Settings
+##### Settings
 
 - The settings overlay can be opened by clicking the settings button, with the keyboard shortcut, or from the window menu
 - The settings overlay can also be opened from the project view with the keyboard shortcut or window menu
@@ -77,7 +78,7 @@ The index view is the default view when opening the app. It allows the user to:
 - Settings are global app settings and not related to project data files
 - Settings are stored per user
 
-## Project View
+### Project View
 
 The project view is accessed when opening a project. It allows the user to:
 
@@ -89,7 +90,7 @@ The project view is accessed when opening a project. It allows the user to:
   - The value is retained in state and not intended to be saved as a session
 - Close the project (and navigate back to the index view)
 
-### Stacks
+#### Stacks
 
 - Stacks contain one or more photographs
 - Photos can be navigated between with the previous and next buttons
@@ -105,7 +106,7 @@ The project view is accessed when opening a project. It allows the user to:
 - There are three main stacks in a project, described below
 - A photo can only ever exist in one stack at any one time - it should NOT exist in multiple stacks at once
 
-#### Unassigned
+##### Unassigned
 
 - In new projects all photos are added to this stack
 - The user can then move photos from the unassigned stack to others
@@ -114,13 +115,13 @@ The project view is accessed when opening a project. It allows the user to:
 - Photos in the unassigned stack are never exported
 - There is ONLY one unassigned stack
 
-#### Discarded
+##### Discarded
 
 - Photos can be moved into the discarded stack if they are not going to be used (i.e. have no identifiable marks or are of low quality)
 - Photos in the discarded stack are never exported
 - There is ONLY one discarded stack
 
-#### Matched
+##### Matched
 
 - Photos can be moved into matched stacks when they contain identifiable marks
 - Matched stacks contain a pair of stacks, one for the left (L) and right (R) side of the animal
@@ -133,7 +134,7 @@ The project view is accessed when opening a project. It allows the user to:
 - Matched stacks are displayed in chunks (pages), with pagination allowing the user to navigate between these chunks by clicking the page labels or by keyboard navigation
 - A column toggle allows the user to view stacks by one or two stacks in a row by clicking the toggle
 
-## Edit View
+### Edit View
 
 - The edit view allows users to view full-sized photos in a new window
 - The user can make a variety of edits to the photo:
@@ -157,7 +158,7 @@ The project view is accessed when opening a project. It allows the user to:
   - Resetting the edits only resets the edits back to their defaults, and does NOT automatically save the photo
 - Failure in saving a photo or regenerating its thumbnail should not be automatically retried, and should show an error
 
-## Project Data
+### Project Data
 
 - The project data file (`data.json`) is the ONLY source of truth for project data
 - `data.json` is the ONLY applicable project data format
@@ -165,3 +166,41 @@ The project view is accessed when opening a project. It allows the user to:
 - Any changes made to a project (updating stacks, editing photos, etc.) should automatically update (i.e. auto-save) the data file, therefore there should never be any 'unsaved' data
 - If a user has made edits to a photo but NOT saved them, then trying to close the window, close the project, or exit the application should show a confirmation dialogue allowing them to keep the app open or discard the changes
 - Users cannot (currently) add or remove photos from a project after the project has been created
+
+## Structure
+
+The app is made up of the following parts:
+
+- `src/main.ts` — Main process entry point, window management, IPC handlers
+- `src/preload.ts` — Preload script exposing `window.electronAPI` to renderer
+- `src/index.tsx` — React app entry point
+- `src/constants.ts` — Centralized constants and IPC event definitions
+- `src/types.ts` — Central types for consistent data shapes between main and renderer
+- `src/helpers.ts` — Utility helpers for common operations
+- `src/backend/` — Backend file I/O and image processing:
+  - `photos.ts` — Photo loading, thumbnail generation, and image manipulation
+  - `projects.ts` — Project file operations and persistence
+  - `menu.ts` — Application menu configuration
+  - `recents.ts` — Recent projects tracking
+- `src/frontend/` — React UI components and hooks:
+  - `components/` — React components for UI elements
+    - `ImageEditor.tsx` — Main photo editing layout and controls
+  - `hooks/` — Custom React hooks for UI logic:
+    - `useImageEditor.ts` — Composes image editor behaviour for the main canvas (zoom, pan, filters, export)
+      - `imageEditor/` — Feature-focused hooks used by `useImageEditor`:
+        - `useImageLoader.ts` — Load the current image `File` into an `HTMLImageElement` and expose a loaded flag
+        - `useImageFilters.ts` — Manage filter state (`ImageFilters` in `src/types.ts`) for brightness, contrast, saturation, and edge detection
+        - `useImageTransform.ts` — Manage zoom/pan transform state (`ImageTransformations` in `src/types.ts`) and coordinate conversions
+        - `useCanvasRenderer.ts` — Render the image onto the canvas with the current filters and transform (throttled for performance)
+        - `usePanInteraction.ts` — Pointer handlers for panning the image on the canvas
+        - `useZoomInteraction.ts` — Wheel and button handlers for zooming while keeping the cursor location stable
+        - `useImageExport.ts` — Apply filters and transform and export the edited image as a new `File`
+  - `src/routes/` — TanStack Router route definitions (router generates `routeTree.gen.ts`)
+- `src/models/` — Data model classes:
+  - `Project.ts` — Project model
+  - `Photo.ts` — Photo model
+  - `Collection.ts` — Collection model
+- `src/contexts/` — React Context providers (e.g., ProjectContext)
+- `docs/` — User and technical documentation
+- Tests: `*.test.ts` files co-located with source files
+- Configuration: `tsconfig.json`, `vite.*.mts`, `forge.config.ts`, `vitest.config.ts`

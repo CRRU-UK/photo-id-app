@@ -25,3 +25,7 @@ The ability match a photograph against a machine learning model would greatly he
 API contracts would be provided and an endpoint and secret key could be entered into the app preference to enable this integration.
 
 [^1]: [Thompson et al. (2022), finFindR: Automated recognition and identification of marine mammal dorsal fins using residual convolutional neural networks, Mar. Mam. Sci., 38 (1) (2022), pp. 139-150](https://onlinelibrary.wiley.com/doi/epdf/10.1111/mms.12849)
+
+## Loupe
+
+Allowing the user to toggle a loupe they can use to more closely inspect marks on a photo without having to zoom and pan the photo.

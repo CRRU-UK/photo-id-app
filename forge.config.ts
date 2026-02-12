@@ -60,6 +60,7 @@ const config: ForgeConfig = {
       await fs.promises.writeFile(
         ".env",
         [
+          `NODE_ENV=${process.env.NODE_ENV || "production"}`,
           `SENTRY_DSN=${process.env.SENTRY_DSN || ""}`,
           `VITE_SENTRY_DSN=${process.env.SENTRY_DSN || ""}`,
         ].join("\n"),
