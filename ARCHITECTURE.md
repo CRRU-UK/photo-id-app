@@ -197,6 +197,7 @@ The project view is accessed when opening a project. It allows the user to:
   - Panning the image can be done using the buttons, clicking and dragging, or keyboard shortcuts
     - The user can NOT pan outside of the original photo dimensions
     - Panning towards an edge should constrain/clamp the photo within the canvas
+- The image should ALWAYS maintain its natural aspect ratio, including on window/canvas element resizing
 - These edits can be saved to a photo by using the save button or shortcut
 - Re-opening a photo in the edit view should pre-populate its edit values, i.e. they should persist between edits and NOT compound on re-opening and re-editing the photo
 - Resetting the edits should return all of the sliders back to their default
