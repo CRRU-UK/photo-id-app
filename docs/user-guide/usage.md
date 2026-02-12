@@ -72,7 +72,7 @@ Only photos in matched stacks are exported - photos in the unassigned or discard
 
 !!! warning
 
-    Exporting photos will overwrite any previously exported photos, so if changes were made to the project since the last export the result might be different.
+    Exporting photos will overwrite any previously exported photos, so any previous exported photos may be lost.
 
 ## Editing photos
 
@@ -85,9 +85,9 @@ There are several options that can be used to edit photos in the toolbar on the 
 - **:material-contrast-circle: Brightness, contrast, and saturation** can be controlled with the sliders in the left of the toolbar
 - **:material-magnify: Zooming** can be done by using the mousewheel on the photo (or the ==:octicons-zoom-in-16: :octicons-zoom-out-16:== buttons in the toolbar)
 - **:material-cursor-move: Panning** can be done by clicking and dragging the photo (or the ==:octicons-arrow-left-16: :octicons-arrow-up-16: :octicons-arrow-down-16: :octicons-arrow-right-16:== buttons in the toolbar)
-- **:material-crop: Cropping** is based on the zoom and pan of the photo - what you see in the photo editor will be how the photo will be cropped
+- **:material-crop: Cropping** is based on the zoom and pan of the photo - what you see in the photo editor is how the photo will be cropped
 
-Edits to a photo can be saved using the ==Save== button. Edits can be reset back to their defaults by using the ==Reset== button.
+Edits to a photo can be saved using the ==Save== button. Edits can be reset back to their defaults by using the ==Reset== button. Closing the editor window without saving changes will be discarded. Opening a photo that has been previously edited will restore the original edit values.
 
 You can load the previous or next photo in the stack the current photo is in using the ==:octicons-chevron-left-16: :octicons-chevron-right-16: arrow buttons==. Moving the current photo to a different stack while it is open in an editor screen will load the previous and next photos in the new stack once clicked.
 
@@ -107,9 +107,13 @@ Note that the edge detection filter is not used when saving or exporting images,
 
 ## Settings
 
-The settings menu can be opened by the keyboard shortcut (see [keyboard shortcuts](#keyboard-shortcuts)), by clicking the ==:octicons-gear-16: Settings== button on the home page, or by using the menu bar option.
+The settings menu can be opened by the [keyboard shortcut](#keyboard-shortcuts), by clicking the ==:octicons-gear-16: Settings== button on the home page, or by using the menu bar option.
 
 These settings are global (i.e. the same for all projects) and per-user on your system.
+
+## Notes
+
+Original photos are never modified in any way, and every effort has been made to be sure the app never unintentionally affects your original photos. However, please ensure you always have backups of your original photos regardless!
 
 ## Keyboard shortcuts
 
