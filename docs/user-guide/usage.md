@@ -5,7 +5,7 @@ description: How to use the Photo ID app.
 
 ## Creating your first project
 
-![Home screen of the app](../assets/images/index.png){ width="700" }
+![Home screen of the app](../assets/images/index.png?v1){ width="700" }
 
 When you first open the app you will see the home screen. To start a new project, select ==:octicons-file-directory-16: Start New Project==. Projects can be created in folders containing image files (JPG/JPEG or PNG). Choose the folder you want to create a project in and the app will begin to initialize the project.
 
@@ -24,7 +24,7 @@ Projects can be removed from the recent projects list by clicking the button wit
 
 ## Sorting and matching photos
 
-![Project screen of the app](../assets/images/project.png){ width="700" }
+![Project screen of the app](../assets/images/project.png?v1){ width="700" }
 
 Once you have created a project or opened an existing one, you will see the project screen. Here you can start to sort and match photos. This can be done by clicking and dragging a photo from one 'stack' onto another, which will move it from the original stack onto the targeted one. The targeted stack will be highlighted when dragging a photo over it.
 
@@ -76,7 +76,7 @@ Only photos in matched stacks are exported - photos in the unassigned or discard
 
 ## Editing photos
 
-![Edit screen of the app](../assets/images/edit.png){ width="700" }
+![Edit screen of the app](../assets/images/edit.png?v1){ width="700" }
 
 Photos can be edited to help identify marks. The photo editor can be opened by selecting the ==:octicons-pencil-16: Edit Photo== button below the photo in the project screen or by double-clicking the photo. The photo editor will open in a new window.
 
@@ -97,7 +97,7 @@ You can load the previous or next photo in the stack the current photo is in usi
 
 ### Edge detection
 
-![Edit screen of the app with edge detection enabled](../assets/images/edit-edge-detection.png){ width="700" }
+![Edit screen of the app with edge detection enabled](../assets/images/edit-edge-detection.png?v1){ width="700" }
 
 Edge detection can be enabled to more easily identify marks in photos.
 
