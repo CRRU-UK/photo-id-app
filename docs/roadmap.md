@@ -7,7 +7,7 @@ There are a number of features planned for the app. Smaller changes in the near 
 
 - Continued performance optimisations, especially for large projects and extended use of the app
 - Exporting CSV data for matches
-- UI improvements (e.g. resizeable sidebar)
+- UI improvements (e.g. resizable sidebar)
 - Multi-platform automated end-to-end test coverage
 - Adding additional images to projects after creation
 - Accessibility improvements

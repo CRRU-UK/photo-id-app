@@ -3,7 +3,7 @@ title: Installation
 description: How to download and install the app.
 ---
 
-To download and install the app, go to the latest release on app's GitHub page:
+To download and install the app, go to the latest release on the app's GitHub page:
 
 [github.com/CRRU-UK/photo-id-app/releases/latest](https://github.com/CRRU-UK/photo-id-app/releases/latest)
 
