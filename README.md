@@ -1,7 +1,5 @@
 # Photo ID App
 
-![Logo of the Photo ID app.](./docs/assets/images/logo.png)
-
 ![Screenshots of the Photo ID app.](./docs/assets/images/banner.png)
 
 [![Test](https://github.com/CRRU-UK/photo-id-app/actions/workflows/main.yaml/badge.svg?branch=main)](https://github.com/CRRU-UK/photo-id-app/actions/workflows/main.yaml)
