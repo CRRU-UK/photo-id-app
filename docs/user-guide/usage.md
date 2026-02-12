@@ -9,14 +9,14 @@ description: How to use the Photo ID app.
 
 When you first open the app you will see the home screen. To start a new project, select ==:octicons-file-directory-16: Start New Project==. Projects can be created in folders containing image files (JPG/JPEG or PNG). Choose the folder you want to create a project in and the app will begin to initialize the project.
 
-Once the project has been created, may notice two files have been added in the folder you selected:
+Once the project has been created, you may notice two files have been added in the folder you selected:
 
 - `data.json` - project data (don't edit this manually!)
 - `./thumbnails` - hidden folder containing thumbnails for the photos used in the project
 
 !!! note
 
-    You cannot add or remove photos from a project after creation, and that the app does not support sub-folders. This may change in the future.
+    You cannot add or remove photos from a project after creation, and the app does not support sub-folders. This may change in the future.
 
 The project can be opened again on the home screen from either the recent projects list or by selecting ==:octicons-file-16: Open Project File== and selecting the `data.json` file in your project folder.
 
@@ -28,7 +28,7 @@ Projects can be removed from the recent projects list by clicking the button wit
 
 Once you have created a project or opened an existing one, you will see the project screen. Here you can start to sort and match photos. This can be done by clicking and dragging a photo from one 'stack' onto another, which will move it from the original stack onto the targeted one. The targeted stack will be highlighted when dragging a photo over it.
 
-A stack is a collection of photos, and can contain any amount of photos - the ==:octicons-chevron-left-16: :octicons-chevron-right-16: arrow buttons== in the bottom-right can be used to navigate between photos in that stack. A indicator on the bottom-left shows which photo in the stack out of the total is currently visible.
+A stack is a collection of photos, and can contain any amount of photos - the ==:octicons-chevron-left-16: :octicons-chevron-right-16: arrow buttons== in the bottom-right can be used to navigate between photos in that stack. An indicator on the bottom-left shows which photo in the stack out of the total is currently visible.
 
 There are three stacks in the project view:
 
@@ -64,7 +64,7 @@ Photos can be duplicated by holding the ++ctrl++/++cmd++ key while dragging-and-
 
 Once photos have been sorted and matched, these matches can be exported by opening the ==:octicons-three-bars-16: Actions== menu in the bottom-left and selecting ==:octicons-file-moved-16: Export matches==.
 
-Exporting a project creates a new folder `exported/` in the project folder which contains all photos that were placed in matched stacks. The stack letter (or custom ID) are _appended_ to the original file name. For example, if a photo with the name `photo_1.jpg` was added to the `AL` stack, it will be exported as `AL_photo_1.jpg`.
+Exporting a project creates a new folder `matched/` in the project folder which contains all photos that were placed in matched stacks. The stack letter (or custom ID) are _appended_ to the original file name. For example, if a photo with the name `photo_1.jpg` was added to the `AL` stack, it will be exported as `AL_photo_1.jpg`.
 
 Edits made to photos (see [edits](#editing-photos)) are applied to the exported photos. Edits can also be reverted by opening the drop-down menu and selecting ==:octicons-undo-16: Revert to original==.
 
