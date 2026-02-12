@@ -18,6 +18,7 @@ Then, depending on your platform, download the appropriate file from the release
 3. The app will open automatically after being installed - otherwise it can be opened from the Start menu
 
 !!! warning
+
     When opening the setup executable Windows will show a "Windows protected your PC" warning. Click on "More info" and then click on "Run anyway".
 
 ### macOS
@@ -27,6 +28,7 @@ Then, depending on your platform, download the appropriate file from the release
 3. Move the `Photo ID.app` file into your Applications folder and open it
 
 !!! warning
+
     The app is currently not signed and will throw an error on opening - this will be fixed soon.
 
 ## Auto updates
