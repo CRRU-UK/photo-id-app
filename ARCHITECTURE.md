@@ -9,7 +9,6 @@ Technical information, specifications, requirements, and user journeys.
 - Renderer (UI): `src/index.tsx` and `src/frontend/**` — React + TanStack Router routes are generated into `src/routeTree.gen.ts` (do not edit).
 - Backend helpers (file I/O, thumbnails, project logic): `src/backend/*.ts` called by the main process.
 
-
 ## Key files and patterns
 
 - IPC event constants: `src/constants.ts` defines `IPC_EVENTS`. Use these names when linking main/preload/renderer behaviour.
