@@ -64,6 +64,7 @@ The following describes the specifications and requirements of user journeys and
 - All project data, stacks, thumbnails, and edit metadata are persisted via the backend (`photos.ts`, `projects.ts`) and accessed from the renderer only via `window.electronAPI` IPC calls
 - The edit window URL always encodes its state via `?data=...` as base64 JSON - navigation between photos in an edit window must respect this contract
 - Thumbnails are stored alongside `data.json` in `.thumbnails/` (see `PROJECT_THUMBNAIL_DIRECTORY`), and saving edits must regenerate the relevant thumbnail
+- Original photos used in projects should NEVER be modified in ANY way (overwritten, edited, deleted, etc.).
 
 ### Windows
 
