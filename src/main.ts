@@ -62,7 +62,7 @@ const basePath = path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/inde
 
 const createMainWindow = async () => {
   const mainWindow = new BrowserWindow({
-    width: 1400,
+    width: 1200,
     height: 800,
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
@@ -196,7 +196,7 @@ app.whenReady().then(async () => {
   ipcMain.on(IPC_EVENTS.OPEN_EDIT_WINDOW, (event, data: PhotoBody): void => {
     const editWindow = new BrowserWindow({
       show: false,
-      width: 1400,
+      width: 1200,
       height: 800,
       webPreferences: {
         preload: path.join(__dirname, "preload.js"),

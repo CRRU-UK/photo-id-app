@@ -69,7 +69,8 @@ const Settings = ({ open, onClose, onOpenRequest, returnFocusRef }: SettingsProp
 
   return (
     <Dialog
-      title="Settings"
+      title="App Settings"
+      subtitle="App settings are per-user and affect all projects."
       onClose={onClose}
       returnFocusRef={returnFocusRef ?? undefined}
       footerButtons={[{ buttonType: "default", content: "Close", onClick: onClose }]}

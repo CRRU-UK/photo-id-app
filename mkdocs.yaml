@@ -1,0 +1,56 @@
+site_name: Photo ID App
+site_url: https://photoidapp.crru.org.uk/
+theme:
+  name: material
+  logo: assets/images/icon.svg
+  favicon: assets/images/favicon.png
+  features:
+    - search.suggest
+    - search.highlight
+    - navigation.top
+    - navigation.indexes
+    - navigation.path
+    - navigation.expand
+    - navigation.sections
+    - navigation.footer
+    - toc.follow
+    - toc.integrate
+  palette:
+    scheme: slate
+    primary: black
+  icon:
+    repo: fontawesome/brands/github
+plugins:
+  - search
+markdown_extensions:
+  - attr_list
+  - footnotes
+  - md_in_html
+  - pymdownx.blocks.caption
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.keys
+  - pymdownx.caret
+  - pymdownx.mark
+  - pymdownx.tilde
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
+repo_url: https://github.com/CRRU-UK/photo-id-app
+repo_name: CRRU-UK/photo-id-app
+extra:
+  social:
+    - icon: material/web
+      link: https://crru.org.uk
+      name: CRRU website
+    - icon: fontawesome/brands/github
+      link: https://github.com/CRRU-UK
+      name: CRRU on GitHub

@@ -1,6 +1,6 @@
 # Photo ID App
 
-![Screenshots of the Photo ID app.](./docs/assets/images/banner.png)
+![Screenshots of the Photo ID app.](./docs/assets/images/banner.png?v1)
 
 [![Test](https://github.com/CRRU-UK/photo-id-app/actions/workflows/main.yaml/badge.svg?branch=main)](https://github.com/CRRU-UK/photo-id-app/actions/workflows/main.yaml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=CRRU-UK_photo-id-app&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=CRRU-UK_photo-id-app)
@@ -10,41 +10,25 @@
 [![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=CRRU-UK_photo-id-app&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=CRRU-UK_photo-id-app)
 
 - [Introduction](#introduction)
-- [Overview](#overview)
-- [Installation](#installation)
 - [Development](#development)
   - [Debugging](#debugging)
   - [Error Tracking](#error-tracking)
 
 ## Introduction
 
-The Photo ID app is a research tool that can be used for photo-identification methodologies for longitudinal mark-recapture studies. It allows for the organisation and matching of photographs containing unique identification markings (such as cetacean dorsal fins). It includes tools for editing and visually filtering photographs to help with identification of marks.
+The Photo ID app is a multi-platform research tool that can be used for photo-identification methodologies such as in longitudinal mark-recapture studies. It allows for the grouping of photographs containing unique identification markings (such as the dorsal fins of cetaceans), and includes tools for editing and visually filtering photographs to help with identification of marks, and exporting matches.
 
-📚 For more information and user guides, [check out the docs](https://photoidapp.crru.org.uk).
+It supports Windows, macOS, and Linux.
 
-## Overview
+> [!TIP]
+> 📚 [Check out the documentation](https://photoidapp.crru.org.uk) for guides on how to install and use the app!
 
-The app is made up of the following parts:
-
-- [`src/`](src/) contains the main app code
-- [`src/assets`](src/assets) contains app assets (e.g. icons)
-- [`src/backend`](src/backend) contains backend (_main_) controllers
-- [`src/contexts`](src/contexts) contains React contexts
-- [`src/frontend`](src/frontend) contains frontend (_renderer_) views and components
-- [`src/models`](src/models) contains classes used in the frontend
-- [`src/routes`](src/routes) contains frontend routes
-- [`src/index.tsx`](src/index.tsx) contains the frontend (_renderer_) entry point
-- [`src/main.ts`](src/main.ts) contains the backend (_main_) entry point
-- [`src/preload.ts`](src/preload.ts) contains preloaded app methods
-
-## Installation
+## Development
 
 1. Clone the repository
 2. Ensure you are using Node version >= 24 (`nvm install 24` / `nvm use 24`)
 3. Install the dependencies by running [`npm ci`](https://docs.npmjs.com/cli/ci.html)
 4. If using VS Code install the [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) and [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode) extensions
-
-## Development
 
 Below are the NPM commands that can be used for development:
 
@@ -62,7 +46,9 @@ Below are the NPM commands that can be used for development:
 | `test:types`         | Runs TypeScript tests.                                           |
 | `test:unit`          | Runs unit tests and generates a coverage report.                 |
 | `test:unit:watch`    | Same as `test:unit` but runs it in watch mode.                   |
-| `docs`               | Builds and serves documentation locally                          |
+| `docs`               | Builds and serves documentation locally. <sup>1</sup>            |
+
+<sup>1</sup> Requires [Material for MKDocs](https://squidfunk.github.io/mkdocs-material/).
 
 ### Debugging
 
