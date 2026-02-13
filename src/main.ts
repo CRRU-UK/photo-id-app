@@ -1,7 +1,7 @@
 import "dotenv/config";
 
 import * as Sentry from "@sentry/electron/main";
-import { app, BrowserWindow, ipcMain, Menu, shell } from "electron";
+import { app, BrowserWindow, ipcMain, Menu, net, protocol, shell } from "electron";
 import {
   installExtension,
   MOBX_DEVTOOLS,
@@ -42,6 +42,7 @@ import {
   DEFAULT_WINDOW_TITLE,
   EXTERNAL_LINKS,
   IPC_EVENTS,
+  PHOTO_PROTOCOL_SCHEME,
   PROJECT_EXPORT_DIRECTORY,
   PROJECT_FILE_NAME,
   ROUTES,
@@ -52,11 +53,30 @@ import { version } from "../package.json";
 
 updateElectronApp();
 
+protocol.registerSchemesAsPrivileged([
+  {
+    scheme: PHOTO_PROTOCOL_SCHEME,
+    privileges: {
+      secure: true,
+      supportFetchAPI: true,
+    },
+  },
+]);
+
 const production = app.isPackaged;
 
 if (started) {
   app.quit();
 }
+
+const defaultWebPreferences = {
+  preload: path.join(__dirname, "preload.js"),
+  nodeIntegration: false,
+  contextIsolation: true,
+  webSecurity: true,
+  sandbox: true,
+  allowRunningInsecureContent: false,
+};
 
 const basePath = path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`);
 
@@ -64,11 +84,7 @@ const createMainWindow = async () => {
   const mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
-    webPreferences: {
-      preload: path.join(__dirname, "preload.js"),
-      nodeIntegration: true,
-      webSecurity: false,
-    },
+    webPreferences: defaultWebPreferences,
   });
 
   mainWindow.maximize();
@@ -117,6 +133,13 @@ app.on("activate", async () => {
 });
 
 app.whenReady().then(async () => {
+  protocol.handle(PHOTO_PROTOCOL_SCHEME, (request) => {
+    const url = new URL(request.url);
+    const filePath = url.host ? url.host + url.pathname : url.pathname;
+
+    return net.fetch(`file://${filePath}`);
+  });
+
   const settings = await getSettings();
   if (settings.telemetry === "enabled" && process.env.SENTRY_DSN) {
     console.debug("Sentry is enabled in main");
@@ -198,11 +221,7 @@ app.whenReady().then(async () => {
       show: false,
       width: 1200,
       height: 800,
-      webPreferences: {
-        preload: path.join(__dirname, "preload.js"),
-        nodeIntegration: true,
-        webSecurity: false,
-      },
+      webPreferences: defaultWebPreferences,
       backgroundColor: "black",
       fullscreenable: false,
     });

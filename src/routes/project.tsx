@@ -19,7 +19,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { observer } from "mobx-react-lite";
 import { useCallback, useEffect, useState } from "react";
 
-import { MATCHED_STACKS_PER_PAGE, ROUTES } from "@/constants";
+import { MATCHED_STACKS_PER_PAGE, PHOTO_PROTOCOL_SCHEME, ROUTES } from "@/constants";
 import { useProject } from "@/contexts/ProjectContext";
 
 import LoadingOverlay from "@/frontend/components/LoadingOverlay";
@@ -31,7 +31,7 @@ import { chunkArray, getAlphabetLetter } from "@/helpers";
 
 const DraggableImage = ({ photo }: { photo: Photo }) => (
   <img
-    src={`file://${photo.thumbnailFullPath}`}
+    src={`${PHOTO_PROTOCOL_SCHEME}://${photo.thumbnailFullPath}`}
     style={{
       opacity: 0.7,
       display: "block",
