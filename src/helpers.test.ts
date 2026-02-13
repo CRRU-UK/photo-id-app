@@ -13,6 +13,7 @@ import {
   getCanvasFilters,
   getImageCoordinates,
   isEditWindow,
+  photoUrlToFilePath,
 } from "./helpers";
 
 describe(getAlphabetLetter, () => {
@@ -365,5 +366,25 @@ describe(isEditWindow, () => {
     const hash = `#${ROUTES.PROJECT}`;
 
     expect(isEditWindow(hash)).toBe(false);
+  });
+});
+
+describe(photoUrlToFilePath, () => {
+  it("returns pathname when host is empty (Unix-style path)", () => {
+    const result = photoUrlToFilePath("", "/Users/admin/project/photo.jpg");
+
+    expect(result).toBe("/Users/admin/project/photo.jpg");
+  });
+
+  it("returns host plus pathname when host is a single letter (Windows drive)", () => {
+    const result = photoUrlToFilePath("C", "/Users/admin/project/photo.jpg");
+
+    expect(result).toBe("C:/Users/admin/project/photo.jpg");
+  });
+
+  it("returns host plus pathname when host has multiple characters", () => {
+    const result = photoUrlToFilePath("localhost", "/path/to/file");
+
+    expect(result).toBe("localhost/path/to/file");
   });
 });

@@ -171,3 +171,22 @@ export const computeIsEdited = (edits: PhotoEdits): boolean =>
  * @returns Returns `true` if the hash is an edit window, otherwise `false`.
  */
 export const isEditWindow = (hash: string): boolean => hash.startsWith(`#${ROUTES.EDIT}`);
+
+/**
+ * Converts URL host and pathname into a file path string. Handles Windows drive letter in host
+ * (e.g. host "C" + pathname "/Users/..." > "C:/Users/...").
+ * @param host - URL host (empty string when none, or single letter for Windows drive)
+ * @param pathname - URL pathname
+ * @returns File path string suitable for path.normalize and pathToFileURL.
+ */
+export const photoUrlToFilePath = (host: string, pathname: string): string => {
+  if (host.length === 1) {
+    return `${host}:${pathname}`;
+  }
+
+  if (host) {
+    return host + pathname;
+  }
+
+  return pathname;
+};

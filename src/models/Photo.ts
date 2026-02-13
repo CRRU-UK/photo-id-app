@@ -49,7 +49,7 @@ class Photo {
 
   get thumbnailFullPath(): string {
     const path = [this.directory, this.thumbnail].join("/");
-    return `${path}?${this.version}`;
+    return `${path.replaceAll("\\", "/")}?${this.version}`;
   }
 
   toBody(): PhotoBody {

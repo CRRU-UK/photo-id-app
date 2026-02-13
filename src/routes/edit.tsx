@@ -11,8 +11,11 @@ import ImageEditor from "@/frontend/components/ImageEditor";
 import LoadingOverlay from "@/frontend/components/LoadingOverlay";
 
 const fetchLocalFile = async (data: PhotoBody) => {
-  const response = await fetch(`${PHOTO_PROTOCOL_SCHEME}://${data.directory}/${data.name}`);
+  const directory = data.directory.replaceAll("\\", "/");
+
+  const response = await fetch(`${PHOTO_PROTOCOL_SCHEME}://${directory}/${data.name}`);
   const blob = await response.blob();
+
   return new File([blob], data.name, { type: blob.type || "image/*" });
 };
 

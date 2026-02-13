@@ -47,7 +47,7 @@ import {
   PROJECT_FILE_NAME,
   ROUTES,
 } from "@/constants";
-import { encodeEditPayload } from "@/helpers";
+import { encodeEditPayload, photoUrlToFilePath } from "@/helpers";
 
 import { version } from "../package.json";
 
@@ -134,10 +134,12 @@ app.on("activate", async () => {
 
 app.whenReady().then(async () => {
   protocol.handle(PHOTO_PROTOCOL_SCHEME, (request) => {
-    const url = new URL(request.url);
-    const filePath = url.host ? url.host + url.pathname : url.pathname;
+    const parsedUrl = new URL(request.url);
+    const pathname = decodeURIComponent(parsedUrl.pathname);
+    const filePath = photoUrlToFilePath(parsedUrl.host ?? "", pathname);
+    const fileUrl = url.pathToFileURL(path.normalize(filePath)).toString();
 
-    return net.fetch(`file://${path.normalize(filePath)}`);
+    return net.fetch(fileUrl);
   });
 
   const settings = await getSettings();
