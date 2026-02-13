@@ -1,3 +1,4 @@
+import url from "node:url";
 import { describe, expect, expectTypeOf, it } from "vitest";
 
 import { ROUTES } from "@/constants";
@@ -14,7 +15,6 @@ import {
   getCanvasFilters,
   getImageCoordinates,
   isEditWindow,
-  photoUrlToFilePath,
 } from "./helpers";
 
 describe(getAlphabetLetter, () => {
@@ -380,7 +380,7 @@ describe(buildPhotoUrl, () => {
   it("builds a photo URL from a Windows directory", () => {
     const result = buildPhotoUrl(String.raw`C:\Users\admin\project`, "photo.jpg");
 
-    expect(result).toBe("photo://C%3A/Users/admin/project/photo.jpg");
+    expect(result).toBe("photo:///C%3A/Users/admin/project/photo.jpg");
   });
 
   it("encodes spaces in directory and file name", () => {
@@ -394,30 +394,18 @@ describe(buildPhotoUrl, () => {
 
     expect(result).toBe("photo:///path/to/dir%231/photo%3Fv%3D2.jpg");
   });
-});
 
-describe(photoUrlToFilePath, () => {
-  it("returns pathname when host is empty (Unix-style path)", () => {
-    const result = photoUrlToFilePath("", "/Users/admin/project/photo.jpg");
+  it("handles file names that contain path separators", () => {
+    const result = buildPhotoUrl("/Users/admin/project", ".thumbnails/photo.jpg");
 
-    expect(result).toBe("/Users/admin/project/photo.jpg");
+    expect(result).toBe("photo:///Users/admin/project/.thumbnails/photo.jpg");
   });
 
-  it("returns host plus pathname when host is a single letter (Windows drive)", () => {
-    const result = photoUrlToFilePath("C", "/Users/admin/project/photo.jpg");
+  it("produces a URL that round-trips through fileURLToPath", () => {
+    const photoUrl = buildPhotoUrl("/Users/admin/Photo ID", "photo.jpg");
+    const fileUrl = photoUrl.replace(/^photo:/, "file:");
+    const result = url.fileURLToPath(fileUrl);
 
-    expect(result).toBe("C:/Users/admin/project/photo.jpg");
-  });
-
-  it("returns null when host has multiple characters", () => {
-    const result = photoUrlToFilePath("localhost", "/path/to/file");
-
-    expect(result).toBeNull();
-  });
-
-  it("collapses leading double slashes to a single slash", () => {
-    const result = photoUrlToFilePath("", "//Users/admin/project/photo.jpg");
-
-    expect(result).toBe("/Users/admin/project/photo.jpg");
+    expect(result).toBe("/Users/admin/Photo ID/photo.jpg");
   });
 });

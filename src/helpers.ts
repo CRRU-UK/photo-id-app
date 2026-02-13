@@ -173,36 +173,16 @@ export const computeIsEdited = (edits: PhotoEdits): boolean =>
 export const isEditWindow = (hash: string): boolean => hash.startsWith(`#${ROUTES.EDIT}`);
 
 /**
- * Builds a valid photo:// URL from a directory path and file name. Normalizes to forward slashes,
- * encodes each path segment so spaces, #, ? etc. are safe, and produces the correct slash count
- * (photo:/// for POSIX absolute paths, photo://C%3A/ for Windows drive paths).
+ * Builds a valid photo:// URL from a directory path and file name. Normalizes to forward slashes
+ * and encodes each path segment so spaces, #, ? etc. are safe. Always produces photo:/// (three
+ * slashes) followed by encoded path segments, mirroring the file:// URL format so the main process
+ * can swap the scheme and use url.fileURLToPath().
  */
 export const buildPhotoUrl = (directory: string, fileName: string): string => {
-  const normalizedDir = directory.replaceAll("\\", "/");
-  const segments = [...normalizedDir.split("/").filter(Boolean), fileName];
+  const normalizedPath = `${directory}/${fileName}`.replaceAll("\\", "/");
+  const segments = normalizedPath.split("/").filter(Boolean);
+
   const encoded = segments.map(encodeURIComponent).join("/");
 
-  const prefix = normalizedDir.startsWith("/") ? "/" : "";
-  return `${PHOTO_PROTOCOL_SCHEME}://${prefix}${encoded}`;
-};
-
-/**
- * Extracts a file path from a parsed photo:// URL's host and pathname. Handles Windows drive
- * letters where the URL host is a single letter (e.g. "C"). Rejects multi-character hosts and
- * collapses leading double slashes to a single slash for POSIX safety.
- */
-export const photoUrlToFilePath = (host: string, pathname: string): string | null => {
-  if (host.length === 1) {
-    return `${host}:${pathname}`;
-  }
-
-  if (host) {
-    return null;
-  }
-
-  if (pathname.startsWith("//")) {
-    return pathname.slice(1);
-  }
-
-  return pathname;
+  return `${PHOTO_PROTOCOL_SCHEME}:///${encoded}`;
 };

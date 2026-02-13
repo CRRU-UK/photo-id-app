@@ -48,7 +48,7 @@ import {
   PROJECT_FILE_NAME,
   ROUTES,
 } from "@/constants";
-import { encodeEditPayload, photoUrlToFilePath } from "@/helpers";
+import { encodeEditPayload } from "@/helpers";
 
 import { version } from "../package.json";
 
@@ -136,22 +136,15 @@ app.on("activate", async () => {
 app.whenReady().then(async () => {
   protocol.handle(PHOTO_PROTOCOL_SCHEME, (request) => {
     try {
-      const parsedUrl = new URL(request.url);
-      const pathname = decodeURIComponent(parsedUrl.pathname);
-      const filePath = photoUrlToFilePath(parsedUrl.host ?? "", pathname);
+      const fileUrl = request.url.replace(/^photo:/, "file:");
+      const filePath = url.fileURLToPath(fileUrl);
 
-      if (filePath === null) {
-        return new Response(null, { status: 400 });
-      }
-
-      const normalizedPath = path.normalize(filePath);
-
-      const extension = path.extname(normalizedPath).toLowerCase();
+      const extension = path.extname(filePath).toLowerCase();
       if (!PHOTO_FILE_EXTENSIONS.includes(extension)) {
         return new Response(null, { status: 403 });
       }
 
-      return net.fetch(url.pathToFileURL(normalizedPath).toString());
+      return net.fetch(url.pathToFileURL(filePath).toString());
     } catch {
       return new Response(null, { status: 400 });
     }
