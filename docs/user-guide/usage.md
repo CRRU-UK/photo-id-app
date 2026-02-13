@@ -20,7 +20,7 @@ Once the project has been created, you may notice two files have been added in t
 
 The project can be opened again on the home screen from either the recent projects list or by selecting ==:octicons-file-16: Open Project File== and selecting the `data.json` file in your project folder.
 
-Projects can be removed from the recent projects list by clicking the button with the ==:octicons-trash-16: bin icon==. Note that this does not remove the project file, thumbnails, or any exported photos from the project folder.
+Projects can be removed from the recent projects list by selecting the button with the ==:octicons-trash-16: bin icon==. Note that this does not remove the project file, thumbnails, or any exported photos from the project folder.
 
 ## Sorting and matching photos
 
@@ -28,7 +28,7 @@ Projects can be removed from the recent projects list by clicking the button wit
 
 Once you have created a project or opened an existing one, you will see the project screen. Here you can start to sort and match photos. This can be done by clicking and dragging a photo from one 'stack' onto another, which will move it from the original stack onto the targeted one. The targeted stack will be highlighted when dragging a photo over it.
 
-A stack is a collection of photos, and can contain any amount of photos - the ==:octicons-chevron-left-16: :octicons-chevron-right-16: arrow buttons== in the bottom-right can be used to navigate between photos in that stack. An indicator on the bottom-left shows which photo in the stack out of the total is currently visible.
+A stack is a collection of photos, and can contain any amount of photos - the ==:octicons-chevron-left-16: :octicons-chevron-right-16: arrow buttons== in the bottom-right can be used to navigate between photos in that stack. An indicator on the bottom-left shows the total number of photos in a stack and which photo is currently displayed.
 
 There are three stacks in the project view:
 
@@ -54,7 +54,7 @@ On the top-right of the page there is a toggle for viewing matched stacks by two
 
 !!! note
 
-    There is a set number of matches - matched stacks cannot be added or removed. This may change in the future.
+    There is a set total of 52 matched stacks which cannot be increased or decreased. This will change in the future.
 
 ### Duplication
 
@@ -87,13 +87,15 @@ There are several options that can be used to edit photos in the toolbar on the 
 - **:material-cursor-move: Panning** can be done by clicking and dragging the photo (or the ==:octicons-arrow-left-16: :octicons-arrow-up-16: :octicons-arrow-down-16: :octicons-arrow-right-16:== buttons in the toolbar)
 - **:material-crop: Cropping** is based on the zoom and pan of the photo - what you see in the photo editor is how the photo will be cropped
 
+!!! note
+
+    Original photos in your project are NEVER edited or modified in any way. Edits made to photos are only visible in the app and are used when generating matched images when exporting a project.
+
 Edits to a photo can be saved using the ==Save== button. Edits can be reset back to their defaults by using the ==Reset== button. Closing the editor window without saving changes will be discarded. Opening a photo that has been previously edited will restore the original edit values.
 
 You can load the previous or next photo in the stack the current photo is in using the ==:octicons-chevron-left-16: :octicons-chevron-right-16: arrow buttons==. Moving the current photo to a different stack while it is open in an editor screen will load the previous and next photos in the new stack once clicked.
 
-!!! note
-
-    Original photos in your project are NEVER edited or modified in any way. Edits made to photos are kept only as data in the project and are used when generating images when exporting a project.
+Multiple photo editor windows can be open at the same time so you can compare photos side-by-side.
 
 ### Edge detection
 
@@ -101,13 +103,13 @@ You can load the previous or next photo in the stack the current photo is in usi
 
 Edge detection can be enabled to more easily identify marks in photos.
 
-This can be toggled by clicking the ==:octicons-eye-16: Toggle Edge Detection== button on the bottom-left of the screen above the toolbar. When enabled, a slider will appear that can be used to adjust the intensity of the filter.
+This can be toggled by selecting the ==:octicons-eye-16: Toggle Edge Detection== button on the bottom-left of the screen above the toolbar. When enabled, a slider will appear that can be used to adjust the intensity of the filter.
 
 Note that the edge detection filter is not used when saving or exporting images, and is purely used as a temporary filter.
 
 ## Settings
 
-The settings menu can be opened by the [keyboard shortcut](#keyboard-shortcuts), by clicking the ==:octicons-gear-16: Settings== button on the home page, or by using the menu bar option.
+The settings menu can be opened selecting the ==:octicons-gear-16: Settings== button on the home page, using the [keyboard shortcut](#keyboard-shortcuts), or by using the menu bar option.
 
 These settings are global (i.e. the same for all projects) and per-user on your system.
 

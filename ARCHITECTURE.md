@@ -64,6 +64,7 @@ The following describes the specifications and requirements of user journeys and
 - All project data, stacks, thumbnails, and edit metadata are persisted via the backend (`photos.ts`, `projects.ts`) and accessed from the renderer only via `window.electronAPI` IPC calls
 - The edit window URL always encodes its state via `?data=...` as base64 JSON - navigation between photos in an edit window must respect this contract
 - Thumbnails are stored alongside `data.json` in `.thumbnails/` (see `PROJECT_THUMBNAIL_DIRECTORY`), and saving edits must regenerate the relevant thumbnail
+- Original photos used in projects should NEVER EVER be modified in ANY way (overwritten, edited, deleted, etc.)
 
 ### Windows
 
@@ -196,6 +197,7 @@ The project view is accessed when opening a project. It allows the user to:
   - Panning the image can be done using the buttons, clicking and dragging, or keyboard shortcuts
     - The user can NOT pan outside of the original photo dimensions
     - Panning towards an edge should constrain/clamp the photo within the canvas
+- The image should ALWAYS maintain its natural aspect ratio, including on window/canvas element resizing
 - These edits can be saved to a photo by using the save button or shortcut
 - Re-opening a photo in the edit view should pre-populate its edit values, i.e. they should persist between edits and NOT compound on re-opening and re-editing the photo
 - Resetting the edits should return all of the sliders back to their default
@@ -216,4 +218,5 @@ The project view is accessed when opening a project. It allows the user to:
 - Any changes made to a project (updating stacks, editing photos, etc.) should automatically update (i.e. auto-save) the data file, therefore there should never be any 'unsaved' data
 - If a user has made edits to a photo but NOT saved them, then trying to close the window, close the project, or exit the application should show a confirmation dialogue allowing them to keep the app open or discard the changes
 - Users cannot (currently) add or remove photos from a project after the project has been created
+- Project data is created and managed by ONLY the app - while in theory a user can manually edit the `data.json` file, the app uses no external input when managing the data file
 - Images on the file system are loaded via the custom `photo://` protocol in order to keep the Electron app secure - the protocol can be used either in HTML (e.g. image tags) or via HTTP requests (i.e. `fetch`)
