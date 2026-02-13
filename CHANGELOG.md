@@ -1,5 +1,28 @@
 # photo-id
 
+## 0.4.0
+
+### Minor Changes
+
+- dc7b15b: Add custom image protocol, disable insecure Electron options
+- 9f9d6e5: Add edge detection filter
+- 4405338: Handle edits on-demand
+- 0e0f5cc: Add settings for telemetry and theme
+- 4ba42a2: Add custom image editor
+- c5f8f23: Persist photo edits (brightness, contrast, saturate, pan, and zoom) in project data
+
+### Patch Changes
+
+- ced3d84: Adjust zoom factor on scroll type
+- 97ee9b0: Refactor `useImageEditor` into smaller hooks
+- b69b67b: Update photo editor keyboard shortcuts
+- c7279ad: Add project view keyboard shortcuts
+- 5355dc8: Minor UI updates
+- eb4b8c3: Add export progress indicator
+- a0aa6cb: Update docs
+- cbf72a7: Optimise image editor performance
+- 4b36aea: Fix navigation in edit windows
+
 ## 0.3.1
 
 ### Patch Changes
