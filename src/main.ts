@@ -42,6 +42,7 @@ import {
   DEFAULT_WINDOW_TITLE,
   EXTERNAL_LINKS,
   IPC_EVENTS,
+  PHOTO_FILE_EXTENSIONS,
   PHOTO_PROTOCOL_SCHEME,
   PROJECT_EXPORT_DIRECTORY,
   PROJECT_FILE_NAME,
@@ -134,12 +135,26 @@ app.on("activate", async () => {
 
 app.whenReady().then(async () => {
   protocol.handle(PHOTO_PROTOCOL_SCHEME, (request) => {
-    const parsedUrl = new URL(request.url);
-    const pathname = decodeURIComponent(parsedUrl.pathname);
-    const filePath = photoUrlToFilePath(parsedUrl.host ?? "", pathname);
-    const fileUrl = url.pathToFileURL(path.normalize(filePath)).toString();
+    try {
+      const parsedUrl = new URL(request.url);
+      const pathname = decodeURIComponent(parsedUrl.pathname);
+      const filePath = photoUrlToFilePath(parsedUrl.host ?? "", pathname);
 
-    return net.fetch(fileUrl);
+      if (filePath === null) {
+        return new Response(null, { status: 400 });
+      }
+
+      const normalizedPath = path.normalize(filePath);
+
+      const extension = path.extname(normalizedPath).toLowerCase();
+      if (!PHOTO_FILE_EXTENSIONS.includes(extension)) {
+        return new Response(null, { status: 403 });
+      }
+
+      return net.fetch(url.pathToFileURL(normalizedPath).toString());
+    } catch {
+      return new Response(null, { status: 400 });
+    }
   });
 
   const settings = await getSettings();

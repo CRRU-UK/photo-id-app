@@ -1,6 +1,6 @@
 import type { EdgeDetectionData, PhotoBody, PhotoEdits } from "@/types";
 
-import { DEFAULT_PHOTO_EDITS, EDGE_DETECTION, ROUTES } from "@/constants";
+import { DEFAULT_PHOTO_EDITS, EDGE_DETECTION, PHOTO_PROTOCOL_SCHEME, ROUTES } from "@/constants";
 
 /**
  * Encodes photo data for the edit window URL query.
@@ -173,19 +173,37 @@ export const computeIsEdited = (edits: PhotoEdits): boolean =>
 export const isEditWindow = (hash: string): boolean => hash.startsWith(`#${ROUTES.EDIT}`);
 
 /**
- * Converts URL host and pathname into a file path string. Handles Windows drive letter in host
- * (e.g. host "C" + pathname "/Users/..." > "C:/Users/...").
- * @param host - URL host (empty string when none, or single letter for Windows drive)
- * @param pathname - URL pathname
- * @returns File path string suitable for path.normalize and pathToFileURL.
+ * Builds a valid photo:// URL from a directory path and file name.
+ * Normalizes to forward slashes, encodes each path segment so spaces, #, ? etc. are safe,
+ * and produces the correct slash count (photo:/// for POSIX absolute paths, photo://C%3A/ for
+ * Windows drive paths).
  */
-export const photoUrlToFilePath = (host: string, pathname: string): string => {
+export const buildPhotoUrl = (directory: string, fileName: string): string => {
+  const normalizedDir = directory.replaceAll("\\", "/");
+  const segments = [...normalizedDir.split("/").filter(Boolean), fileName];
+  const encoded = segments.map(encodeURIComponent).join("/");
+
+  const prefix = normalizedDir.startsWith("/") ? "/" : "";
+  return `${PHOTO_PROTOCOL_SCHEME}://${prefix}${encoded}`;
+};
+
+/**
+ * Extracts a file path from a parsed photo:// URL's host and pathname.
+ * Handles Windows drive letters where the URL host is a single letter (e.g. "C").
+ * Rejects multi-character hosts and collapses leading double slashes to a single slash
+ * for POSIX safety.
+ */
+export const photoUrlToFilePath = (host: string, pathname: string): string | null => {
   if (host.length === 1) {
     return `${host}:${pathname}`;
   }
 
   if (host) {
-    return host + pathname;
+    return null;
+  }
+
+  if (pathname.startsWith("//")) {
+    return pathname.slice(1);
   }
 
   return pathname;

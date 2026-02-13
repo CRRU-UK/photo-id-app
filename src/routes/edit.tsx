@@ -4,18 +4,20 @@ import { useCallback, useEffect, useState } from "react";
 
 import type { LoadingData, PhotoBody } from "@/types";
 
-import { DEFAULT_WINDOW_TITLE, PHOTO_PROTOCOL_SCHEME, ROUTES } from "@/constants";
-import { decodeEditPayload } from "@/helpers";
+import { DEFAULT_WINDOW_TITLE, ROUTES } from "@/constants";
+import { buildPhotoUrl, decodeEditPayload } from "@/helpers";
 
 import ImageEditor from "@/frontend/components/ImageEditor";
 import LoadingOverlay from "@/frontend/components/LoadingOverlay";
 
 const fetchLocalFile = async (data: PhotoBody) => {
-  const directory = data.directory.replaceAll("\\", "/");
+  const response = await fetch(buildPhotoUrl(data.directory, data.name));
 
-  const response = await fetch(`${PHOTO_PROTOCOL_SCHEME}://${directory}/${data.name}`);
+  if (!response.ok) {
+    throw new Error(`Photo load failed: ${response.status}`);
+  }
+
   const blob = await response.blob();
-
   return new File([blob], data.name, { type: blob.type || "image/*" });
 };
 

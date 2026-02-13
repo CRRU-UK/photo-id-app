@@ -3,6 +3,7 @@ import { describe, expect, expectTypeOf, it } from "vitest";
 import { ROUTES } from "@/constants";
 
 import {
+  buildPhotoUrl,
   chunkArray,
   clampPan,
   computeIsEdited,
@@ -369,6 +370,32 @@ describe(isEditWindow, () => {
   });
 });
 
+describe(buildPhotoUrl, () => {
+  it("builds a photo URL from a POSIX absolute directory", () => {
+    const result = buildPhotoUrl("/Users/admin/project", "photo.jpg");
+
+    expect(result).toBe("photo:///Users/admin/project/photo.jpg");
+  });
+
+  it("builds a photo URL from a Windows directory", () => {
+    const result = buildPhotoUrl(String.raw`C:\Users\admin\project`, "photo.jpg");
+
+    expect(result).toBe("photo://C%3A/Users/admin/project/photo.jpg");
+  });
+
+  it("encodes spaces in directory and file name", () => {
+    const result = buildPhotoUrl("/Users/admin/Photo ID", "my photo.jpg");
+
+    expect(result).toBe("photo:///Users/admin/Photo%20ID/my%20photo.jpg");
+  });
+
+  it("encodes special characters in path segments", () => {
+    const result = buildPhotoUrl("/path/to/dir#1", "photo?v=2.jpg");
+
+    expect(result).toBe("photo:///path/to/dir%231/photo%3Fv%3D2.jpg");
+  });
+});
+
 describe(photoUrlToFilePath, () => {
   it("returns pathname when host is empty (Unix-style path)", () => {
     const result = photoUrlToFilePath("", "/Users/admin/project/photo.jpg");
@@ -382,9 +409,15 @@ describe(photoUrlToFilePath, () => {
     expect(result).toBe("C:/Users/admin/project/photo.jpg");
   });
 
-  it("returns host plus pathname when host has multiple characters", () => {
+  it("returns null when host has multiple characters", () => {
     const result = photoUrlToFilePath("localhost", "/path/to/file");
 
-    expect(result).toBe("localhost/path/to/file");
+    expect(result).toBeNull();
+  });
+
+  it("collapses leading double slashes to a single slash", () => {
+    const result = photoUrlToFilePath("", "//Users/admin/project/photo.jpg");
+
+    expect(result).toBe("/Users/admin/project/photo.jpg");
   });
 });

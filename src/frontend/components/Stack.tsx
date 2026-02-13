@@ -17,7 +17,6 @@ import {
 import { observer } from "mobx-react-lite";
 import { useState } from "react";
 
-import { PHOTO_PROTOCOL_SCHEME } from "@/constants";
 import type Collection from "@/models/Collection";
 import type Photo from "@/models/Photo";
 
@@ -27,7 +26,7 @@ interface StackImageProps {
 
 const StackImage = observer(({ photo }: StackImageProps) => (
   <img
-    src={`${PHOTO_PROTOCOL_SCHEME}://${photo.thumbnailFullPath}`}
+    src={photo.thumbnailFullPath}
     style={{
       cursor: "pointer",
       display: "block",
