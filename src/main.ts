@@ -137,7 +137,7 @@ app.whenReady().then(async () => {
     const url = new URL(request.url);
     const filePath = url.host ? url.host + url.pathname : url.pathname;
 
-    return net.fetch(`file://${filePath}`);
+    return net.fetch(`file://${path.normalize(filePath)}`);
   });
 
   const settings = await getSettings();
