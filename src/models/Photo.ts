@@ -1,7 +1,7 @@
 import type Project from "@/models/Project";
 import type { Directory, FileName, PhotoBody, PhotoEdits } from "@/types";
 
-import { computeIsEdited } from "@/helpers";
+import { buildPhotoUrl, computeIsEdited } from "@/helpers";
 import { action, computed, makeObservable, observable } from "mobx";
 
 interface PhotoOptions {
@@ -48,8 +48,7 @@ class Photo {
   }
 
   get thumbnailFullPath(): string {
-    const path = [this.directory, this.thumbnail].join("/");
-    return `${path}?${this.version}`;
+    return `${buildPhotoUrl(this.directory, this.thumbnail)}?${this.version}`;
   }
 
   toBody(): PhotoBody {

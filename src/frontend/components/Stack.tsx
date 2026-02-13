@@ -26,7 +26,7 @@ interface StackImageProps {
 
 const StackImage = observer(({ photo }: StackImageProps) => (
   <img
-    src={`file://${photo.thumbnailFullPath}`}
+    src={photo.thumbnailFullPath}
     style={{
       cursor: "pointer",
       display: "block",
