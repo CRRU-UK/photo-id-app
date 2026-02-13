@@ -43,6 +43,8 @@ export const DEFAULT_WINDOW_TITLE = "Photo ID";
 
 export const PHOTO_FILE_EXTENSIONS = [".jpg", ".jpeg", ".png"];
 
+export const PHOTO_PROTOCOL_SCHEME = "photo";
+
 export const EXISTING_DATA_MESSAGE =
   "A data file already exists for this folder - choose whether to resume the existing data, replace/reset the existing data, or cancel.";
 

@@ -1,6 +1,6 @@
 import type { EdgeDetectionData, PhotoBody, PhotoEdits } from "@/types";
 
-import { DEFAULT_PHOTO_EDITS, EDGE_DETECTION, ROUTES } from "@/constants";
+import { DEFAULT_PHOTO_EDITS, EDGE_DETECTION, PHOTO_PROTOCOL_SCHEME, ROUTES } from "@/constants";
 
 /**
  * Encodes photo data for the edit window URL query.
@@ -171,3 +171,18 @@ export const computeIsEdited = (edits: PhotoEdits): boolean =>
  * @returns Returns `true` if the hash is an edit window, otherwise `false`.
  */
 export const isEditWindow = (hash: string): boolean => hash.startsWith(`#${ROUTES.EDIT}`);
+
+/**
+ * Builds a valid photo:// URL from a directory path and file name. Normalizes to forward slashes
+ * and encodes each path segment so spaces, #, ? etc. are safe. Always produces photo:/// (three
+ * slashes) followed by encoded path segments, mirroring the file:// URL format so the main process
+ * can swap the scheme and use url.fileURLToPath().
+ */
+export const buildPhotoUrl = (directory: string, fileName: string): string => {
+  const normalizedPath = `${directory}/${fileName}`.replaceAll("\\", "/");
+  const segments = normalizedPath.split("/").filter(Boolean);
+
+  const encoded = segments.map(encodeURIComponent).join("/");
+
+  return `${PHOTO_PROTOCOL_SCHEME}:///${encoded}`;
+};

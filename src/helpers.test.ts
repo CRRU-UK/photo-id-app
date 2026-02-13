@@ -1,8 +1,10 @@
+import url from "node:url";
 import { describe, expect, expectTypeOf, it } from "vitest";
 
 import { ROUTES } from "@/constants";
 
 import {
+  buildPhotoUrl,
   chunkArray,
   clampPan,
   computeIsEdited,
@@ -365,5 +367,45 @@ describe(isEditWindow, () => {
     const hash = `#${ROUTES.PROJECT}`;
 
     expect(isEditWindow(hash)).toBe(false);
+  });
+});
+
+describe(buildPhotoUrl, () => {
+  it("builds a photo URL from a POSIX absolute directory", () => {
+    const result = buildPhotoUrl("/Users/admin/project", "photo.jpg");
+
+    expect(result).toBe("photo:///Users/admin/project/photo.jpg");
+  });
+
+  it("builds a photo URL from a Windows directory", () => {
+    const result = buildPhotoUrl(String.raw`C:\Users\admin\project`, "photo.jpg");
+
+    expect(result).toBe("photo:///C%3A/Users/admin/project/photo.jpg");
+  });
+
+  it("encodes spaces in directory and file name", () => {
+    const result = buildPhotoUrl("/Users/admin/Photo ID", "my photo.jpg");
+
+    expect(result).toBe("photo:///Users/admin/Photo%20ID/my%20photo.jpg");
+  });
+
+  it("encodes special characters in path segments", () => {
+    const result = buildPhotoUrl("/path/to/dir#1", "photo?v=2.jpg");
+
+    expect(result).toBe("photo:///path/to/dir%231/photo%3Fv%3D2.jpg");
+  });
+
+  it("handles file names that contain path separators", () => {
+    const result = buildPhotoUrl("/Users/admin/project", ".thumbnails/photo.jpg");
+
+    expect(result).toBe("photo:///Users/admin/project/.thumbnails/photo.jpg");
+  });
+
+  it("produces a URL that round-trips through fileURLToPath", () => {
+    const photoUrl = buildPhotoUrl("/Users/admin/Photo ID", "photo.jpg");
+    const fileUrl = photoUrl.replace(/^photo:/, "file:");
+    const result = url.fileURLToPath(fileUrl);
+
+    expect(result).toBe("/Users/admin/Photo ID/photo.jpg");
   });
 });

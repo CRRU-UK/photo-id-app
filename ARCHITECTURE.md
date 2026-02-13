@@ -219,3 +219,4 @@ The project view is accessed when opening a project. It allows the user to:
 - If a user has made edits to a photo but NOT saved them, then trying to close the window, close the project, or exit the application should show a confirmation dialogue allowing them to keep the app open or discard the changes
 - Users cannot (currently) add or remove photos from a project after the project has been created
 - Project data is created and managed by ONLY the app - while in theory a user can manually edit the `data.json` file, the app uses no external input when managing the data file
+- Images on the file system are loaded via the custom `photo://` protocol in order to keep the Electron app secure - the protocol can be used either in HTML (e.g. image tags) or via HTTP requests (i.e. `fetch`)
