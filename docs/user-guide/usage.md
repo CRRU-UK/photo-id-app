@@ -20,7 +20,7 @@ Once the project has been created, you may notice two files have been added in t
 
 The project can be opened again on the home screen from either the recent projects list or by selecting ==:octicons-file-16: Open Project File== and selecting the `data.json` file in your project folder.
 
-Projects can be removed from the recent projects list by clicking the button with the ==:octicons-trash-16: bin icon==. Note that this does not remove the project file, thumbnails, or any exported photos from the project folder.
+Projects can be removed from the recent projects list by selecting the button with the ==:octicons-trash-16: bin icon==. Note that this does not remove the project file, thumbnails, or any exported photos from the project folder.
 
 ## Sorting and matching photos
 
@@ -103,13 +103,13 @@ Multiple photo editor windows can be open at the same time so you can compare ph
 
 Edge detection can be enabled to more easily identify marks in photos.
 
-This can be toggled by clicking the ==:octicons-eye-16: Toggle Edge Detection== button on the bottom-left of the screen above the toolbar. When enabled, a slider will appear that can be used to adjust the intensity of the filter.
+This can be toggled by selecting the ==:octicons-eye-16: Toggle Edge Detection== button on the bottom-left of the screen above the toolbar. When enabled, a slider will appear that can be used to adjust the intensity of the filter.
 
 Note that the edge detection filter is not used when saving or exporting images, and is purely used as a temporary filter.
 
 ## Settings
 
-The settings menu can be opened clicking the ==:octicons-gear-16: Settings== button on the home page, using the [keyboard shortcut](#keyboard-shortcuts), or by using the menu bar option.
+The settings menu can be opened selecting the ==:octicons-gear-16: Settings== button on the home page, using the [keyboard shortcut](#keyboard-shortcuts), or by using the menu bar option.
 
 These settings are global (i.e. the same for all projects) and per-user on your system.
 
