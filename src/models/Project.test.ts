@@ -11,8 +11,8 @@ import Project from "./Project";
 vi.stubGlobal("window", {
   electronAPI: {
     saveProject: vi.fn<(data: string) => void>(),
-    duplicatePhotoFile: vi.fn<() => void>(),
-    exportMatches: vi.fn<() => void>(),
+    duplicatePhotoFile: vi.fn<(data: PhotoBody) => Promise<PhotoBody>>(),
+    exportMatches: vi.fn<(data: string) => Promise<void>>(),
   },
 });
 
@@ -324,6 +324,127 @@ describe(Project, () => {
       const photo = from.currentPhoto!;
 
       const result = project.addPhotoToStack(from, to, photo);
+
+      expect(result).toBe(project);
+    });
+  });
+
+  describe("duplicatePhotoToStack", () => {
+    it("creates a new photo from the duplicated file and adds it to the target collection", async () => {
+      const project = new Project(createProjectBody());
+      const matched = Array.from(project.matched);
+      const to = matched[0].left;
+      const photo = to.currentPhoto!;
+      const sizeBefore = to.photos.size;
+
+      vi.mocked(window.electronAPI.duplicatePhotoFile).mockResolvedValue({
+        ...photo.toBody(),
+        name: "left1_duplicate.jpg",
+        thumbnail: ".thumbnails/left1_duplicate.jpg",
+      });
+
+      await project.duplicatePhotoToStack(to, photo);
+
+      expect(to.photos.size).toBe(sizeBefore + 1);
+    });
+
+    it("adds the new photo to allPhotos", async () => {
+      const project = new Project(createProjectBody());
+      const to = project.unassigned;
+      const photo = to.currentPhoto!;
+      const allPhotosBefore = project.allPhotos.size;
+
+      vi.mocked(window.electronAPI.duplicatePhotoFile).mockResolvedValue({
+        ...photo.toBody(),
+        name: "photo1_duplicate.jpg",
+        thumbnail: ".thumbnails/photo1_duplicate.jpg",
+      });
+
+      await project.duplicatePhotoToStack(to, photo);
+
+      expect(project.allPhotos.size).toBe(allPhotosBefore + 1);
+    });
+
+    it("calls duplicatePhotoFile with the photo body", async () => {
+      const project = new Project(createProjectBody());
+      const to = project.unassigned;
+      const photo = to.currentPhoto!;
+
+      vi.mocked(window.electronAPI.duplicatePhotoFile).mockResolvedValue({
+        ...photo.toBody(),
+        name: "photo1_duplicate.jpg",
+        thumbnail: ".thumbnails/photo1_duplicate.jpg",
+      });
+
+      await project.duplicatePhotoToStack(to, photo);
+
+      expect(window.electronAPI.duplicatePhotoFile).toHaveBeenCalledWith(
+        expect.objectContaining({ name: photo.fileName }),
+      );
+    });
+
+    it("saves the project after duplicating", async () => {
+      const project = new Project(createProjectBody());
+      const to = project.discarded;
+      const photo = project.unassigned.currentPhoto!;
+
+      vi.mocked(window.electronAPI.duplicatePhotoFile).mockResolvedValue({
+        ...photo.toBody(),
+        name: "photo1_duplicate.jpg",
+        thumbnail: ".thumbnails/photo1_duplicate.jpg",
+      });
+      vi.mocked(window.electronAPI.saveProject).mockClear();
+
+      await project.duplicatePhotoToStack(to, photo);
+
+      expect(window.electronAPI.saveProject).toHaveBeenCalledWith(expect.any(String));
+    });
+
+    it("returns the project for chaining", async () => {
+      const project = new Project(createProjectBody());
+      const to = project.unassigned;
+      const photo = to.currentPhoto!;
+
+      vi.mocked(window.electronAPI.duplicatePhotoFile).mockResolvedValue({
+        ...photo.toBody(),
+        name: "photo1_duplicate.jpg",
+        thumbnail: ".thumbnails/photo1_duplicate.jpg",
+      });
+
+      const result = await project.duplicatePhotoToStack(to, photo);
+
+      expect(result).toBe(project);
+    });
+  });
+
+  describe("exportMatches", () => {
+    it("calls window.electronAPI.exportMatches with the project JSON", async () => {
+      const project = new Project(createProjectBody());
+      vi.mocked(window.electronAPI.exportMatches).mockResolvedValue(undefined);
+
+      await project.exportMatches();
+
+      expect(window.electronAPI.exportMatches).toHaveBeenCalledWith(expect.any(String));
+    });
+
+    it("passes valid JSON to exportMatches", async () => {
+      const project = new Project(createProjectBody());
+      vi.mocked(window.electronAPI.exportMatches).mockResolvedValue(undefined);
+
+      await project.exportMatches();
+
+      const data = vi.mocked(window.electronAPI.exportMatches).mock.calls[0][0];
+      const parsed = JSON.parse(data) as ProjectBody;
+
+      expect(parsed.version).toBe("v1");
+      expect(parsed.directory).toBe("/project");
+    });
+
+    it("returns the project for chaining", async () => {
+      const project = new Project(createProjectBody());
+      vi.mocked(window.electronAPI.exportMatches).mockResolvedValue(undefined);
+
+      const result = await project.exportMatches();
 
       expect(result).toBe(project);
     });

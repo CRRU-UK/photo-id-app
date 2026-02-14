@@ -10,6 +10,7 @@ import {
 import type { CollectionBody, PhotoBody, ProjectBody } from "@/types";
 
 const mockExistsSync = vi.fn<(path: string) => boolean>();
+const mockLstatSync = vi.fn<(path: string) => { isFile: () => boolean }>();
 const mockReadFile = vi.fn<(path: string, encoding: string) => Promise<string>>();
 const mockWriteFile = vi.fn<(path: string, data: string, encoding: string) => Promise<void>>();
 const mockCopyFile = vi.fn<(src: string, dest: string) => Promise<void>>();
@@ -31,7 +32,7 @@ vi.mock("electron", () => ({
 vi.mock("node:fs", () => ({
   default: {
     existsSync: (...args: Parameters<typeof mockExistsSync>) => mockExistsSync(...args),
-    lstatSync: vi.fn<() => { isFile: () => boolean }>(() => ({ isFile: () => true })),
+    lstatSync: (...args: Parameters<typeof mockLstatSync>) => mockLstatSync(...args),
     promises: {
       readFile: (...args: Parameters<typeof mockReadFile>) => mockReadFile(...args),
       writeFile: (...args: Parameters<typeof mockWriteFile>) => mockWriteFile(...args),
@@ -752,6 +753,7 @@ describe(handleOpenDirectoryPrompt, () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockWriteFile.mockResolvedValue(undefined);
+    mockLstatSync.mockReturnValue({ isFile: () => true });
   });
 
   it("does nothing when the dialog is cancelled", async () => {
@@ -840,6 +842,74 @@ describe(handleOpenDirectoryPrompt, () => {
       IPC_EVENTS.LOAD_PROJECT,
       expect.objectContaining({ directory: "/my/project" }),
     );
+  });
+
+  it("creates a new project when user chooses to overwrite existing data", async () => {
+    const { dialog } = await import("electron");
+    vi.mocked(dialog.showOpenDialog).mockResolvedValue({
+      canceled: false,
+      filePaths: ["/my/project"],
+    });
+    mockReaddir.mockResolvedValue([PROJECT_FILE_NAME, "photo.jpg"]);
+    // Response 2 = "Create new" (neither cancel nor open existing)
+    vi.mocked(dialog.showMessageBox).mockResolvedValue({ response: 2, checkboxChecked: false });
+    mockExistsSync.mockReturnValue(false);
+
+    const mainWindow = createMockMainWindow();
+
+    await handleOpenDirectoryPrompt(mainWindow);
+
+    // Should create a new project, not load the existing one via readFile
+    expect(mockWriteFile).toHaveBeenCalledWith(
+      expect.stringContaining(PROJECT_FILE_NAME),
+      expect.any(String),
+      "utf8",
+    );
+    expect(mainWindow.webContents.send).toHaveBeenCalledWith(
+      IPC_EVENTS.LOAD_PROJECT,
+      expect.objectContaining({ directory: "/my/project" }),
+    );
+  });
+
+  it("filters out directory entries when creating a new project", async () => {
+    const { dialog } = await import("electron");
+    vi.mocked(dialog.showOpenDialog).mockResolvedValue({
+      canceled: false,
+      filePaths: ["/my/project"],
+    });
+    mockReaddir.mockResolvedValue(["photo.jpg", "subfolder", "image.png"]);
+    mockExistsSync.mockReturnValue(false);
+
+    // "subfolder" is not a file
+    mockLstatSync.mockImplementation((filePath: string) => ({
+      isFile: () => !filePath.includes("subfolder"),
+    }));
+
+    const mainWindow = createMockMainWindow();
+
+    await handleOpenDirectoryPrompt(mainWindow);
+
+    // Only photo.jpg and image.png should be included (not subfolder)
+    const writeCall = mockWriteFile.mock.calls.find((call) => call[0].includes(PROJECT_FILE_NAME));
+    const savedProject = JSON.parse(writeCall![1]) as ProjectBody;
+
+    expect(savedProject.unassigned.photos).toHaveLength(2);
+  });
+
+  it("skips creating thumbnail directory when it already exists", async () => {
+    const { dialog } = await import("electron");
+    vi.mocked(dialog.showOpenDialog).mockResolvedValue({
+      canceled: false,
+      filePaths: ["/my/project"],
+    });
+    mockReaddir.mockResolvedValue(["photo.jpg"]);
+    mockExistsSync.mockReturnValue(true);
+
+    const mainWindow = createMockMainWindow();
+
+    await handleOpenDirectoryPrompt(mainWindow);
+
+    expect(mockMkdir).not.toHaveBeenCalled();
   });
 
   it("filters out non-image files when creating a new project", async () => {
