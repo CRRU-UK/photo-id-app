@@ -1,15 +1,18 @@
-/* eslint-disable @typescript-eslint/unbound-method */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { DEFAULT_PHOTO_EDITS } from "@/constants";
-import type Project from "@/models/Project";
 import type { PhotoBody, PhotoEdits } from "@/types";
 
 import Photo from "./Photo";
+import Project from "./Project";
 
-const mockProject = {
-  save: vi.fn<() => void>(),
-} as unknown as Project;
+vi.stubGlobal("window", {
+  electronAPI: {
+    saveProject: vi.fn<(data: string) => void>(),
+  },
+});
+
+const project = new Project();
 
 const defaultEdits: PhotoEdits = {
   brightness: 100,
@@ -27,7 +30,7 @@ const createPhoto = (overrides?: Partial<{ name: string; edits: PhotoEdits }>): 
       thumbnail: ".thumbnails/photo.jpg",
       edits: overrides?.edits ?? { ...defaultEdits, pan: { ...defaultEdits.pan } },
     },
-    mockProject,
+    project,
   );
 
 describe(Photo, () => {
@@ -255,7 +258,7 @@ describe(Photo, () => {
         isEdited: false,
       });
 
-      expect(mockProject.save).toHaveBeenCalledWith();
+      expect(window.electronAPI.saveProject).toHaveBeenCalledWith(expect.any(String));
     });
 
     it("returns the photo for chaining", () => {

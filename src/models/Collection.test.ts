@@ -1,14 +1,18 @@
-/* eslint-disable @typescript-eslint/unbound-method */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type Project from "@/models/Project";
+import { DEFAULT_PHOTO_EDITS } from "@/constants";
 
 import Stack from "./Collection";
 import Photo from "./Photo";
+import Project from "./Project";
 
-const mockProject = {
-  save: vi.fn<() => void>(),
-} as unknown as Project;
+vi.stubGlobal("window", {
+  electronAPI: {
+    saveProject: vi.fn<(data: string) => void>(),
+  },
+});
+
+const project = new Project();
 
 const createPhoto = (name: string): Photo =>
   new Photo(
@@ -16,15 +20,9 @@ const createPhoto = (name: string): Photo =>
       directory: "/project",
       name,
       thumbnail: `.thumbnails/${name}`,
-      edits: {
-        brightness: 100,
-        contrast: 100,
-        saturate: 100,
-        zoom: 1,
-        pan: { x: 0, y: 0 },
-      },
+      edits: { ...DEFAULT_PHOTO_EDITS, pan: { x: 0, y: 0 } },
     },
-    mockProject,
+    project,
   );
 
 describe(Stack, () => {
@@ -34,7 +32,7 @@ describe(Stack, () => {
 
   describe("constructor", () => {
     it("initialises with default values", () => {
-      const stack = new Stack({ index: 0, photos: new Set() }, mockProject);
+      const stack = new Stack({ index: 0, photos: new Set() }, project);
 
       expect(stack.name).toBeUndefined();
       expect(stack.index).toBe(0);
@@ -42,14 +40,14 @@ describe(Stack, () => {
     });
 
     it("initialises with provided name", () => {
-      const stack = new Stack({ name: "Test Stack", index: 0, photos: new Set() }, mockProject);
+      const stack = new Stack({ name: "Test Stack", index: 0, photos: new Set() }, project);
 
       expect(stack.name).toBe("Test Stack");
     });
 
     it("initialises with existing photos", () => {
       const photo = createPhoto("photo.jpg");
-      const stack = new Stack({ index: 0, photos: new Set([photo]) }, mockProject);
+      const stack = new Stack({ index: 0, photos: new Set([photo]) }, project);
 
       expect(stack.photos.size).toBe(1);
     });
@@ -57,7 +55,7 @@ describe(Stack, () => {
 
   describe("addPhoto", () => {
     it("adds a photo to the stack", () => {
-      const stack = new Stack({ index: 0, photos: new Set() }, mockProject);
+      const stack = new Stack({ index: 0, photos: new Set() }, project);
       const photo = createPhoto("new.jpg");
 
       stack.addPhoto(photo);
@@ -68,7 +66,7 @@ describe(Stack, () => {
 
     it("moves index to the newly added photo", () => {
       const existing = createPhoto("existing.jpg");
-      const stack = new Stack({ index: 0, photos: new Set([existing]) }, mockProject);
+      const stack = new Stack({ index: 0, photos: new Set([existing]) }, project);
 
       const newPhoto = createPhoto("new.jpg");
       stack.addPhoto(newPhoto);
@@ -77,14 +75,14 @@ describe(Stack, () => {
     });
 
     it("calls project save", () => {
-      const stack = new Stack({ index: 0, photos: new Set() }, mockProject);
+      const stack = new Stack({ index: 0, photos: new Set() }, project);
       stack.addPhoto(createPhoto("photo.jpg"));
 
-      expect(mockProject.save).toHaveBeenCalledWith();
+      expect(window.electronAPI.saveProject).toHaveBeenCalledWith(expect.any(String));
     });
 
     it("returns the stack for chaining", () => {
-      const stack = new Stack({ index: 0, photos: new Set() }, mockProject);
+      const stack = new Stack({ index: 0, photos: new Set() }, project);
       const result = stack.addPhoto(createPhoto("photo.jpg"));
 
       expect(result).toBe(stack);
@@ -94,7 +92,7 @@ describe(Stack, () => {
   describe("removePhoto", () => {
     it("removes a photo from the stack", () => {
       const photo = createPhoto("remove.jpg");
-      const stack = new Stack({ index: 0, photos: new Set([photo]) }, mockProject);
+      const stack = new Stack({ index: 0, photos: new Set([photo]) }, project);
 
       stack.removePhoto(photo);
 
@@ -105,7 +103,7 @@ describe(Stack, () => {
     it("decrements index when removing photo at or beyond current index", () => {
       const photo1 = createPhoto("a.jpg");
       const photo2 = createPhoto("b.jpg");
-      const stack = new Stack({ index: 1, photos: new Set([photo1, photo2]) }, mockProject);
+      const stack = new Stack({ index: 1, photos: new Set([photo1, photo2]) }, project);
 
       stack.removePhoto(photo2);
 
@@ -116,7 +114,7 @@ describe(Stack, () => {
       const photo1 = createPhoto("a.jpg");
       const photo2 = createPhoto("b.jpg");
       const photo3 = createPhoto("c.jpg");
-      const stack = new Stack({ index: 0, photos: new Set([photo1, photo2, photo3]) }, mockProject);
+      const stack = new Stack({ index: 0, photos: new Set([photo1, photo2, photo3]) }, project);
 
       stack.removePhoto(photo3);
 
@@ -125,7 +123,7 @@ describe(Stack, () => {
 
     it("returns the stack for chaining", () => {
       const photo = createPhoto("photo.jpg");
-      const stack = new Stack({ index: 0, photos: new Set([photo]) }, mockProject);
+      const stack = new Stack({ index: 0, photos: new Set([photo]) }, project);
       const result = stack.removePhoto(photo);
 
       expect(result).toBe(stack);
@@ -135,14 +133,14 @@ describe(Stack, () => {
   describe("hasPhoto", () => {
     it("returns true when photo exists in stack", () => {
       const photo = createPhoto("photo.jpg");
-      const stack = new Stack({ index: 0, photos: new Set([photo]) }, mockProject);
+      const stack = new Stack({ index: 0, photos: new Set([photo]) }, project);
 
       expect(stack.hasPhoto(photo)).toBe(true);
     });
 
     it("returns false when photo does not exist in stack", () => {
       const photo = createPhoto("photo.jpg");
-      const stack = new Stack({ index: 0, photos: new Set() }, mockProject);
+      const stack = new Stack({ index: 0, photos: new Set() }, project);
 
       expect(stack.hasPhoto(photo)).toBe(false);
     });
@@ -150,7 +148,7 @@ describe(Stack, () => {
 
   describe("currentPhoto", () => {
     it("returns null when stack is empty", () => {
-      const stack = new Stack({ index: 0, photos: new Set() }, mockProject);
+      const stack = new Stack({ index: 0, photos: new Set() }, project);
 
       expect(stack.currentPhoto).toBeNull();
     });
@@ -158,14 +156,14 @@ describe(Stack, () => {
     it("returns the photo at the current index", () => {
       const photo1 = createPhoto("a.jpg");
       const photo2 = createPhoto("b.jpg");
-      const stack = new Stack({ index: 1, photos: new Set([photo1, photo2]) }, mockProject);
+      const stack = new Stack({ index: 1, photos: new Set([photo1, photo2]) }, project);
 
       expect(stack.currentPhoto).toBe(photo2);
     });
 
     it("returns the first photo when index is 0", () => {
       const photo = createPhoto("only.jpg");
-      const stack = new Stack({ index: 0, photos: new Set([photo]) }, mockProject);
+      const stack = new Stack({ index: 0, photos: new Set([photo]) }, project);
 
       expect(stack.currentPhoto).toBe(photo);
     });
@@ -175,7 +173,7 @@ describe(Stack, () => {
     it("moves to the previous photo", () => {
       const photo1 = createPhoto("a.jpg");
       const photo2 = createPhoto("b.jpg");
-      const stack = new Stack({ index: 1, photos: new Set([photo1, photo2]) }, mockProject);
+      const stack = new Stack({ index: 1, photos: new Set([photo1, photo2]) }, project);
 
       stack.setPreviousPhoto();
 
@@ -186,7 +184,7 @@ describe(Stack, () => {
       const photo1 = createPhoto("a.jpg");
       const photo2 = createPhoto("b.jpg");
       const photo3 = createPhoto("c.jpg");
-      const stack = new Stack({ index: 0, photos: new Set([photo1, photo2, photo3]) }, mockProject);
+      const stack = new Stack({ index: 0, photos: new Set([photo1, photo2, photo3]) }, project);
 
       stack.setPreviousPhoto();
 
@@ -195,16 +193,16 @@ describe(Stack, () => {
 
     it("calls project save", () => {
       const photo = createPhoto("a.jpg");
-      const stack = new Stack({ index: 0, photos: new Set([photo]) }, mockProject);
+      const stack = new Stack({ index: 0, photos: new Set([photo]) }, project);
 
       stack.setPreviousPhoto();
 
-      expect(mockProject.save).toHaveBeenCalledWith();
+      expect(window.electronAPI.saveProject).toHaveBeenCalledWith(expect.any(String));
     });
 
     it("returns the stack for chaining", () => {
       const photo = createPhoto("a.jpg");
-      const stack = new Stack({ index: 0, photos: new Set([photo]) }, mockProject);
+      const stack = new Stack({ index: 0, photos: new Set([photo]) }, project);
       const result = stack.setPreviousPhoto();
 
       expect(result).toBe(stack);
@@ -215,7 +213,7 @@ describe(Stack, () => {
     it("moves to the next photo", () => {
       const photo1 = createPhoto("a.jpg");
       const photo2 = createPhoto("b.jpg");
-      const stack = new Stack({ index: 0, photos: new Set([photo1, photo2]) }, mockProject);
+      const stack = new Stack({ index: 0, photos: new Set([photo1, photo2]) }, project);
 
       stack.setNextPhoto();
 
@@ -225,7 +223,7 @@ describe(Stack, () => {
     it("wraps around to the first photo from the last", () => {
       const photo1 = createPhoto("a.jpg");
       const photo2 = createPhoto("b.jpg");
-      const stack = new Stack({ index: 1, photos: new Set([photo1, photo2]) }, mockProject);
+      const stack = new Stack({ index: 1, photos: new Set([photo1, photo2]) }, project);
 
       stack.setNextPhoto();
 
@@ -234,16 +232,16 @@ describe(Stack, () => {
 
     it("calls project save", () => {
       const photo = createPhoto("a.jpg");
-      const stack = new Stack({ index: 0, photos: new Set([photo]) }, mockProject);
+      const stack = new Stack({ index: 0, photos: new Set([photo]) }, project);
 
       stack.setNextPhoto();
 
-      expect(mockProject.save).toHaveBeenCalledWith();
+      expect(window.electronAPI.saveProject).toHaveBeenCalledWith(expect.any(String));
     });
 
     it("returns the stack for chaining", () => {
       const photo = createPhoto("a.jpg");
-      const stack = new Stack({ index: 0, photos: new Set([photo]) }, mockProject);
+      const stack = new Stack({ index: 0, photos: new Set([photo]) }, project);
       const result = stack.setNextPhoto();
 
       expect(result).toBe(stack);
@@ -252,7 +250,7 @@ describe(Stack, () => {
 
   describe("setName", () => {
     it("sets the name of the stack", () => {
-      const stack = new Stack({ index: 0, photos: new Set() }, mockProject);
+      const stack = new Stack({ index: 0, photos: new Set() }, project);
 
       stack.setName("New Name");
 
@@ -260,15 +258,15 @@ describe(Stack, () => {
     });
 
     it("calls project save", () => {
-      const stack = new Stack({ index: 0, photos: new Set() }, mockProject);
+      const stack = new Stack({ index: 0, photos: new Set() }, project);
 
       stack.setName("Test");
 
-      expect(mockProject.save).toHaveBeenCalledWith();
+      expect(window.electronAPI.saveProject).toHaveBeenCalledWith(expect.any(String));
     });
 
     it("returns the stack for chaining", () => {
-      const stack = new Stack({ index: 0, photos: new Set() }, mockProject);
+      const stack = new Stack({ index: 0, photos: new Set() }, project);
       const result = stack.setName("Test");
 
       expect(result).toBe(stack);

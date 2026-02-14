@@ -7,7 +7,7 @@ import Collection from "./Collection";
 import Photo from "./Photo";
 import Project from "./Project";
 
-// Mock window.electronAPI.saveProject to prevent actual file I/O
+// Mock window.electronAPI to prevent actual file I/O
 vi.stubGlobal("window", {
   electronAPI: {
     saveProject: vi.fn<(data: string) => void>(),
@@ -16,20 +16,26 @@ vi.stubGlobal("window", {
   },
 });
 
-const createPhotoBody = (name: string, isEdited = false): PhotoBody => ({
-  directory: "/project",
-  name,
-  thumbnail: `.thumbnails/${name}`,
-  edits: { ...DEFAULT_PHOTO_EDITS, pan: { x: 0, y: 0 } },
-  isEdited,
-});
+// Helper project for constructing Photo instances in test data
+const helperProject = new Project();
+
+const createPhoto = (name: string): Photo =>
+  new Photo(
+    {
+      directory: "/project",
+      name,
+      thumbnail: `.thumbnails/${name}`,
+      edits: { ...DEFAULT_PHOTO_EDITS, pan: { x: 0, y: 0 } },
+    },
+    helperProject,
+  );
 
 const createProjectBody = (overrides?: Partial<ProjectBody>): ProjectBody => ({
   version: "v1",
   id: "test-project-id",
   directory: "/project",
   unassigned: {
-    photos: [createPhotoBody("photo1.jpg"), createPhotoBody("photo2.jpg")],
+    photos: [createPhoto("photo1.jpg").toBody(), createPhoto("photo2.jpg").toBody()],
     index: 0,
   },
   discarded: {
@@ -39,7 +45,7 @@ const createProjectBody = (overrides?: Partial<ProjectBody>): ProjectBody => ({
   matched: [
     {
       id: 1,
-      left: { photos: [createPhotoBody("left1.jpg")], index: 0 },
+      left: { photos: [createPhoto("left1.jpg").toBody()], index: 0 },
       right: { photos: [], index: 0 },
     },
   ],
@@ -262,7 +268,7 @@ describe(Project, () => {
       const project = new Project(createProjectBody());
       const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
 
-      project.updatePhoto(createPhotoBody("nonexistent.jpg"));
+      project.updatePhoto(createPhoto("nonexistent.jpg").toBody());
 
       expect(consoleErrorSpy).toHaveBeenCalledWith(
         "Unable to find photo with name:",
