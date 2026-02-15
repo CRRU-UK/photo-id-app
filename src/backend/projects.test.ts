@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   DEFAULT_PHOTO_EDITS,
@@ -270,6 +270,10 @@ describe(handleDuplicatePhotoFile, () => {
     vi.spyOn(Date, "now").mockReturnValue(1700000000000);
   });
 
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it("copies the original file with a duplicate suffix", async () => {
     const photo = createPhoto("photo.jpg");
 
@@ -399,7 +403,7 @@ describe(handleEditorNavigate, () => {
     );
   });
 
-  it("returns null when the collection is empty", async () => {
+  it("returns null when the collection has only one photo (navigating backward)", async () => {
     const photo = createPhoto("solo.jpg");
     const project = createProject({
       unassigned: { photos: [photo], index: 0 },

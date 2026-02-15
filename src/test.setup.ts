@@ -5,31 +5,35 @@ import { afterEach } from "vitest";
 afterEach(cleanup);
 
 // Mock window.matchMedia which is not available in jsdom but used by Primer React
-Object.defineProperty(window, "matchMedia", {
-  writable: true,
-  value: (query: string) => ({
-    matches: false,
-    media: query,
-    onchange: null,
-    addListener: () => undefined,
-    removeListener: () => undefined,
-    addEventListener: () => undefined,
-    removeEventListener: () => undefined,
-    dispatchEvent: () => false,
-  }),
-});
-
-// Mock ResizeObserver which is not available in jsdom but used by Primer React hooks
-class MockResizeObserver {
-  observe() {}
-  unobserve() {}
-  disconnect() {}
+if (!window.matchMedia) {
+  Object.defineProperty(window, "matchMedia", {
+    writable: true,
+    value: (query: string) => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: () => undefined,
+      removeListener: () => undefined,
+      addEventListener: () => undefined,
+      removeEventListener: () => undefined,
+      dispatchEvent: () => false,
+    }),
+  });
 }
 
-Object.defineProperty(window, "ResizeObserver", {
-  writable: true,
-  value: MockResizeObserver,
-});
+// Mock ResizeObserver which is not available in jsdom but used by Primer React hooks
+if (!window.ResizeObserver) {
+  class MockResizeObserver {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  }
+
+  Object.defineProperty(window, "ResizeObserver", {
+    writable: true,
+    value: MockResizeObserver,
+  });
+}
 
 // Mock adoptedStyleSheets used by Primer's popover polyfill
 if (!document.adoptedStyleSheets) {

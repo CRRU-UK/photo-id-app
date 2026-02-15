@@ -202,8 +202,9 @@ describe(Project, () => {
     it("defaults id to empty string when not provided", () => {
       const project = new Project();
       const data = createProjectBody();
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { id, ...rest } = data;
+
+      expect(id).toBe("test-project-id");
 
       project.loadFromJSON(rest as ProjectBody);
 
