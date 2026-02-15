@@ -127,31 +127,18 @@ describe(renderThumbnailWithEdits, () => {
     expect(secondCall[1]).toBe(THUMBNAIL_SIZE);
   });
 
-  it("encodes as JPEG for .jpg source files", async () => {
+  it.each([
+    ["photo.jpg", "jpeg"],
+    ["photo.jpeg", "jpeg"],
+    ["photo.png", "png"],
+    ["photo.tiff", "png"],
+  ] as const)("encodes %s as %s", async (fileName, expectedFormat) => {
     await renderThumbnailWithEdits({
-      sourcePath: "/project/photo.jpg",
+      sourcePath: `/project/${fileName}`,
       edits: defaultEdits,
     });
 
-    expect(mockEncode).toHaveBeenCalledWith("jpeg");
-  });
-
-  it("encodes as JPEG for .jpeg source files", async () => {
-    await renderThumbnailWithEdits({
-      sourcePath: "/project/photo.jpeg",
-      edits: defaultEdits,
-    });
-
-    expect(mockEncode).toHaveBeenCalledWith("jpeg");
-  });
-
-  it("encodes as PNG for non-JPEG source files", async () => {
-    await renderThumbnailWithEdits({
-      sourcePath: "/project/photo.png",
-      edits: defaultEdits,
-    });
-
-    expect(mockEncode).toHaveBeenCalledWith("png");
+    expect(mockEncode).toHaveBeenCalledWith(expectedFormat);
   });
 
   it("applies zoom and pan transforms", async () => {
@@ -213,31 +200,18 @@ describe(renderFullImageWithEdits, () => {
     expect(mockCreateCanvas).toHaveBeenCalledWith(4000, 3000);
   });
 
-  it("encodes as JPEG for .jpg source files", async () => {
+  it.each([
+    ["photo.jpg", "jpeg"],
+    ["photo.jpeg", "jpeg"],
+    ["photo.png", "png"],
+    ["photo.tiff", "png"],
+  ] as const)("encodes %s as %s", async (fileName, expectedFormat) => {
     await renderFullImageWithEdits({
-      sourcePath: "/project/photo.jpg",
+      sourcePath: `/project/${fileName}`,
       edits: defaultEdits,
     });
 
-    expect(mockEncode).toHaveBeenCalledWith("jpeg");
-  });
-
-  it("encodes as JPEG for .jpeg source files", async () => {
-    await renderFullImageWithEdits({
-      sourcePath: "/project/photo.jpeg",
-      edits: defaultEdits,
-    });
-
-    expect(mockEncode).toHaveBeenCalledWith("jpeg");
-  });
-
-  it("encodes as PNG for non-JPEG source files", async () => {
-    await renderFullImageWithEdits({
-      sourcePath: "/project/photo.png",
-      edits: defaultEdits,
-    });
-
-    expect(mockEncode).toHaveBeenCalledWith("png");
+    expect(mockEncode).toHaveBeenCalledWith(expectedFormat);
   });
 
   it("draws the image onto the canvas", async () => {

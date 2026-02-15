@@ -68,13 +68,6 @@ describe("windowManager", () => {
 
       expect(windowManager.getMainWindow()).toBeNull();
     });
-
-    it("registers a closed event listener on the main window", () => {
-      const mainWindow = createMockBrowserWindow();
-      windowManager.setMainWindow(mainWindow);
-
-      expect(mainWindow.on).toHaveBeenCalledWith("closed", expect.any(Function));
-    });
   });
 
   describe("edit windows", () => {
@@ -117,23 +110,16 @@ describe("windowManager", () => {
       expect(nonClosableWindow.close).not.toHaveBeenCalled();
     });
 
-    it("registers a closed event listener on edit windows", () => {
-      const editWindow = createMockBrowserWindow();
-      windowManager.addEditWindow(editWindow);
-
-      expect(editWindow.on).toHaveBeenCalledWith("closed", expect.any(Function));
-    });
-
     it("removes edit window from set when closed event fires", () => {
       const editWindow = createMockBrowserWindow();
       windowManager.addEditWindow(editWindow);
 
       editWindow.triggerClosed();
 
-      // Closing all should not call close on the already-closed window
+      // Closing all should not attempt to close the already-removed window
       windowManager.closeAllEditWindows();
 
-      expect(editWindow.close).not.toHaveBeenCalledWith(undefined);
+      expect(editWindow.close).not.toHaveBeenCalled();
     });
 
     it("handles closeAllEditWindows when no edit windows exist", () => {

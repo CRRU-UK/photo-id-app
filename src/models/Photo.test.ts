@@ -73,41 +73,15 @@ describe(Photo, () => {
       expect(photo.isEdited).toBe(false);
     });
 
-    it("returns true when brightness differs from default", () => {
+    it.each([
+      ["brightness", { brightness: 120, pan: { x: 0, y: 0 } }],
+      ["contrast", { contrast: 80, pan: { x: 0, y: 0 } }],
+      ["saturate", { saturate: 150, pan: { x: 0, y: 0 } }],
+      ["zoom", { zoom: 2, pan: { x: 0, y: 0 } }],
+      ["pan", { pan: { x: 50, y: 30 } }],
+    ] as const)("returns true when %s differs from default", (_field, overrides) => {
       const photo = createPhoto({
-        edits: { ...defaultEdits, brightness: 120, pan: { x: 0, y: 0 } },
-      });
-
-      expect(photo.isEdited).toBe(true);
-    });
-
-    it("returns true when contrast differs from default", () => {
-      const photo = createPhoto({
-        edits: { ...defaultEdits, contrast: 80, pan: { x: 0, y: 0 } },
-      });
-
-      expect(photo.isEdited).toBe(true);
-    });
-
-    it("returns true when saturate differs from default", () => {
-      const photo = createPhoto({
-        edits: { ...defaultEdits, saturate: 150, pan: { x: 0, y: 0 } },
-      });
-
-      expect(photo.isEdited).toBe(true);
-    });
-
-    it("returns true when zoom differs from default", () => {
-      const photo = createPhoto({
-        edits: { ...defaultEdits, zoom: 2, pan: { x: 0, y: 0 } },
-      });
-
-      expect(photo.isEdited).toBe(true);
-    });
-
-    it("returns true when pan differs from default", () => {
-      const photo = createPhoto({
-        edits: { ...defaultEdits, pan: { x: 50, y: 30 } },
+        edits: { ...defaultEdits, ...overrides },
       });
 
       expect(photo.isEdited).toBe(true);
