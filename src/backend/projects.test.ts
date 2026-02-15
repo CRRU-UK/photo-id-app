@@ -606,7 +606,7 @@ describe(handleExportMatches, () => {
 
     await handleExportMatches(mainWindow, JSON.stringify(project));
 
-    const loadingCalls = (mainWindow.webContents.send as ReturnType<typeof vi.fn>).mock.calls;
+    const loadingCalls = vi.mocked(mainWindow.webContents.send).mock.calls;
     const progressCalls = loadingCalls.filter(
       (call: unknown[]) => call[0] === IPC_EVENTS.SET_LOADING,
     );
@@ -621,7 +621,7 @@ describe(handleExportMatches, () => {
 
     await handleExportMatches(mainWindow, JSON.stringify(project));
 
-    const lastCall = (mainWindow.webContents.send as ReturnType<typeof vi.fn>).mock.calls.at(-1);
+    const lastCall = vi.mocked(mainWindow.webContents.send).mock.calls.at(-1);
 
     expect(lastCall).toStrictEqual([IPC_EVENTS.SET_LOADING, { show: false }]);
   });

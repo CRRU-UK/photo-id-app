@@ -4,6 +4,7 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
   plugins: [tsconfigPaths()],
   test: {
+    silent: true,
     environment: "jsdom",
     setupFiles: ["src/test.setup.ts"],
     server: {

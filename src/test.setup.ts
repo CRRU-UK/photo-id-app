@@ -24,9 +24,15 @@ if (!window.matchMedia) {
 // Mock ResizeObserver which is not available in jsdom but used by Primer React hooks
 if (!window.ResizeObserver) {
   class MockResizeObserver {
-    observe() {}
-    unobserve() {}
-    disconnect() {}
+    observe() {
+      return undefined;
+    }
+    unobserve() {
+      return undefined;
+    }
+    disconnect() {
+      return undefined;
+    }
   }
 
   Object.defineProperty(window, "ResizeObserver", {
