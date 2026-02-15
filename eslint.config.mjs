@@ -42,8 +42,6 @@ const recommendedConfigs = [
       ...vitest.configs.all.rules,
       "vitest/prefer-expect-assertions": ["off"],
       "vitest/no-hooks": ["off"],
-      // vi.mock(import("...")) enforces full module types on partial mocks,
-      // which conflicts with TypeScript when only mocking a subset of a module.
       "vitest/prefer-import-in-mock": ["off"],
     },
     settings: {

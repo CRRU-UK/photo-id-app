@@ -1,11 +1,8 @@
 /* eslint-disable @typescript-eslint/unbound-method */
-import type { BrowserWindow } from "electron";
-import { beforeEach, describe, expect, it, vi } from "vitest";
 
-/**
- * WindowManager is a singleton, so we re-import it fresh for each test via dynamic import
- * to avoid shared state between tests.
- */
+import type { BrowserWindow } from "electron";
+
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 type EventHandler = () => void;
 

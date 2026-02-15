@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/unbound-method */
+
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
@@ -215,8 +216,6 @@ describe(findPhotoInProject, () => {
   });
 });
 
-// ─── getCurrentProjectDirectory / setCurrentProject ──────────────────
-
 describe("getCurrentProjectDirectory / setCurrentProject", () => {
   it("returns null initially", () => {
     setCurrentProject(null);
@@ -237,8 +236,6 @@ describe("getCurrentProjectDirectory / setCurrentProject", () => {
     expect(getCurrentProjectDirectory()).toBeNull();
   });
 });
-
-// ─── handleSaveProject ───────────────────────────────────────────────
 
 describe(handleSaveProject, () => {
   beforeEach(() => {
@@ -265,8 +262,6 @@ describe(handleSaveProject, () => {
     expect(writtenData).toBe(data);
   });
 });
-
-// ─── handleDuplicatePhotoFile ────────────────────────────────────────
 
 describe(handleDuplicatePhotoFile, () => {
   beforeEach(() => {
@@ -327,8 +322,6 @@ describe(handleDuplicatePhotoFile, () => {
     expect(result.isEdited).toBe(true);
   });
 });
-
-// ─── handleEditorNavigate ────────────────────────────────────────────
 
 describe(handleEditorNavigate, () => {
   beforeEach(() => {
@@ -437,8 +430,6 @@ describe(handleEditorNavigate, () => {
   });
 });
 
-// ─── handleOpenProjectFile ───────────────────────────────────────────
-
 describe(handleOpenProjectFile, () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -519,8 +510,6 @@ describe(handleOpenProjectFile, () => {
     expect(mainWindow.focus).toHaveBeenCalledWith();
   });
 });
-
-// ─── handleExportMatches ─────────────────────────────────────────────
 
 describe(handleExportMatches, () => {
   beforeEach(() => {
@@ -747,8 +736,6 @@ describe(handleExportMatches, () => {
   });
 });
 
-// ─── handleOpenDirectoryPrompt ───────────────────────────────────────
-
 describe(handleOpenDirectoryPrompt, () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -932,8 +919,6 @@ describe(handleOpenDirectoryPrompt, () => {
     expect(savedProject.unassigned.photos).toHaveLength(2);
   });
 });
-
-// ─── handleOpenFilePrompt ────────────────────────────────────────────
 
 describe(handleOpenFilePrompt, () => {
   beforeEach(() => {

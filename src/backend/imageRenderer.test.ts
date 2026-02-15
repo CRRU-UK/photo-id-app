@@ -37,8 +37,6 @@ describe(renderThumbnailWithEdits, () => {
 
     mockLoadImage.mockResolvedValue({ width: 4000, height: 3000 });
 
-    // First call: main canvas for full image with edits
-    // Second call: thumbnail canvas for resized output
     mockCreateCanvas
       .mockReturnValueOnce({
         width: 4000,
@@ -90,7 +88,7 @@ describe(renderThumbnailWithEdits, () => {
       edits: defaultEdits,
     });
 
-    // Second canvas is the thumbnail — width should be THUMBNAIL_SIZE for landscape
+    // For landscape, width should be THUMBNAIL_SIZE
     const secondCall = mockCreateCanvas.mock.calls[1];
 
     expect(secondCall[0]).toBe(THUMBNAIL_SIZE);
@@ -148,7 +146,6 @@ describe(renderThumbnailWithEdits, () => {
     });
 
     expect(mockContext.scale).toHaveBeenCalledWith(2, 2);
-    // translate is called multiple times for centering + pan + un-centering
     expect(mockContext.translate).toHaveBeenCalledWith(expect.any(Number), expect.any(Number));
   });
 
@@ -195,7 +192,6 @@ describe(renderFullImageWithEdits, () => {
       edits: defaultEdits,
     });
 
-    // Only one canvas call (no thumbnail resizing)
     expect(mockCreateCanvas).toHaveBeenCalledTimes(1);
     expect(mockCreateCanvas).toHaveBeenCalledWith(4000, 3000);
   });
