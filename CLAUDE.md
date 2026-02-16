@@ -89,3 +89,17 @@ When unsure, look at these files first
 7. **Keep the architecture clean**: Frontend calls preload helpers, main process handles file I/O, backend helpers do actual work
 8. **Test new functionality**: Add or update unit tests alongside feature changes in `*.test.ts` files
 9. **Document non-obvious code**: Add comments only for workarounds, hacks, or non-obvious logic paths
+
+## Reviewing code
+
+Evaluate in order: architecture → code quality → tests → performance. Before reviewing, sync to latest remote (`git fetch origin`).
+
+For each issue: describe concretely with file:line references, present options with trade-offs when the fix isn't obvious, recommend one, and ask before proceeding.
+
+## Testing
+
+**Test behaviour, not implementation**. Tests should verify what code does, not how. If a refactor breaks your tests but not your code, the tests were wrong.
+
+**Test edges and errors, not just the happy path**. Empty inputs, boundaries, malformed data, missing files, network failures — bugs live in edges. Every error path the code handles should have a test that triggers it.
+
+**Mock boundaries, not logic**. Only mock things that are slow (network, filesystem), non-deterministic (time, randomness), or external services you don't control.
