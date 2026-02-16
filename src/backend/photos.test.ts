@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { PhotoBody } from "@/types";
+import type { PhotoBody, PhotoEdits } from "@/types";
 
 import { DEFAULT_PHOTO_EDITS, PROJECT_THUMBNAIL_DIRECTORY } from "@/constants";
 
@@ -14,10 +14,12 @@ vi.mock("node:fs", () => ({
   },
 }));
 
-const mockRenderThumbnailWithEdits = vi.fn<() => Promise<Buffer>>();
+const mockRenderThumbnailWithEdits =
+  vi.fn<(options: { sourcePath: string; edits: PhotoEdits }) => Promise<Buffer>>();
 
 vi.mock("@/backend/imageRenderer", () => ({
-  renderThumbnailWithEdits: (...args: unknown[]) => mockRenderThumbnailWithEdits(...(args as [])),
+  renderThumbnailWithEdits: (...args: Parameters<typeof mockRenderThumbnailWithEdits>) =>
+    mockRenderThumbnailWithEdits(...args),
 }));
 
 const { createPhotoThumbnail, revertPhotoToOriginal } = await import("./photos");

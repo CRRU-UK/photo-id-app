@@ -8,7 +8,7 @@ import {
   PROJECT_EXPORT_DIRECTORY,
   PROJECT_FILE_NAME,
 } from "@/constants";
-import type { CollectionBody, PhotoBody, ProjectBody } from "@/types";
+import type { CollectionBody, PhotoBody, PhotoEdits, ProjectBody } from "@/types";
 
 const mockExistsSync = vi.fn<(path: string) => boolean>();
 const mockLstatSync = vi.fn<(path: string) => { isFile: () => boolean }>();
@@ -45,10 +45,12 @@ vi.mock("node:fs", () => ({
   },
 }));
 
-const mockRenderFullImageWithEdits = vi.fn<() => Promise<Buffer>>();
+const mockRenderFullImageWithEdits =
+  vi.fn<(options: { sourcePath: string; edits: PhotoEdits }) => Promise<Buffer>>();
 
 vi.mock("@/backend/imageRenderer", () => ({
-  renderFullImageWithEdits: (...args: unknown[]) => mockRenderFullImageWithEdits(...(args as [])),
+  renderFullImageWithEdits: (...args: Parameters<typeof mockRenderFullImageWithEdits>) =>
+    mockRenderFullImageWithEdits(...args),
   renderThumbnailWithEdits: vi.fn<() => void>(),
 }));
 
