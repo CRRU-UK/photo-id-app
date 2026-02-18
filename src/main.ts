@@ -349,15 +349,15 @@ app.whenReady().then(async () => {
 
   ipcMain.on(IPC_EVENTS.OPEN_EXTERNAL_LINK, (_event, link: ExternalLinks) => {
     if (link === "website") {
-      shell.openExternal(EXTERNAL_LINKS.WEBSITE);
+      return shell.openExternal(EXTERNAL_LINKS.WEBSITE);
     }
 
     if (link === "user-guide") {
-      shell.openExternal(EXTERNAL_LINKS.USER_GUIDE);
+      return shell.openExternal(EXTERNAL_LINKS.USER_GUIDE);
     }
 
     if (link === "changelog") {
-      shell.openExternal(EXTERNAL_LINKS.CHANGELOG.replace("$VERSION", `v${version}`));
+      return shell.openExternal(EXTERNAL_LINKS.CHANGELOG.replace("$VERSION", `v${version}`));
     }
   });
 
