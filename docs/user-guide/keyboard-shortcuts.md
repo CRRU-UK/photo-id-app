@@ -1,5 +1,5 @@
 ---
-title: Keyboard shortcuts
+title: Keyboard Shortcuts
 description: Different keyboard shortcuts in the app.
 ---
 
