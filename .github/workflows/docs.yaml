@@ -8,11 +8,13 @@ on:
       - docs/**
       - mkdocs.yaml
       - .github/workflows/docs.yaml
-  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
 
     steps:
       - uses: actions/checkout@v6.0.2
@@ -39,7 +41,6 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
-      contents: write
       pages: write
       id-token: write
 
