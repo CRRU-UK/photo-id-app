@@ -109,38 +109,10 @@ Note that the edge detection filter is not used when saving or exporting images,
 
 ## Settings
 
-The settings menu can be opened selecting the ==:octicons-gear-16: Settings== button on the home page, using the [keyboard shortcut](#keyboard-shortcuts), or by using the menu bar option.
+The settings menu can be opened selecting the ==:octicons-gear-16: Settings== button on the home page, using the [keyboard shortcut](./keyboard-shortcuts.md), or by using the menu bar option.
 
 These settings are global (i.e. the same for all projects) and per-user on your system.
 
 ## Notes
 
 Original photos are never modified in any way, and every effort has been made to be sure the app never unintentionally affects your original photos. However, please ensure you always have backups of your original photos regardless!
-
-## Keyboard shortcuts
-
-Keyboard shortcuts can be used for many functions in the app:
-
-| Function              | Shortcut (Windows / Linux) | Shortcut (macOS) |
-| --------------------- | -------------------------- | ---------------- |
-| **Home screen**       |                            |                  |
-| Start new project     | ++ctrl+o++                 | ++cmd+o++        |
-| Open project file     | ++ctrl+shift+o++           | ++cmd+shift+o++  |
-| Open settings         | ++ctrl+comma++             | ++cmd+comma++    |
-| Close app             | ++ctrl+w++                 | ++cmd+w++        |
-| **Project screen**    |                            |                  |
-| Select page           | ++1++ - ++7++              | ++1++ - ++7++    |
-| Open settings         | ++ctrl+comma++             | ++cmd+comma++    |
-| Close project         | ++ctrl+w++                 | ++cmd+w++        |
-| **Photo editor**      |                            |                  |
-| Zoom photo in         | ++ctrl+plus++              | ++cmd+plus++     |
-| Zoom photo out        | ++ctrl+minus++             | ++cmd+minus++    |
-| Pan photo left        | ++arrow-left++             | ++arrow-left++   |
-| Pan photo right       | ++arrow-right++            | ++arrow-right++  |
-| Pan photo up          | ++arrow-up++               | ++arrow-up++     |
-| Pan photo down        | ++arrow-down++             | ++arrow-down++   |
-| Toggle edge detection | ++e++                      | ++e++            |
-| Previous photo        | ++p++                      | ++p++            |
-| Next photo            | ++n++                      | ++n++            |
-| Reset photo edits     | ++ctrl+r++                 | ++cmd+r++        |
-| Save photo edits      | ++ctrl+s++                 | ++cmd+s++        |

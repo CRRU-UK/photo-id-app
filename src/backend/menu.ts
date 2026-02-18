@@ -114,6 +114,12 @@ const getMenu = (mainWindow: BrowserWindow) => {
           },
         },
         {
+          label: "Keyboard Shortcuts",
+          click: async () => {
+            await shell.openExternal(EXTERNAL_LINKS.KEYBOARD_SHORTCUTS);
+          },
+        },
+        {
           label: "CRRU Website",
           click: async () => {
             await shell.openExternal(EXTERNAL_LINKS.WEBSITE);
