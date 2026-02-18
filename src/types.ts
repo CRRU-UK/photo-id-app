@@ -15,13 +15,8 @@ export type Match = {
 
 export type Matches = Set<Match>;
 
-export type PhotoEdits = {
-  brightness: number;
-  contrast: number;
-  saturate: number;
-  zoom: number;
-  pan: { x: number; y: number };
-};
+export type PhotoEdits = Pick<ImageFilters, "brightness" | "contrast" | "saturate"> &
+  ImageTransformations;
 
 export type PhotoBody = {
   directory: Directory;

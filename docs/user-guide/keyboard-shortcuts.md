@@ -5,7 +5,7 @@ description: Different keyboard shortcuts in the app.
 
 !!! tip
 
-    You can open this page from the app by selecting ==Help > Keyboard shortcuts== in the menu bar.
+    You can open this page from the app by selecting ==Help > Keyboard Shortcuts== in the menu bar.
 
 Keyboard shortcuts can be used for many functions in the app:
 

@@ -16,11 +16,6 @@ export default defineConfig({
     }),
   ],
   build: {
-    rollupOptions: {
-      output: {
-        sourcemap: true,
-      },
-    },
     sourcemap: true,
   },
 });
