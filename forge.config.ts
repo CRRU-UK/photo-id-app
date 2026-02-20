@@ -2,6 +2,7 @@ import { MakerDeb } from "@electron-forge/maker-deb";
 import { MakerRpm } from "@electron-forge/maker-rpm";
 import { MakerSquirrel } from "@electron-forge/maker-squirrel";
 import { MakerZIP } from "@electron-forge/maker-zip";
+import { AutoUnpackNativesPlugin } from "@electron-forge/plugin-auto-unpack-natives";
 import { FusesPlugin } from "@electron-forge/plugin-fuses";
 import { VitePlugin } from "@electron-forge/plugin-vite";
 import type { ForgeConfig } from "@electron-forge/shared-types";
@@ -13,6 +14,7 @@ import { PROJECT_FILE_EXTENSION } from "./src/constants";
 
 const config: ForgeConfig = {
   packagerConfig: {
+    asar: true,
     icon: path.join(__dirname, "src", "assets", "icon"),
     executableName: "photo-id",
     extraResource: [path.resolve(__dirname, "./.env")],
@@ -34,6 +36,7 @@ const config: ForgeConfig = {
     new MakerDeb({ options: { mimeType: ["application/x-photoid"] } }),
   ],
   plugins: [
+    new AutoUnpackNativesPlugin({}),
     new VitePlugin({
       build: [
         {
