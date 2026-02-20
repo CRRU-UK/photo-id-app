@@ -70,13 +70,14 @@ const useImageEditor = ({ file, loupeEnabled }: UseImageEditorProps) => {
     onDraw: draw,
   });
 
-  const { loupeCanvasRef, loupeContainerRef, handleLoupeMove, handleLoupeLeave } = useLoupe({
-    enabled: loupeEnabled,
-    imageRef,
-    canvasRef,
-    getFilters,
-    getTransform,
-  });
+  const { loupeCanvasRef, loupeContainerRef, handleLoupeMove, handleLoupeLeave, redrawLoupe } =
+    useLoupe({
+      enabled: loupeEnabled,
+      imageRef,
+      canvasRef,
+      getFilters,
+      getTransform,
+    });
 
   /**
    * Sets the brightness level for the image.
@@ -122,8 +123,9 @@ const useImageEditor = ({ file, loupeEnabled }: UseImageEditorProps) => {
     (state: Parameters<typeof setEdgeDetectionInternal>[0]) => {
       setEdgeDetectionInternal(state);
       drawThrottled();
+      redrawLoupe();
     },
-    [setEdgeDetectionInternal, drawThrottled],
+    [setEdgeDetectionInternal, drawThrottled, redrawLoupe],
   );
 
   /**
@@ -152,7 +154,8 @@ const useImageEditor = ({ file, loupeEnabled }: UseImageEditorProps) => {
     setResetKey((prev) => prev + 1);
 
     draw();
-  }, [resetFiltersInternal, resetTransformInternal, draw]);
+    redrawLoupe();
+  }, [resetFiltersInternal, resetTransformInternal, draw, redrawLoupe]);
 
   const applyEdits = useCallback(
     (value: {

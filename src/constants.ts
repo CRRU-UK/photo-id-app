@@ -200,9 +200,9 @@ export const ZOOM_FACTORS = {
 export const PAN_AMOUNT = 50;
 
 export const LOUPE = {
-  SIZE: 400,
+  SIZE: 450,
   ZOOM: 2,
-  OFFSET: -20,
+  OFFSET: -40,
 };
 
 export const EDGE_DETECTION = {
