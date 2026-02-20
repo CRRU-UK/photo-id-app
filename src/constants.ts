@@ -1,5 +1,3 @@
-import type { PhotoEdits } from "@/types";
-
 export enum IPC_EVENTS {
   // Projects
   OPEN_FOLDER = "project:openFolderPrompt",
@@ -181,13 +179,13 @@ export const IMAGE_EDITS = {
   PAN_Y: 0,
 };
 
-export const DEFAULT_PHOTO_EDITS: PhotoEdits = {
+export const DEFAULT_PHOTO_EDITS = {
   brightness: IMAGE_FILTERS.BRIGHTNESS.DEFAULT,
   contrast: IMAGE_FILTERS.CONTRAST.DEFAULT,
   saturate: IMAGE_FILTERS.SATURATE.DEFAULT,
   zoom: IMAGE_EDITS.ZOOM,
   pan: { x: IMAGE_EDITS.PAN_X, y: IMAGE_EDITS.PAN_Y },
-};
+} as const;
 
 export const ZOOM_FACTORS = {
   BUTTON: 1.2,
