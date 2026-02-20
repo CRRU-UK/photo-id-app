@@ -130,9 +130,11 @@ export const BOX_HOVER_STYLES = {
   boxShadow: "0 0 0 3px var(--borderColor-done-emphasis)",
 };
 
-export const PROJECT_FILE_NAME = "data.json";
+export const PROJECT_FILE_EXTENSION = "photoid";
 
-export const PROJECT_THUMBNAIL_DIRECTORY = ".thumbnails";
+export const PROJECT_FILE_NAME = `project.${PROJECT_FILE_EXTENSION}`;
+
+export const PROJECT_THUMBNAIL_DIRECTORY = "thumbnails";
 
 export const PROJECT_EXPORT_DIRECTORY = "matched";
 

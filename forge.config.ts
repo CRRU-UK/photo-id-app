@@ -9,14 +9,30 @@ import { FuseV1Options, FuseVersion } from "@electron/fuses";
 import fs from "node:fs";
 import path from "node:path";
 
+import { PROJECT_FILE_EXTENSION } from "./src/constants";
+
 const config: ForgeConfig = {
   packagerConfig: {
     icon: path.join(__dirname, "src", "assets", "icon"),
     executableName: "photo-id",
     extraResource: [path.resolve(__dirname, "./.env")],
+    extendInfo: {
+      CFBundleDocumentTypes: [
+        {
+          CFBundleTypeName: "Photo ID Project",
+          CFBundleTypeRole: "Editor",
+          CFBundleTypeExtensions: [PROJECT_FILE_EXTENSION],
+        },
+      ],
+    },
   },
   rebuildConfig: {},
-  makers: [new MakerSquirrel({}), new MakerZIP({}, ["darwin"]), new MakerRpm({}), new MakerDeb({})],
+  makers: [
+    new MakerSquirrel({}),
+    new MakerZIP({}, ["darwin"]),
+    new MakerRpm({ options: { mimeType: ["application/x-photoid"] } }),
+    new MakerDeb({ options: { mimeType: ["application/x-photoid"] } }),
+  ],
   plugins: [
     new VitePlugin({
       build: [
