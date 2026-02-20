@@ -7,18 +7,24 @@ description: How to use the Photo ID app.
 
 ![Home screen of the app](../assets/images/index.png?v1){ width="700" }
 
-When you first open the app you will see the home screen. To start a new project, select ==:octicons-file-directory-16: Start New Project==. Projects can be created in folders containing image files (JPG/JPEG or PNG). Choose the folder you want to create a project in and the app will begin to initialize the project.
+Before using the app, first prepare a folder on your computer containing the photos you want to use. When a project is created, the app will automatically import all photos (JPG/JPEG or PNG) in the folder it is created in.
+
+When you first open the app you will see the home screen. To start a new project, select ==:octicons-file-directory-16: Start New Project==. Choose the folder you want to create a project in and the app will begin to initialize the project.
 
 Once the project has been created, you may notice two files have been added in the folder you selected:
 
-- `data.json` - project data (don't edit this manually!)
-- `./thumbnails` - hidden folder containing thumbnails for the photos used in the project
+- `project.photoid` - project data (don't edit this manually!)
+- `thumbnails/` - folder containing thumbnails for the photos used in the project
 
 !!! note
 
     You cannot add or remove photos from a project after creation, and the app does not support sub-folders. This may change in the future.
 
-The project can be opened again on the home screen from either the recent projects list or by selecting ==:octicons-file-16: Open Project File== and selecting the `data.json` file in your project folder.
+The project can be opened again on the home screen from either the recent projects list or by selecting ==:octicons-file-16: Open Project File== and selecting the `project.photoid` file in your project folder. You can also double-click a `.photoid` file to open it directly in the app.
+
+!!! tip
+
+    On Windows you will need to right-click a `.photoid` file, select "Open with" then "Choose another app", select the Photo ID App and click "Always".
 
 Projects can be removed from the recent projects list by selecting the button with the ==:octicons-trash-16: bin icon==. Note that this does not remove the project file, thumbnails, or any exported photos from the project folder.
 
@@ -106,6 +112,10 @@ Edge detection can be enabled to more easily identify marks in photos.
 This can be toggled by selecting the ==:octicons-eye-16: Toggle Edge Detection== button on the bottom-left of the screen above the toolbar. When enabled, a slider will appear that can be used to adjust the intensity of the filter.
 
 Note that the edge detection filter is not used when saving or exporting images, and is purely used as a temporary filter.
+
+## Saving
+
+Projects are auto-saved whenever changes are made in the project or photo editor screens.
 
 ## Settings
 

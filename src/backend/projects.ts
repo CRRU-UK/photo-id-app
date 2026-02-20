@@ -24,10 +24,12 @@ import {
   MISSING_RECENT_PROJECT_MESSAGE,
   PHOTO_FILE_EXTENSIONS,
   PROJECT_EXPORT_DIRECTORY,
+  PROJECT_FILE_EXTENSION,
   PROJECT_FILE_NAME,
   PROJECT_THUMBNAIL_DIRECTORY,
 } from "@/constants";
 import { getAlphabetLetter } from "@/helpers";
+import { projectBodySchema } from "@/schemas";
 
 let currentProjectDirectory: string | null = null;
 
@@ -42,6 +44,13 @@ export const getCurrentProjectDirectory = (): string | null => currentProjectDir
  */
 export const setCurrentProject = (directory: string | null): void => {
   currentProjectDirectory = directory;
+};
+
+export const parseProjectFile = async (filePath: string): Promise<ProjectBody> => {
+  const raw = await fs.promises.readFile(filePath, "utf8");
+  const json: unknown = JSON.parse(raw);
+
+  return projectBodySchema.parse(json);
 };
 
 const sendData = (mainWindow: Electron.BrowserWindow, data: ProjectBody) => {
@@ -92,8 +101,16 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
 
     // Pre-existing project
     if (response === 1) {
-      const data = await fs.promises.readFile(path.join(directory, PROJECT_FILE_NAME), "utf8");
-      return sendData(mainWindow, JSON.parse(data) as ProjectBody);
+      try {
+        const data = await parseProjectFile(path.join(directory, PROJECT_FILE_NAME));
+
+        return sendData(mainWindow, data);
+      } catch (error) {
+        console.error("Failed to load existing project file:", error);
+        dialog.showErrorBox("Invalid project file", String(error));
+
+        return;
+      }
     }
 
     // Otherwise, create and open new project...
@@ -200,7 +217,7 @@ const handleOpenFilePrompt = async (mainWindow: Electron.BrowserWindow) => {
   const event = await dialog.showOpenDialog({
     title: "Open Project File",
     properties: ["openFile"],
-    filters: [{ name: "Projects", extensions: ["json"] }],
+    filters: [{ name: "Photo ID Projects", extensions: [PROJECT_FILE_EXTENSION] }],
     defaultPath: desktopPath,
   });
 
@@ -212,8 +229,15 @@ const handleOpenFilePrompt = async (mainWindow: Electron.BrowserWindow) => {
 
   const [file] = event.filePaths;
 
-  const data = await fs.promises.readFile(file, "utf8");
-  return sendData(mainWindow, JSON.parse(data) as ProjectBody);
+  try {
+    const data = await parseProjectFile(file);
+    return sendData(mainWindow, data);
+  } catch (error) {
+    console.error("Failed to open project file:", error);
+    dialog.showErrorBox("Invalid project file", String(error));
+
+    mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, { show: false } as LoadingData);
+  }
 };
 
 /**
@@ -228,8 +252,15 @@ const handleOpenProjectFile = async (mainWindow: Electron.BrowserWindow, file: s
     return;
   }
 
-  const data = await fs.promises.readFile(file, "utf8");
-  return sendData(mainWindow, JSON.parse(data) as ProjectBody);
+  try {
+    const data = await parseProjectFile(file);
+    return sendData(mainWindow, data);
+  } catch (error) {
+    console.error("Failed to open project file:", error);
+    dialog.showErrorBox("Invalid project file", String(error));
+
+    mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, { show: false } as LoadingData);
+  }
 };
 
 /**
@@ -399,7 +430,7 @@ const handleEditorNavigate = async (
   direction: EditorNavigation,
 ): Promise<PhotoBody | null> => {
   const projectPath = path.join(data.directory, PROJECT_FILE_NAME);
-  const projectData = JSON.parse(await fs.promises.readFile(projectPath, "utf8")) as ProjectBody;
+  const projectData = await parseProjectFile(projectPath);
 
   const collection = findPhotoInProject(projectData, data);
   if (!collection) {
