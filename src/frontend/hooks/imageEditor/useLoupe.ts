@@ -197,9 +197,25 @@ export const useLoupe = ({
     drawLoupe(cursor.screenX, cursor.screenY);
   }, [enabled, drawLoupe]);
 
-  // Show the loupe immediately when toggled on, if the cursor is over the canvas
+  // When toggled on, show the loupe at the last cursor position if it's over the canvas. When
+  // toggled off, hide the loupe and cancel any in-flight RAF so a stale callback from before the
+  // re-render can't flash the loupe back on.
   useEffect(() => {
-    if (!enabled || !lastCursorRef.current) {
+    if (!enabled) {
+      const loupeContainer = loupeContainerRef.current;
+      if (loupeContainer) {
+        loupeContainer.style.display = "none";
+      }
+
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+      }
+
+      return;
+    }
+
+    if (!lastCursorRef.current) {
       return;
     }
 
