@@ -1000,11 +1000,11 @@ describe(parseProjectFile, () => {
 
   it("throws when a field has the wrong type", async () => {
     const project = createProject();
-    const invalid = { ...project, version: 123 };
+    const invalid = { ...project, directory: 123 };
 
     mockReadFile.mockResolvedValue(JSON.stringify(invalid));
 
-    await expect(parseProjectFile("/bad/project.photoid")).rejects.toThrowError("invalid_value");
+    await expect(parseProjectFile("/bad/project.photoid")).rejects.toThrowError("invalid_type");
   });
 
   it("throws when nested photo data is invalid", async () => {
