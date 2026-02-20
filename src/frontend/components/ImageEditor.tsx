@@ -320,7 +320,17 @@ const ImageEditor = ({ data, image, setQueryCallback, onImageLoaded }: ImageEdit
         return handleEditorNavigation("next");
       }
 
-      if (!modifierKey && event.code === EDITOR_KEYBOARD_CODES.TOGGLE_LOUPE) {
+      const isInteractiveTarget =
+        event.target instanceof HTMLButtonElement ||
+        event.target instanceof HTMLInputElement ||
+        event.target instanceof HTMLTextAreaElement ||
+        event.target instanceof HTMLSelectElement;
+
+      if (
+        !modifierKey &&
+        !isInteractiveTarget &&
+        event.code === EDITOR_KEYBOARD_CODES.TOGGLE_LOUPE
+      ) {
         event.preventDefault();
         return handleToggleLoupe();
       }
