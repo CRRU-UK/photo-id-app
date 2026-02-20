@@ -203,6 +203,11 @@ The project view is accessed when opening a project. It allows the user to:
 - These edits can be saved to a photo by using the save button or shortcut
 - Re-opening a photo in the edit view should pre-populate its edit values, i.e. they should persist between edits and NOT compound on re-opening and re-editing the photo
 - Resetting the edits should return all of the sliders back to their default
+- A loupe can be toggled with the button or by the keyboard shortcut
+  - The loupe shows a zoomed-in area of the current photo based on the position of the cursor
+  - The loupe should be shown on the top-left of the cursor and always follow the cursor
+  - The loupe zoom level should be relative to the current zoom factor in the photo
+  - The loupe should show edge detection when it is enabled
 - An 'edge detection' toggle and slider is used for aiding in the identification of marks in a photo
   - It does NOT get used when saving or exporting photos, and is purely a 'cosmetic' filter
   - Edge detection values do NOT get saved in the project data and are ephemeral

@@ -555,15 +555,18 @@ const ImageEditor = ({ data, image, setQueryCallback, onImageLoaded }: ImageEdit
             />
           </ButtonGroup>
 
-          <IconButton
-            icon={CodescanIcon}
-            size="large"
-            variant={loupeEnabled ? "primary" : "default"}
-            aria-label={loupeEnabled ? EDITOR_TOOLTIPS.DISABLE_LOUPE : EDITOR_TOOLTIPS.ENABLE_LOUPE}
-            keybindingHint={EDITOR_KEYBOARD_HINTS.TOGGLE_LOUPE}
-            onClick={handleToggleLoupe}
-            style={{ marginRight: "auto" }}
-          />
+          <ButtonGroup style={{ marginRight: "auto" }}>
+            <IconButton
+              icon={CodescanIcon}
+              size="large"
+              variant={loupeEnabled ? "primary" : "default"}
+              aria-label={
+                loupeEnabled ? EDITOR_TOOLTIPS.DISABLE_LOUPE : EDITOR_TOOLTIPS.ENABLE_LOUPE
+              }
+              keybindingHint={EDITOR_KEYBOARD_HINTS.TOGGLE_LOUPE}
+              onClick={handleToggleLoupe}
+            />
+          </ButtonGroup>
 
           <ButtonGroup style={{ marginRight: "var(--stack-gap-spacious)" }}>
             <IconButton
