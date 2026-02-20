@@ -113,13 +113,27 @@ export const useLoupe = ({
           Math.min(imageCoords.y - halfRegion, image.naturalHeight - regionSize),
         );
 
+        /**
+         * Scale the canvas backing buffer by the device pixel ratio so the loupe renders crisp on
+         * high DPI displays.
+         */
+        const dpr = window.devicePixelRatio || 1;
+        const bufferSize = Math.round(LOUPE.SIZE * dpr);
+
+        if (loupeCanvas.width !== bufferSize || loupeCanvas.height !== bufferSize) {
+          loupeCanvas.width = bufferSize;
+          loupeCanvas.height = bufferSize;
+          loupeCanvas.style.width = `${LOUPE.SIZE}px`;
+          loupeCanvas.style.height = `${LOUPE.SIZE}px`;
+        }
+
         const loupeContext = loupeCanvas.getContext("2d");
 
         if (!loupeContext) {
           return;
         }
 
-        loupeContext.setTransform(1, 0, 0, 1, 0, 0);
+        loupeContext.setTransform(dpr, 0, 0, dpr, 0, 0);
         loupeContext.clearRect(0, 0, LOUPE.SIZE, LOUPE.SIZE);
 
         const filters = getFilters();
