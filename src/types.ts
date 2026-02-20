@@ -1,5 +1,14 @@
+import type { z } from "zod";
+
 import type Collection from "@/models/Collection";
 import type Photo from "@/models/Photo";
+import type {
+  collectionBodySchema,
+  matchedBodySchema,
+  photoBodySchema,
+  photoEditsSchema,
+  projectBodySchema,
+} from "@/schemas";
 
 export type Directory = string;
 
@@ -15,44 +24,15 @@ export type Match = {
 
 export type Matches = Set<Match>;
 
-export type PhotoEdits = {
-  brightness: number;
-  contrast: number;
-  saturate: number;
-  zoom: number;
-  pan: { x: number; y: number };
-};
+export type PhotoEdits = z.infer<typeof photoEditsSchema>;
 
-export type PhotoBody = {
-  directory: Directory;
-  name: FileName;
-  thumbnail: FileName;
-  edits: PhotoEdits;
-  isEdited: boolean;
-};
+export type PhotoBody = z.infer<typeof photoBodySchema>;
 
-export type CollectionBody = {
-  name?: string;
-  index: number;
-  photos: PhotoBody[];
-};
+export type CollectionBody = z.infer<typeof collectionBodySchema>;
 
-export type MatchedBody = {
-  id: number;
-  left: CollectionBody;
-  right: CollectionBody;
-};
+export type MatchedBody = z.infer<typeof matchedBodySchema>;
 
-export type ProjectBody = {
-  version: string;
-  id: string;
-  directory: Directory;
-  unassigned: CollectionBody;
-  discarded: CollectionBody;
-  matched: MatchedBody[];
-  created: string;
-  lastModified: string;
-};
+export type ProjectBody = z.infer<typeof projectBodySchema>;
 
 export type RecentProject = {
   name: string;

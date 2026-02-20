@@ -8,7 +8,6 @@ import {
   REACT_DEVELOPER_TOOLS,
 } from "electron-devtools-installer";
 import started from "electron-squirrel-startup";
-import fs from "node:fs";
 import path from "node:path";
 import url from "node:url";
 import { updateElectronApp } from "update-electron-app";
@@ -33,6 +32,7 @@ import {
   handleOpenFilePrompt,
   handleOpenProjectFile,
   handleSaveProject,
+  parseProjectFile,
   setCurrentProject,
 } from "@/backend/projects";
 import { getRecentProjects, removeRecentProject } from "@/backend/recents";
@@ -45,6 +45,7 @@ import {
   PHOTO_FILE_EXTENSIONS,
   PHOTO_PROTOCOL_SCHEME,
   PROJECT_EXPORT_DIRECTORY,
+  PROJECT_FILE_EXTENSION,
   PROJECT_FILE_NAME,
   ROUTES,
 } from "@/constants";
@@ -69,6 +70,81 @@ const production = app.isPackaged;
 if (started) {
   app.quit();
 }
+
+const gotTheLock = app.requestSingleInstanceLock();
+if (!gotTheLock) {
+  app.quit();
+}
+
+// Stores a .photoid file path received before the main window is ready (macOS open-file or argv)
+let pendingFilePath: string | null = null;
+
+const findPhotoidArg = (argv: string[]): string | undefined =>
+  argv.find((arg) => arg.endsWith(`.${PROJECT_FILE_EXTENSION}`));
+
+/**
+ * Closes the current project by resetting state, closing all edit windows, and resetting the window title.
+ */
+const closeCurrentProject = (): void => {
+  setCurrentProject(null);
+
+  windowManager.closeAllEditWindows();
+
+  const mainWindow = windowManager.getMainWindow();
+  if (mainWindow) {
+    mainWindow.setTitle(DEFAULT_WINDOW_TITLE);
+  }
+};
+
+/**
+ * Opens a project file from a file path. Closes the current project and any edit windows first if a
+ * project is already open.
+ */
+const openProjectFromPath = async (filePath: string): Promise<void> => {
+  const mainWindow = windowManager.getMainWindow();
+  if (!mainWindow) {
+    return;
+  }
+
+  if (getCurrentProjectDirectory() !== null) {
+    closeCurrentProject();
+  }
+
+  await handleOpenProjectFile(mainWindow, filePath);
+
+  mainWindow.focus();
+};
+
+// macOS: fires when a .photoid file is opened (may fire before whenReady)
+app.on("open-file", async (event, filePath) => {
+  event.preventDefault();
+
+  const mainWindow = windowManager.getMainWindow();
+  if (mainWindow) {
+    try {
+      await openProjectFromPath(filePath);
+    } catch (error) {
+      console.error("Failed to open project from file:", error);
+    }
+
+    return;
+  }
+
+  pendingFilePath = filePath;
+});
+
+// Windows/Linux: fires when a second instance is launched with a file argument
+app.on("second-instance", async (_event, argv) => {
+  const filePath = findPhotoidArg(argv);
+
+  if (filePath) {
+    try {
+      await openProjectFromPath(filePath);
+    } catch (error) {
+      console.error("Failed to open project from second instance:", error);
+    }
+  }
+});
 
 const defaultWebPreferences = {
   preload: path.join(__dirname, "preload.js"),
@@ -206,24 +282,16 @@ app.whenReady().then(async () => {
       return null;
     }
 
-    const filePath = path.join(directory, PROJECT_FILE_NAME);
-
     try {
-      const content = await fs.promises.readFile(filePath, "utf8");
-      return JSON.parse(content) as ProjectBody;
-    } catch {
+      return await parseProjectFile(path.join(directory, PROJECT_FILE_NAME));
+    } catch (error) {
+      console.error("Failed to restore current project:", error);
       return null;
     }
   });
 
   ipcMain.on(IPC_EVENTS.CLOSE_PROJECT, () => {
-    setCurrentProject(null);
-    windowManager.closeAllEditWindows();
-
-    const mainWindow = windowManager.getMainWindow();
-    if (mainWindow) {
-      mainWindow.setTitle(DEFAULT_WINDOW_TITLE);
-    }
+    closeCurrentProject();
   });
 
   ipcMain.on(IPC_EVENTS.OPEN_EDIT_WINDOW, (event, data: PhotoBody): void => {
@@ -362,4 +430,17 @@ app.whenReady().then(async () => {
   });
 
   await createMainWindow();
+
+  // Handle file path from macOS open-file event that fired before the window was ready
+  if (pendingFilePath) {
+    const filePath = pendingFilePath;
+    pendingFilePath = null;
+    await openProjectFromPath(filePath);
+  }
+
+  // Handle file path from argv (Windows/Linux: app launched via file association)
+  const argvFilePath = findPhotoidArg(process.argv);
+  if (argvFilePath) {
+    await openProjectFromPath(argvFilePath);
+  }
 });

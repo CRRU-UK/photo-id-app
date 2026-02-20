@@ -74,6 +74,7 @@ const {
   handleOpenFilePrompt,
   handleOpenProjectFile,
   handleSaveProject,
+  parseProjectFile,
   getCurrentProjectDirectory,
   setCurrentProject,
 } = await import("./projects");
@@ -81,7 +82,7 @@ const {
 const createPhoto = (name: string, overrides?: Partial<PhotoBody>): PhotoBody => ({
   directory: "/project",
   name,
-  thumbnail: `.thumbnails/${name}`,
+  thumbnail: `thumbnails/${name}`,
   edits: DEFAULT_PHOTO_EDITS,
   isEdited: false,
   ...overrides,
@@ -298,7 +299,7 @@ describe(handleDuplicatePhotoFile, () => {
 
   it("returns a new PhotoBody with updated file names", async () => {
     const photo = createPhoto("photo.jpg", {
-      thumbnail: ".thumbnails/photo.jpg",
+      thumbnail: "thumbnails/photo.jpg",
       isEdited: true,
       edits: { ...DEFAULT_PHOTO_EDITS, brightness: 200 },
     });
@@ -447,7 +448,7 @@ describe(handleOpenProjectFile, () => {
     mockExistsSync.mockReturnValue(true);
     mockReadFile.mockResolvedValue(JSON.stringify(project));
 
-    await handleOpenProjectFile(mainWindow, "/project/data.json");
+    await handleOpenProjectFile(mainWindow, "/project/project.photoid");
 
     expect(mainWindow.webContents.send).toHaveBeenCalledWith(IPC_EVENTS.SET_LOADING, {
       show: true,
@@ -460,11 +461,11 @@ describe(handleOpenProjectFile, () => {
     const mainWindow = createMockMainWindow();
     mockExistsSync.mockReturnValue(false);
 
-    await handleOpenProjectFile(mainWindow, "/missing/data.json");
+    await handleOpenProjectFile(mainWindow, "/missing/project.photoid");
 
     expect(dialog.showErrorBox).toHaveBeenCalledWith(
       expect.any(String),
-      expect.stringContaining("/missing/data.json"),
+      expect.stringContaining("/missing/project.photoid"),
     );
   });
 
@@ -472,7 +473,7 @@ describe(handleOpenProjectFile, () => {
     const mainWindow = createMockMainWindow();
     mockExistsSync.mockReturnValue(false);
 
-    await handleOpenProjectFile(mainWindow, "/missing/data.json");
+    await handleOpenProjectFile(mainWindow, "/missing/project.photoid");
 
     expect(mainWindow.webContents.send).toHaveBeenCalledWith(
       IPC_EVENTS.SET_LOADING,
@@ -486,7 +487,7 @@ describe(handleOpenProjectFile, () => {
     mockExistsSync.mockReturnValue(true);
     mockReadFile.mockResolvedValue(JSON.stringify(project));
 
-    await handleOpenProjectFile(mainWindow, "/my/project/data.json");
+    await handleOpenProjectFile(mainWindow, "/my/project/project.photoid");
 
     expect(mainWindow.webContents.send).toHaveBeenCalledWith(
       IPC_EVENTS.LOAD_PROJECT,
@@ -500,7 +501,7 @@ describe(handleOpenProjectFile, () => {
     mockExistsSync.mockReturnValue(true);
     mockReadFile.mockResolvedValue(JSON.stringify(project));
 
-    await handleOpenProjectFile(mainWindow, "/my/project/data.json");
+    await handleOpenProjectFile(mainWindow, "/my/project/project.photoid");
 
     expect(mainWindow.setTitle).toHaveBeenCalledWith(expect.stringContaining("/my/project"));
   });
@@ -511,7 +512,7 @@ describe(handleOpenProjectFile, () => {
     mockExistsSync.mockReturnValue(true);
     mockReadFile.mockResolvedValue(JSON.stringify(project));
 
-    await handleOpenProjectFile(mainWindow, "/project/data.json");
+    await handleOpenProjectFile(mainWindow, "/project/project.photoid");
 
     expect(mainWindow.focus).toHaveBeenCalledWith();
   });
@@ -948,7 +949,7 @@ describe(handleOpenFilePrompt, () => {
     const { dialog } = await import("electron");
     vi.mocked(dialog.showOpenDialog).mockResolvedValue({
       canceled: false,
-      filePaths: ["/my/project/data.json"],
+      filePaths: ["/my/project/project.photoid"],
     });
     const project = createProject({ directory: "/my/project" });
     mockReadFile.mockResolvedValue(JSON.stringify(project));
@@ -966,5 +967,55 @@ describe(handleOpenFilePrompt, () => {
       IPC_EVENTS.LOAD_PROJECT,
       expect.objectContaining({ directory: "/my/project" }),
     );
+  });
+});
+
+describe(parseProjectFile, () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("returns a valid ProjectBody when the file contains valid data", async () => {
+    const project = createProject({ directory: "/my/project" });
+    mockReadFile.mockResolvedValue(JSON.stringify(project));
+
+    const result = await parseProjectFile("/my/project/project.photoid");
+
+    expect(result).toStrictEqual(project);
+  });
+
+  it("throws when the file contains invalid JSON", async () => {
+    mockReadFile.mockResolvedValue("not valid json {{{");
+
+    await expect(parseProjectFile("/bad/project.photoid")).rejects.toThrowError("Unexpected token");
+  });
+
+  it("throws when a required field is missing", async () => {
+    const incomplete = { version: "v1", id: "test-id" };
+    mockReadFile.mockResolvedValue(JSON.stringify(incomplete));
+
+    await expect(parseProjectFile("/bad/project.photoid")).rejects.toThrowError("invalid_type");
+  });
+
+  it("throws when a field has the wrong type", async () => {
+    const project = createProject();
+    const invalid = { ...project, version: 123 };
+    mockReadFile.mockResolvedValue(JSON.stringify(invalid));
+
+    await expect(parseProjectFile("/bad/project.photoid")).rejects.toThrowError(
+      "expected string, received number",
+    );
+  });
+
+  it("throws when nested photo data is invalid", async () => {
+    const project = createProject({
+      unassigned: {
+        photos: [{ directory: "/project", name: "photo.jpg" } as never],
+        index: 0,
+      },
+    });
+    mockReadFile.mockResolvedValue(JSON.stringify(project));
+
+    await expect(parseProjectFile("/bad/project.photoid")).rejects.toThrowError("invalid_type");
   });
 });
