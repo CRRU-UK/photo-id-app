@@ -64,6 +64,8 @@ export const PROJECT_KEYBOARD_HINTS = {
 export const EDITOR_TOOLTIPS = {
   ENABLE_EDGE_DETECTION: "Enable edge detection",
   DISABLE_EDGE_DETECTION: "Disable edge detection",
+  ENABLE_LOUPE: "Enable loupe",
+  DISABLE_LOUPE: "Disable loupe",
   PAN_LEFT: "Pan left",
   PAN_UP: "Pan up",
   PAN_DOWN: "Pan down",
@@ -78,6 +80,7 @@ export const EDITOR_TOOLTIPS = {
 
 export const EDITOR_KEYBOARD_HINTS = {
   TOGGLE_EDGE_DETECTION: "E",
+  TOGGLE_LOUPE: "Space",
   PAN_LEFT: "ArrowLeft",
   PAN_UP: "ArrowUp",
   PAN_DOWN: "ArrowDown",
@@ -98,6 +101,7 @@ export const EDITOR_KEYBOARD_CODES = {
   PAN_DOWN: "ArrowDown",
   PAN_RIGHT: "ArrowRight",
   TOGGLE_EDGE_DETECTION: "e",
+  TOGGLE_LOUPE: "Space",
   RESET: "r",
   SAVE: "s",
   ZOOM_OUT: "-",
@@ -194,6 +198,12 @@ export const ZOOM_FACTORS = {
 };
 
 export const PAN_AMOUNT = 50;
+
+export const LOUPE = {
+  SIZE: 400,
+  ZOOM: 2,
+  OFFSET: -20,
+};
 
 export const EDGE_DETECTION = {
   MIN: 0,

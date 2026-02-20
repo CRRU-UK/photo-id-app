@@ -189,6 +189,22 @@ html[data-color-mode="light"] .project .photo-stack {
   border-radius: var(--borderRadius-default);
 }
 
+.edit > .loupe {
+  z-index: 5;
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: none;
+  pointer-events: none;
+  border: 2px solid var(--borderColor-muted);
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.edit > .loupe canvas {
+  display: block;
+}
+
 .edit > .canvas {
   z-index: 0;
   position: absolute;

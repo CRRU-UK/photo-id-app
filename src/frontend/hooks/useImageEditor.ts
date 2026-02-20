@@ -4,14 +4,16 @@ import { useCanvasRenderer } from "./imageEditor/useCanvasRenderer";
 import { useImageFilters } from "./imageEditor/useImageFilters";
 import { useImageLoader } from "./imageEditor/useImageLoader";
 import { useImageTransform } from "./imageEditor/useImageTransform";
+import { useLoupe } from "./imageEditor/useLoupe";
 import { usePanInteraction } from "./imageEditor/usePanInteraction";
 import { useZoomInteraction } from "./imageEditor/useZoomInteraction";
 
 interface UseImageEditorProps {
   file: File;
+  loupeEnabled: boolean;
 }
 
-const useImageEditor = ({ file }: UseImageEditorProps) => {
+const useImageEditor = ({ file, loupeEnabled }: UseImageEditorProps) => {
   const [resetKey, setResetKey] = useState(0);
 
   const { imageRef, imageLoaded } = useImageLoader(file);
@@ -66,6 +68,14 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
     setPan: setPanInternal,
     clamp,
     onDraw: draw,
+  });
+
+  const { loupeCanvasRef, loupeContainerRef, handleLoupeMove, handleLoupeLeave } = useLoupe({
+    enabled: loupeEnabled,
+    imageRef,
+    canvasRef,
+    getFilters,
+    getTransform,
   });
 
   /**
@@ -194,6 +204,10 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
       resetAll,
       applyEdits,
       resetKey,
+      loupeCanvasRef,
+      loupeContainerRef,
+      handleLoupeMove,
+      handleLoupeLeave,
     }),
     [
       canvasRef,
@@ -216,6 +230,10 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
       resetAll,
       applyEdits,
       resetKey,
+      loupeCanvasRef,
+      loupeContainerRef,
+      handleLoupeMove,
+      handleLoupeLeave,
     ],
   );
 };
