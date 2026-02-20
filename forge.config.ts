@@ -14,7 +14,9 @@ import { PROJECT_FILE_EXTENSION } from "./src/constants";
 
 const config: ForgeConfig = {
   packagerConfig: {
-    asar: true,
+    asar: {
+      unpack: "**/{*.node,**/*.node,**/@napi-rs/canvas*/**}",
+    },
     icon: path.join(__dirname, "src", "assets", "icon"),
     executableName: "photo-id",
     extraResource: [path.resolve(__dirname, "./.env")],

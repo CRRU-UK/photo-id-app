@@ -16,9 +16,7 @@ export default defineConfig({
   ],
   build: {
     rollupOptions: {
-      output: {
-        sourcemap: true,
-      },
+      external: ["@napi-rs/canvas"],
     },
     sourcemap: true,
   },
