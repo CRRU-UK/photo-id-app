@@ -215,6 +215,7 @@ const ImageEditor = ({ data, image, setQueryCallback, onImageLoaded }: ImageEdit
   const handleReset = useCallback(() => {
     resetAll();
     resetEdgeDetection();
+    setLoupeEnabled(false);
     setSliderInitials({
       brightness: IMAGE_FILTERS.BRIGHTNESS.DEFAULT,
       contrast: IMAGE_FILTERS.CONTRAST.DEFAULT,
@@ -398,6 +399,7 @@ const ImageEditor = ({ data, image, setQueryCallback, onImageLoaded }: ImageEdit
       });
 
       resetEdgeDetection();
+      setLoupeEnabled(false);
 
       draw();
 

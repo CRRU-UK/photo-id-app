@@ -59,7 +59,11 @@ const useImageEditor = ({ file, loupeEnabled }: UseImageEditorProps) => {
     getTransform,
   });
 
-  const { handleWheel, handleZoomIn, handleZoomOut } = useZoomInteraction({
+  const {
+    handleWheel: handleWheelInternal,
+    handleZoomIn: handleZoomInInternal,
+    handleZoomOut: handleZoomOutInternal,
+  } = useZoomInteraction({
     canvasRef,
     imageRef,
     getImageCoords,
@@ -78,6 +82,24 @@ const useImageEditor = ({ file, loupeEnabled }: UseImageEditorProps) => {
       getFilters,
       getTransform,
     });
+
+  const handleWheel = useCallback(
+    (event: WheelEvent) => {
+      handleWheelInternal(event);
+      redrawLoupe();
+    },
+    [handleWheelInternal, redrawLoupe],
+  );
+
+  const handleZoomIn = useCallback(() => {
+    handleZoomInInternal();
+    redrawLoupe();
+  }, [handleZoomInInternal, redrawLoupe]);
+
+  const handleZoomOut = useCallback(() => {
+    handleZoomOutInternal();
+    redrawLoupe();
+  }, [handleZoomOutInternal, redrawLoupe]);
 
   /**
    * Sets the brightness level for the image.
@@ -143,8 +165,9 @@ const useImageEditor = ({ file, loupeEnabled }: UseImageEditorProps) => {
       setPanInternal(newPan);
       clamp(canvasRef.current);
       drawThrottled();
+      redrawLoupe();
     },
-    [getTransform, setPanInternal, clamp, canvasRef, drawThrottled],
+    [getTransform, setPanInternal, clamp, canvasRef, drawThrottled, redrawLoupe],
   );
 
   const resetAll = useCallback(() => {
