@@ -3,7 +3,7 @@ title: Introduction
 description: Introduction to the Photo ID app.
 ---
 
-![Screenshots of the Photo ID app.](./assets/images/banner.png?v1)
+![Screenshots of the Photo ID app.](./assets/images/banner.png?v2)
 
 The Photo ID app is a free and open-source research tool that can be used for photo-identification methodologies in longitudinal mark-recapture studies. It allows for the grouping of photographs containing unique identification markings (such as the dorsal fins of cetaceans), and includes tools for editing and visually filtering photographs to help with the identification of marks.
 
