@@ -992,6 +992,7 @@ describe(parseProjectFile, () => {
 
   it("throws when a required field is missing", async () => {
     const incomplete = { version: "v1", id: "test-id" };
+
     mockReadFile.mockResolvedValue(JSON.stringify(incomplete));
 
     await expect(parseProjectFile("/bad/project.photoid")).rejects.toThrowError("invalid_type");
@@ -1000,6 +1001,7 @@ describe(parseProjectFile, () => {
   it("throws when a field has the wrong type", async () => {
     const project = createProject();
     const invalid = { ...project, version: 123 };
+
     mockReadFile.mockResolvedValue(JSON.stringify(invalid));
 
     await expect(parseProjectFile("/bad/project.photoid")).rejects.toThrowError(
@@ -1014,6 +1016,7 @@ describe(parseProjectFile, () => {
         index: 0,
       },
     });
+
     mockReadFile.mockResolvedValue(JSON.stringify(project));
 
     await expect(parseProjectFile("/bad/project.photoid")).rejects.toThrowError("invalid_type");

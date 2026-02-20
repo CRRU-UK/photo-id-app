@@ -248,9 +248,7 @@ const handleOpenProjectFile = async (mainWindow: Electron.BrowserWindow, file: s
 
   if (!fs.existsSync(file)) {
     dialog.showErrorBox(MISSING_RECENT_PROJECT_MESSAGE, file);
-
     mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, { show: false } as LoadingData);
-
     return;
   }
 

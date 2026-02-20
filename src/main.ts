@@ -83,7 +83,8 @@ const findPhotoidArg = (argv: string[]): string | undefined =>
   argv.find((arg) => arg.endsWith(`.${PROJECT_FILE_EXTENSION}`));
 
 /**
- * Closes the current project by resetting state, closing all edit windows, and resetting the window title.
+ * Closes the current project by resetting state, closing any and all edit windows, and resetting
+ * the window title.
  */
 const closeCurrentProject = (): void => {
   setCurrentProject(null);
@@ -115,7 +116,9 @@ const openProjectFromPath = async (filePath: string): Promise<void> => {
   mainWindow.focus();
 };
 
-// macOS: fires when a .photoid file is opened (may fire before whenReady)
+/**
+ * macOS: fires when a `.photoid` file is opened (may fire before `whenReady`).
+ */
 app.on("open-file", async (event, filePath) => {
   event.preventDefault();
 
@@ -133,7 +136,9 @@ app.on("open-file", async (event, filePath) => {
   pendingFilePath = filePath;
 });
 
-// Windows/Linux: fires when a second instance is launched with a file argument
+/**
+ * Windows/Linux: fires when a second instance is launched with a file argument.
+ */
 app.on("second-instance", async (_event, argv) => {
   const filePath = findPhotoidArg(argv);
 
