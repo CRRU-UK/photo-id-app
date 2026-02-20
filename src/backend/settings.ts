@@ -3,13 +3,15 @@ import fs from "node:fs";
 import path from "node:path";
 
 import { DEFAULT_SETTINGS, SETTINGS_FILE_NAME } from "@/constants";
+import { settingsDataSchema } from "@/schemas";
 import type { SettingsData } from "@/types";
 
 const userDataPath = app.getPath("userData");
 const settingsFile = path.join(userDataPath, SETTINGS_FILE_NAME);
 
 /**
- * Gets the current settings from the file, or returns defaults if the file doesn't exist.
+ * Gets the current settings from the file, or returns defaults if the file doesn't exist. Falls
+ * back to defaults when the file is missing, unreadable, or fails schema validation.
  */
 const getSettings = async (): Promise<SettingsData> => {
   if (!fs.existsSync(settingsFile)) {
@@ -19,9 +21,9 @@ const getSettings = async (): Promise<SettingsData> => {
 
   try {
     const data = await fs.promises.readFile(settingsFile, "utf8");
-    const settings = JSON.parse(data) as SettingsData;
+    const parsed = settingsDataSchema.parse(JSON.parse(data));
 
-    return { ...DEFAULT_SETTINGS, ...settings };
+    return parsed;
   } catch (error) {
     console.error("Error reading settings file:", error);
 

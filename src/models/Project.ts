@@ -6,8 +6,8 @@ import Collection from "./Collection";
 import Photo from "./Photo";
 
 class Project {
-  version: string;
-  id: string;
+  version: ProjectBody["version"];
+  id: ProjectBody["id"];
   directory: Directory;
   allPhotos: Set<Photo>;
   unassigned: Collection;
@@ -84,7 +84,7 @@ class Project {
       data as ProjectBody;
 
     runInAction(() => {
-      this.id = id ?? "";
+      this.id = id;
       this.version = version;
       this.directory = directory;
       this.unassigned = this.mapPhotoBodyToCollection(directory, unassigned);

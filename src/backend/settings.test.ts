@@ -106,6 +106,30 @@ describe("settings", () => {
 
       expect(result).toStrictEqual(DEFAULT_SETTINGS);
     });
+
+    it("returns default settings when a field has an invalid value", async () => {
+      const invalidSettings = { themeMode: "neon", telemetry: "enabled" };
+      mockExistsSync.mockReturnValue(true);
+      mockReadFile.mockResolvedValue(JSON.stringify(invalidSettings));
+
+      const result = await getSettings();
+
+      expect(result).toStrictEqual(DEFAULT_SETTINGS);
+    });
+
+    it("writes default settings when a field has an invalid value", async () => {
+      const invalidSettings = { themeMode: "dark", telemetry: 42 };
+      mockExistsSync.mockReturnValue(true);
+      mockReadFile.mockResolvedValue(JSON.stringify(invalidSettings));
+
+      await getSettings();
+
+      expect(mockWriteFile).toHaveBeenCalledWith(
+        expect.stringContaining(SETTINGS_FILE_NAME),
+        JSON.stringify(DEFAULT_SETTINGS, null, 2),
+        "utf8",
+      );
+    });
   });
 
   describe(updateSettings, () => {
