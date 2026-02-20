@@ -1,4 +1,4 @@
-import type { PhotoEdits, SettingsData } from "@/types";
+import type { PhotoEdits } from "@/types";
 
 export enum IPC_EVENTS {
   // Projects
@@ -204,7 +204,7 @@ export const EDGE_DETECTION = {
   CONTRAST: 50,
 };
 
-export const DEFAULT_SETTINGS: SettingsData = {
+export const DEFAULT_SETTINGS = {
   themeMode: "dark",
   telemetry: "disabled",
-};
+} as const;

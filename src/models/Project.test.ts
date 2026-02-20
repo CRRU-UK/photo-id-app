@@ -16,13 +16,16 @@ vi.stubGlobal("window", {
   },
 });
 
+const projectId = "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d";
+const projectDirectory = "/project";
+
 // Helper project for constructing Photo instances in test data
 const helperProject = new Project();
 
 const createPhoto = (name: string): Photo =>
   new Photo(
     {
-      directory: "/project",
+      directory: projectDirectory,
       name,
       thumbnail: `.thumbnails/${name}`,
       edits: { ...DEFAULT_PHOTO_EDITS, pan: { x: 0, y: 0 } },
@@ -32,8 +35,8 @@ const createPhoto = (name: string): Photo =>
 
 const createProjectBody = (overrides?: Partial<ProjectBody>): ProjectBody => ({
   version: "v1",
-  id: "test-project-id",
-  directory: "/project",
+  id: projectId,
+  directory: projectDirectory,
   unassigned: {
     photos: [createPhoto("photo1.jpg").toBody(), createPhoto("photo2.jpg").toBody()],
     index: 0,
@@ -81,8 +84,8 @@ describe(Project, () => {
       const data = createProjectBody();
       const project = new Project(data);
 
-      expect(project.id).toBe("test-project-id");
-      expect(project.directory).toBe("/project");
+      expect(project.id).toBe(projectId);
+      expect(project.directory).toBe(projectDirectory);
       expect(project.version).toBe("v1");
     });
   });
@@ -94,8 +97,8 @@ describe(Project, () => {
 
       project.loadFromJSON(data);
 
-      expect(project.id).toBe("test-project-id");
-      expect(project.directory).toBe("/project");
+      expect(project.id).toBe(projectId);
+      expect(project.directory).toBe(projectDirectory);
       expect(project.unassigned.photos.size).toBe(2);
       expect(project.discarded.photos.size).toBe(0);
       expect(project.matched.size).toBe(1);
@@ -107,8 +110,8 @@ describe(Project, () => {
 
       project.loadFromJSON(JSON.stringify(data));
 
-      expect(project.id).toBe("test-project-id");
-      expect(project.directory).toBe("/project");
+      expect(project.id).toBe(projectId);
+      expect(project.directory).toBe(projectDirectory);
     });
 
     it("populates allPhotos with all photos from all collections", () => {
@@ -199,18 +202,6 @@ describe(Project, () => {
       expect(project.matched.size).toBe(0);
     });
 
-    it("defaults id to empty string when not provided", () => {
-      const project = new Project();
-      const data = createProjectBody();
-      const { id, ...rest } = data;
-
-      expect(id).toBe("test-project-id");
-
-      project.loadFromJSON(rest as ProjectBody);
-
-      expect(project.id).toBe("");
-    });
-
     it("returns the project for chaining", () => {
       const project = new Project();
       const result = project.loadFromJSON(createProjectBody());
@@ -244,7 +235,7 @@ describe(Project, () => {
       const project = new Project(createProjectBody());
 
       const updatedData: PhotoBody = {
-        directory: "/project",
+        directory: projectDirectory,
         name: "photo1.jpg",
         thumbnail: ".thumbnails/photo1_edited.jpg",
         edits: {
@@ -438,7 +429,7 @@ describe(Project, () => {
       const parsed = JSON.parse(data) as ProjectBody;
 
       expect(parsed.version).toBe("v1");
-      expect(parsed.directory).toBe("/project");
+      expect(parsed.directory).toBe(projectDirectory);
     });
 
     it("returns the project for chaining", async () => {
@@ -469,7 +460,7 @@ describe(Project, () => {
       const parsed = JSON.parse(savedData) as ProjectBody;
 
       expect(parsed.version).toBe("v1");
-      expect(parsed.directory).toBe("/project");
+      expect(parsed.directory).toBe(projectDirectory);
       expect(parsed.unassigned.photos).toHaveLength(2);
     });
 
@@ -520,7 +511,7 @@ describe(Project, () => {
         unassigned: {
           photos: [
             {
-              directory: "/project",
+              directory: projectDirectory,
               name: "edited.jpg",
               thumbnail: ".thumbnails/edited.jpg",
               edits: {

@@ -1,5 +1,16 @@
 import { z } from "zod";
 
+import { DEFAULT_SETTINGS } from "@/constants";
+
+export const themeModeSchema = z.enum(["light", "dark", "auto"]);
+
+export const telemetrySchema = z.enum(["enabled", "disabled"]);
+
+export const settingsDataSchema = z.object({
+  themeMode: themeModeSchema.default(DEFAULT_SETTINGS.themeMode),
+  telemetry: telemetrySchema.default(DEFAULT_SETTINGS.telemetry),
+});
+
 export const photoEditsSchema = z.object({
   brightness: z.number(),
   contrast: z.number(),
@@ -29,12 +40,12 @@ export const matchedBodySchema = z.object({
 });
 
 export const projectBodySchema = z.object({
-  version: z.string(),
-  id: z.string(),
+  version: z.enum(["v1"]),
+  id: z.uuid(),
   directory: z.string(),
   unassigned: collectionBodySchema,
   discarded: collectionBodySchema,
   matched: z.array(matchedBodySchema),
-  created: z.string(),
-  lastModified: z.string(),
+  created: z.iso.datetime(),
+  lastModified: z.iso.datetime(),
 });
