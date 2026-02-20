@@ -202,7 +202,7 @@ export const PAN_AMOUNT = 50;
 export const LOUPE = {
   SIZE: 450,
   ZOOM: 2,
-  OFFSET: -40,
+  CURSOR_PADDING: 40, // Padding towards cursor
 };
 
 export const EDGE_DETECTION = {

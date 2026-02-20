@@ -87,7 +87,7 @@ const Slider = ({
 interface CanvasImageProps {
   handlePointerDown: (event: React.PointerEvent<HTMLCanvasElement>) => void;
   handlePointerMove: (event: React.PointerEvent<HTMLCanvasElement>) => void;
-  handlePointerUp: (event: React.PointerEvent<HTMLCanvasElement>) => void;
+  handlePointerUp: () => void;
   handlePointerLeave: () => void;
 }
 

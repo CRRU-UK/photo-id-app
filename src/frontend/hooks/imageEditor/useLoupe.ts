@@ -51,10 +51,10 @@ export const useLoupe = ({
   const loupeCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const loupeContainerRef = useRef<HTMLDivElement | null>(null);
   const loupeContextRef = useRef<CanvasRenderingContext2D | null>(null);
-  const lastCursorRef = useRef<{ screenX: number; screenY: number } | null>(null);
+  const lastCursorRef = useRef<{ clientX: number; clientY: number } | null>(null);
 
   const drawLoupe = useCallback(
-    (screenX: number, screenY: number) => {
+    (clientX: number, clientY: number) => {
       const canvas = canvasRef.current;
       const image = imageRef.current;
       const loupeCanvas = loupeCanvasRef.current;
@@ -65,8 +65,8 @@ export const useLoupe = ({
       }
 
       const canvasCoords = getImageCoordinates({
-        screenX,
-        screenY,
+        clientX,
+        clientY,
         canvas,
         image,
       });
@@ -137,11 +137,11 @@ export const useLoupe = ({
       loupeContext.drawImage(image, sx, sy, regionSize, regionSize, 0, 0, LOUPE.SIZE, LOUPE.SIZE);
 
       const rect = canvas.getBoundingClientRect();
-      const cursorX = screenX - rect.left;
-      const cursorY = screenY - rect.top;
+      const cursorX = clientX - rect.left;
+      const cursorY = clientY - rect.top;
 
-      const loupeX = cursorX - LOUPE.OFFSET - LOUPE.SIZE;
-      const loupeY = cursorY - LOUPE.OFFSET - LOUPE.SIZE;
+      const loupeX = cursorX - LOUPE.SIZE + LOUPE.CURSOR_PADDING;
+      const loupeY = cursorY - LOUPE.SIZE + LOUPE.CURSOR_PADDING;
 
       loupeContainer.style.display = "block";
       loupeContainer.style.transform = `translate(${loupeX}px, ${loupeY}px)`;
@@ -151,7 +151,7 @@ export const useLoupe = ({
 
   const handleLoupeMove = useCallback(
     (event: React.PointerEvent<HTMLCanvasElement>) => {
-      lastCursorRef.current = { screenX: event.clientX, screenY: event.clientY };
+      lastCursorRef.current = { clientX: event.clientX, clientY: event.clientY };
 
       if (!enabled) {
         const loupeContainer = loupeContainerRef.current;
@@ -171,7 +171,7 @@ export const useLoupe = ({
 
         const cursor = lastCursorRef.current;
         if (cursor) {
-          drawLoupe(cursor.screenX, cursor.screenY);
+          drawLoupe(cursor.clientX, cursor.clientY);
         }
       });
     },
@@ -194,7 +194,7 @@ export const useLoupe = ({
       return;
     }
 
-    drawLoupe(cursor.screenX, cursor.screenY);
+    drawLoupe(cursor.clientX, cursor.clientY);
   }, [enabled, drawLoupe]);
 
   // When toggled on, show the loupe at the last cursor position if it's over the canvas. When
@@ -225,16 +225,16 @@ export const useLoupe = ({
     }
 
     const rect = canvas.getBoundingClientRect();
-    const { screenX, screenY } = lastCursorRef.current;
+    const { clientX, clientY } = lastCursorRef.current;
 
     const cursorIsOnCanvas =
-      screenX >= rect.left &&
-      screenX <= rect.right &&
-      screenY >= rect.top &&
-      screenY <= rect.bottom;
+      clientX >= rect.left &&
+      clientX <= rect.right &&
+      clientY >= rect.top &&
+      clientY <= rect.bottom;
 
     if (cursorIsOnCanvas) {
-      drawLoupe(screenX, screenY);
+      drawLoupe(clientX, clientY);
     }
   }, [enabled, canvasRef, drawLoupe]);
 

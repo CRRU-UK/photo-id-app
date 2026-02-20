@@ -6,8 +6,8 @@ interface ZoomInteractionOptions {
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
   imageRef: React.RefObject<HTMLImageElement | null>;
   getImageCoords: (
-    screenX: number,
-    screenY: number,
+    clientX: number,
+    clientY: number,
     canvas: HTMLCanvasElement | null,
   ) => { x: number; y: number } | null;
   getTransform: () => { zoom: number; pan: { x: number; y: number } };
