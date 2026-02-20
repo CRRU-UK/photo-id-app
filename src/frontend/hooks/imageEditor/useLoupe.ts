@@ -36,6 +36,7 @@ const canvasToImageCoords = ({
 }): { x: number; y: number } => {
   const imageX = (canvasX - centreX - panX) / zoom + centreX;
   const imageY = (canvasY - centreY - panY) / zoom + centreY;
+
   return { x: imageX, y: imageY };
 };
 
@@ -46,10 +47,10 @@ export const useLoupe = ({
   getFilters,
   getTransform,
 }: UseLoupeOptions) => {
+  const rafRef = useRef<number | null>(null);
   const loupeCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const loupeContainerRef = useRef<HTMLDivElement | null>(null);
   const loupeContextRef = useRef<CanvasRenderingContext2D | null>(null);
-  const rafRef = useRef<number | null>(null);
   const lastCursorRef = useRef<{ screenX: number; screenY: number } | null>(null);
 
   const drawLoupe = useCallback(
@@ -109,6 +110,7 @@ export const useLoupe = ({
         loupeCanvas.height = bufferSize;
         loupeCanvas.style.width = `${LOUPE.SIZE}px`;
         loupeCanvas.style.height = `${LOUPE.SIZE}px`;
+
         // Resizing the canvas clears the context state, so re-acquire it
         loupeContextRef.current = loupeCanvas.getContext("2d");
       }
@@ -156,6 +158,7 @@ export const useLoupe = ({
         if (loupeContainer) {
           loupeContainer.style.display = "none";
         }
+
         return;
       }
 

@@ -105,7 +105,7 @@ Multiple photo editor windows can be open at the same time so you can compare ph
 
 ### Loupe
 
-![Edit screen of the app with loupe enabled](../assets/images/editor-loupe.png?v1){ width="700" }
+![Edit screen of the app with the loupe enabled](../assets/images/editor-loupe.png?v1){ width="700" }
 
 A loupe can be toggled using the ==:octicons-codescan-16: loupe toggle button== in the toolbar. It will follow your cursor and allow you to see more details in the photo without having to zoom in and out.
 

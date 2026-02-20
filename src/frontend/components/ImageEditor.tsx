@@ -178,6 +178,7 @@ const ImageEditor = ({ data, image, setQueryCallback, onImageLoaded }: ImageEdit
       if (prev) {
         handleLoupeLeave();
       }
+
       return !prev;
     });
   }, [handleLoupeLeave]);
