@@ -1,5 +1,4 @@
 name: Build and publish app
-run-name: ${{ github.ref_name }}
 
 on:
   push:
