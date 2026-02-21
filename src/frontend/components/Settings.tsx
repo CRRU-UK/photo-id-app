@@ -118,7 +118,7 @@ const Settings = ({ open, onClose, onOpenRequest, returnFocusRef }: SettingsProp
                 href="#"
                 onClick={(event) => {
                   event.preventDefault();
-                  void window.electronAPI.openExternalLink("privacy");
+                  window.electronAPI.openExternalLink("privacy");
                 }}
               >
                 Privacy Policy
