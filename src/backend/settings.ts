@@ -45,7 +45,7 @@ const updateSettings = async (settings: SettingsData): Promise<void> => {
 };
 
 /**
- * Initialises Sentry. Must be called before the Electron app 'ready' event.
+ * Initialises Sentry. Must be called before the Electron app `ready` event.
  */
 const initSentry = (): void => {
   if (!process.env.SENTRY_DSN) {

@@ -20,10 +20,10 @@ Telemetry is **disabled by default**. If you enable it in Settings, the app may 
 - **Crash reports** – When the app crashes, diagnostic information (stack traces, system info) is sent.
 - **Error details** – When unexpected errors occur, we receive error messages and context.
 - **Performance data** – Timing and performance metrics to help identify slow operations.
-- **Session recordings on errors** – When an error occurs, a recording of the UI state at that moment may be captured. Recordings are **not** captured continuously; only when something goes wrong. Text, images, and canvas elements (used for displaying photos in the photo editor) are blocked or masked and is not included.
+- **Session recordings on errors** – When an error occurs, a recording of the UI state at that moment may be captured. Recordings are **not** captured continuously; only when something goes wrong. Text, images, and canvas elements (used for displaying photos in the photo editor) are blocked and masked and are not included.
 - **Console logs** – Log messages (log, warn, error) may be attached to error reports for debugging.
 
-All telemetry is sent only when you have enabled it in [settings](./user-guide/usage.md#settings). You can disable it at any time; a restart may be required for the change to take effect.
+All telemetry is sent only when you have enabled it in [settings](./user-guide/usage.md#settings). You can disable it at any time, however a restart of the app may be required for the change to take effect.
 
 ## Data processing and retention
 
@@ -44,4 +44,4 @@ To exercise these rights or ask questions about data handling, please contact us
 
 ## Changes to this policy
 
-We may update this privacy policy from time to time. The current version is always available at [photoidapp.crru.org.uk/privacy/](https://photoidapp.crru.org.uk/privacy/).
+We may update this privacy policy. The current version is always available at [photoidapp.crru.org.uk/privacy/](https://photoidapp.crru.org.uk/privacy/).
