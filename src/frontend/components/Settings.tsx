@@ -1,7 +1,7 @@
 import type { ChangeEvent, RefObject } from "react";
 import { useEffect, useState } from "react";
 
-import { Dialog, FormControl, Select, Stack } from "@primer/react";
+import { Dialog, FormControl, Link, Select, Stack } from "@primer/react";
 
 import { useSettings } from "@/contexts/SettingsContext";
 import type { Telemetry, ThemeMode } from "@/types";
@@ -111,10 +111,19 @@ const Settings = ({ open, onClose, onOpenRequest, returnFocusRef }: SettingsProp
               <Select.Option value="enabled">Enabled</Select.Option>
             </Select>
             <FormControl.Caption>
-              Choose whether to send anonymous usage data to help with fixing bugs and improving the
-              app. Data is anonymized, including images used in session replays. <br />
-              <br />
-              <b>Note: This requires a restart of the app to take effect.</b>
+              <b>Note: requires a restart of the app to take effect.</b> When enabled, helps us fix
+              bugs by sending crash reports, error details, performance data, and session recordings
+              that are captured only when an error occurs (not continuously). Please see our{" "}
+              <Link
+                href="#"
+                onClick={(event) => {
+                  event.preventDefault();
+                  void window.electronAPI.openExternalLink("privacy");
+                }}
+              >
+                Privacy Policy
+              </Link>{" "}
+              for more information.
             </FormControl.Caption>
           </FormControl>
         </Stack>
