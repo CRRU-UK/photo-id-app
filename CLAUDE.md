@@ -53,7 +53,7 @@
 ## Integration points / external deps
 
 - Electron + electron-forge + vite: packaging handled by `electron-forge` + forge Vite plugin (configs at project root: `vite.*.mts`, `forge.config.ts`).
-- Sentry: integrated in both main (`@sentry/electron`) and renderer (`@sentry/electron/renderer`). Environment variables: `VITE_SENTRY_DSN` (renderer) and `SENTRY_DSN` (main). See `.env.example`.
+- Sentry: integrated in both main (`@sentry/electron`) and renderer (`@sentry/electron/renderer`). Opt-in via settings; when enabled, captures crashes, errors, session replay (error-only), tracing, profiling, and console logs. Initialised before app ready; user preference applied in `whenReady`. Privacy policy at `docs/privacy.md`. Environment variables: `VITE_SENTRY_DSN` (renderer) and `SENTRY_DSN` (main). See `.env.example`.
 - Native image processing: `@napi-rs/canvas` is used in backend image helpers.
 
 ## If you need to change behaviour

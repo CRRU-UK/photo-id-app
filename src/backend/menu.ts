@@ -120,6 +120,12 @@ const getMenu = (mainWindow: BrowserWindow) => {
           },
         },
         {
+          label: "Privacy Policy",
+          click: async () => {
+            await shell.openExternal(EXTERNAL_LINKS.PRIVACY);
+          },
+        },
+        {
           label: "CRRU Website",
           click: async () => {
             await shell.openExternal(EXTERNAL_LINKS.WEBSITE);

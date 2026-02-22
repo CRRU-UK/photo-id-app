@@ -1,6 +1,5 @@
 import "dotenv/config";
 
-import * as Sentry from "@sentry/electron/main";
 import { app, BrowserWindow, ipcMain, Menu, net, protocol, shell } from "electron";
 import {
   installExtension,
@@ -36,7 +35,7 @@ import {
   setCurrentProject,
 } from "@/backend/projects";
 import { getRecentProjects, removeRecentProject } from "@/backend/recents";
-import { getSettings, updateSettings } from "@/backend/settings";
+import { getSettings, initSentry, setSentryEnabled, updateSettings } from "@/backend/settings";
 import { windowManager } from "@/backend/WindowManager";
 import {
   DEFAULT_WINDOW_TITLE,
@@ -52,6 +51,8 @@ import {
 import { encodeEditPayload } from "@/helpers";
 
 import { version } from "../package.json";
+
+initSentry();
 
 updateElectronApp();
 
@@ -215,6 +216,9 @@ app.on("activate", async () => {
 });
 
 app.whenReady().then(async () => {
+  const settings = await getSettings();
+  setSentryEnabled(settings.telemetry);
+
   protocol.handle(PHOTO_PROTOCOL_SCHEME, (request) => {
     try {
       const fileUrl = request.url.replace(/^photo:/, "file:");
@@ -230,20 +234,6 @@ app.whenReady().then(async () => {
       return new Response(null, { status: 400 });
     }
   });
-
-  const settings = await getSettings();
-  if (settings.telemetry === "enabled" && process.env.SENTRY_DSN) {
-    console.debug("Sentry is enabled in main");
-
-    Sentry.init({
-      dsn: process.env.SENTRY_DSN,
-      integrations: [Sentry.consoleLoggingIntegration({ levels: ["log", "warn", "error"] })],
-      enableRendererProfiling: true,
-      _experiments: { enableLogs: true },
-    });
-  } else {
-    console.debug("Sentry is disabled in main");
-  }
 
   if (!production) {
     installExtension([REACT_DEVELOPER_TOOLS, MOBX_DEVTOOLS]);
@@ -403,6 +393,8 @@ app.whenReady().then(async () => {
     async (_event, settings: SettingsData): Promise<void> => {
       await updateSettings(settings);
 
+      setSentryEnabled(settings.telemetry);
+
       // Notify all windows of settings change
       const allWindows = BrowserWindow.getAllWindows();
       for (const window of allWindows) {
@@ -427,6 +419,10 @@ app.whenReady().then(async () => {
 
     if (link === "user-guide") {
       return shell.openExternal(EXTERNAL_LINKS.USER_GUIDE);
+    }
+
+    if (link === "privacy") {
+      return shell.openExternal(EXTERNAL_LINKS.PRIVACY);
     }
 
     if (link === "changelog") {

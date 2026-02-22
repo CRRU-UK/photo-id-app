@@ -12,6 +12,9 @@ import {
 import { DEFAULT_SETTINGS } from "@/constants";
 import type { SettingsData, ThemeMode } from "@/types";
 
+/**
+ * Initialises Sentry in the renderer.
+ */
 const initializeSentry = () => {
   const sentryDsn = import.meta.env.VITE_SENTRY_DSN as string;
 
@@ -20,27 +23,42 @@ const initializeSentry = () => {
     return;
   }
 
-  console.debug("Sentry is enabled in renderer");
-
   if (Sentry.getClient()) {
     return;
   }
 
   Sentry.init({
     dsn: sentryDsn,
+    enabled: true,
     telemetry: false,
     tracesSampleRate: 1,
     profilesSampleRate: 1,
-    replaysSessionSampleRate: 1,
+    replaysSessionSampleRate: 0,
     replaysOnErrorSampleRate: 1,
     integrations: [
       Sentry.browserTracingIntegration(),
       Sentry.browserProfilingIntegration(),
-      Sentry.replayIntegration(),
+      Sentry.replayIntegration({
+        blockAllMedia: true,
+        maskAllInputs: true,
+        maskAllText: true,
+        block: ["canvas", ".canvas-photo", ".canvas-loupe"],
+      }),
       Sentry.consoleLoggingIntegration({ levels: ["log", "warn", "error"] }),
     ],
     _experiments: { enableLogs: true },
   });
+};
+
+/**
+ * Applies the telemetry preference to the renderer's Sentry client.
+ */
+const setRendererSentryEnabled = (enabled: boolean) => {
+  const client = Sentry.getClient();
+
+  if (client) {
+    client.getOptions().enabled = enabled;
+  }
 };
 
 /**
@@ -86,6 +104,15 @@ export const SettingsProvider = ({ children }: SettingsProviderProps) => {
     applyTheme(effectiveMode);
   }, []);
 
+  const applyTelemetryPreference = useCallback((telemetry: "enabled" | "disabled") => {
+    if (telemetry === "enabled") {
+      initializeSentry();
+      setRendererSentryEnabled(true);
+    } else {
+      setRendererSentryEnabled(false);
+    }
+  }, []);
+
   useEffect(() => {
     const loadSettings = async () => {
       try {
@@ -93,15 +120,13 @@ export const SettingsProvider = ({ children }: SettingsProviderProps) => {
 
         setSettings(loadedSettings);
         applySettingsToTheme(loadedSettings);
-
-        if (loadedSettings.telemetry === "enabled") {
-          initializeSentry();
-        }
+        applyTelemetryPreference(loadedSettings.telemetry);
       } catch (error) {
         console.error("Error loading settings:", error);
 
         setSettings(DEFAULT_SETTINGS);
         applySettingsToTheme(DEFAULT_SETTINGS);
+        applyTelemetryPreference(DEFAULT_SETTINGS.telemetry);
       }
     };
 
@@ -110,12 +135,13 @@ export const SettingsProvider = ({ children }: SettingsProviderProps) => {
     const unsubscribe = window.electronAPI.onSettingsUpdated((updatedSettings: SettingsData) => {
       setSettings(updatedSettings);
       applySettingsToTheme(updatedSettings);
+      applyTelemetryPreference(updatedSettings.telemetry);
     });
 
     return () => {
       unsubscribe();
     };
-  }, [applySettingsToTheme]);
+  }, [applySettingsToTheme, applyTelemetryPreference]);
 
   useEffect(() => {
     if (settings?.themeMode !== "auto") {

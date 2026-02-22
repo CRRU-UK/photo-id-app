@@ -205,7 +205,7 @@ html[data-color-mode="light"] .project .photo-stack {
   display: block;
 }
 
-.edit > .canvas {
+.edit > .canvas-photo {
   z-index: 0;
   position: absolute;
   left: 0;
@@ -215,12 +215,12 @@ html[data-color-mode="light"] .project .photo-stack {
   object-fit: contain;
 }
 
-.edit > .canvas,
-.edit > .canvas:hover {
+.edit > .canvas-photo,
+.edit > .canvas-photo:hover {
   cursor: grab;
 }
 
-.edit > .canvas:active {
+.edit > .canvas-photo:active {
   cursor: grabbing;
 }
 

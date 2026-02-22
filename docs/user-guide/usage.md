@@ -129,6 +129,8 @@ The settings menu can be opened selecting the ==:octicons-gear-16: Settings== bu
 
 These settings are global (i.e. the same for all projects) and per-user on your system.
 
+For information on how we handle data and optional telemetry, see our [privacy policy](../privacy.md).
+
 ## Notes
 
 Original photos are never modified in any way, and every effort has been made to be sure the app never unintentionally affects your original photos. However, please ensure you always have backups of your original photos regardless!

@@ -96,7 +96,7 @@ const CanvasImage = forwardRef<HTMLCanvasElement, CanvasImageProps>(
     return (
       <canvas
         ref={ref}
-        className="canvas"
+        className="canvas-photo"
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
@@ -459,7 +459,12 @@ const ImageEditor = ({ data, image, setQueryCallback, onImageLoaded }: ImageEdit
         />
 
         <div ref={loupeContainerRef} className="loupe">
-          <canvas ref={loupeCanvasRef} width={LOUPE.SIZE} height={LOUPE.SIZE} />
+          <canvas
+            ref={loupeCanvasRef}
+            width={LOUPE.SIZE}
+            height={LOUPE.SIZE}
+            className="canvas-loupe"
+          />
         </div>
 
         <Stack className="edge-toggle" direction="horizontal" align="center" spacing="none">

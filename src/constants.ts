@@ -157,6 +157,7 @@ export enum EXTERNAL_LINKS {
   USER_GUIDE = "https://photoidapp.crru.org.uk/user-guide/usage/",
   KEYBOARD_SHORTCUTS = "https://photoidapp.crru.org.uk/user-guide/keyboard-shortcuts/",
   CHANGELOG = "https://github.com/CRRU-UK/photo-id-app/releases/$VERSION",
+  PRIVACY = "https://photoidapp.crru.org.uk/privacy/",
 }
 
 export const IMAGE_FILTERS = {
