@@ -61,7 +61,7 @@ export type LoadingData = {
 
 export type EditorNavigation = "prev" | "next";
 
-export type ExternalLinks = "website" | "user-guide" | "keyboard-shortcuts" | "changelog";
+export type ExternalLinks = "website" | "user-guide" | "changelog" | "privacy";
 
 export type EdgeDetectionData = { enabled: false } | { enabled: true; value: number };
 
