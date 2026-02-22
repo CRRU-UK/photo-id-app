@@ -180,7 +180,7 @@ describe("settings", () => {
       expect(mockSentryInit).toHaveBeenCalledWith(
         expect.objectContaining({
           dsn: "https://test@sentry.io/123",
-          enabled: true,
+          enabled: false,
           enableRendererProfiling: true,
         }),
       );

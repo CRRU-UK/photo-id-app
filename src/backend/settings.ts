@@ -55,7 +55,7 @@ const initSentry = (): void => {
 
   Sentry.init({
     dsn: process.env.SENTRY_DSN,
-    enabled: true,
+    enabled: false,
     integrations: [Sentry.consoleLoggingIntegration({ levels: ["log", "warn", "error"] })],
     enableRendererProfiling: true,
     _experiments: { enableLogs: true },
