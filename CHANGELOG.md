@@ -1,5 +1,11 @@
 # photo-id
 
+## 0.4.1
+
+### Patch Changes
+
+- 7cace82: Add changeset check
+
 ## 0.4.0
 
 ### Minor Changes
