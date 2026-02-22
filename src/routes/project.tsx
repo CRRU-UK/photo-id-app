@@ -102,6 +102,16 @@ const ProjectPage = observer(() => {
   );
 
   useEffect(() => {
+    const unsubscribeLoadProject = window.electronAPI.onLoadProject(() =>
+      setLoading({ show: false }),
+    );
+
+    return () => {
+      unsubscribeLoadProject();
+    };
+  }, []);
+
+  useEffect(() => {
     if (project === null) {
       return () => {};
     }
