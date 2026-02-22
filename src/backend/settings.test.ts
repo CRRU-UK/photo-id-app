@@ -171,7 +171,7 @@ describe("settings", () => {
   });
 
   describe(initSentry, () => {
-    it("initialises Sentry with enabled true when DSN is set", () => {
+    it("initialises Sentry with enabled false when DSN is set", () => {
       const originalEnv = process.env.SENTRY_DSN;
       process.env.SENTRY_DSN = "https://test@sentry.io/123";
 
