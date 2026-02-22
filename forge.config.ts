@@ -76,14 +76,17 @@ const config: ForgeConfig = {
   ],
   hooks: {
     generateAssets: async () => {
-      await fs.promises.writeFile(
-        ".env",
-        [
-          `NODE_ENV=${process.env.NODE_ENV || "production"}`,
-          `SENTRY_DSN=${process.env.SENTRY_DSN || ""}`,
-          `VITE_SENTRY_DSN=${process.env.SENTRY_DSN || ""}`,
-        ].join("\n"),
-      );
+      // Only write .env file in CI/CD (i.e. published builds)
+      if (process.env.NODE_ENV === "CI") {
+        await fs.promises.writeFile(
+          ".env",
+          [
+            `NODE_ENV=production`,
+            `SENTRY_DSN=${process.env.SENTRY_DSN}`,
+            `VITE_SENTRY_DSN=${process.env.SENTRY_DSN}`,
+          ].join("\n"),
+        );
+      }
     },
   },
   publishers: [

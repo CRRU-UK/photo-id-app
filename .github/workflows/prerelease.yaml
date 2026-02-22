@@ -32,6 +32,7 @@ jobs:
       - name: Build app
         run: npm run make
         env:
+          NODE_ENV: CI
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
           SENTRY_ORG: ${{ vars.SENTRY_ORG }}
