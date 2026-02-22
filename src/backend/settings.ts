@@ -64,12 +64,12 @@ const initSentry = (): void => {
 /**
  * Enables or disables Sentry event sending on the live client.
  */
-const setSentryEnabled = (enabled: Telemetry): void => {
+const setSentryEnabled = (telemetry: Telemetry): void => {
   const client = Sentry.getClient();
 
   if (client) {
-    client.getOptions().enabled = enabled === "enabled";
-    console.debug(`Sentry has been ${enabled} at runtime`);
+    client.getOptions().enabled = telemetry === "enabled";
+    console.debug(`Sentry has been ${telemetry} at runtime`);
   }
 };
 

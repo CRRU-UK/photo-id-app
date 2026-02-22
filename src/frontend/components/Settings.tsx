@@ -115,7 +115,6 @@ const Settings = ({ open, onClose, onOpenRequest, returnFocusRef }: SettingsProp
               data, and session recordings that are captured only when an error occurs (not
               continuously). Please see our{" "}
               <Link
-                href="#"
                 onClick={(event) => {
                   event.preventDefault();
                   window.electronAPI.openExternalLink("privacy");

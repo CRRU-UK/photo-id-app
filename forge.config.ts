@@ -18,7 +18,7 @@ const config: ForgeConfig = {
     },
     icon: path.join(__dirname, "src", "assets", "icon"),
     executableName: "photo-id",
-    extraResource: process.env.NODE_ENV === "CI" ? [path.resolve(__dirname, "./.env")] : [],
+    extraResource: process.env.CI === "true" ? [path.resolve(__dirname, "./.env")] : [],
     extendInfo: {
       CFBundleDocumentTypes: [
         {
@@ -77,7 +77,7 @@ const config: ForgeConfig = {
   hooks: {
     generateAssets: async () => {
       // Only write .env file in CI/CD (i.e. published builds)
-      if (process.env.NODE_ENV === "CI") {
+      if (process.env.CI === "true") {
         await fs.promises.writeFile(
           ".env",
           [

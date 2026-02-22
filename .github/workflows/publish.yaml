@@ -34,7 +34,8 @@ jobs:
       - name: Publish app
         run: npm run publish
         env:
-          NODE_ENV: CI
+          CI: true
+          NODE_ENV: production
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
           SENTRY_ORG: ${{ vars.SENTRY_ORG }}
