@@ -82,8 +82,8 @@ const config: ForgeConfig = {
           ".env",
           [
             `NODE_ENV=production`,
-            `SENTRY_DSN=${process.env.SENTRY_DSN}`,
-            `VITE_SENTRY_DSN=${process.env.SENTRY_DSN}`,
+            `SENTRY_DSN=${process.env.SENTRY_DSN || ""}`,
+            `VITE_SENTRY_DSN=${process.env.SENTRY_DSN || ""}`,
           ].join("\n"),
         );
       }
