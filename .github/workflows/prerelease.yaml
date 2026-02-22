@@ -14,10 +14,6 @@ on:
           - macos-latest
           - ubuntu-latest
 
-permissions:
-  pull-requests: write
-  contents: write
-
 jobs:
   pre-release:
     runs-on: ${{ fromJSON(format('["{0}"]', inputs.platform)) }}
