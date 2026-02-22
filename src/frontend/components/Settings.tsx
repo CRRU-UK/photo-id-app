@@ -111,9 +111,9 @@ const Settings = ({ open, onClose, onOpenRequest, returnFocusRef }: SettingsProp
               <Select.Option value="enabled">Enabled</Select.Option>
             </Select>
             <FormControl.Caption>
-              <b>Note: requires a restart of the app to take effect.</b> When enabled, helps us fix
-              bugs by sending crash reports, error details, performance data, and session recordings
-              that are captured only when an error occurs (not continuously). Please see our{" "}
+              When enabled, helps us fix bugs by sending crash reports, error details, performance
+              data, and session recordings that are captured only when an error occurs (not
+              continuously). Please see our{" "}
               <Link
                 href="#"
                 onClick={(event) => {

@@ -2,11 +2,10 @@ import * as Sentry from "@sentry/electron/main";
 import { app } from "electron";
 import fs from "node:fs";
 import path from "node:path";
-import { z } from "zod";
 
 import { DEFAULT_SETTINGS, SETTINGS_FILE_NAME } from "@/constants";
-import { settingsDataSchema, telemetrySchema } from "@/schemas";
-import type { SettingsData } from "@/types";
+import { settingsDataSchema } from "@/schemas";
+import type { SettingsData, Telemetry } from "@/types";
 
 const getSettingsFilePath = (): string => path.join(app.getPath("userData"), SETTINGS_FILE_NAME);
 
@@ -65,7 +64,7 @@ const initSentry = (): void => {
 /**
  * Enables or disables Sentry event sending on the live client.
  */
-const setSentryEnabled = (enabled: z.infer<typeof telemetrySchema>): void => {
+const setSentryEnabled = (enabled: Telemetry): void => {
   const client = Sentry.getClient();
 
   if (client) {

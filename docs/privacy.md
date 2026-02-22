@@ -23,7 +23,7 @@ Telemetry is **disabled by default**. If you enable it in Settings, the app may 
 - **Session recordings on errors** – When an error occurs, a recording of the UI state at that moment may be captured. Recordings are **not** captured continuously; only when something goes wrong. Text, images, and canvas elements (used for displaying photos in the photo editor) are blocked and masked and are not included.
 - **Console logs** – Log messages (log, warn, error) may be attached to error reports for debugging.
 
-All telemetry is sent only when you have enabled it in [settings](./user-guide/usage.md#settings). You can disable it at any time, however a restart of the app may be required for the change to take effect.
+All telemetry is sent only when you have enabled it in [settings](./user-guide/usage.md#settings). You can disable it at any time.
 
 ## Data processing and retention
 

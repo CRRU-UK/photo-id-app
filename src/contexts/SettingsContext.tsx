@@ -40,6 +40,8 @@ const initializeSentry = () => {
       Sentry.browserProfilingIntegration(),
       Sentry.replayIntegration({
         blockAllMedia: true,
+        maskAllInputs: true,
+        maskAllText: true,
         block: ["canvas", ".canvas-photo", ".canvas-loupe"],
       }),
       Sentry.consoleLoggingIntegration({ levels: ["log", "warn", "error"] }),
