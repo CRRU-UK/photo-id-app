@@ -14,6 +14,7 @@ jobs:
 
     name: Check changeset
 
+    # Don't apply to changeset release or dependabot PRs, or with the skip label
     if: >-
       github.head_ref != 'changeset-release/main' &&
       github.actor != 'dependabot[bot]' &&
