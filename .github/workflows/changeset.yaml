@@ -18,7 +18,7 @@ jobs:
     if: >-
       github.head_ref != 'changeset-release/main' &&
       github.actor != 'dependabot[bot]' &&
-      contains(github.event.pull_request.labels.*.name, 'skip changeset') == false
+      !contains(github.event.pull_request.labels.*.name, 'skip changeset')
 
     steps:
       - uses: actions/checkout@v6.0.2
