@@ -14,8 +14,10 @@ jobs:
 
     name: Check changeset
 
-    # Don't apply to changeset release PRs
-    if: github.head_ref != 'changeset-release/main'
+    if: >-
+      github.head_ref != 'changeset-release/main' &&
+      github.actor != 'dependabot[bot]' &&
+      contains(github.event.pull_request.labels.*.name, 'skip changeset') == false
 
     steps:
       - uses: actions/checkout@v6.0.2
