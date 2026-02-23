@@ -95,7 +95,7 @@ const createEmptyCollection = (): CollectionBody => ({
 
 const createProject = (overrides?: Partial<ProjectBody>): ProjectBody => ({
   version: "v1",
-  id: "test-id",
+  id: "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d",
   directory: "/project",
   unassigned: createEmptyCollection(),
   discarded: createEmptyCollection(),
@@ -991,7 +991,7 @@ describe(parseProjectFile, () => {
   });
 
   it("throws when a required field is missing", async () => {
-    const incomplete = { version: "v1", id: "test-id" };
+    const incomplete = { version: "v1", id: "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d" };
 
     mockReadFile.mockResolvedValue(JSON.stringify(incomplete));
 
@@ -1000,13 +1000,11 @@ describe(parseProjectFile, () => {
 
   it("throws when a field has the wrong type", async () => {
     const project = createProject();
-    const invalid = { ...project, version: 123 };
+    const invalid = { ...project, directory: 123 };
 
     mockReadFile.mockResolvedValue(JSON.stringify(invalid));
 
-    await expect(parseProjectFile("/bad/project.photoid")).rejects.toThrowError(
-      "expected string, received number",
-    );
+    await expect(parseProjectFile("/bad/project.photoid")).rejects.toThrowError("invalid_type");
   });
 
   it("throws when nested photo data is invalid", async () => {

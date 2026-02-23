@@ -4,14 +4,16 @@ import { useCanvasRenderer } from "./imageEditor/useCanvasRenderer";
 import { useImageFilters } from "./imageEditor/useImageFilters";
 import { useImageLoader } from "./imageEditor/useImageLoader";
 import { useImageTransform } from "./imageEditor/useImageTransform";
+import { useLoupe } from "./imageEditor/useLoupe";
 import { usePanInteraction } from "./imageEditor/usePanInteraction";
 import { useZoomInteraction } from "./imageEditor/useZoomInteraction";
 
 interface UseImageEditorProps {
   file: File;
+  loupeEnabled: boolean;
 }
 
-const useImageEditor = ({ file }: UseImageEditorProps) => {
+const useImageEditor = ({ file, loupeEnabled }: UseImageEditorProps) => {
   const [resetKey, setResetKey] = useState(0);
 
   const { imageRef, imageLoaded } = useImageLoader(file);
@@ -57,7 +59,11 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
     getTransform,
   });
 
-  const { handleWheel, handleZoomIn, handleZoomOut } = useZoomInteraction({
+  const {
+    handleWheel: handleWheelInternal,
+    handleZoomIn: handleZoomInInternal,
+    handleZoomOut: handleZoomOutInternal,
+  } = useZoomInteraction({
     canvasRef,
     imageRef,
     getImageCoords,
@@ -67,6 +73,33 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
     clamp,
     onDraw: draw,
   });
+
+  const { loupeCanvasRef, loupeContainerRef, handleLoupeMove, handleLoupeLeave, redrawLoupe } =
+    useLoupe({
+      enabled: loupeEnabled,
+      imageRef,
+      canvasRef,
+      getFilters,
+      getTransform,
+    });
+
+  const handleWheel = useCallback(
+    (event: WheelEvent) => {
+      handleWheelInternal(event);
+      redrawLoupe();
+    },
+    [handleWheelInternal, redrawLoupe],
+  );
+
+  const handleZoomIn = useCallback(() => {
+    handleZoomInInternal();
+    redrawLoupe();
+  }, [handleZoomInInternal, redrawLoupe]);
+
+  const handleZoomOut = useCallback(() => {
+    handleZoomOutInternal();
+    redrawLoupe();
+  }, [handleZoomOutInternal, redrawLoupe]);
 
   /**
    * Sets the brightness level for the image.
@@ -112,8 +145,9 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
     (state: Parameters<typeof setEdgeDetectionInternal>[0]) => {
       setEdgeDetectionInternal(state);
       drawThrottled();
+      redrawLoupe();
     },
-    [setEdgeDetectionInternal, drawThrottled],
+    [setEdgeDetectionInternal, drawThrottled, redrawLoupe],
   );
 
   /**
@@ -131,8 +165,9 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
       setPanInternal(newPan);
       clamp(canvasRef.current);
       drawThrottled();
+      redrawLoupe();
     },
-    [getTransform, setPanInternal, clamp, canvasRef, drawThrottled],
+    [getTransform, setPanInternal, clamp, canvasRef, drawThrottled, redrawLoupe],
   );
 
   const resetAll = useCallback(() => {
@@ -142,7 +177,8 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
     setResetKey((prev) => prev + 1);
 
     draw();
-  }, [resetFiltersInternal, resetTransformInternal, draw]);
+    redrawLoupe();
+  }, [resetFiltersInternal, resetTransformInternal, draw, redrawLoupe]);
 
   const applyEdits = useCallback(
     (value: {
@@ -194,6 +230,10 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
       resetAll,
       applyEdits,
       resetKey,
+      loupeCanvasRef,
+      loupeContainerRef,
+      handleLoupeMove,
+      handleLoupeLeave,
     }),
     [
       canvasRef,
@@ -216,6 +256,10 @@ const useImageEditor = ({ file }: UseImageEditorProps) => {
       resetAll,
       applyEdits,
       resetKey,
+      loupeCanvasRef,
+      loupeContainerRef,
+      handleLoupeMove,
+      handleLoupeLeave,
     ],
   );
 };

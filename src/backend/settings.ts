@@ -1,17 +1,21 @@
+import * as Sentry from "@sentry/electron/main";
 import { app } from "electron";
 import fs from "node:fs";
 import path from "node:path";
 
 import { DEFAULT_SETTINGS, SETTINGS_FILE_NAME } from "@/constants";
-import type { SettingsData } from "@/types";
+import { settingsDataSchema } from "@/schemas";
+import type { SettingsData, Telemetry } from "@/types";
 
-const userDataPath = app.getPath("userData");
-const settingsFile = path.join(userDataPath, SETTINGS_FILE_NAME);
+const getSettingsFilePath = (): string => path.join(app.getPath("userData"), SETTINGS_FILE_NAME);
 
 /**
- * Gets the current settings from the file, or returns defaults if the file doesn't exist.
+ * Gets the current settings from the file, or returns defaults if the file doesn't exist. Falls
+ * back to defaults when the file is missing, unreadable, or fails schema validation.
  */
 const getSettings = async (): Promise<SettingsData> => {
+  const settingsFile = getSettingsFilePath();
+
   if (!fs.existsSync(settingsFile)) {
     await updateSettings(DEFAULT_SETTINGS);
     return DEFAULT_SETTINGS;
@@ -19,9 +23,9 @@ const getSettings = async (): Promise<SettingsData> => {
 
   try {
     const data = await fs.promises.readFile(settingsFile, "utf8");
-    const settings = JSON.parse(data) as SettingsData;
+    const parsed = settingsDataSchema.parse(JSON.parse(data));
 
-    return { ...DEFAULT_SETTINGS, ...settings };
+    return parsed;
   } catch (error) {
     console.error("Error reading settings file:", error);
 
@@ -34,7 +38,39 @@ const getSettings = async (): Promise<SettingsData> => {
  * Updates the settings file with new settings.
  */
 const updateSettings = async (settings: SettingsData): Promise<void> => {
+  const settingsFile = getSettingsFilePath();
+
   await fs.promises.writeFile(settingsFile, JSON.stringify(settings, null, 2), "utf8");
 };
 
-export { getSettings, updateSettings };
+/**
+ * Initialises Sentry. Must be called before the Electron app `ready` event.
+ */
+const initSentry = (): void => {
+  if (!process.env.SENTRY_DSN) {
+    console.debug("Sentry DSN is not defined");
+    return;
+  }
+
+  Sentry.init({
+    dsn: process.env.SENTRY_DSN,
+    enabled: false,
+    integrations: [Sentry.consoleLoggingIntegration({ levels: ["log", "warn", "error"] })],
+    enableRendererProfiling: true,
+    _experiments: { enableLogs: true },
+  });
+};
+
+/**
+ * Enables or disables Sentry event sending on the live client.
+ */
+const setSentryEnabled = (telemetry: Telemetry): void => {
+  const client = Sentry.getClient();
+
+  if (client) {
+    client.getOptions().enabled = telemetry === "enabled";
+    console.debug(`Sentry has been ${telemetry} at runtime`);
+  }
+};
+
+export { getSettings, initSentry, setSentryEnabled, updateSettings };

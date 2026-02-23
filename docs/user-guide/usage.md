@@ -82,7 +82,7 @@ Only photos in matched stacks are exported - photos in the unassigned or discard
 
 ## Editing photos
 
-![Edit screen of the app](../assets/images/edit.png?v1){ width="700" }
+![Edit screen of the app](../assets/images/editor.png?v1){ width="700" }
 
 Photos can be edited to help identify marks. The photo editor can be opened by selecting the ==:octicons-pencil-16: Edit Photo== button below the photo in the project screen or by double-clicking the photo. The photo editor will open in a new window.
 
@@ -103,9 +103,15 @@ You can load the previous or next photo in the stack the current photo is in usi
 
 Multiple photo editor windows can be open at the same time so you can compare photos side-by-side.
 
+### Loupe
+
+![Edit screen of the app with the loupe enabled](../assets/images/editor-loupe.png?v1){ width="700" }
+
+A loupe can be toggled using the ==:octicons-codescan-16: loupe toggle button== in the toolbar. It will follow your cursor and allow you to see more details in the photo without having to zoom in and out.
+
 ### Edge detection
 
-![Edit screen of the app with edge detection enabled](../assets/images/edit-edge-detection.png?v1){ width="700" }
+![Edit screen of the app with edge detection enabled](../assets/images/editor-edge-detection.png?v1){ width="700" }
 
 Edge detection can be enabled to more easily identify marks in photos.
 
@@ -122,6 +128,8 @@ Projects are auto-saved whenever changes are made in the project or photo editor
 The settings menu can be opened selecting the ==:octicons-gear-16: Settings== button on the home page, using the [keyboard shortcut](./keyboard-shortcuts.md), or by using the menu bar option.
 
 These settings are global (i.e. the same for all projects) and per-user on your system.
+
+For information on how we handle data and optional telemetry, see our [privacy policy](../privacy.md).
 
 ## Notes
 

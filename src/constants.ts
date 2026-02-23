@@ -1,5 +1,3 @@
-import type { PhotoEdits, SettingsData } from "@/types";
-
 export enum IPC_EVENTS {
   // Projects
   OPEN_FOLDER = "project:openFolderPrompt",
@@ -66,6 +64,8 @@ export const PROJECT_KEYBOARD_HINTS = {
 export const EDITOR_TOOLTIPS = {
   ENABLE_EDGE_DETECTION: "Enable edge detection",
   DISABLE_EDGE_DETECTION: "Disable edge detection",
+  ENABLE_LOUPE: "Enable loupe",
+  DISABLE_LOUPE: "Disable loupe",
   PAN_LEFT: "Pan left",
   PAN_UP: "Pan up",
   PAN_DOWN: "Pan down",
@@ -80,6 +80,7 @@ export const EDITOR_TOOLTIPS = {
 
 export const EDITOR_KEYBOARD_HINTS = {
   TOGGLE_EDGE_DETECTION: "E",
+  TOGGLE_LOUPE: "Space",
   PAN_LEFT: "ArrowLeft",
   PAN_UP: "ArrowUp",
   PAN_DOWN: "ArrowDown",
@@ -100,6 +101,7 @@ export const EDITOR_KEYBOARD_CODES = {
   PAN_DOWN: "ArrowDown",
   PAN_RIGHT: "ArrowRight",
   TOGGLE_EDGE_DETECTION: "e",
+  TOGGLE_LOUPE: "Space",
   RESET: "r",
   SAVE: "s",
   ZOOM_OUT: "-",
@@ -155,6 +157,7 @@ export enum EXTERNAL_LINKS {
   USER_GUIDE = "https://photoidapp.crru.org.uk/user-guide/usage/",
   KEYBOARD_SHORTCUTS = "https://photoidapp.crru.org.uk/user-guide/keyboard-shortcuts/",
   CHANGELOG = "https://github.com/CRRU-UK/photo-id-app/releases/$VERSION",
+  PRIVACY = "https://photoidapp.crru.org.uk/privacy/",
 }
 
 export const IMAGE_FILTERS = {
@@ -181,13 +184,13 @@ export const IMAGE_EDITS = {
   PAN_Y: 0,
 };
 
-export const DEFAULT_PHOTO_EDITS: PhotoEdits = {
+export const DEFAULT_PHOTO_EDITS = {
   brightness: IMAGE_FILTERS.BRIGHTNESS.DEFAULT,
   contrast: IMAGE_FILTERS.CONTRAST.DEFAULT,
   saturate: IMAGE_FILTERS.SATURATE.DEFAULT,
   zoom: IMAGE_EDITS.ZOOM,
   pan: { x: IMAGE_EDITS.PAN_X, y: IMAGE_EDITS.PAN_Y },
-};
+} as const;
 
 export const ZOOM_FACTORS = {
   BUTTON: 1.2,
@@ -197,6 +200,12 @@ export const ZOOM_FACTORS = {
 
 export const PAN_AMOUNT = 50;
 
+export const LOUPE = {
+  SIZE: 450,
+  ZOOM: 2,
+  CURSOR_PADDING: 40, // Padding towards cursor
+};
+
 export const EDGE_DETECTION = {
   MIN: 0,
   MAX: 100,
@@ -204,7 +213,7 @@ export const EDGE_DETECTION = {
   CONTRAST: 50,
 };
 
-export const DEFAULT_SETTINGS: SettingsData = {
+export const DEFAULT_SETTINGS = {
   themeMode: "dark",
   telemetry: "disabled",
-};
+} as const;

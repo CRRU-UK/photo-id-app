@@ -7,6 +7,7 @@ import {
   ArrowUpIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  CodescanIcon,
   EyeClosedIcon,
   EyeIcon,
   ZoomInIcon,
@@ -24,6 +25,7 @@ import {
   EditorPanDirection,
   IMAGE_FILTERS,
   KEYBOARD_CODE_TO_PAN_DIRECTION,
+  LOUPE,
   PAN_AMOUNT,
 } from "@/constants";
 import LoadingOverlay from "@/frontend/components/LoadingOverlay";
@@ -85,18 +87,20 @@ const Slider = ({
 interface CanvasImageProps {
   handlePointerDown: (event: React.PointerEvent<HTMLCanvasElement>) => void;
   handlePointerMove: (event: React.PointerEvent<HTMLCanvasElement>) => void;
-  handlePointerUp: (event: React.PointerEvent<HTMLCanvasElement>) => void;
+  handlePointerUp: () => void;
+  handlePointerLeave: () => void;
 }
 
 const CanvasImage = forwardRef<HTMLCanvasElement, CanvasImageProps>(
-  ({ handlePointerDown, handlePointerMove, handlePointerUp }, ref) => {
+  ({ handlePointerDown, handlePointerMove, handlePointerUp, handlePointerLeave }, ref) => {
     return (
       <canvas
         ref={ref}
-        className="canvas"
+        className="canvas-photo"
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
+        onPointerLeave={handlePointerLeave}
       />
     );
   },
@@ -116,6 +120,7 @@ const ImageEditor = ({ data, image, setQueryCallback, onImageLoaded }: ImageEdit
 
   const [saving, setSaving] = useState<boolean>(false);
   const [navigating, setNavigating] = useState<boolean>(false);
+  const [loupeEnabled, setLoupeEnabled] = useState<boolean>(false);
 
   const edits = data.edits;
 
@@ -146,9 +151,37 @@ const ImageEditor = ({ data, image, setQueryCallback, onImageLoaded }: ImageEdit
     resetAll,
     applyEdits,
     resetKey,
+    loupeCanvasRef,
+    loupeContainerRef,
+    handleLoupeMove,
+    handleLoupeLeave,
   } = useImageEditor({
     file: image,
+    loupeEnabled,
   });
+
+  const handleCanvasPointerMove = useCallback(
+    (event: React.PointerEvent<HTMLCanvasElement>) => {
+      handlePointerMove(event);
+      handleLoupeMove(event);
+    },
+    [handlePointerMove, handleLoupeMove],
+  );
+
+  const handleCanvasPointerLeave = useCallback(() => {
+    handlePointerUp();
+    handleLoupeLeave();
+  }, [handlePointerUp, handleLoupeLeave]);
+
+  const handleToggleLoupe = useCallback(() => {
+    setLoupeEnabled((prev) => {
+      if (prev) {
+        handleLoupeLeave();
+      }
+
+      return !prev;
+    });
+  }, [handleLoupeLeave]);
 
   const [edgeDetectionEnabled, setEdgeDetectionEnabled] = useState<boolean>(false);
   const edgeDetectionValueRef = useRef<number>(EDGE_DETECTION.DEFAULT);
@@ -182,6 +215,7 @@ const ImageEditor = ({ data, image, setQueryCallback, onImageLoaded }: ImageEdit
   const handleReset = useCallback(() => {
     resetAll();
     resetEdgeDetection();
+    setLoupeEnabled(false);
     setSliderInitials({
       brightness: IMAGE_FILTERS.BRIGHTNESS.DEFAULT,
       contrast: IMAGE_FILTERS.CONTRAST.DEFAULT,
@@ -287,6 +321,21 @@ const ImageEditor = ({ data, image, setQueryCallback, onImageLoaded }: ImageEdit
         return handleEditorNavigation("next");
       }
 
+      const isInteractiveTarget =
+        event.target instanceof HTMLButtonElement ||
+        event.target instanceof HTMLInputElement ||
+        event.target instanceof HTMLTextAreaElement ||
+        event.target instanceof HTMLSelectElement;
+
+      if (
+        !modifierKey &&
+        !isInteractiveTarget &&
+        event.code === EDITOR_KEYBOARD_CODES.TOGGLE_LOUPE
+      ) {
+        event.preventDefault();
+        return handleToggleLoupe();
+      }
+
       if (!modifierKey && key === EDITOR_KEYBOARD_CODES.TOGGLE_EDGE_DETECTION) {
         event.preventDefault();
         return handleToggleEdgeDetection();
@@ -315,6 +364,7 @@ const ImageEditor = ({ data, image, setQueryCallback, onImageLoaded }: ImageEdit
     [
       handlePanDirection,
       handleEditorNavigation,
+      handleToggleLoupe,
       handleToggleEdgeDetection,
       handleReset,
       handleSave,
@@ -349,6 +399,7 @@ const ImageEditor = ({ data, image, setQueryCallback, onImageLoaded }: ImageEdit
       });
 
       resetEdgeDetection();
+      setLoupeEnabled(false);
 
       draw();
 
@@ -402,9 +453,19 @@ const ImageEditor = ({ data, image, setQueryCallback, onImageLoaded }: ImageEdit
         <CanvasImage
           ref={canvasRef}
           handlePointerDown={handlePointerDown}
-          handlePointerMove={handlePointerMove}
+          handlePointerMove={handleCanvasPointerMove}
           handlePointerUp={handlePointerUp}
+          handlePointerLeave={handleCanvasPointerLeave}
         />
+
+        <div ref={loupeContainerRef} className="loupe">
+          <canvas
+            ref={loupeCanvasRef}
+            width={LOUPE.SIZE}
+            height={LOUPE.SIZE}
+            className="canvas-loupe"
+          />
+        </div>
 
         <Stack className="edge-toggle" direction="horizontal" align="center" spacing="none">
           <IconButton
@@ -495,7 +556,7 @@ const ImageEditor = ({ data, image, setQueryCallback, onImageLoaded }: ImageEdit
             />
           </ButtonGroup>
 
-          <ButtonGroup style={{ marginRight: "auto" }}>
+          <ButtonGroup style={{ marginRight: "var(--stack-gap-spacious)" }}>
             <IconButton
               icon={ZoomOutIcon}
               size="large"
@@ -509,6 +570,19 @@ const ImageEditor = ({ data, image, setQueryCallback, onImageLoaded }: ImageEdit
               aria-label={EDITOR_TOOLTIPS.ZOOM_IN}
               keybindingHint={EDITOR_KEYBOARD_HINTS.ZOOM_IN}
               onClick={handleZoomIn}
+            />
+          </ButtonGroup>
+
+          <ButtonGroup style={{ marginRight: "auto" }}>
+            <IconButton
+              icon={CodescanIcon}
+              size="large"
+              variant={loupeEnabled ? "primary" : "default"}
+              aria-label={
+                loupeEnabled ? EDITOR_TOOLTIPS.DISABLE_LOUPE : EDITOR_TOOLTIPS.ENABLE_LOUPE
+              }
+              keybindingHint={EDITOR_KEYBOARD_HINTS.TOGGLE_LOUPE}
+              onClick={handleToggleLoupe}
             />
           </ButtonGroup>
 

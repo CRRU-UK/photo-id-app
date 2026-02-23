@@ -23,7 +23,23 @@ vi.mock("node:fs", () => ({
   },
 }));
 
-const { getSettings, updateSettings } = await import("./settings");
+const mockSentryInit = vi.fn<(options: Record<string, unknown>) => void>();
+const mockConsoleLoggingIntegration = vi.fn<(options: Record<string, unknown>) => string>(
+  () => "mockIntegration",
+);
+const mockClientOptions = { enabled: true };
+const mockSentryGetClient = vi.fn<() => { getOptions: () => typeof mockClientOptions } | undefined>(
+  () => ({ getOptions: () => mockClientOptions }),
+);
+
+vi.mock("@sentry/electron/main", () => ({
+  init: (options: Record<string, unknown>) => mockSentryInit(options),
+  consoleLoggingIntegration: (options: Record<string, unknown>) =>
+    mockConsoleLoggingIntegration(options),
+  getClient: () => mockSentryGetClient(),
+}));
+
+const { getSettings, initSentry, setSentryEnabled, updateSettings } = await import("./settings");
 
 describe("settings", () => {
   beforeEach(() => {
@@ -106,6 +122,30 @@ describe("settings", () => {
 
       expect(result).toStrictEqual(DEFAULT_SETTINGS);
     });
+
+    it("returns default settings when a field has an invalid value", async () => {
+      const invalidSettings = { themeMode: "neon", telemetry: "enabled" };
+      mockExistsSync.mockReturnValue(true);
+      mockReadFile.mockResolvedValue(JSON.stringify(invalidSettings));
+
+      const result = await getSettings();
+
+      expect(result).toStrictEqual(DEFAULT_SETTINGS);
+    });
+
+    it("writes default settings when a field has an invalid value", async () => {
+      const invalidSettings = { themeMode: "dark", telemetry: 42 };
+      mockExistsSync.mockReturnValue(true);
+      mockReadFile.mockResolvedValue(JSON.stringify(invalidSettings));
+
+      await getSettings();
+
+      expect(mockWriteFile).toHaveBeenCalledWith(
+        expect.stringContaining(SETTINGS_FILE_NAME),
+        JSON.stringify(DEFAULT_SETTINGS, null, 2),
+        "utf8",
+      );
+    });
   });
 
   describe(updateSettings, () => {
@@ -127,6 +167,63 @@ describe("settings", () => {
       const writtenPath = mockWriteFile.mock.calls[0][0];
 
       expect(writtenPath).toMatch(/^\/mock\/userData/);
+    });
+  });
+
+  describe(initSentry, () => {
+    it("initialises Sentry with enabled false when DSN is set", () => {
+      const originalEnv = process.env.SENTRY_DSN;
+      process.env.SENTRY_DSN = "https://test@sentry.io/123";
+
+      initSentry();
+
+      expect(mockSentryInit).toHaveBeenCalledWith(
+        expect.objectContaining({
+          dsn: "https://test@sentry.io/123",
+          enabled: false,
+          enableRendererProfiling: true,
+        }),
+      );
+      expect(mockConsoleLoggingIntegration).toHaveBeenCalledWith({
+        levels: ["log", "warn", "error"],
+      });
+
+      process.env.SENTRY_DSN = originalEnv;
+    });
+
+    it("does not initialise Sentry when DSN is not set", () => {
+      const originalEnv = process.env.SENTRY_DSN;
+      delete process.env.SENTRY_DSN;
+
+      initSentry();
+
+      expect(mockSentryInit).not.toHaveBeenCalled();
+
+      process.env.SENTRY_DSN = originalEnv;
+    });
+  });
+
+  describe(setSentryEnabled, () => {
+    it("enables Sentry on the live client", () => {
+      mockClientOptions.enabled = false;
+
+      setSentryEnabled("enabled");
+
+      expect(mockClientOptions.enabled).toBe(true);
+    });
+
+    it("disables Sentry on the live client", () => {
+      mockClientOptions.enabled = true;
+
+      setSentryEnabled("disabled");
+
+      expect(mockClientOptions.enabled).toBe(false);
+    });
+
+    it("does not throw when there is no Sentry client", () => {
+      mockSentryGetClient.mockReturnValueOnce(undefined as never);
+
+      expect(() => setSentryEnabled("enabled")).not.toThrowError();
     });
   });
 });

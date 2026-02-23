@@ -100,7 +100,7 @@ describe(getImageCoordinates, () => {
       naturalHeight: 1200,
     } as HTMLImageElement;
 
-    const result = getImageCoordinates({ screenX: 500, screenY: 350, canvas, image });
+    const result = getImageCoordinates({ clientX: 500, clientY: 350, canvas, image });
 
     expect(result).toStrictEqual({ x: 800, y: 600 });
   });
@@ -120,7 +120,7 @@ describe(getImageCoordinates, () => {
       naturalHeight: 600,
     } as HTMLImageElement;
 
-    const result = getImageCoordinates({ screenX: 400, screenY: 250, canvas, image });
+    const result = getImageCoordinates({ clientX: 400, clientY: 250, canvas, image });
 
     expect(result).toStrictEqual({ x: 400, y: 300 });
   });
@@ -132,8 +132,8 @@ describe(getImageCoordinates, () => {
     } as HTMLImageElement;
 
     const result = getImageCoordinates({
-      screenX: 100,
-      screenY: 100,
+      clientX: 100,
+      clientY: 100,
       canvas: null as unknown as HTMLCanvasElement,
       image,
     });
@@ -152,8 +152,8 @@ describe(getImageCoordinates, () => {
     } as unknown as HTMLCanvasElement;
 
     const result = getImageCoordinates({
-      screenX: 100,
-      screenY: 100,
+      clientX: 100,
+      clientY: 100,
       canvas,
       image: null as unknown as HTMLImageElement,
     });
@@ -176,7 +176,7 @@ describe(getImageCoordinates, () => {
       naturalHeight: 2000,
     } as HTMLImageElement;
 
-    const result = getImageCoordinates({ screenX: 500, screenY: 250, canvas, image });
+    const result = getImageCoordinates({ clientX: 500, clientY: 250, canvas, image });
 
     expect(result).toStrictEqual({ x: 1000, y: 1000 });
   });

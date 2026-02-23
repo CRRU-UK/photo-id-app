@@ -94,16 +94,16 @@ export const getBoundaries = (
 });
 
 /**
- * Convert screen coordinates to image coordinates
+ * Convert viewport (client) coordinates to image coordinates.
  */
 export const getImageCoordinates = ({
-  screenX,
-  screenY,
+  clientX,
+  clientY,
   canvas,
   image,
 }: {
-  screenX: number;
-  screenY: number;
+  clientX: number;
+  clientY: number;
   canvas: HTMLCanvasElement | null;
   image: HTMLImageElement | null;
 }): {
@@ -116,15 +116,15 @@ export const getImageCoordinates = ({
 
   const rect = canvas.getBoundingClientRect();
 
-  const screenImageX = screenX - rect.left;
-  const screenImageY = screenY - rect.top;
+  const offsetX = clientX - rect.left;
+  const offsetY = clientY - rect.top;
 
   const scaleX = image.naturalWidth / canvas.clientWidth;
   const scaleY = image.naturalHeight / canvas.clientHeight;
 
   return {
-    x: screenImageX * scaleX,
-    y: screenImageY * scaleY,
+    x: offsetX * scaleX,
+    y: offsetY * scaleY,
   };
 };
 

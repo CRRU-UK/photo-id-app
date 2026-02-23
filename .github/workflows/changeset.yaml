@@ -1,0 +1,37 @@
+name: Changeset
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  check-changeset:
+    runs-on: ubuntu-latest
+
+    name: Check changeset
+
+    # Don't apply to changeset release or dependabot PRs, or with the skip label
+    if: >-
+      github.head_ref != 'changeset-release/main' &&
+      !startsWith(github.head_ref, 'dependabot/') &&
+      !contains(github.event.pull_request.labels.*.name, 'skip changeset')
+
+    steps:
+      - uses: actions/checkout@v6.0.2
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v6.2.0
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check for changeset
+        run: npx changeset status --since=origin/main

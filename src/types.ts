@@ -8,6 +8,9 @@ import type {
   photoBodySchema,
   photoEditsSchema,
   projectBodySchema,
+  settingsDataSchema,
+  telemetrySchema,
+  themeModeSchema,
 } from "@/schemas";
 
 export type Directory = string;
@@ -58,7 +61,7 @@ export type LoadingData = {
 
 export type EditorNavigation = "prev" | "next";
 
-export type ExternalLinks = "website" | "user-guide" | "keyboard-shortcuts" | "changelog";
+export type ExternalLinks = "website" | "user-guide" | "changelog" | "privacy";
 
 export type EdgeDetectionData = { enabled: false } | { enabled: true; value: number };
 
@@ -74,11 +77,8 @@ export type ImageTransformations = {
   pan: { x: number; y: number };
 };
 
-export type ThemeMode = "light" | "dark" | "auto";
+export type ThemeMode = z.infer<typeof themeModeSchema>;
 
-export type Telemetry = "enabled" | "disabled";
+export type Telemetry = z.infer<typeof telemetrySchema>;
 
-export type SettingsData = {
-  themeMode: ThemeMode;
-  telemetry: Telemetry;
-};
+export type SettingsData = z.infer<typeof settingsDataSchema>;

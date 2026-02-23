@@ -36,6 +36,7 @@ Keyboard shortcuts can be used for many functions in the app:
 | Pan photo right       | ++arrow-right++            | ++arrow-right++  |
 | Pan photo up          | ++arrow-up++               | ++arrow-up++     |
 | Pan photo down        | ++arrow-down++             | ++arrow-down++   |
+| Toggle loupe          | ++space++                  | ++space++        |
 | Toggle edge detection | ++e++                      | ++e++            |
 | Previous photo        | ++p++                      | ++p++            |
 | Next photo            | ++n++                      | ++n++            |

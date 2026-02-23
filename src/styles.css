@@ -189,7 +189,23 @@ html[data-color-mode="light"] .project .photo-stack {
   border-radius: var(--borderRadius-default);
 }
 
-.edit > .canvas {
+.edit > .loupe {
+  z-index: 5;
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: none;
+  pointer-events: none;
+  border: 2px solid var(--borderColor-muted);
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.edit > .loupe canvas {
+  display: block;
+}
+
+.edit > .canvas-photo {
   z-index: 0;
   position: absolute;
   left: 0;
@@ -199,12 +215,12 @@ html[data-color-mode="light"] .project .photo-stack {
   object-fit: contain;
 }
 
-.edit > .canvas,
-.edit > .canvas:hover {
+.edit > .canvas-photo,
+.edit > .canvas-photo:hover {
   cursor: grab;
 }
 
-.edit > .canvas:active {
+.edit > .canvas-photo:active {
   cursor: grabbing;
 }
 

@@ -47,8 +47,8 @@ export const useImageTransform = (imageRef: React.RefObject<HTMLImageElement | n
 
   const getImageCoords = useCallback(
     (
-      screenX: number,
-      screenY: number,
+      clientX: number,
+      clientY: number,
       canvas: HTMLCanvasElement | null,
     ): { x: number; y: number } | null => {
       const image = imageRef.current;
@@ -57,7 +57,7 @@ export const useImageTransform = (imageRef: React.RefObject<HTMLImageElement | n
         return null;
       }
 
-      return getImageCoordinates({ screenX, screenY, canvas, image });
+      return getImageCoordinates({ clientX, clientY, canvas, image });
     },
     [imageRef],
   );
