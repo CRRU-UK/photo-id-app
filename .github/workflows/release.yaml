@@ -39,6 +39,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.PUBLISH_GITHUB_TOKEN }}
         with:
+          cwd: ./app
           title: Release
           version: npm run changesets:version
           publish: npm run changesets:tag

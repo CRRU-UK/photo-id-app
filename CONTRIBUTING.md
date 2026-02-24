@@ -4,4 +4,4 @@
 
 ## Pull Requests
 
-Run `npx changeset` before merging pull-requests.
+Run `npx changeset` from `app/` before merging pull-requests.
