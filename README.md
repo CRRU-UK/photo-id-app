@@ -27,14 +27,8 @@ It supports Windows, macOS, and Linux.
 
 1. Clone the repository
 2. Ensure you are using Node version >= 24 (`nvm install 24` / `nvm use 24`)
-3. Install the dependencies by running [`npm ci`](https://docs.npmjs.com/cli/ci.html) from the repo root
+3. Install the dependencies by running [`npm ci`](https://docs.npmjs.com/cli/ci.html) from the `app/` directory
 4. If using VS Code install the [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) and [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode) extensions
-
-The following NPM commands are available from the **repo root**:
-
-| Command | Description                                            |
-| ------- | ------------------------------------------------------ |
-| `docs`  | Builds and serves documentation locally. <sup>1</sup> |
 
 The following NPM commands are available from the **`app/` directory**:
 
@@ -53,7 +47,7 @@ The following NPM commands are available from the **`app/` directory**:
 | `test:unit`          | Runs unit tests and generates a coverage report.                 |
 | `test:unit:watch`    | Same as `test:unit` but runs it in watch mode.                   |
 
-<sup>1</sup> Requires [Material for MKDocs](https://squidfunk.github.io/mkdocs-material/).
+To serve the documentation locally, run `mkdocs serve` from the repo root. Requires [Material for MkDocs](https://squidfunk.github.io/mkdocs-material/).
 
 ### Debugging
 

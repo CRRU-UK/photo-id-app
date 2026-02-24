@@ -18,11 +18,11 @@
 ### Development Flow
 
 - **Prerequisites**: Node >= 24 required (see `README.md`)
-- **Install dependencies**: `npm ci` from repo root (installs all workspaces) — or `npm ci` from `app/` directly
+- **Install dependencies**: `npm ci` from `app/`
 - **Run locally**: `npm start` from `app/` (uses `electron-forge start`)
 - **Run tests**: `npm test` from `app/` (includes linting, type-check, and unit tests)
 - **Run tests in watch mode**: `npm run test:unit:watch` from `app/` for iterative development
-- **Serve docs**: `npm run docs` from repo root
+- **Serve docs**: `mkdocs serve` from repo root
 - **Add a changeset**: `npm run changesets:add` from `app/`
 - **Never run**: `npm run package`, `npm run make`, or `npm run publish`
 

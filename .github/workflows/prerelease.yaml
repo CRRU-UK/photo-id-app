@@ -32,11 +32,10 @@ jobs:
         with:
           node-version: 24
           cache: npm
-          cache-dependency-path: package-lock.json
+          cache-dependency-path: app/package-lock.json
 
       - name: Install dependencies
         run: npm ci
-        working-directory: ${{ github.workspace }}
 
       - name: Build app
         run: npm run make
