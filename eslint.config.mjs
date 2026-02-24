@@ -56,7 +56,7 @@ const recommendedConfigs = [
     },
   },
   {
-    files: ["src/**/*.{js,ts,jsx,tsx}"],
+    files: ["app/src/**/*.{js,ts,jsx,tsx}"],
     plugins: {
       "react-hooks": reactHooks,
     },

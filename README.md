@@ -27,10 +27,16 @@ It supports Windows, macOS, and Linux.
 
 1. Clone the repository
 2. Ensure you are using Node version >= 24 (`nvm install 24` / `nvm use 24`)
-3. Install the dependencies by running [`npm ci`](https://docs.npmjs.com/cli/ci.html)
+3. Install the dependencies by running [`npm ci`](https://docs.npmjs.com/cli/ci.html) from the repo root
 4. If using VS Code install the [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) and [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode) extensions
 
-Below are the NPM commands that can be used for development:
+The following NPM commands are available from the **repo root**:
+
+| Command | Description                                            |
+| ------- | ------------------------------------------------------ |
+| `docs`  | Builds and serves documentation locally. <sup>1</sup> |
+
+The following NPM commands are available from the **`app/` directory**:
 
 | Command              | Description                                                      |
 | -------------------- | ---------------------------------------------------------------- |
@@ -46,7 +52,6 @@ Below are the NPM commands that can be used for development:
 | `test:types`         | Runs TypeScript tests.                                           |
 | `test:unit`          | Runs unit tests and generates a coverage report.                 |
 | `test:unit:watch`    | Same as `test:unit` but runs it in watch mode.                   |
-| `docs`               | Builds and serves documentation locally. <sup>1</sup>            |
 
 <sup>1</sup> Requires [Material for MKDocs](https://squidfunk.github.io/mkdocs-material/).
 
@@ -56,4 +61,4 @@ Using VSCode, a debugger can be attached to the main process in Electron by runn
 
 ### Error Tracking
 
-The app uses [Sentry](https://sentry.io) to track errors and logs for debugging in published production builds. To enable this locally, add an `.env` file to the root of the repository using the variables defined in [`.env.example`](.env.example). This file also needs to be created when publishing to ensure the values are included in the production build.
+The app uses [Sentry](https://sentry.io) to track errors and logs for debugging in published production builds. To enable this locally, add an `.env` file to the `app/` directory using the variables defined in [`app/.env.example`](app/.env.example). This file also needs to be created when publishing to ensure the values are included in the production build.
