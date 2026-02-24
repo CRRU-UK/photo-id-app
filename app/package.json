@@ -26,8 +26,7 @@
     "test:linting": "eslint . && prettier . --check",
     "test:types": "tsc --noEmit",
     "test:unit": "vitest run",
-    "test:unit:watch": "vitest watch",
-    "docs": "mkdocs serve"
+    "test:unit:watch": "vitest watch"
   },
   "optionalDependencies": {
     "encoding": "^0.1.13"

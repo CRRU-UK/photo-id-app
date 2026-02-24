@@ -18,18 +18,20 @@
 ### Development Flow
 
 - **Prerequisites**: Node >= 24 required (see `README.md`)
-- **Install dependencies**: `npm ci`
-- **Run locally**: `npm start` (uses `electron-forge start`)
-- **Run tests**: `npm test` (includes linting, type-check, and unit tests)
-- **Run tests in watch mode**: `npm run test:unit:watch` for iterative development
+- **Install dependencies**: `npm ci` from `app/`
+- **Run locally**: `npm start` from `app/` (uses `electron-forge start`)
+- **Run tests**: `npm test` from `app/` (includes linting, type-check, and unit tests)
+- **Run tests in watch mode**: `npm run test:unit:watch` from `app/` for iterative development
+- **Serve docs**: `mkdocs serve` from repo root
+- **Add a changeset**: `npm run changesets:add` from `app/`
 - **Never run**: `npm run package`, `npm run make`, or `npm run publish`
 
 ## Conventions
 
 ### Code standards and style
 
-- Prefer using and centralising constants (see `src/constants.ts`) and types (see `src/types.ts`).
-- Prefer abstracting small blocks of logic into helper functions (see `src/helpers.ts`).
+- Prefer using and centralising constants (see `app/src/constants.ts`) and types (see `app/src/types.ts`).
+- Prefer abstracting small blocks of logic into helper functions (see `app/src/helpers.ts`).
 - Prefer using full variable and parameter names for clarity (e.g. `error` instead of `e`).
 - Prefer using longer functions that are easier to read over clever one-liners.
 - Prefer using async/await over raw Promises for async code.
@@ -44,39 +46,39 @@
 
 ### Architecture-specific conventions
 
-- IPC naming is explicit. Prefer using the `IPC_EVENTS` enum from `src/constants.ts` instead of raw strings.
-- File operations and project persistence happen on the main side (`src/backend/*.ts`). Frontend should call preload helpers and assume I/O is async.
+- IPC naming is explicit. Prefer using the `IPC_EVENTS` enum from `app/src/constants.ts` instead of raw strings.
+- File operations and project persistence happen on the main side (`app/src/backend/*.ts`). Frontend should call preload helpers and assume I/O is async.
 - Edit-window lifecycle: when navigating editor photos, the renderer calls `window.electronAPI.navigateEditorPhoto(data, direction)` which returns a base64-encoded JSON string that the edit route sets back into its query param.
-- Thumbnails are stored next to the project: see `PROJECT_THUMBNAIL_DIRECTORY` in `src/constants.ts`.
-- Avoid editing generated files: `src/routeTree.gen.ts` and other generator outputs.
+- Thumbnails are stored next to the project: see `PROJECT_THUMBNAIL_DIRECTORY` in `app/src/constants.ts`.
+- Avoid editing generated files: `app/src/routeTree.gen.ts` and other generator outputs.
 
 ## Integration points / external deps
 
-- Electron + electron-forge + vite: packaging handled by `electron-forge` + forge Vite plugin (configs at project root: `vite.*.mts`, `forge.config.ts`).
-- Sentry: integrated in both main (`@sentry/electron`) and renderer (`@sentry/electron/renderer`). Opt-in via settings; when enabled, captures crashes, errors, session replay (error-only), tracing, profiling, and console logs. Initialised before app ready; user preference applied in `whenReady`. Privacy policy at `docs/privacy.md`. Environment variables: `VITE_SENTRY_DSN` (renderer) and `SENTRY_DSN` (main). See `.env.example`.
+- Electron + electron-forge + vite: packaging handled by `electron-forge` + forge Vite plugin (configs under `app/`: `vite.*.mts`, `forge.config.ts`).
+- Sentry: integrated in both main (`@sentry/electron`) and renderer (`@sentry/electron/renderer`). Opt-in via settings; when enabled, captures crashes, errors, session replay (error-only), tracing, profiling, and console logs. Initialised before app ready; user preference applied in `whenReady`. Privacy policy at `docs/privacy.md`. Environment variables: `VITE_SENTRY_DSN` (renderer) and `SENTRY_DSN` (main). See `app/.env.example`.
 - Native image processing: `@napi-rs/canvas` is used in backend image helpers.
 
 ## If you need to change behaviour
 
-- For IPC additions: add a new `IPC_EVENTS` entry, implement handler in `src/main.ts` (or backend helper) and expose through `src/preload.ts`.
-- For UI routes: add/edit files in `src/routes/` — the generated `routeTree.gen.ts` will be updated by the router tooling.
+- For IPC additions: add a new `IPC_EVENTS` entry, implement handler in `app/src/main.ts` (or backend helper) and expose through `app/src/preload.ts`.
+- For UI routes: add/edit files in `app/src/routes/` — the generated `app/src/routeTree.gen.ts` will be updated by the router tooling.
 
 When unsure, look at these files first
 
-- `src/main.ts`
-- `src/preload.ts`
-- `src/index.tsx`
-- `src/constants.ts`
-- `src/types.ts`
-- `src/backend/*`
-- `src/frontend/components/*`
-- `src/routes/*`
+- `app/src/main.ts`
+- `app/src/preload.ts`
+- `app/src/index.tsx`
+- `app/src/constants.ts`
+- `app/src/types.ts`
+- `app/src/backend/*`
+- `app/src/frontend/components/*`
+- `app/src/routes/*`
 
 ## Considerations
 
 - The app is often run on machines with limited hardware. Be conservative with memory and avoid loading many full-resolution images into memory at once.
-- Favour streaming, thumbnails (`src/backend/photos.ts`), and on-disk edits over keeping large buffers in renderer memory. Use the backend helpers for file I/O and image processing (`@napi-rs/canvas`).
-- In React, avoid retaining large binary blobs in state across long sessions; prefer references to on-disk filenames and load File/ArrayBuffer only when needed (see `src/routes/edit.tsx` and `src/frontend/hooks/usePhotoEditor.ts`).
+- Favour streaming, thumbnails (`app/src/backend/photos.ts`), and on-disk edits over keeping large buffers in renderer memory. Use the backend helpers for file I/O and image processing (`@napi-rs/canvas`).
+- In React, avoid retaining large binary blobs in state across long sessions; prefer references to on-disk filenames and load File/ArrayBuffer only when needed (see `app/src/routes/edit.tsx` and `app/src/frontend/hooks/usePhotoEditor.ts`).
 
 ## Key Guidelines
 
@@ -84,8 +86,8 @@ When unsure, look at these files first
 2. **Usage considerations**: Remember the app is typically run on low-spec hardware Windows computers, for long periods of time, and using high-resolution images; optimize for memory and CPU usage
 3. **Always run tests before proposing changes**: Use `npm test` to verify linting, types, and unit tests pass
 4. **Follow established patterns**: Examine similar code in the codebase before implementing new features
-5. **Use IPC constants**: Always reference `IPC_EVENTS` from `src/constants.ts` instead of raw strings
-6. **Maintain type safety**: Ensure all types are defined in `src/types.ts` and shared properly between main and renderer
+5. **Use IPC constants**: Always reference `IPC_EVENTS` from `app/src/constants.ts` instead of raw strings
+6. **Maintain type safety**: Ensure all types are defined in `app/src/types.ts` and shared properly between main and renderer
 7. **Keep the architecture clean**: Frontend calls preload helpers, main process handles file I/O, backend helpers do actual work
 8. **Test new functionality**: Add or update unit tests alongside feature changes in `*.test.ts` files
 9. **Document non-obvious code**: Add comments only for workarounds, hacks, or non-obvious logic paths

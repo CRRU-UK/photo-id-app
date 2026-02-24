@@ -18,8 +18,12 @@ permissions:
   contents: read
 
 jobs:
-  pre-release:
+  pre-release-app:
     runs-on: ${{ fromJSON(format('["{0}"]', inputs.platform)) }}
+
+    defaults:
+      run:
+        working-directory: ./app
 
     steps:
       - uses: actions/checkout@v6.0.2
@@ -28,6 +32,7 @@ jobs:
         with:
           node-version: 24
           cache: npm
+          cache-dependency-path: app/package-lock.json
 
       - name: Install dependencies
         run: npm ci
@@ -47,5 +52,5 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: prerelease-${{ inputs.platform }}
-          path: out/make/
+          path: app/out/make/
           retention-days: 1
