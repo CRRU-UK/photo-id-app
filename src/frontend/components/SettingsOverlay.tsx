@@ -105,6 +105,7 @@ const SettingsOverlay = ({ open, onClose, onOpenRequest, returnFocusRef }: Setti
       returnFocusRef={returnFocusRef ?? undefined}
       footerButtons={[{ buttonType: "default", content: "Close", onClick: onClose }]}
       width="xlarge"
+      className="settings-overlay"
     >
       {contextSettings && (
         <UnderlinePanels aria-label="Select a tab">
@@ -187,7 +188,7 @@ const SettingsOverlay = ({ open, onClose, onOpenRequest, returnFocusRef }: Setti
                 <TextInput
                   size="large"
                   value={mlDraft.endpoint}
-                  placeholder="https://api.example.com"
+                  placeholder="https://api.example.com/model"
                   onChange={(event: ChangeEvent<HTMLInputElement>) =>
                     setMlDraft((prev) => ({ ...prev, endpoint: event.target.value }))
                   }
