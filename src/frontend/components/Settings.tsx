@@ -29,12 +29,13 @@ const Settings = ({ open, onClose, onOpenRequest, returnFocusRef }: SettingsProp
   const { settings: contextSettings, updateSettings } = useSettings();
   const [isLoading, setIsLoading] = useState(false);
 
-  const mlSettings = contextSettings?.ml;
-  const [mlName, setMlName] = useState(mlSettings?.name ?? "");
-  const [mlEndpoint, setMlEndpoint] = useState(mlSettings?.endpoint ?? "");
-  const [mlApiKey, setMlApiKey] = useState(mlSettings?.apiKey ?? "");
-  const [mlCandidates, setMlCandidates] = useState(mlSettings?.candidates ?? ML_CANDIDATES.DEFAULT);
-  const [mlIncludeHeatmap, setMlIncludeHeatmap] = useState(mlSettings?.includeHeatmap ?? false);
+  const [mlDraft, setMlDraft] = useState<MLSettings>({
+    name: contextSettings?.ml?.name ?? "",
+    endpoint: contextSettings?.ml?.endpoint ?? "",
+    apiKey: contextSettings?.ml?.apiKey ?? "",
+    candidates: contextSettings?.ml?.candidates ?? ML_CANDIDATES.DEFAULT,
+    includeHeatmap: contextSettings?.ml?.includeHeatmap ?? false,
+  });
 
   useEffect(() => {
     if (!onOpenRequest) {
@@ -49,29 +50,20 @@ const Settings = ({ open, onClose, onOpenRequest, returnFocusRef }: SettingsProp
       return;
     }
 
-    setMlName(contextSettings.ml.name);
-    setMlEndpoint(contextSettings.ml.endpoint);
-    setMlApiKey(contextSettings.ml.apiKey);
-    setMlCandidates(contextSettings.ml.candidates);
-    setMlIncludeHeatmap(contextSettings.ml.includeHeatmap);
+    setMlDraft({ ...contextSettings.ml });
   }, [contextSettings?.ml]);
 
-  const handleMLSettingsSave = async (overrides?: Partial<MLSettings>) => {
+  const handleMLSettingsSave = async (draft: MLSettings = mlDraft) => {
     if (!contextSettings) {
       return;
     }
 
-    const candidates = Math.min(
-      ML_CANDIDATES.MAX,
-      Math.max(ML_CANDIDATES.MIN, Math.round(overrides?.candidates ?? mlCandidates)),
-    );
-
     const ml: MLSettings = {
-      name: overrides?.name ?? mlName,
-      endpoint: overrides?.endpoint ?? mlEndpoint,
-      apiKey: overrides?.apiKey ?? mlApiKey,
-      candidates,
-      includeHeatmap: overrides?.includeHeatmap ?? mlIncludeHeatmap,
+      ...draft,
+      candidates: Math.min(
+        ML_CANDIDATES.MAX,
+        Math.max(ML_CANDIDATES.MIN, Math.round(draft.candidates)),
+      ),
     };
 
     try {
@@ -202,9 +194,11 @@ const Settings = ({ open, onClose, onOpenRequest, returnFocusRef }: SettingsProp
                 <FormControl.Label>Model name</FormControl.Label>
                 <TextInput
                   size="large"
-                  value={mlName}
+                  value={mlDraft.name}
                   placeholder="e.g. MiewID"
-                  onChange={(event: ChangeEvent<HTMLInputElement>) => setMlName(event.target.value)}
+                  onChange={(event: ChangeEvent<HTMLInputElement>) =>
+                    setMlDraft((prev) => ({ ...prev, name: event.target.value }))
+                  }
                   onBlur={() => void handleMLSettingsSave()}
                   block
                 />
@@ -217,10 +211,10 @@ const Settings = ({ open, onClose, onOpenRequest, returnFocusRef }: SettingsProp
                 <FormControl.Label>Model API URL</FormControl.Label>
                 <TextInput
                   size="large"
-                  value={mlEndpoint}
+                  value={mlDraft.endpoint}
                   placeholder="https://api.example.com"
                   onChange={(event: ChangeEvent<HTMLInputElement>) =>
-                    setMlEndpoint(event.target.value)
+                    setMlDraft((prev) => ({ ...prev, endpoint: event.target.value }))
                   }
                   onBlur={() => void handleMLSettingsSave()}
                   block
@@ -233,10 +227,10 @@ const Settings = ({ open, onClose, onOpenRequest, returnFocusRef }: SettingsProp
                 <TextInput
                   type="password"
                   size="large"
-                  value={mlApiKey}
+                  value={mlDraft.apiKey}
                   placeholder="sk-…"
                   onChange={(event: ChangeEvent<HTMLInputElement>) =>
-                    setMlApiKey(event.target.value)
+                    setMlDraft((prev) => ({ ...prev, apiKey: event.target.value }))
                   }
                   onBlur={() => void handleMLSettingsSave()}
                   block
@@ -249,11 +243,11 @@ const Settings = ({ open, onClose, onOpenRequest, returnFocusRef }: SettingsProp
                 <TextInput
                   type="number"
                   size="large"
-                  value={String(mlCandidates)}
+                  value={String(mlDraft.candidates)}
                   onChange={(event: ChangeEvent<HTMLInputElement>) => {
                     const parsed = parseInt(event.target.value, 10);
                     if (!isNaN(parsed)) {
-                      setMlCandidates(parsed);
+                      setMlDraft((prev) => ({ ...prev, candidates: parsed }));
                     }
                   }}
                   onBlur={() => void handleMLSettingsSave()}
@@ -267,11 +261,11 @@ const Settings = ({ open, onClose, onOpenRequest, returnFocusRef }: SettingsProp
 
               <FormControl>
                 <Checkbox
-                  checked={mlIncludeHeatmap}
+                  checked={mlDraft.includeHeatmap}
                   onChange={(event: ChangeEvent<HTMLInputElement>) => {
-                    const newValue = event.target.checked;
-                    setMlIncludeHeatmap(newValue);
-                    void handleMLSettingsSave({ includeHeatmap: newValue });
+                    const newDraft = { ...mlDraft, includeHeatmap: event.target.checked };
+                    setMlDraft(newDraft);
+                    void handleMLSettingsSave(newDraft);
                   }}
                 />
                 <FormControl.Label>Request debug information</FormControl.Label>

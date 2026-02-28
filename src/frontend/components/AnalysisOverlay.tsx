@@ -14,19 +14,12 @@ import { DataTable, Table } from "@primer/react/experimental";
 import { useState } from "react";
 
 import { ML_MATCHES_PER_PAGE } from "@/constants";
+import { useAnalysis } from "@/contexts/AnalysisContext";
 import type { MLMatch, MLMatchResponse } from "@/types";
-
-interface AnalysisOverlayProps {
-  open: boolean;
-  isAnalysing: boolean;
-  result: MLMatchResponse | null;
-  error: string | null;
-  onClose: () => void;
-}
 
 type MLMatchRow = MLMatch & { id: number };
 
-const Results = ({ data }: { data: MLMatchResponse }) => {
+const Results = ({ data, stackLabel }: { data: MLMatchResponse; stackLabel: string | null }) => {
   const pageSize = ML_MATCHES_PER_PAGE;
   const [pageIndex, setPageIndex] = useState(0);
   const start = pageIndex * pageSize;
@@ -96,8 +89,8 @@ const Results = ({ data }: { data: MLMatchResponse }) => {
   return (
     <Table.Container>
       <Table.Subtitle as="p" id="subtitle">
-        Matches for stack <Label variant="default">(TBA)</Label> from{" "}
-        <Label variant="default">{data.query_image_count}</Label> image(s) with model{" "}
+        Matches for stack {stackLabel !== null && <Label variant="default">{stackLabel}</Label>}{" "}
+        from <Label variant="default">{data.query_image_count}</Label> image(s) with model{" "}
         <Label variant="default">{data.model}</Label>:
       </Table.Subtitle>
 
@@ -107,13 +100,17 @@ const Results = ({ data }: { data: MLMatchResponse }) => {
         aria-label="Pagination for matches"
         pageSize={pageSize}
         totalCount={data.matches.length}
-        onChange={({ pageIndex }) => setPageIndex(pageIndex)}
+        onChange={({ pageIndex: newPageIndex }) => setPageIndex(newPageIndex)}
       />
     </Table.Container>
   );
 };
 
-const AnalysisOverlay = ({ open, isAnalysing, result, error, onClose }: AnalysisOverlayProps) => {
+const AnalysisOverlay = () => {
+  const { isAnalysing, result, error, stackLabel, handleClose } = useAnalysis();
+
+  const open = isAnalysing || result !== null || error !== null;
+
   if (!open) {
     return null;
   }
@@ -121,11 +118,11 @@ const AnalysisOverlay = ({ open, isAnalysing, result, error, onClose }: Analysis
   return (
     <Dialog
       title={isAnalysing ? "Analysing..." : "Analysis Results"}
-      onClose={onClose}
+      onClose={handleClose}
       footerButtons={
         isAnalysing
-          ? [{ buttonType: "danger", content: "Cancel", onClick: onClose }]
-          : [{ buttonType: "default", content: "Close", onClick: onClose }]
+          ? [{ buttonType: "danger", content: "Cancel", onClick: handleClose }]
+          : [{ buttonType: "default", content: "Close", onClick: handleClose }]
       }
     >
       {isAnalysing && (
@@ -134,7 +131,7 @@ const AnalysisOverlay = ({ open, isAnalysing, result, error, onClose }: Analysis
         </PrimerStack>
       )}
 
-      {result !== null && <Results data={result} />}
+      {result !== null && <Results data={result} stackLabel={stackLabel} />}
 
       {error !== null && <Flash variant="danger">{error}</Flash>}
     </Dialog>

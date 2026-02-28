@@ -1,12 +1,6 @@
 import type Collection from "@/models/Collection";
 import type Photo from "@/models/Photo";
-import type {
-  DraggableEndData,
-  DraggableStartData,
-  LoadingData,
-  MLMatchResponse,
-  PhotoBody,
-} from "@/types";
+import type { DraggableEndData, DraggableStartData, LoadingData } from "@/types";
 
 import {
   DndContext,
@@ -26,6 +20,7 @@ import { observer } from "mobx-react-lite";
 import { useCallback, useEffect, useState } from "react";
 
 import { MATCHED_STACKS_PER_PAGE, ROUTES } from "@/constants";
+import { AnalysisProvider } from "@/contexts/AnalysisContext";
 import { useProject } from "@/contexts/ProjectContext";
 
 import AnalysisOverlay from "@/frontend/components/AnalysisOverlay";
@@ -59,9 +54,6 @@ const ProjectPage = observer(() => {
   const [settingsOpen, setSettingsOpen] = useState<boolean>(false);
   const [isCopying, setIsCopying] = useState<boolean>(false);
   const [columns, setColumns] = useState<number>(2);
-  const [isAnalysing, setIsAnalysing] = useState<boolean>(false);
-  const [analysisResult, setAnalysisResult] = useState<MLMatchResponse | null>(null);
-  const [analysisError, setAnalysisError] = useState<string | null>(null);
 
   const navigate = useNavigate();
   const { project } = useProject();
@@ -110,44 +102,6 @@ const ProjectPage = observer(() => {
     },
     [matchedPageCount],
   );
-
-  useEffect(() => {
-    return () => {
-      if (isAnalysing) {
-        window.electronAPI.cancelAnalyseStack();
-      }
-    };
-  }, [isAnalysing]);
-
-  const handleAnalyse = async (photos: PhotoBody[]) => {
-    if (isAnalysing) {
-      return;
-    }
-
-    setIsAnalysing(true);
-    setAnalysisResult(null);
-    setAnalysisError(null);
-
-    try {
-      const result = await window.electronAPI.analyseStack(photos);
-      setAnalysisResult(result);
-    } catch (error) {
-      setAnalysisError(error instanceof Error ? error.message : "An unexpected error occurred.");
-      console.error("Analysis failed:", error);
-    } finally {
-      setIsAnalysing(false);
-    }
-  };
-
-  const handleCloseAnalysisOverlay = () => {
-    if (isAnalysing) {
-      window.electronAPI.cancelAnalyseStack();
-      setIsAnalysing(false);
-    }
-
-    setAnalysisResult(null);
-    setAnalysisError(null);
-  };
 
   useEffect(() => {
     const unsubscribeLoadProject = window.electronAPI.onLoadProject(() =>
@@ -244,7 +198,7 @@ const ProjectPage = observer(() => {
   });
 
   return (
-    <>
+    <AnalysisProvider>
       <LoadingOverlay data={loading} />
 
       <Settings
@@ -253,13 +207,7 @@ const ProjectPage = observer(() => {
         onOpenRequest={() => setSettingsOpen(true)}
       />
 
-      <AnalysisOverlay
-        open={isAnalysing || analysisResult !== null || analysisError !== null}
-        isAnalysing={isAnalysing}
-        result={analysisResult}
-        error={analysisError}
-        onClose={handleCloseAnalysisOverlay}
-      />
+      <AnalysisOverlay />
 
       <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
         <DragOverlay dropAnimation={null}>
@@ -283,16 +231,12 @@ const ProjectPage = observer(() => {
 
           <div className="content">
             <div className="grid" data-columns={columns}>
-              <Selections
-                matches={matchedRows}
-                isAnalysing={isAnalysing}
-                onAnalyse={(photos) => void handleAnalyse(photos)}
-              />
+              <Selections matches={matchedRows} />
             </div>
           </div>
         </div>
       </DndContext>
-    </>
+    </AnalysisProvider>
   );
 });
 
