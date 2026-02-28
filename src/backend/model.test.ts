@@ -19,7 +19,6 @@ const defaultSettings: MLSettings = {
   name: "Test Model",
   endpoint: "https://api.example.com",
   apiKey: "test-api-key",
-  candidates: 5,
   includeHeatmap: false,
 };
 
@@ -113,18 +112,6 @@ describe(analyseStack, () => {
     await analyseStack({ photos: [defaultPhoto, secondPhoto], settings: defaultSettings });
 
     expect(mockRenderApiImage).toHaveBeenCalledTimes(2);
-  });
-
-  it("includes candidates in the form data", async () => {
-    mockFetch.mockResolvedValue(new Response(JSON.stringify(successResponse), { status: 200 }));
-
-    const settingsWithCandidates = { ...defaultSettings, candidates: 10 };
-    await analyseStack({ photos: [defaultPhoto], settings: settingsWithCandidates });
-
-    const [, callInit] = mockFetch.mock.calls[0] as unknown as [string, RequestInit];
-    const formData = callInit.body as FormData;
-
-    expect(formData.get("candidates")).toBe("10");
   });
 
   it("does not include include_heatmap when disabled", async () => {

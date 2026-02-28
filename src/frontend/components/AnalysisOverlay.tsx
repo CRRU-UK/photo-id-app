@@ -19,7 +19,7 @@ import type { MLMatch, MLMatchResponse } from "@/types";
 
 type MLMatchRow = MLMatch & { id: number };
 
-const Loading = ({ stackLabel }: { stackLabel: string }) => (
+const Loading = ({ stackLabel }: { stackLabel: string | null }) => (
   <Table.Container>
     <Table.Subtitle as="p" id="subtitle">
       <PrimerStack direction="horizontal" align="center" justify="space-between">

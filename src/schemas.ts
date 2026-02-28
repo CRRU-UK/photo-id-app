@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { DEFAULT_SETTINGS, ML_CANDIDATES } from "@/constants";
+import { DEFAULT_SETTINGS } from "@/constants";
 
 export const themeModeSchema = z.enum(["light", "dark", "auto"]);
 
@@ -10,12 +10,6 @@ export const mlSettingsSchema = z.object({
   name: z.string().default(""),
   endpoint: z.string().default(""),
   apiKey: z.string().default(""),
-  candidates: z
-    .number()
-    .int()
-    .min(ML_CANDIDATES.MIN)
-    .max(ML_CANDIDATES.MAX)
-    .default(ML_CANDIDATES.DEFAULT),
   includeHeatmap: z.boolean().default(false),
 });
 

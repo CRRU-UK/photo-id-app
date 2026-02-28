@@ -226,10 +226,4 @@ export const DEFAULT_SETTINGS = {
   telemetry: "disabled",
 } as const;
 
-export const ML_CANDIDATES = {
-  MIN: 3,
-  MAX: 15,
-  DEFAULT: 5,
-};
-
 export const ML_MATCHES_PER_PAGE = 10;

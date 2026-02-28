@@ -14,7 +14,6 @@ import {
 } from "@primer/react";
 import { UnderlinePanels } from "@primer/react/experimental";
 
-import { ML_CANDIDATES } from "@/constants";
 import { useSettings } from "@/contexts/SettingsContext";
 import type { MLSettings, Telemetry, ThemeMode } from "@/types";
 
@@ -33,7 +32,6 @@ const SettingsOverlay = ({ open, onClose, onOpenRequest, returnFocusRef }: Setti
     name: contextSettings?.ml?.name ?? "",
     endpoint: contextSettings?.ml?.endpoint ?? "",
     apiKey: contextSettings?.ml?.apiKey ?? "",
-    candidates: contextSettings?.ml?.candidates ?? ML_CANDIDATES.DEFAULT,
     includeHeatmap: contextSettings?.ml?.includeHeatmap ?? false,
   });
 
@@ -58,16 +56,8 @@ const SettingsOverlay = ({ open, onClose, onOpenRequest, returnFocusRef }: Setti
       return;
     }
 
-    const ml: MLSettings = {
-      ...draft,
-      candidates: Math.min(
-        ML_CANDIDATES.MAX,
-        Math.max(ML_CANDIDATES.MIN, Math.round(draft.candidates)),
-      ),
-    };
-
     try {
-      await updateSettings({ ...contextSettings, ml });
+      await updateSettings({ ...contextSettings, ml: draft });
     } catch (error) {
       console.error("Error saving ML settings:", error);
     }
@@ -235,27 +225,6 @@ const SettingsOverlay = ({ open, onClose, onOpenRequest, returnFocusRef }: Setti
                   block
                 />
                 <FormControl.Caption>API token used for bearer authorization.</FormControl.Caption>
-              </FormControl>
-
-              <FormControl>
-                <FormControl.Label>Candidates</FormControl.Label>
-                <TextInput
-                  type="number"
-                  size="large"
-                  value={String(mlDraft.candidates)}
-                  onChange={(event: ChangeEvent<HTMLInputElement>) => {
-                    const parsed = parseInt(event.target.value, 10);
-                    if (!isNaN(parsed)) {
-                      setMlDraft((prev) => ({ ...prev, candidates: parsed }));
-                    }
-                  }}
-                  onBlur={() => void handleMLSettingsSave()}
-                  block
-                />
-                <FormControl.Caption>
-                  Number of ranked candidates to request and show in the results. Results are
-                  paginated in pages of 10.
-                </FormControl.Caption>
               </FormControl>
 
               <FormControl>

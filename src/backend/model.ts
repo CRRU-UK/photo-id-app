@@ -38,8 +38,6 @@ const analyseStack = async ({
       formData.append("images", blob, `${path.basename(photo.name, path.extname(photo.name))}.jpg`);
     }
 
-    formData.append("candidates", String(settings.candidates));
-
     if (settings.includeHeatmap) {
       formData.append("include_heatmap", "true");
     }
