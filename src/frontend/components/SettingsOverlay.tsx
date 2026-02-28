@@ -1,17 +1,8 @@
 import type { ChangeEvent, RefObject } from "react";
 import { useEffect, useState } from "react";
 
-import { AiModelIcon, GearIcon, InfoIcon } from "@primer/octicons-react";
-import {
-  Banner,
-  Checkbox,
-  Dialog,
-  FormControl,
-  Link,
-  Select,
-  Stack,
-  TextInput,
-} from "@primer/react";
+import { AiModelIcon, EyeClosedIcon, EyeIcon, GearIcon } from "@primer/octicons-react";
+import { Checkbox, Dialog, FormControl, Link, Select, Stack, TextInput } from "@primer/react";
 import { UnderlinePanels } from "@primer/react/experimental";
 
 import { useSettings } from "@/contexts/SettingsContext";
@@ -26,8 +17,9 @@ interface SettingsProps {
 
 const SettingsOverlay = ({ open, onClose, onOpenRequest, returnFocusRef }: SettingsProps) => {
   const { settings: contextSettings, updateSettings } = useSettings();
-  const [isLoading, setIsLoading] = useState(false);
 
+  const [isLoading, setIsLoading] = useState(false);
+  const [showApiKey, setShowApiKey] = useState<boolean>(false);
   const [mlDraft, setMlDraft] = useState<MLSettings>({
     name: contextSettings?.ml?.name ?? "",
     endpoint: contextSettings?.ml?.endpoint ?? "",
@@ -173,13 +165,6 @@ const SettingsOverlay = ({ open, onClose, onOpenRequest, returnFocusRef }: Setti
 
           <UnderlinePanels.Panel>
             <Stack direction="vertical" gap="spacious" padding="spacious">
-              <Banner
-                hideTitle
-                title="Info"
-                leadingVisual={<InfoIcon />}
-                description="Information about machine learning integration can be found in the documentation."
-              />
-
               <FormControl>
                 <FormControl.Label>Model name</FormControl.Label>
                 <TextInput
@@ -193,7 +178,7 @@ const SettingsOverlay = ({ open, onClose, onOpenRequest, returnFocusRef }: Setti
                   block
                 />
                 <FormControl.Caption>
-                  Label shown in the sidebar to identify the active model.
+                  Label shown in app to identify the active model.
                 </FormControl.Caption>
               </FormControl>
 
@@ -215,13 +200,20 @@ const SettingsOverlay = ({ open, onClose, onOpenRequest, returnFocusRef }: Setti
               <FormControl>
                 <FormControl.Label>API key</FormControl.Label>
                 <TextInput
-                  type="password"
+                  type={showApiKey ? "text" : "password"}
                   size="large"
                   value={mlDraft.apiKey}
                   onChange={(event: ChangeEvent<HTMLInputElement>) =>
                     setMlDraft((prev) => ({ ...prev, apiKey: event.target.value }))
                   }
                   onBlur={() => void handleMLSettingsSave()}
+                  trailingAction={
+                    <TextInput.Action
+                      aria-label={showApiKey ? "Hide API key" : "Show API key"}
+                      icon={showApiKey ? EyeIcon : EyeClosedIcon}
+                      onClick={() => setShowApiKey(!showApiKey)}
+                    />
+                  }
                   block
                 />
                 <FormControl.Caption>API token used for bearer authorization.</FormControl.Caption>
