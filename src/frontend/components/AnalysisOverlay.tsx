@@ -13,7 +13,8 @@ import {
 import { DataTable, Table } from "@primer/react/experimental";
 import { useState } from "react";
 
-import type { MLMatchResponse } from "@/types";
+import { ML_MATCHES_PER_PAGE } from "@/constants";
+import type { MLMatch, MLMatchResponse } from "@/types";
 
 interface AnalysisOverlayProps {
   open: boolean;
@@ -23,15 +24,20 @@ interface AnalysisOverlayProps {
   onClose: () => void;
 }
 
+type MLMatchRow = MLMatch & { id: number };
+
 const Results = ({ data }: { data: MLMatchResponse }) => {
-  const pageSize = 4; // TODO: Use constant
+  const pageSize = ML_MATCHES_PER_PAGE;
   const [pageIndex, setPageIndex] = useState(0);
   const start = pageIndex * pageSize;
   const end = start + pageSize;
-  const rows = data.matches.slice(start, end);
+  const rows: MLMatchRow[] = data.matches.slice(start, end).map((match) => ({
+    ...match,
+    id: match.rank,
+  }));
 
   const tableContent = (
-    <DataTable
+    <DataTable<MLMatchRow>
       data={rows}
       cellPadding="spacious"
       initialSortColumn="rank"
@@ -52,7 +58,7 @@ const Results = ({ data }: { data: MLMatchResponse }) => {
           header: "Confidence",
           field: "confidence",
           width: "grow",
-          renderCell: (row: any) => {
+          renderCell: (row: MLMatchRow) => {
             const confidence = Math.round(row.confidence * 100);
             return (
               <>
@@ -70,7 +76,7 @@ const Results = ({ data }: { data: MLMatchResponse }) => {
           header: "",
           field: "source_path",
           width: "auto",
-          renderCell: (row: any) => {
+          renderCell: (row: MLMatchRow) => {
             return (
               <Tooltip text={row.source_path} type="label">
                 <IconButton
@@ -100,7 +106,7 @@ const Results = ({ data }: { data: MLMatchResponse }) => {
       <Table.Pagination
         aria-label="Pagination for matches"
         pageSize={pageSize}
-        totalCount={rows.length}
+        totalCount={data.matches.length}
         onChange={({ pageIndex }) => setPageIndex(pageIndex)}
       />
     </Table.Container>

@@ -231,3 +231,5 @@ export const ML_CANDIDATES = {
   MAX: 15,
   DEFAULT: 5,
 };
+
+export const ML_MATCHES_PER_PAGE = 10;
