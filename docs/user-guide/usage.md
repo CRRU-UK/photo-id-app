@@ -119,6 +119,22 @@ This can be toggled by selecting the ==:octicons-eye-16: Toggle Edge Detection==
 
 Note that the edge detection filter is not used when saving or exporting images, and is purely used as a temporary filter.
 
+## Machine Learning Integration
+
+A machine learning model can be integrated with the app by way of an API to help users analyse photos against an indexed catalogue. Currently users will need to provide their own models and APIs - we are currently working on our own and will be sharing this publicly in the future!
+
+To get started, an API will need to be provided according to the [OpenAPI specifications provided here](../assets/model-api-spec.yaml). The app will send requests and expect responses according to this API specification.
+
+Open the app settings (==:octicons-gear-16: Settings== on the home page, or ++cmd+comma++ / ++ctrl+comma++). In the 'Machine Learning' section, enter a model name, your endpoint URL, and API key. You can also adjust the number of ranked candidates to return and whether to request an attention heatmap. These settings apply to all projects.
+
+Once an endpoint and API key are set, an ==:octicons-ai-model-16: analyse== button will appear on each stack. Selecting it will send _all_ photos in that stack to the API `/match` endpoint. The resulting response will show the potential matches and their respective confidence levels.
+
+Users can use this data to cross-check with their catalogues, and if a match is found the respective ID can be entered into the ID field in the stack.
+
+!!! note
+
+    We are still working on this feature and would love any [feedback](../bugs-feedback.md) you may have!
+
 ## Saving
 
 Projects are auto-saved whenever changes are made in the project or photo editor screens.

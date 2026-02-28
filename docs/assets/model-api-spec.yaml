@@ -1,0 +1,177 @@
+openapi: "3.0.3"
+
+info:
+  title: Machine learning model contract
+  version: "1.0.0"
+  description: |
+    API contract for a machine learning model API that can be integrated with the Photo ID App interface. It should be used when designing an API for the 'bring-your-own-model' machine learning integration. The app will send requests and expect responses to an API as outlined in this specification.
+
+    Users can set the API key and endpoint URLs in the Photo ID App settings to enable the machine learning integration described in the [documentation](https://photoidapp.crru.org.uk/user-guide/usage/#machine-learning-integration).
+
+    ## Authorization
+
+    All endpoints should expect a `Authorization` header with a bearer token which can be used for authorization (e.g. `Authorization: Bearer <api-key>`).
+
+security: []
+
+components:
+  securitySchemes:
+    AuthorizationBearerToken:
+      type: apiKey
+      in: header
+      bearerFormat: "bearer"
+      name: Authorization
+
+  schemas:
+    MatchRequest:
+      type: object
+      required: [rank, animal_id, confidence, source_path]
+      properties:
+        rank:
+          type: integer
+          minimum: 1
+          description: >
+            1-indexed rank of this candidate (1 = best match, 2 = second-best, etc.).
+          example: 1
+        animal_id:
+          type: string
+          description: >
+            The catalogue identifier for this animal.
+          example: '047'
+        confidence:
+          type: number
+          format: float
+          minimum: 0.0
+          maximum: 1.0
+          description: >
+            Percentage out of 100% of confidence in the match (e.g. cosine similarity between the query embedding and this candidate's stored embedding, linearly mapped to [0, 1]).
+          example: 0.91
+        source_path:
+          type: string
+          description: >
+            Path to the archive image that produced this stored embedding. Used as debugging information in the app.
+          example: archive/047/20220615_0034.jpg
+
+    MatchResponse:
+      type: object
+      required: [matches, query_image_count, model]
+      properties:
+        matches:
+          type: array
+          items:
+            $ref: "#/components/schemas/MatchRequest"
+          description: Ranked candidate matches, best first.
+        query_image_count:
+          type: integer
+          minimum: 1
+          description: >
+            Number of images that were uploaded as the query.
+          example: 2
+        model:
+          type: string
+          nullable: true
+          description: Model used in this request. Used as debugging information in the app. Otherwise should return `null`.
+          example: conservationxlabs/miewid-msv3
+        heatmap:
+          type: string
+          nullable: true
+          description: >
+            Image data for demonstrating information about the match decision. Shown in the app when present.
+
+            Should only be present when `include_heatmap=true` was sent in the request. Otherwise should return `null`.
+          example: null
+
+    ErrorResponse:
+      type: object
+      required: [detail]
+      properties:
+        detail:
+          type: string
+          description: Human-readable error description.
+          example: Invalid or missing API key
+
+paths:
+  /match:
+    post:
+      operationId: match
+      summary: Match a single or multiple photos against the catalogue
+      description: |
+        When clicking 'analyse' on a stack, the app will send all photos in that stack in a single request to this endpoint.
+      tags: [Identification]
+      security:
+        - AuthorizationBearerToken: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [images]
+              properties:
+                images:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  minItems: 1
+                  description: >
+                    One or more photos.
+                candidates:
+                  type: integer
+                  description: Number of ranked candidates to return. This is configurable in the app (minimum 3, maximum 15, default 5).
+                include_heatmap:
+                  type: boolean
+                  default: false
+                  description: >
+                    If true, should return a base64-encoded image that can be used to demonstrate information about the match decision. For example, compute and return a GradCAM attention heatmap for the first query image. This is configurable in the app.
+      responses:
+        "200":
+          description: Ranked candidate matches returned successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MatchResponse"
+              example:
+                matches:
+                  - rank: 1
+                    animal_id: 047
+                    confidence: 0.91
+                    source_path: archive/047/20220615_0034.jpg
+                  - rank: 2
+                    animal_id: 012
+                    confidence: 0.73
+                    source_path: archive/012/20190801_0005.jpg
+                  - rank: 3
+                    animal_id: 012
+                    confidence: 0.71
+                    source_path: archive/012/20180623_0152.jpg
+                query_image_count: 2
+                model: conservationxlabs/miewid-msv3
+                heatmap: null
+        "401":
+          description: Missing or invalid API key.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                detail: Invalid or missing API key
+        "422":
+          description: >
+            Required field(s) are missing or are invalid.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                detail: "'bad_file.txt' could not be decoded as an image."
+        "503":
+          description: >
+            Generic service error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                detail: >
+                  An unexpected error occurred.

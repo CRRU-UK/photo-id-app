@@ -5,6 +5,7 @@ import type Photo from "@/models/Photo";
 import type {
   collectionBodySchema,
   matchedBodySchema,
+  mlSettingsSchema,
   photoBodySchema,
   photoEditsSchema,
   projectBodySchema,
@@ -80,5 +81,29 @@ export type ImageTransformations = {
 export type ThemeMode = z.infer<typeof themeModeSchema>;
 
 export type Telemetry = z.infer<typeof telemetrySchema>;
+
+export type MLSettings = z.infer<typeof mlSettingsSchema>;
+
+/**
+ * Always ensure this stays in sync with the OpenAPI specs.
+ * @see {../docs/assets/model-api-spec.yaml}
+ */
+export type MLMatch = {
+  rank: number;
+  animal_id: string;
+  confidence: number;
+  source_path: string;
+};
+
+/**
+ * Always ensure this stays in sync with the OpenAPI specs.
+ * @see {../docs/assets/model-api-spec.yaml}
+ */
+export type MLMatchResponse = {
+  matches: MLMatch[];
+  query_image_count: number;
+  model: string | null;
+  heatmap: string | null;
+};
 
 export type SettingsData = z.infer<typeof settingsDataSchema>;

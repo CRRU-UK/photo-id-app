@@ -1,10 +1,22 @@
 import type { ChangeEvent, RefObject } from "react";
 import { useEffect, useState } from "react";
 
-import { Dialog, FormControl, Link, Select, Stack } from "@primer/react";
+import { AiModelIcon, GearIcon, InfoIcon } from "@primer/octicons-react";
+import {
+  Banner,
+  Checkbox,
+  Dialog,
+  FormControl,
+  Link,
+  Select,
+  Stack,
+  TextInput,
+} from "@primer/react";
+import { UnderlinePanels } from "@primer/react/experimental";
 
+import { ML_CANDIDATES } from "@/constants";
 import { useSettings } from "@/contexts/SettingsContext";
-import type { Telemetry, ThemeMode } from "@/types";
+import type { MLSettings, Telemetry, ThemeMode } from "@/types";
 
 interface SettingsProps {
   open: boolean;
@@ -17,6 +29,13 @@ const Settings = ({ open, onClose, onOpenRequest, returnFocusRef }: SettingsProp
   const { settings: contextSettings, updateSettings } = useSettings();
   const [isLoading, setIsLoading] = useState(false);
 
+  const mlSettings = contextSettings?.ml;
+  const [mlName, setMlName] = useState(mlSettings?.name ?? "");
+  const [mlEndpoint, setMlEndpoint] = useState(mlSettings?.endpoint ?? "");
+  const [mlApiKey, setMlApiKey] = useState(mlSettings?.apiKey ?? "");
+  const [mlCandidates, setMlCandidates] = useState(mlSettings?.candidates ?? ML_CANDIDATES.DEFAULT);
+  const [mlIncludeHeatmap, setMlIncludeHeatmap] = useState(mlSettings?.includeHeatmap ?? false);
+
   useEffect(() => {
     if (!onOpenRequest) {
       return;
@@ -24,6 +43,43 @@ const Settings = ({ open, onClose, onOpenRequest, returnFocusRef }: SettingsProp
 
     return window.electronAPI.onOpenSettings(onOpenRequest);
   }, [onOpenRequest]);
+
+  useEffect(() => {
+    if (!contextSettings?.ml) {
+      return;
+    }
+
+    setMlName(contextSettings.ml.name);
+    setMlEndpoint(contextSettings.ml.endpoint);
+    setMlApiKey(contextSettings.ml.apiKey);
+    setMlCandidates(contextSettings.ml.candidates);
+    setMlIncludeHeatmap(contextSettings.ml.includeHeatmap);
+  }, [contextSettings?.ml]);
+
+  const handleMLSettingsSave = async (overrides?: Partial<MLSettings>) => {
+    if (!contextSettings) {
+      return;
+    }
+
+    const candidates = Math.min(
+      ML_CANDIDATES.MAX,
+      Math.max(ML_CANDIDATES.MIN, Math.round(overrides?.candidates ?? mlCandidates)),
+    );
+
+    const ml: MLSettings = {
+      name: overrides?.name ?? mlName,
+      endpoint: overrides?.endpoint ?? mlEndpoint,
+      apiKey: overrides?.apiKey ?? mlApiKey,
+      candidates,
+      includeHeatmap: overrides?.includeHeatmap ?? mlIncludeHeatmap,
+    };
+
+    try {
+      await updateSettings({ ...contextSettings, ml });
+    } catch (error) {
+      console.error("Error saving ML settings:", error);
+    }
+  };
 
   const handleThemeModeChange = async (value: string) => {
     if (!contextSettings) {
@@ -77,55 +133,156 @@ const Settings = ({ open, onClose, onOpenRequest, returnFocusRef }: SettingsProp
       width="xlarge"
     >
       {contextSettings && (
-        <Stack direction="vertical" gap="spacious">
-          <FormControl>
-            <FormControl.Label>Theme Mode</FormControl.Label>
-            <Select
-              size="large"
-              value={contextSettings.themeMode}
-              onChange={(event: ChangeEvent<HTMLSelectElement>) =>
-                void handleThemeModeChange(event.target.value)
-              }
-              disabled={isLoading}
-            >
-              <Select.Option value="light">Light</Select.Option>
-              <Select.Option value="dark">Dark (Default)</Select.Option>
-              <Select.Option value="auto">Auto</Select.Option>
-            </Select>
-            <FormControl.Caption>
-              Choose your preferred theme. &quot;Auto&quot; will follow your system preference.
-            </FormControl.Caption>
-          </FormControl>
+        <UnderlinePanels aria-label="Select a tab">
+          <UnderlinePanels.Tab icon={GearIcon}>General</UnderlinePanels.Tab>
+          <UnderlinePanels.Tab icon={AiModelIcon}>Machine Learning</UnderlinePanels.Tab>
 
-          <FormControl>
-            <FormControl.Label>Telemetry</FormControl.Label>
-            <Select
-              size="large"
-              value={contextSettings.telemetry}
-              onChange={(event: ChangeEvent<HTMLSelectElement>) =>
-                void handleTelemetryChange(event.target.value)
-              }
-              disabled={isLoading}
-            >
-              <Select.Option value="disabled">Disabled (Default)</Select.Option>
-              <Select.Option value="enabled">Enabled</Select.Option>
-            </Select>
-            <FormControl.Caption>
-              When enabled, helps us fix bugs by sending crash reports, error details, performance
-              data, and session recordings that are captured only when an error occurs (not
-              continuously). Please see our{" "}
-              <Link
-                onClick={(event) => {
-                  event.preventDefault();
-                  window.electronAPI.openExternalLink("privacy");
-                }}
-              >
-                Privacy Policy
-              </Link>{" "}
-              for more information.
-            </FormControl.Caption>
-          </FormControl>
-        </Stack>
+          <UnderlinePanels.Panel>
+            <Stack direction="vertical" gap="spacious" padding="spacious">
+              <FormControl>
+                <FormControl.Label>Theme Mode</FormControl.Label>
+                <Select
+                  size="large"
+                  value={contextSettings.themeMode}
+                  onChange={(event: ChangeEvent<HTMLSelectElement>) =>
+                    void handleThemeModeChange(event.target.value)
+                  }
+                  disabled={isLoading}
+                >
+                  <Select.Option value="light">Light</Select.Option>
+                  <Select.Option value="dark">Dark (Default)</Select.Option>
+                  <Select.Option value="auto">Auto</Select.Option>
+                </Select>
+                <FormControl.Caption>
+                  Choose your preferred theme. &quot;Auto&quot; will follow your system preference.
+                </FormControl.Caption>
+              </FormControl>
+
+              <FormControl>
+                <FormControl.Label>Telemetry</FormControl.Label>
+                <Select
+                  size="large"
+                  value={contextSettings.telemetry}
+                  onChange={(event: ChangeEvent<HTMLSelectElement>) =>
+                    void handleTelemetryChange(event.target.value)
+                  }
+                  disabled={isLoading}
+                >
+                  <Select.Option value="disabled">Disabled (Default)</Select.Option>
+                  <Select.Option value="enabled">Enabled</Select.Option>
+                </Select>
+                <FormControl.Caption>
+                  When enabled, helps us fix bugs by sending crash reports, error details,
+                  performance data, and session recordings that are captured only when an error
+                  occurs (not continuously). Please see our{" "}
+                  <Link
+                    onClick={(event) => {
+                      event.preventDefault();
+                      window.electronAPI.openExternalLink("privacy");
+                    }}
+                  >
+                    Privacy Policy
+                  </Link>{" "}
+                  for more information.
+                </FormControl.Caption>
+              </FormControl>
+            </Stack>
+          </UnderlinePanels.Panel>
+
+          <UnderlinePanels.Panel>
+            <Stack direction="vertical" gap="spacious" padding="spacious">
+              <Banner
+                hideTitle
+                title="Info"
+                leadingVisual={<InfoIcon />}
+                description="Information about machine learning integration can be found in the documentation."
+              />
+
+              <FormControl>
+                <FormControl.Label>Model name</FormControl.Label>
+                <TextInput
+                  size="large"
+                  value={mlName}
+                  placeholder="e.g. MiewID"
+                  onChange={(event: ChangeEvent<HTMLInputElement>) => setMlName(event.target.value)}
+                  onBlur={() => void handleMLSettingsSave()}
+                  block
+                />
+                <FormControl.Caption>
+                  Label shown in the sidebar to identify the active model.
+                </FormControl.Caption>
+              </FormControl>
+
+              <FormControl>
+                <FormControl.Label>Model API URL</FormControl.Label>
+                <TextInput
+                  size="large"
+                  value={mlEndpoint}
+                  placeholder="https://api.example.com"
+                  onChange={(event: ChangeEvent<HTMLInputElement>) =>
+                    setMlEndpoint(event.target.value)
+                  }
+                  onBlur={() => void handleMLSettingsSave()}
+                  block
+                />
+                <FormControl.Caption>Base URL of your model API.</FormControl.Caption>
+              </FormControl>
+
+              <FormControl>
+                <FormControl.Label>API key</FormControl.Label>
+                <TextInput
+                  type="password"
+                  size="large"
+                  value={mlApiKey}
+                  placeholder="sk-…"
+                  onChange={(event: ChangeEvent<HTMLInputElement>) =>
+                    setMlApiKey(event.target.value)
+                  }
+                  onBlur={() => void handleMLSettingsSave()}
+                  block
+                />
+                <FormControl.Caption>API token used for bearer authorization.</FormControl.Caption>
+              </FormControl>
+
+              <FormControl>
+                <FormControl.Label>Candidates</FormControl.Label>
+                <TextInput
+                  type="number"
+                  size="large"
+                  value={String(mlCandidates)}
+                  onChange={(event: ChangeEvent<HTMLInputElement>) => {
+                    const parsed = parseInt(event.target.value, 10);
+                    if (!isNaN(parsed)) {
+                      setMlCandidates(parsed);
+                    }
+                  }}
+                  onBlur={() => void handleMLSettingsSave()}
+                  block
+                />
+                <FormControl.Caption>
+                  Number of ranked candidates to request and show in the results. Results are
+                  paginated in pages of 10.
+                </FormControl.Caption>
+              </FormControl>
+
+              <FormControl>
+                <Checkbox
+                  checked={mlIncludeHeatmap}
+                  onChange={(event: ChangeEvent<HTMLInputElement>) => {
+                    const newValue = event.target.checked;
+                    setMlIncludeHeatmap(newValue);
+                    void handleMLSettingsSave({ includeHeatmap: newValue });
+                  }}
+                />
+                <FormControl.Label>Request debug information</FormControl.Label>
+                <FormControl.Caption>
+                  When enabled, requests debug information (as an image) from the model API and will
+                  display it in the results.
+                </FormControl.Caption>
+              </FormControl>
+            </Stack>
+          </UnderlinePanels.Panel>
+        </UnderlinePanels>
       )}
     </Dialog>
   );

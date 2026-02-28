@@ -2,7 +2,7 @@ import path from "node:path";
 
 import { createCanvas, loadImage } from "@napi-rs/canvas";
 
-import { THUMBNAIL_SIZE } from "@/constants";
+import { API_IMAGE_JPEG_QUALITY, API_IMAGE_SIZE, THUMBNAIL_SIZE } from "@/constants";
 import { getCanvasFilters } from "@/helpers";
 import type { PhotoEdits } from "@/types";
 
@@ -75,6 +75,42 @@ export const renderThumbnailWithEdits = async ({
   }
 
   return thumbnailCanvas.encode("png");
+};
+
+/**
+ * Renders a photo at API_IMAGE_SIZE longest edge as JPEG and API_IMAGE_JPEG_QUALITY, with edits
+ * applied. Always outputs JPEG regardless of source format. Used for ML API requests.
+ */
+export const renderApiImage = async ({
+  sourcePath,
+  edits,
+}: RenderCanvasOptions): Promise<Buffer> => {
+  const canvasWithEdits = await drawImageWithEditsToCanvas({ sourcePath, edits });
+
+  const isLandscape = canvasWithEdits.width >= canvasWithEdits.height;
+  const scale = isLandscape
+    ? API_IMAGE_SIZE / canvasWithEdits.width
+    : API_IMAGE_SIZE / canvasWithEdits.height;
+
+  const outputWidth = Math.round(canvasWithEdits.width * scale);
+  const outputHeight = Math.round(canvasWithEdits.height * scale);
+
+  const outputCanvas = createCanvas(outputWidth, outputHeight);
+  const outputContext = outputCanvas.getContext("2d");
+
+  outputContext.drawImage(
+    canvasWithEdits,
+    0,
+    0,
+    canvasWithEdits.width,
+    canvasWithEdits.height,
+    0,
+    0,
+    outputWidth,
+    outputHeight,
+  );
+
+  return outputCanvas.encode("jpeg", API_IMAGE_JPEG_QUALITY);
 };
 
 export const renderFullImageWithEdits = async ({

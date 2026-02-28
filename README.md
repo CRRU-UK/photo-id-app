@@ -48,7 +48,7 @@ Below are the NPM commands that can be used for development:
 | `test:unit:watch`    | Same as `test:unit` but runs it in watch mode.                   |
 | `docs`               | Builds and serves documentation locally. <sup>1</sup>            |
 
-<sup>1</sup> Requires [Material for MKDocs](https://squidfunk.github.io/mkdocs-material/).
+<sup>1</sup> Requires [Material for MKDocs](https://squidfunk.github.io/mkdocs-material/) and served on port 8001.
 
 ### Debugging
 

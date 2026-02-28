@@ -1,16 +1,18 @@
-import { FileMovedIcon, ReplyIcon, ThreeBarsIcon } from "@primer/octicons-react";
-import { ActionList, ActionMenu, IconButton, Stack as PrimerStack } from "@primer/react";
+import { AiModelIcon, FileMovedIcon, ReplyIcon, ThreeBarsIcon } from "@primer/octicons-react";
+import { ActionList, ActionMenu, IconButton, Stack as PrimerStack, Text } from "@primer/react";
 import { useNavigate } from "@tanstack/react-router";
 import { observer } from "mobx-react-lite";
 import { useCallback, useEffect, useState } from "react";
 
 import { PROJECT_KEYBOARD_HINTS, ROUTES } from "@/constants";
 import { useProject } from "@/contexts/ProjectContext";
+import { useSettings } from "@/contexts/SettingsContext";
 import DiscardedSelection from "@/frontend/components/DiscardedSelection";
 import MainSelection from "@/frontend/components/MainSelection";
 
 const Sidebar = observer(() => {
   const { project, setProject } = useProject();
+  const { settings } = useSettings();
 
   const [actionsOpen, setActionsOpen] = useState<boolean>(false);
   const [exporting, setExporting] = useState<boolean>(false);
@@ -78,6 +80,20 @@ const Sidebar = observer(() => {
             onClick={() => handleCloseProject()}
             keybindingHint={PROJECT_KEYBOARD_HINTS.CLOSE_PROJECT}
           />
+
+          {settings?.ml?.name && (
+            <PrimerStack
+              direction="horizontal"
+              align="center"
+              gap="condensed"
+              style={{ marginLeft: "auto", marginRight: "var(--stack-gap-condensed)" }}
+            >
+              <AiModelIcon size={16} />
+              <Text size="small" color="fg.muted">
+                {settings.ml.name}
+              </Text>
+            </PrimerStack>
+          )}
 
           <ActionMenu open={actionsOpen} onOpenChange={setActionsOpen}>
             <ActionMenu.Button leadingVisual={ThreeBarsIcon} size="large">

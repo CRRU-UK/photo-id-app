@@ -14,6 +14,7 @@ import { updateElectronApp } from "update-electron-app";
 import type {
   EditorNavigation,
   ExternalLinks,
+  MLMatchResponse,
   PhotoBody,
   ProjectBody,
   RecentProject,
@@ -21,6 +22,7 @@ import type {
 } from "@/types";
 
 import { getMenu } from "@/backend/menu";
+import { analyseStack, cancelAnalyseStack } from "@/backend/model";
 import { createPhotoThumbnail, revertPhotoToOriginal } from "@/backend/photos";
 import {
   getCurrentProjectDirectory,
@@ -410,6 +412,23 @@ app.whenReady().then(async () => {
       mainWindow.focus();
       mainWindow.webContents.send(IPC_EVENTS.OPEN_SETTINGS);
     }
+  });
+
+  ipcMain.handle(
+    IPC_EVENTS.ANALYSE_STACK,
+    async (_event, photos: PhotoBody[]): Promise<MLMatchResponse | null> => {
+      const settings = await getSettings();
+
+      if (!settings.ml?.endpoint || !settings.ml?.apiKey) {
+        throw new Error("Machine Learning integration is not configured.");
+      }
+
+      return analyseStack({ photos, settings: settings.ml });
+    },
+  );
+
+  ipcMain.on(IPC_EVENTS.CANCEL_ANALYSE_STACK, () => {
+    cancelAnalyseStack();
   });
 
   ipcMain.on(IPC_EVENTS.OPEN_EXTERNAL_LINK, (_event, link: ExternalLinks) => {

@@ -42,7 +42,7 @@ const DiscardedSelection = observer(({ collection }: DiscardedSelectionProps) =>
         Discarded Photos
       </Text>
 
-      <Stack collection={collection} />
+      <Stack collection={collection} showAnalysisButton={false} />
     </div>
   );
 });

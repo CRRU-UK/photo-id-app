@@ -1,5 +1,6 @@
 import { useDraggable } from "@dnd-kit/core";
 import {
+  AiModelIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   PencilIcon,
@@ -17,8 +18,10 @@ import {
 import { observer } from "mobx-react-lite";
 import { useState } from "react";
 
+import { useSettings } from "@/contexts/SettingsContext";
 import type Collection from "@/models/Collection";
 import type Photo from "@/models/Photo";
+import type { PhotoBody } from "@/types";
 
 interface StackImageProps {
   photo: Photo;
@@ -41,131 +44,162 @@ const StackImage = observer(({ photo }: StackImageProps) => (
 
 interface StackProps {
   collection: Collection;
+  showAnalysisButton?: boolean;
+  isAnalysing?: boolean;
+  onAnalyse?: (photos: PhotoBody[]) => void;
 }
 
-const Stack = observer(({ collection }: StackProps) => {
-  const [actionsOpen, setActionsOpen] = useState<boolean>(false);
-  const [revertingPhoto, setRevertingPhoto] = useState<boolean>(false);
+const Stack = observer(
+  ({ collection, showAnalysisButton = true, isAnalysing = false, onAnalyse }: StackProps) => {
+    const { settings } = useSettings();
+    const [actionsOpen, setActionsOpen] = useState<boolean>(false);
+    const [revertingPhoto, setRevertingPhoto] = useState<boolean>(false);
 
-  const currentPhoto = collection.currentPhoto;
+    const isMlConfigured = !!(settings?.ml?.endpoint && settings.ml.apiKey);
 
-  const {
-    setNodeRef: setDraggableNodeRef,
-    attributes,
-    listeners,
-  } = useDraggable({
-    id: currentPhoto?.fileName ?? "",
-    data: { collection, currentPhoto: currentPhoto },
-    disabled: collection.photos.size <= 0,
-  });
+    const handleAnalyseClick = () => {
+      if (collection.photos.size === 0 || !onAnalyse) {
+        return;
+      }
 
-  const handleOpenEdit = () => {
-    window.electronAPI.openEditWindow(currentPhoto!.toBody());
-  };
+      onAnalyse(Array.from(collection.photos).map((photo) => photo.toBody()));
+    };
 
-  const handleRevertPhoto = async () => {
-    if (revertingPhoto) {
-      return;
-    }
+    const currentPhoto = collection.currentPhoto;
 
-    setRevertingPhoto(true);
+    const {
+      setNodeRef: setDraggableNodeRef,
+      attributes,
+      listeners,
+    } = useDraggable({
+      id: currentPhoto?.fileName ?? "",
+      data: { collection, currentPhoto: currentPhoto },
+      disabled: collection.photos.size <= 0,
+    });
 
-    const newData = await window.electronAPI.revertPhotoFile(currentPhoto!.toBody());
-    currentPhoto!.updatePhoto(newData);
+    const handleOpenEdit = () => {
+      window.electronAPI.openEditWindow(currentPhoto!.toBody());
+    };
 
-    setActionsOpen(false);
-    setRevertingPhoto(false);
-  };
+    const handleRevertPhoto = async () => {
+      if (revertingPhoto) {
+        return;
+      }
 
-  const handlePrev = () => collection.setPreviousPhoto();
-  const handleNext = () => collection.setNextPhoto();
+      setRevertingPhoto(true);
 
-  return (
-    <>
-      <div className="photo-stack">
-        <div
-          ref={setDraggableNodeRef}
-          {...listeners}
-          {...attributes}
-          onDoubleClick={handleOpenEdit}
-        >
-          {collection?.currentPhoto && <StackImage photo={currentPhoto!} />}
-        </div>
-      </div>
+      const newData = await window.electronAPI.revertPhotoFile(currentPhoto!.toBody());
+      currentPhoto!.updatePhoto(newData);
 
-      <PrimerStack
-        direction="horizontal"
-        align="center"
-        justify="space-between"
-        style={{ marginTop: "var(--stack-gap-normal)" }}
-      >
-        <PrimerStack direction="horizontal" align="center" justify="space-between">
-          {collection.photos.size > 0 && (
-            <CounterLabel scheme="secondary">
-              {collection.index + 1} / {collection.photos.size}
-            </CounterLabel>
-          )}
-        </PrimerStack>
+      setActionsOpen(false);
+      setRevertingPhoto(false);
+    };
 
-        <ButtonGroup style={{ marginLeft: "auto" }}>
-          <IconButton
-            icon={PencilIcon}
-            size="small"
-            aria-label="Edit photo"
-            onClick={(event) => {
-              event.preventDefault();
-              return handleOpenEdit();
-            }}
-            disabled={collection.photos.size <= 0 || revertingPhoto}
+    const handlePrev = () => collection.setPreviousPhoto();
+    const handleNext = () => collection.setNextPhoto();
+
+    return (
+      <>
+        <div className="photo-stack">
+          <div
+            ref={setDraggableNodeRef}
+            {...listeners}
+            {...attributes}
+            onDoubleClick={handleOpenEdit}
           >
-            Edit
-          </IconButton>
-          <ActionMenu open={actionsOpen} onOpenChange={setActionsOpen}>
-            <ActionMenu.Button
-              aria-label="More options"
-              icon={TriangleDownIcon}
-              size="small"
-              disabled={collection.photos.size <= 0}
-            />
-            <ActionMenu.Overlay>
-              <ActionList>
-                <ActionList.Item
-                  variant="danger"
-                  disabled={
-                    collection.photos.size <= 0 || revertingPhoto || !currentPhoto?.isEdited
-                  }
-                  loading={revertingPhoto}
-                  onSelect={handleRevertPhoto}
-                >
-                  <ActionList.LeadingVisual>
-                    <UndoIcon />
-                  </ActionList.LeadingVisual>
-                  {revertingPhoto ? "Reverting..." : "Revert to original"}
-                </ActionList.Item>
-              </ActionList>
-            </ActionMenu.Overlay>
-          </ActionMenu>
-        </ButtonGroup>
+            {collection?.currentPhoto && <StackImage photo={currentPhoto!} />}
+          </div>
+        </div>
 
-        <ButtonGroup>
-          <IconButton
-            icon={ChevronLeftIcon}
-            size="small"
-            aria-label=""
-            onClick={handlePrev}
-            disabled={collection.photos.size <= 1}
-          />
-          <IconButton
-            icon={ChevronRightIcon}
-            size="small"
-            aria-label=""
-            onClick={handleNext}
-            disabled={collection.photos.size <= 1}
-          />
-        </ButtonGroup>
-      </PrimerStack>
-    </>
-  );
-});
+        <PrimerStack
+          direction="horizontal"
+          align="center"
+          justify="end"
+          style={{ marginTop: "var(--stack-gap-normal)" }}
+        >
+          <PrimerStack
+            direction="horizontal"
+            align="end"
+            justify="space-between"
+            style={{ marginRight: "auto" }}
+          >
+            {collection.photos.size > 0 && (
+              <CounterLabel variant="secondary">
+                {collection.index + 1} / {collection.photos.size}
+              </CounterLabel>
+            )}
+          </PrimerStack>
+
+          {showAnalysisButton && isMlConfigured && (
+            <IconButton
+              icon={AiModelIcon}
+              size="small"
+              aria-label="Analyse stack"
+              disabled={collection.photos.size === 0 || isAnalysing}
+              onClick={handleAnalyseClick}
+            />
+          )}
+
+          <ButtonGroup>
+            <IconButton
+              icon={PencilIcon}
+              size="small"
+              aria-label="Edit photo"
+              onClick={(event) => {
+                event.preventDefault();
+                return handleOpenEdit();
+              }}
+              disabled={collection.photos.size <= 0 || revertingPhoto}
+            >
+              Edit
+            </IconButton>
+            <ActionMenu open={actionsOpen} onOpenChange={setActionsOpen}>
+              <ActionMenu.Button
+                aria-label="More options"
+                icon={TriangleDownIcon}
+                size="small"
+                disabled={collection.photos.size <= 0}
+              />
+              <ActionMenu.Overlay>
+                <ActionList>
+                  <ActionList.Item
+                    variant="danger"
+                    disabled={
+                      collection.photos.size <= 0 || revertingPhoto || !currentPhoto?.isEdited
+                    }
+                    loading={revertingPhoto}
+                    onSelect={handleRevertPhoto}
+                  >
+                    <ActionList.LeadingVisual>
+                      <UndoIcon />
+                    </ActionList.LeadingVisual>
+                    {revertingPhoto ? "Reverting..." : "Revert to original"}
+                  </ActionList.Item>
+                </ActionList>
+              </ActionMenu.Overlay>
+            </ActionMenu>
+          </ButtonGroup>
+
+          <ButtonGroup>
+            <IconButton
+              icon={ChevronLeftIcon}
+              size="small"
+              aria-label=""
+              onClick={handlePrev}
+              disabled={collection.photos.size <= 1}
+            />
+            <IconButton
+              icon={ChevronRightIcon}
+              size="small"
+              aria-label=""
+              onClick={handleNext}
+              disabled={collection.photos.size <= 1}
+            />
+          </ButtonGroup>
+        </PrimerStack>
+      </>
+    );
+  },
+);
 
 export default Stack;

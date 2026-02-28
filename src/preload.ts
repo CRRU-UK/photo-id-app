@@ -2,6 +2,7 @@ import type {
   EditorNavigation,
   ExternalLinks,
   LoadingData,
+  MLMatchResponse,
   PhotoBody,
   ProjectBody,
   RecentProject,
@@ -44,6 +45,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
   getSettings: (): Promise<SettingsData> => ipcRenderer.invoke(IPC_EVENTS.GET_SETTINGS),
   updateSettings: (settings: SettingsData): Promise<void> =>
     ipcRenderer.invoke(IPC_EVENTS.UPDATE_SETTINGS, settings),
+  analyseStack: (photos: PhotoBody[]): Promise<MLMatchResponse | null> =>
+    ipcRenderer.invoke(IPC_EVENTS.ANALYSE_STACK, photos),
 
   // Methods (renderer-to-main)
   openProjectFolder: () => ipcRenderer.send(IPC_EVENTS.OPEN_FOLDER),
@@ -53,6 +56,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
   closeProject: () => ipcRenderer.send(IPC_EVENTS.CLOSE_PROJECT),
   openEditWindow: (data: PhotoBody) => ipcRenderer.send(IPC_EVENTS.OPEN_EDIT_WINDOW, data),
   openExternalLink: (link: ExternalLinks) => ipcRenderer.send(IPC_EVENTS.OPEN_EXTERNAL_LINK, link),
+  cancelAnalyseStack: () => ipcRenderer.send(IPC_EVENTS.CANCEL_ANALYSE_STACK),
 
   // Listeners (main-to-renderer)
   onLoading: (callback: (data: LoadingData) => void) =>

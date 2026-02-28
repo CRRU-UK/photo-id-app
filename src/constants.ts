@@ -29,6 +29,10 @@ export enum IPC_EVENTS {
   // Editor
   OPEN_EDIT_WINDOW = "edit:openEditWindow",
   NAVIGATE_EDITOR_PHOTO = "edit:navigateEditorPhoto",
+
+  // Machine Learning
+  ANALYSE_STACK = "ml:analyseStack",
+  CANCEL_ANALYSE_STACK = "ml:cancelAnalyseStack",
 }
 
 export const ROUTES = {
@@ -142,6 +146,10 @@ export const PROJECT_EXPORT_DIRECTORY = "matched";
 
 export const THUMBNAIL_SIZE = 1000;
 
+export const API_IMAGE_SIZE = 1000;
+
+export const API_IMAGE_JPEG_QUALITY = 85;
+
 export const RECENT_PROJECTS_FILE_NAME = "recent-projects.json";
 
 export const SETTINGS_FILE_NAME = "settings.json";
@@ -217,3 +225,9 @@ export const DEFAULT_SETTINGS = {
   themeMode: "dark",
   telemetry: "disabled",
 } as const;
+
+export const ML_CANDIDATES = {
+  MIN: 3,
+  MAX: 15,
+  DEFAULT: 5,
+};

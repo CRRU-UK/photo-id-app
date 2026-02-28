@@ -1,14 +1,28 @@
 import { z } from "zod";
 
-import { DEFAULT_SETTINGS } from "@/constants";
+import { DEFAULT_SETTINGS, ML_CANDIDATES } from "@/constants";
 
 export const themeModeSchema = z.enum(["light", "dark", "auto"]);
 
 export const telemetrySchema = z.enum(["enabled", "disabled"]);
 
+export const mlSettingsSchema = z.object({
+  name: z.string().default(""),
+  endpoint: z.string().default(""),
+  apiKey: z.string().default(""),
+  candidates: z
+    .number()
+    .int()
+    .min(ML_CANDIDATES.MIN)
+    .max(ML_CANDIDATES.MAX)
+    .default(ML_CANDIDATES.DEFAULT),
+  includeHeatmap: z.boolean().default(false),
+});
+
 export const settingsDataSchema = z.object({
   themeMode: themeModeSchema.default(DEFAULT_SETTINGS.themeMode),
   telemetry: telemetrySchema.default(DEFAULT_SETTINGS.telemetry),
+  ml: mlSettingsSchema.optional(),
 });
 
 export const photoEditsSchema = z.object({
