@@ -26,7 +26,7 @@ import { useProject } from "@/contexts/ProjectContext";
 import AnalysisOverlay from "@/frontend/components/AnalysisOverlay";
 import LoadingOverlay from "@/frontend/components/LoadingOverlay";
 import Selections from "@/frontend/components/Selections";
-import Settings from "@/frontend/components/Settings";
+import SettingsOverlay from "@/frontend/components/SettingsOverlay";
 import Sidebar from "@/frontend/components/Sidebar";
 
 import { chunkArray, getAlphabetLetter } from "@/helpers";
@@ -201,7 +201,7 @@ const ProjectPage = observer(() => {
     <AnalysisProvider>
       <LoadingOverlay data={loading} />
 
-      <Settings
+      <SettingsOverlay
         open={settingsOpen}
         onClose={() => setSettingsOpen(false)}
         onOpenRequest={() => setSettingsOpen(true)}

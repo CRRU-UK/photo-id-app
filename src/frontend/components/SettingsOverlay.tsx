@@ -25,7 +25,7 @@ interface SettingsProps {
   returnFocusRef?: RefObject<HTMLElement | null>;
 }
 
-const Settings = ({ open, onClose, onOpenRequest, returnFocusRef }: SettingsProps) => {
+const SettingsOverlay = ({ open, onClose, onOpenRequest, returnFocusRef }: SettingsProps) => {
   const { settings: contextSettings, updateSettings } = useSettings();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -228,7 +228,6 @@ const Settings = ({ open, onClose, onOpenRequest, returnFocusRef }: SettingsProp
                   type="password"
                   size="large"
                   value={mlDraft.apiKey}
-                  placeholder="sk-…"
                   onChange={(event: ChangeEvent<HTMLInputElement>) =>
                     setMlDraft((prev) => ({ ...prev, apiKey: event.target.value }))
                   }
@@ -282,4 +281,4 @@ const Settings = ({ open, onClose, onOpenRequest, returnFocusRef }: SettingsProp
   );
 };
 
-export default Settings;
+export default SettingsOverlay;

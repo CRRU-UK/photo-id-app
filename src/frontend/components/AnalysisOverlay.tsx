@@ -19,6 +19,45 @@ import type { MLMatch, MLMatchResponse } from "@/types";
 
 type MLMatchRow = MLMatch & { id: number };
 
+const Loading = ({ stackLabel }: { stackLabel: string }) => (
+  <Table.Container>
+    <Table.Subtitle as="p" id="subtitle">
+      <PrimerStack direction="horizontal" align="center" justify="space-between">
+        <div>
+          Processing stack <Label variant="accent">{stackLabel}</Label>...
+        </div>
+        <Spinner size="small" />
+      </PrimerStack>
+    </Table.Subtitle>
+    <Table.Skeleton
+      aria-labelledby="repositories-loading"
+      rows={10}
+      columns={[
+        {
+          header: "Rank",
+          id: "rank",
+          width: "auto",
+        },
+        {
+          header: "ID",
+          id: "animal_id",
+          width: "auto",
+        },
+        {
+          header: "Similarity / Confidence",
+          id: "confidence",
+          width: "grow",
+        },
+        {
+          header: "",
+          id: "source_path",
+          width: "auto",
+        },
+      ]}
+    />
+  </Table.Container>
+);
+
 const Results = ({ data, stackLabel }: { data: MLMatchResponse; stackLabel: string | null }) => {
   const [pageIndex, setPageIndex] = useState(0);
 
@@ -50,7 +89,7 @@ const Results = ({ data, stackLabel }: { data: MLMatchResponse; stackLabel: stri
           rowHeader: true,
         },
         {
-          header: "Similarity Confidence",
+          header: "Similarity / Confidence",
           field: "confidence",
           width: "grow",
           renderCell: (row: MLMatchRow) => {
@@ -103,9 +142,8 @@ const Results = ({ data, stackLabel }: { data: MLMatchResponse; stackLabel: stri
   return (
     <Table.Container>
       <Table.Subtitle as="p" id="subtitle">
-        Matches for stack {stackLabel !== null && <Label variant="default">{stackLabel}</Label>}{" "}
-        from <Label variant="default">{data.query_image_count}</Label> image(s) with model{" "}
-        <Label variant="default">{data.model}</Label>:
+        Matches for stack {stackLabel !== null && <Label variant="accent">{stackLabel}</Label>} from{" "}
+        {data.query_image_count} image(s) with model <Label variant="done">{data.model}</Label>:
       </Table.Subtitle>
 
       {tableContent}
@@ -131,7 +169,7 @@ const AnalysisOverlay = () => {
 
   return (
     <Dialog
-      title={isAnalysing ? `Analysing ${stackLabel}...` : "Analysis Results"}
+      title="Machine Learning Analysis"
       onClose={handleClose}
       footerButtons={
         isAnalysing
@@ -139,11 +177,7 @@ const AnalysisOverlay = () => {
           : [{ buttonType: "default", content: "Close", onClick: handleClose }]
       }
     >
-      {isAnalysing && (
-        <PrimerStack direction="vertical" align="center" gap="normal">
-          <Spinner size="large" />
-        </PrimerStack>
-      )}
+      {isAnalysing && <Loading stackLabel={stackLabel} />}
 
       {result !== null && <Results data={result} stackLabel={stackLabel} />}
 
