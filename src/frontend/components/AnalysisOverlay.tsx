@@ -20,10 +20,12 @@ import type { MLMatch, MLMatchResponse } from "@/types";
 type MLMatchRow = MLMatch & { id: number };
 
 const Results = ({ data, stackLabel }: { data: MLMatchResponse; stackLabel: string | null }) => {
-  const pageSize = ML_MATCHES_PER_PAGE;
   const [pageIndex, setPageIndex] = useState(0);
+
+  const pageSize = ML_MATCHES_PER_PAGE;
   const start = pageIndex * pageSize;
   const end = start + pageSize;
+
   const rows: MLMatchRow[] = data.matches.slice(start, end).map((match) => ({
     ...match,
     id: match.rank,
@@ -48,16 +50,28 @@ const Results = ({ data, stackLabel }: { data: MLMatchResponse; stackLabel: stri
           rowHeader: true,
         },
         {
-          header: "Confidence",
+          header: "Similarity Confidence",
           field: "confidence",
           width: "grow",
           renderCell: (row: MLMatchRow) => {
             const confidence = Math.round(row.confidence * 100);
+
+            let progressBarColor = "success.emphasis";
+
+            if (confidence < 82) {
+              progressBarColor = "attention.emphasis";
+            }
+
+            if (confidence < 70) {
+              progressBarColor = "danger.emphasis";
+            }
+
             return (
               <>
                 <ProgressBar
                   progress={confidence}
                   inline
+                  bg={progressBarColor}
                   style={{ width: "100%", marginRight: "var(--stack-gap-condensed)" }}
                 />
                 <Text>{confidence}%</Text>
@@ -117,7 +131,7 @@ const AnalysisOverlay = () => {
 
   return (
     <Dialog
-      title={isAnalysing ? "Analysing..." : "Analysis Results"}
+      title={isAnalysing ? `Analysing ${stackLabel}...` : "Analysis Results"}
       onClose={handleClose}
       footerButtons={
         isAnalysing

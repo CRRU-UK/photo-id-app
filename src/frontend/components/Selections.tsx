@@ -28,7 +28,9 @@ const SelectionStack = observer(({ id, side, collection }: SelectionStackProps) 
     data: { collection },
   });
 
-  const stackLabel = `${getAlphabetLetter(id)} ${side}`;
+  const stackLabel = selectionName
+    ? `${selectionName} (${side})`
+    : `${getAlphabetLetter(id)} (${side})`;
 
   return (
     <div
