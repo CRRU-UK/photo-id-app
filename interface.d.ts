@@ -1,5 +1,6 @@
 import type {
   EditorNavigation,
+  ExternalLinks,
   LoadingData,
   MLMatchResponse,
   PhotoBody,

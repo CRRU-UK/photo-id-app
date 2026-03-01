@@ -442,6 +442,10 @@ app.whenReady().then(async () => {
       return shell.openExternal(EXTERNAL_LINKS.USER_GUIDE);
     }
 
+    if (link === "user-guide-ml") {
+      return shell.openExternal(EXTERNAL_LINKS.USER_GUIDE_ML);
+    }
+
     if (link === "privacy") {
       return shell.openExternal(EXTERNAL_LINKS.PRIVACY);
     }

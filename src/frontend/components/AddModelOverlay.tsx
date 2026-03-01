@@ -80,7 +80,7 @@ const AddModelOverlay = ({ open, onClose }: AddModelOverlayProps) => {
       ]}
     >
       <Stack direction="vertical" gap="spacious" padding="spacious">
-        <FormControl>
+        <FormControl required>
           <FormControl.Label>Model name</FormControl.Label>
           <TextInput
             size="large"
@@ -89,12 +89,11 @@ const AddModelOverlay = ({ open, onClose }: AddModelOverlayProps) => {
             placeholder="e.g. MiewID"
             onChange={(event) => setDraft((prev) => ({ ...prev, name: event.target.value }))}
             block
-            required
           />
           <FormControl.Caption>Label shown in the app to identify this model.</FormControl.Caption>
         </FormControl>
 
-        <FormControl>
+        <FormControl required>
           <FormControl.Label>Model API URL</FormControl.Label>
           <TextInput
             size="large"
@@ -103,12 +102,11 @@ const AddModelOverlay = ({ open, onClose }: AddModelOverlayProps) => {
             leadingVisual={LinkIcon}
             onChange={(event) => setDraft((prev) => ({ ...prev, endpoint: event.target.value }))}
             block
-            required
           />
           <FormControl.Caption>Base URL of your model API.</FormControl.Caption>
         </FormControl>
 
-        <FormControl>
+        <FormControl required>
           <FormControl.Label>API key</FormControl.Label>
           <TextInput
             type={showApiKey ? "text" : "password"}
@@ -124,7 +122,6 @@ const AddModelOverlay = ({ open, onClose }: AddModelOverlayProps) => {
               />
             }
             block
-            required
           />
           <FormControl.Caption>API token used for bearer authorization.</FormControl.Caption>
         </FormControl>

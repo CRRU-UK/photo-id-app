@@ -117,6 +117,7 @@ const Sidebar = observer(() => {
         <DiscardedSelection collection={project.discarded} />
 
         <FormControl style={{ marginLeft: "auto", marginTop: "auto" }}>
+          <FormControl.Label visuallyHidden>Select analysis ML model</FormControl.Label>
           <SelectPanel
             title="Analysis ML Model"
             subtitle="Select which ML model to use for stack analysis."
