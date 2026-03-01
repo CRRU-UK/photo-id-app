@@ -1,5 +1,6 @@
 import { useDraggable } from "@dnd-kit/core";
 import {
+  AiModelIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   PencilIcon,
@@ -17,6 +18,8 @@ import {
 import { observer } from "mobx-react-lite";
 import { useState } from "react";
 
+import { useAnalysis } from "@/contexts/AnalysisContext";
+import { useSettings } from "@/contexts/SettingsContext";
 import type Collection from "@/models/Collection";
 import type Photo from "@/models/Photo";
 
@@ -41,11 +44,29 @@ const StackImage = observer(({ photo }: StackImageProps) => (
 
 interface StackProps {
   collection: Collection;
+  showAnalysisButton?: boolean;
+  stackLabel?: string;
 }
 
-const Stack = observer(({ collection }: StackProps) => {
+const Stack = observer(({ collection, showAnalysisButton = true, stackLabel }: StackProps) => {
+  const { settings } = useSettings();
+  const { isAnalysing, handleAnalyse } = useAnalysis();
   const [actionsOpen, setActionsOpen] = useState<boolean>(false);
   const [revertingPhoto, setRevertingPhoto] = useState<boolean>(false);
+
+  const selectedModel = settings?.mlModels?.find((m) => m.id === settings?.selectedModelId);
+  const isMLConfigured = !!(selectedModel?.endpoint && selectedModel?.token);
+
+  const handleAnalyseClick = () => {
+    if (collection.photos.size === 0) {
+      return;
+    }
+
+    void handleAnalyse(
+      Array.from(collection.photos).map((photo) => photo.toBody()),
+      stackLabel ?? "",
+    );
+  };
 
   const currentPhoto = collection.currentPhoto;
 
@@ -96,18 +117,33 @@ const Stack = observer(({ collection }: StackProps) => {
       <PrimerStack
         direction="horizontal"
         align="center"
-        justify="space-between"
+        justify="end"
         style={{ marginTop: "var(--stack-gap-normal)" }}
       >
-        <PrimerStack direction="horizontal" align="center" justify="space-between">
+        <PrimerStack
+          direction="horizontal"
+          align="end"
+          justify="space-between"
+          style={{ marginRight: "auto" }}
+        >
           {collection.photos.size > 0 && (
-            <CounterLabel scheme="secondary">
+            <CounterLabel variant="secondary">
               {collection.index + 1} / {collection.photos.size}
             </CounterLabel>
           )}
         </PrimerStack>
 
-        <ButtonGroup style={{ marginLeft: "auto" }}>
+        {showAnalysisButton && isMLConfigured && (
+          <IconButton
+            icon={AiModelIcon}
+            size="small"
+            aria-label="Analyse photos"
+            disabled={collection.photos.size === 0 || isAnalysing}
+            onClick={handleAnalyseClick}
+          />
+        )}
+
+        <ButtonGroup>
           <IconButton
             icon={PencilIcon}
             size="small"

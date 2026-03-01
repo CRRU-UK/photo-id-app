@@ -73,6 +73,34 @@ body.copying *:hover {
   overflow-y: scroll;
 }
 
+/**
+ * Primer portals (<Dialog />) render into #__primerPortalRoot__ appended to body with no z-index.
+ * This ensures they appear above the fixed .pages navigation bar (z-index: 10) while remaining
+ * below the loading overlay (z-index: 100).
+ */
+#__primerPortalRoot__ {
+  z-index: 50;
+}
+
+/**
+ * Remove <Dialog /> body padding from the settings overlay so <UnderlinePanels /> is flush.
+ */
+.settings-overlay [class*="prc-Dialog-Body"] {
+  padding: 0;
+}
+
+.ml-list-row {
+  display: flex;
+  align-items: center;
+  gap: var(--stack-gap-normal);
+  padding: var(--stack-gap-normal);
+  border-bottom: 1px solid var(--borderColor-muted);
+}
+
+.ml-list-row:first-child {
+  border-top: 1px solid var(--borderColor-muted);
+}
+
 .project > .pages {
   z-index: 10;
   position: absolute;
@@ -82,7 +110,9 @@ body.copying *:hover {
   background: var(--bgColor-default);
 }
 
-/* For <UnderlineNav /> component */
+/**
+ * For <UnderlineNav /> component.
+ */
 .project > .pages > nav {
   width: 100%;
 }

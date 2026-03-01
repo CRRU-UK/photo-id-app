@@ -69,7 +69,12 @@ describe("settings", () => {
     });
 
     it("reads and returns settings from disk when the file exists", async () => {
-      const savedSettings: SettingsData = { themeMode: "light", telemetry: "enabled" };
+      const savedSettings: SettingsData = {
+        themeMode: "light",
+        telemetry: "enabled",
+        mlModels: [],
+        selectedModelId: null,
+      };
       mockExistsSync.mockReturnValue(true);
       mockReadFile.mockResolvedValue(JSON.stringify(savedSettings));
 
@@ -150,7 +155,12 @@ describe("settings", () => {
 
   describe(updateSettings, () => {
     it("writes settings as formatted JSON to the correct file", async () => {
-      const settings: SettingsData = { themeMode: "auto", telemetry: "disabled" };
+      const settings: SettingsData = {
+        themeMode: "auto",
+        telemetry: "disabled",
+        mlModels: [],
+        selectedModelId: null,
+      };
 
       await updateSettings(settings);
 

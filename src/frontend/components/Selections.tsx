@@ -28,6 +28,10 @@ const SelectionStack = observer(({ id, side, collection }: SelectionStackProps) 
     data: { collection },
   });
 
+  const stackLabel = selectionName
+    ? `${selectionName} (${side})`
+    : `${getAlphabetLetter(id)} (${side})`;
+
   return (
     <div
       ref={setDroppableNodeRef}
@@ -63,10 +67,10 @@ const SelectionStack = observer(({ id, side, collection }: SelectionStackProps) 
           defaultValue={selectionName}
           onBlur={(event) => setSelectionName(event.target.value)}
           size="small"
-          style={{ maxWidth: "80px" }}
+          style={{ maxWidth: "160px" }}
         />
       </PrimerStack>
-      <Stack collection={collection} />
+      <Stack collection={collection} stackLabel={stackLabel} />
     </div>
   );
 });

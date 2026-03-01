@@ -14,6 +14,7 @@ import { updateElectronApp } from "update-electron-app";
 import type {
   EditorNavigation,
   ExternalLinks,
+  MLMatchResponse,
   PhotoBody,
   ProjectBody,
   RecentProject,
@@ -21,6 +22,7 @@ import type {
 } from "@/types";
 
 import { getMenu } from "@/backend/menu";
+import { analyseStack, cancelAnalyseStack } from "@/backend/model";
 import { createPhotoThumbnail, revertPhotoToOriginal } from "@/backend/photos";
 import {
   getCurrentProjectDirectory,
@@ -412,6 +414,27 @@ app.whenReady().then(async () => {
     }
   });
 
+  ipcMain.handle(
+    IPC_EVENTS.ANALYSE_STACK,
+    async (_event, photos: PhotoBody[]): Promise<MLMatchResponse | null> => {
+      const settings = await getSettings();
+
+      const selectedModel = settings.mlModels.find(
+        (model) => model.id === settings.selectedModelId,
+      );
+
+      if (!selectedModel?.endpoint || !selectedModel?.token) {
+        throw new Error("Machine Learning integration is not configured.");
+      }
+
+      return analyseStack({ photos, settings: selectedModel });
+    },
+  );
+
+  ipcMain.on(IPC_EVENTS.CANCEL_ANALYSE_STACK, () => {
+    cancelAnalyseStack();
+  });
+
   ipcMain.on(IPC_EVENTS.OPEN_EXTERNAL_LINK, (_event, link: ExternalLinks) => {
     if (link === "website") {
       return shell.openExternal(EXTERNAL_LINKS.WEBSITE);
@@ -419,6 +442,10 @@ app.whenReady().then(async () => {
 
     if (link === "user-guide") {
       return shell.openExternal(EXTERNAL_LINKS.USER_GUIDE);
+    }
+
+    if (link === "user-guide-ml") {
+      return shell.openExternal(EXTERNAL_LINKS.USER_GUIDE_ML);
     }
 
     if (link === "privacy") {
