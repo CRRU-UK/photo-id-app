@@ -1,5 +1,11 @@
 # photo-id
 
+## 0.5.0
+
+### Minor Changes
+
+- 5cbb9c0: Add machine learning model integration
+
 ## 0.4.1
 
 ### Patch Changes
