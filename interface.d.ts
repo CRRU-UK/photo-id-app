@@ -1,6 +1,8 @@
 import type {
   EditorNavigation,
+  ExternalLinks,
   LoadingData,
+  MLMatchResponse,
   PhotoBody,
   ProjectBody,
   RecentProject,
@@ -19,6 +21,7 @@ export interface IElectronAPI {
   duplicatePhotoFile: (data: PhotoBody) => Promise<PhotoBody>;
   getSettings: () => Promise<SettingsData>;
   updateSettings: (settings: SettingsData) => Promise<void>;
+  analyseStack: (photos: PhotoBody[]) => Promise<MLMatchResponse | null>;
 
   // Methods (renderer-to-main)
   openProjectFolder: () => void;
@@ -28,6 +31,7 @@ export interface IElectronAPI {
   closeProject: () => void;
   openEditWindow: (data: PhotoBody) => void;
   openExternalLink: (link: ExternalLinks) => void;
+  cancelAnalyseStack: () => void;
 
   // Listeners (main-to-renderer)
   onLoading: (callback: (data: LoadingData) => void) => () => void;

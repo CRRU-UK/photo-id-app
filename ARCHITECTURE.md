@@ -27,11 +27,7 @@ Technical information, specifications, requirements, and user journeys.
 - `src/types.ts` — Central types for consistent data shapes between main and renderer
 - `src/schemas.ts` — Zod schemas for project-file data, some types in `src/types.ts` are derived from these
 - `src/helpers.ts` — Utility helpers for common operations
-- `src/backend/` — Backend file I/O and image processing:
-  - `photos.ts` — Photo loading, thumbnail generation, and image manipulation
-  - `projects.ts` — Project file operations and persistence
-  - `menu.ts` — Application menu configuration
-  - `recents.ts` — Recent projects tracking
+- `src/backend/` — Backend data I/O and image processing
 - `src/frontend/` — React UI components and hooks:
   - `components/` — React components for UI elements
     - `ImageEditor.tsx` — Main photo editing layout and controls
@@ -49,7 +45,7 @@ Technical information, specifications, requirements, and user journeys.
   - `Project.ts` — Project model
   - `Photo.ts` — Photo model
   - `Collection.ts` — Collection model
-- `src/contexts/` — React Context providers (e.g., ProjectContext)
+- `src/contexts/` — React Context providers (e.g. ProjectContext, SettingsContext)
 - `docs/` — User and technical documentation
 - Tests: `*.test.ts` files co-located with source files
 - Configuration: `tsconfig.json`, `vite.*.mts`, `forge.config.ts`, `vitest.config.ts`
@@ -119,11 +115,20 @@ The index view is the default view when opening the app. It allows the user to:
 
 - The settings overlay can be opened by clicking the settings button, with the keyboard shortcut, or from the window menu
 - The settings overlay can also be opened from the project view with the keyboard shortcut or window menu
-- The application theme can be changed from the settings
-  - Theme changes propagate and affect all windows
-- Telemetry (frontend and backend) can be changed from the settings
-  - This setting requires an application restart due to being integrated into the Node process and cannot be toggled in runtime
-- Changing a field value should automatically update the settings in both the frontend and backend, unless otherwise stated
+- There are two tabs in the settings overlay containing two groups of settings:
+  - General
+    - The application theme can be changed from the settings
+      - Theme changes propagate and affect all windows
+    - Telemetry (frontend and backend) can be changed from the settings
+      - This setting requires an application restart due to being integrated into the Node process and cannot be toggled in runtime
+    - Changing a field value should automatically update the settings in both the frontend and backend, unless otherwise stated
+  - Machine learning
+    - Machine learning models can be managed in this tab
+    - A blank slate should be shown when no models have been added
+    - Adding a model should show another overlay where the information can be added
+    - Models MUST contain a value for all fields
+    - Models cannot be added if ANY of the fields are empty
+    - Models cannot be edited once added, only removed
 - Settings should use default values on new installations
 - Settings should persist between sessions
 - ONLY the main window should have the settings overlay - edit windows should NEVER display the settings overlay
@@ -186,6 +191,26 @@ The project view is accessed when opening a project. It allows the user to:
 - There are a set number of matched stacks - a user CANNOT add or remove matched stacks
 - Matched stacks are displayed in chunks (pages), with pagination allowing the user to navigate between these chunks by clicking the page labels or by keyboard navigation
 - A column toggle allows the user to view stacks by one or two stacks in a row by clicking the toggle
+
+#### Machine Learning Analysis
+
+- An analysis button should show in stacks once a model has been selected in the sidebar
+  - Only one model can be selected, and the selection in the sidebar allows the user to filter through all the models they've added
+  - If a model is currently selected, it should always be shown regardless of the filter value
+  - Selecting the current model should unselect it and result in a state where analysis is disabled
+  - Re-selecting any model should re-enable analysis
+- The unassigned and discarded stacks should NOT show the analysis button as this would not be useful
+- Clicking the analysis button sends all photos in that stack to the selected model's API endpoint with the token
+- Clicking the analysis button opens an overlay with a data table loading state while the request is being sent and the response is being received
+- Once the response has been received, the overlay content should update the data table with the data received
+- The data table contains the following columns:
+  - ID of the match
+  - Match rating (i.e. confidence, similarity, etc.) visualised as a progress bar and percentage value
+  - Tooltip button to show detail information for the match
+- The API contract in [`analysis-api-spec.yaml`](./docs/assets/analysis-api-spec.yaml) should be used as the ONLY contract for what the app sends and expects to receive from a model API
+- The data table results should show all the results received, paginated at a fixed amount per page
+- The progress bars change colour depending on the value of the rating
+- Table rows are ordered by rank ascending (best match first)
 
 ### Edit View
 

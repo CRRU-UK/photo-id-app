@@ -1,0 +1,145 @@
+openapi: "3.0.3"
+
+info:
+  title: Analysis API Contract
+  version: "0.0.1"
+  description: |
+    API contract for a machine learning model analysis API that can be integrated with the Photo ID App. It should be used when designing an API for the 'bring-your-own-model' machine learning integration. The app will send requests and expect responses to an API as outlined in this specification.
+
+    Users can set the token and endpoint URLs in the Photo ID App settings to enable the machine learning integration described in the [documentation](https://photoidapp.crru.org.uk/user-guide/machine-learning/).
+
+    ## Authorization
+
+    All endpoints should expect an `Authorization` header with a bearer token which can be used for authorization (e.g. `Authorization: Bearer <token>`).
+
+security: []
+
+components:
+  securitySchemes:
+    AuthorizationBearerToken:
+      type: http
+      scheme: bearer
+
+  schemas:
+    MatchCandidate:
+      type: object
+      required: [rank, id, rating, details]
+      properties:
+        rank:
+          type: integer
+          minimum: 1
+          description: >
+            1-indexed rank of this candidate (1 = best match, 2 = second-best, etc.).
+          example: 1
+        id:
+          type: string
+          description: >
+            The identifier for the match.
+          example: "065L (Muddy)"
+        rating:
+          type: number
+          format: float
+          minimum: 0.0
+          maximum: 1.0
+          description: >
+            Percentage out of 100% of rating in the match. Can be used as a confidence or similarity score for the match.
+          example: 0.91
+        details:
+          type: string
+          description: >
+            Details shown as a tooltip for the match (e.g. archive image that produced this match).
+          example: 20220615_0034.jpg
+
+    MatchResponse:
+      type: object
+      required: [matches]
+      properties:
+        matches:
+          type: array
+          items:
+            $ref: "#/components/schemas/MatchCandidate"
+          description: Ranked candidate matches, best first.
+
+    ErrorResponse:
+      type: object
+      required: [detail]
+      properties:
+        detail:
+          type: string
+          description: Human-readable error description.
+          example: Invalid or missing token
+
+paths:
+  /match:
+    post:
+      operationId: match
+      summary: Match a single or multiple photos against a model
+      description: |
+        When clicking 'analyse' on a stack, the app will send all photos in that stack in a single request to this endpoint.
+      tags: [Identification]
+      security:
+        - AuthorizationBearerToken: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [images]
+              properties:
+                images:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  minItems: 1
+                  description: >
+                    One or more photos.
+      responses:
+        "200":
+          description: Ranked candidate matches returned successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MatchResponse"
+              example:
+                matches:
+                  - rank: 1
+                    id: 047
+                    rating: 0.91
+                    details: 047_20220615_0034.jpg
+                  - rank: 2
+                    id: 012
+                    rating: 0.73
+                    details: 012_20190801_0005.jpg
+                  - rank: 3
+                    id: 237
+                    rating: 0.71
+                    details: 237_20180623_0152.jpg
+        "401":
+          description: Missing or invalid token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                detail: Invalid or missing token
+        "422":
+          description: >
+            Required field(s) are missing or are invalid.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                detail: "'bad_file.txt' could not be decoded as an image."
+        "503":
+          description: >
+            Generic service error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                detail: >
+                  An unexpected error occurred.

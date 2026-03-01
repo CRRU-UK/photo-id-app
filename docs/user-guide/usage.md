@@ -30,7 +30,7 @@ Projects can be removed from the recent projects list by selecting the button wi
 
 ## Sorting and matching photos
 
-![Project screen of the app](../assets/images/project.png?v1){ width="700" }
+![Project screen of the app](../assets/images/project.png?v2){ width="700" }
 
 Once you have created a project or opened an existing one, you will see the project screen. Here you can start to sort and match photos. This can be done by clicking and dragging a photo from one 'stack' onto another, which will move it from the original stack onto the targeted one. The targeted stack will be highlighted when dragging a photo over it.
 
@@ -65,6 +65,12 @@ On the top-right of the page there is a toggle for viewing matched stacks by two
 ### Duplication
 
 Photos can be duplicated by holding the ++ctrl++/++cmd++ key while dragging-and-dropping. The photo will be duplicated onto the target stack, with the original remaining where it was dragged from. Edits and other changes made to the duplicated photo are not reflected onto the original.
+
+### Analysis
+
+You can use a machine learning model to analyse photos in your project.
+
+For more information, check out the [Machine Learning](./machine-learning.md) guide!
 
 ### Exporting
 

@@ -22,7 +22,7 @@ import {
 } from "@/constants";
 import LoadingOverlay from "@/frontend/components/LoadingOverlay";
 import RecentProjects from "@/frontend/components/RecentProjects";
-import Settings from "@/frontend/components/Settings";
+import SettingsOverlay from "@/frontend/components/SettingsOverlay";
 
 import iconDark from "@/frontend/img/icon-dark.svg";
 import iconLight from "@/frontend/img/icon-light.svg";
@@ -51,7 +51,7 @@ const IndexPage = () => {
     <>
       <LoadingOverlay data={loading} />
 
-      <Settings
+      <SettingsOverlay
         open={settingsOpen}
         onClose={() => setSettingsOpen(false)}
         onOpenRequest={() => setSettingsOpen(true)}

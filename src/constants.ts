@@ -29,6 +29,10 @@ export enum IPC_EVENTS {
   // Editor
   OPEN_EDIT_WINDOW = "edit:openEditWindow",
   NAVIGATE_EDITOR_PHOTO = "edit:navigateEditorPhoto",
+
+  // Machine Learning
+  ANALYSE_STACK = "ml:analyseStack",
+  CANCEL_ANALYSE_STACK = "ml:cancelAnalyseStack",
 }
 
 export const ROUTES = {
@@ -155,6 +159,7 @@ export const INITIAL_MATCHED_STACKS = 52;
 export enum EXTERNAL_LINKS {
   WEBSITE = "https://crru.org.uk",
   USER_GUIDE = "https://photoidapp.crru.org.uk/user-guide/usage/",
+  USER_GUIDE_ML = "https://photoidapp.crru.org.uk/user-guide/machine-learning/",
   KEYBOARD_SHORTCUTS = "https://photoidapp.crru.org.uk/user-guide/keyboard-shortcuts/",
   CHANGELOG = "https://github.com/CRRU-UK/photo-id-app/releases/$VERSION",
   PRIVACY = "https://photoidapp.crru.org.uk/privacy/",
@@ -214,6 +219,18 @@ export const EDGE_DETECTION = {
 };
 
 export const DEFAULT_SETTINGS = {
-  themeMode: "dark",
-  telemetry: "disabled",
-} as const;
+  themeMode: "dark" as const,
+  telemetry: "disabled" as const,
+  mlModels: [] as never[],
+  selectedModelId: null,
+};
+
+// Machine Learning
+
+export const ANALYSIS_API_IMAGE_SIZE = 1000;
+
+export const ANALYSIS_API_IMAGE_JPEG_QUALITY = 85;
+
+export const ANALYSIS_API_REQUEST_TIMEOUT_MS = 120_000; // 2 minutes
+
+export const ANALYSIS_RESULTS_PER_PAGE = 10;
