@@ -74,7 +74,7 @@ const Sidebar = observer(() => {
     const itemId = item ? (item as ModelItem).id : null;
 
     try {
-      await updateSettings({ ...contextSettings, selectedModelId: itemId ?? null });
+      await updateSettings({ ...contextSettings, selectedModelId: itemId });
     } catch (error) {
       console.error("Error updating selected model:", error);
     }
