@@ -101,8 +101,6 @@ export type MLMatch = {
  */
 export type MLMatchResponse = {
   matches: MLMatch[];
-  query_image_count: number;
-  model: string | null;
 };
 
 export type SettingsData = z.infer<typeof settingsDataSchema>;

@@ -1,6 +1,6 @@
 # Photo ID App
 
-![Screenshots of the Photo ID app.](./docs/assets/images/banner.png?v2)
+![Screenshots of the Photo ID app.](./docs/assets/images/banner.png?v3)
 
 [![Test](https://github.com/CRRU-UK/photo-id-app/actions/workflows/main.yaml/badge.svg?branch=main)](https://github.com/CRRU-UK/photo-id-app/actions/workflows/main.yaml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=CRRU-UK_photo-id-app&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=CRRU-UK_photo-id-app)

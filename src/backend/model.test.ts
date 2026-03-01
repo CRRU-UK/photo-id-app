@@ -35,8 +35,6 @@ const successResponse: MLMatchResponse = {
     { rank: 1, id: "047", rating: 0.91, details: "047_20220615_0034.jpg" },
     { rank: 2, id: "012", rating: 0.73, details: "012_20190801_0005.jpg" },
   ],
-  query_image_count: 1,
-  model: "test-model",
 };
 
 describe(analyseStack, () => {
@@ -103,9 +101,7 @@ describe(analyseStack, () => {
   });
 
   it("sends one rendered image per photo in the stack", async () => {
-    mockFetch.mockResolvedValue(
-      new Response(JSON.stringify({ ...successResponse, query_image_count: 2 }), { status: 200 }),
-    );
+    mockFetch.mockResolvedValue(new Response(JSON.stringify(successResponse), { status: 200 }));
 
     const secondPhoto: PhotoBody = { ...defaultPhoto, name: "photo2.jpg" };
     await analyseStack({ photos: [defaultPhoto, secondPhoto], settings: defaultSettings });

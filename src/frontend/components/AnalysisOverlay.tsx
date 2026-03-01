@@ -15,16 +15,17 @@ import { useState } from "react";
 
 import { ML_MATCHES_PER_PAGE } from "@/constants";
 import { useAnalysis } from "@/contexts/AnalysisContext";
+import { useSettings } from "@/contexts/SettingsContext";
 import type { MLMatch, MLMatchResponse } from "@/types";
 
 const Loading = ({ stackLabel }: { stackLabel: string | null }) => (
   <Table.Container>
     <Table.Subtitle as="p" id="subtitle">
-      <PrimerStack direction="horizontal" align="center" justify="space-between">
-        <div>
-          Processing stack <Label variant="accent">{stackLabel}</Label>...
-        </div>
+      <PrimerStack direction="horizontal" align="start" gap="condensed">
         <Spinner size="small" />
+        <span>
+          Processing stack <Label variant="accent">{stackLabel}</Label>...
+        </span>
       </PrimerStack>
     </Table.Subtitle>
     <Table.Skeleton
@@ -56,7 +57,15 @@ const Loading = ({ stackLabel }: { stackLabel: string | null }) => (
   </Table.Container>
 );
 
-const Results = ({ data, stackLabel }: { data: MLMatchResponse; stackLabel: string | null }) => {
+const Results = ({
+  data,
+  stackLabel,
+  modelLabel,
+}: {
+  data: MLMatchResponse;
+  stackLabel: string | null;
+  modelLabel: string | null;
+}) => {
   const [pageIndex, setPageIndex] = useState(0);
 
   const pageSize = ML_MATCHES_PER_PAGE;
@@ -137,8 +146,8 @@ const Results = ({ data, stackLabel }: { data: MLMatchResponse; stackLabel: stri
   return (
     <Table.Container>
       <Table.Subtitle as="p" id="subtitle">
-        Matches for stack {stackLabel !== null && <Label variant="accent">{stackLabel}</Label>} from{" "}
-        {data.query_image_count} image(s) with model <Label variant="done">{data.model}</Label>:
+        Matches for stack {stackLabel !== null && <Label variant="accent">{stackLabel}</Label>} with
+        model {modelLabel !== null && <Label variant="done">{modelLabel}</Label>}:
       </Table.Subtitle>
 
       {tableContent}
@@ -155,6 +164,10 @@ const Results = ({ data, stackLabel }: { data: MLMatchResponse; stackLabel: stri
 
 const AnalysisOverlay = () => {
   const { isAnalysing, result, error, stackLabel, handleClose } = useAnalysis();
+  const { settings } = useSettings();
+
+  const selectedModel = settings?.mlModels.find((m) => m.id === settings.selectedModelId) ?? null;
+  const modelLabel = selectedModel?.name ?? null;
 
   const open = isAnalysing || result !== null || error !== null;
 
@@ -174,7 +187,7 @@ const AnalysisOverlay = () => {
     >
       {isAnalysing && <Loading stackLabel={stackLabel} />}
 
-      {result !== null && <Results data={result} stackLabel={stackLabel} />}
+      {result !== null && <Results data={result} stackLabel={stackLabel} modelLabel={modelLabel} />}
 
       {error !== null && <Flash variant="danger">{error}</Flash>}
     </Dialog>

@@ -52,24 +52,13 @@ components:
 
     MatchResponse:
       type: object
-      required: [matches, query_image_count, model]
+      required: [matches]
       properties:
         matches:
           type: array
           items:
             $ref: "#/components/schemas/MatchCandidate"
           description: Ranked candidate matches, best first.
-        query_image_count:
-          type: integer
-          minimum: 1
-          description: >
-            Number of images that were uploaded as the query.
-          example: 2
-        model:
-          type: string
-          nullable: true
-          description: Model used in this request. Used as debugging information in the app. Otherwise should return `null`.
-          example: conservationxlabs/miewid-msv3
 
     ErrorResponse:
       type: object
@@ -127,8 +116,6 @@ paths:
                     id: 237
                     rating: 0.71
                     details: 237_20180623_0152.jpg
-                query_image_count: 2
-                model: conservationxlabs/miewid-msv3
         "401":
           description: Missing or invalid API key.
           content:
