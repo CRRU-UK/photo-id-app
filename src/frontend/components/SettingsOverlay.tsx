@@ -32,6 +32,7 @@ const SettingsOverlay = ({ open, onClose, onOpenRequest, returnFocusRef }: Setti
       return;
     }
 
+    setShowApiKey(false);
     return window.electronAPI.onOpenSettings(onOpenRequest);
   }, [onOpenRequest]);
 
