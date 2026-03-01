@@ -94,11 +94,14 @@ const Sidebar = observer(() => {
               direction="horizontal"
               align="center"
               justify="start"
+              gap="condensed"
               className="model-selected"
             >
-              <AiModelIcon size={14} />
+              <AiModelIcon size={12} />
               <Text size="small" weight="semibold">
-                <Truncate title={settings.ml.name}>{settings.ml.name}</Truncate>
+                <Truncate title={settings.ml.name} maxWidth="120px" inline>
+                  {settings.ml.name}
+                </Truncate>
               </Text>
             </PrimerStack>
           )}

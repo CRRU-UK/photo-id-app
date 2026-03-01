@@ -67,7 +67,7 @@ const SelectionStack = observer(({ id, side, collection }: SelectionStackProps) 
           defaultValue={selectionName}
           onBlur={(event) => setSelectionName(event.target.value)}
           size="small"
-          style={{ maxWidth: "80px" }}
+          style={{ maxWidth: "160px" }}
         />
       </PrimerStack>
       <Stack collection={collection} stackLabel={stackLabel} />
