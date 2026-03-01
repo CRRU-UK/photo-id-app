@@ -66,6 +66,12 @@ On the top-right of the page there is a toggle for viewing matched stacks by two
 
 Photos can be duplicated by holding the ++ctrl++/++cmd++ key while dragging-and-dropping. The photo will be duplicated onto the target stack, with the original remaining where it was dragged from. Edits and other changes made to the duplicated photo are not reflected onto the original.
 
+### Analysis
+
+You can use a machine learning model to analyse photos in your project.
+
+For more information, check out the [Machine Learning](./machine-learning.md) guide!
+
 ### Exporting
 
 Once photos have been sorted and matched, these matches can be exported by opening the ==:octicons-three-bars-16: Actions== menu in the bottom-left and selecting ==:octicons-file-moved-16: Export matches==.
@@ -118,22 +124,6 @@ Edge detection can be enabled to more easily identify marks in photos.
 This can be toggled by selecting the ==:octicons-eye-16: Toggle Edge Detection== button on the bottom-left of the screen above the toolbar. When enabled, a slider will appear that can be used to adjust the intensity of the filter.
 
 Note that the edge detection filter is not used when saving or exporting images, and is purely used as a temporary filter.
-
-## Machine Learning Integration
-
-A machine learning model can be integrated with the app by way of an API to help users analyse photos against an indexed catalogue. Currently users will need to provide their own models and APIs - we are currently working on our own and will be sharing this publicly in the future!
-
-To get started, an API will need to be provided according to the [OpenAPI specifications provided here](../assets/model-api-spec.yaml). The app will send requests and expect responses according to this API specification.
-
-Open the app settings (==:octicons-gear-16: Settings== on the home page, or ++cmd+comma++ / ++ctrl+comma++). In the 'Machine Learning' section, enter a model name, your endpoint URL, and API key. You can also adjust the number of ranked candidates to return and whether to request an attention heatmap. These settings apply to all projects.
-
-Once an endpoint and API key are set, an ==:octicons-ai-model-16: analyse== button will appear on each stack. Selecting it will send _all_ photos in that stack to the API `/match` endpoint. The resulting response will show the potential matches and their respective confidence levels.
-
-Users can use this data to cross-check with their catalogues, and if a match is found the respective ID can be entered into the ID field in the stack.
-
-!!! note
-
-    We are still working on this feature and would love any [feedback](../bugs-feedback.md) you may have!
 
 ## Saving
 

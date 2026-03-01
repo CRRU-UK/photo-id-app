@@ -86,7 +86,7 @@ export type MLModel = z.infer<typeof mlModelSchema>;
 
 /**
  * Always ensure this stays in sync with the OpenAPI specs.
- * @see {../docs/assets/model-api-spec.yaml}
+ * @see {../docs/assets/analysis-api-spec.yaml}
  */
 export type MLMatch = {
   rank: number;
@@ -97,7 +97,7 @@ export type MLMatch = {
 
 /**
  * Always ensure this stays in sync with the OpenAPI specs.
- * @see {../docs/assets/model-api-spec.yaml}
+ * @see {../docs/assets/analysis-api-spec.yaml}
  */
 export type MLMatchResponse = {
   matches: MLMatch[];

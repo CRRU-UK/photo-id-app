@@ -27,7 +27,7 @@
     "test:types": "tsc --noEmit",
     "test:unit": "vitest run",
     "test:unit:watch": "vitest watch",
-    "docs": "mkdocs serve --port 8001"
+    "docs": "mkdocs serve"
   },
   "optionalDependencies": {
     "encoding": "^0.1.13"

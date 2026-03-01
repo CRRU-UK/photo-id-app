@@ -144,7 +144,7 @@ const Sidebar = observer(() => {
                 leadingVisual={AiModelIcon}
                 trailingAction={TriangleDownIcon}
               >
-                {selectedModel?.name ?? "Select ML model"}
+                {selectedModel?.name ?? "ML Model"}
               </Button>
             )}
           />
