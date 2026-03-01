@@ -52,6 +52,12 @@ const SettingsOverlay = ({ open, onClose, onOpenRequest, returnFocusRef }: Setti
     return window.electronAPI.onOpenSettings(onOpenRequest);
   }, [onOpenRequest]);
 
+  useEffect(() => {
+    if (!open) {
+      setIsAddModelOpen(false);
+    }
+  }, [open]);
+
   const handleThemeModeChange = async (value: string) => {
     if (!contextSettings) {
       return;
