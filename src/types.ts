@@ -5,6 +5,7 @@ import type Photo from "@/models/Photo";
 import type {
   collectionBodySchema,
   matchedBodySchema,
+  mlModelSchema,
   photoBodySchema,
   photoEditsSchema,
   projectBodySchema,
@@ -61,7 +62,7 @@ export type LoadingData = {
 
 export type EditorNavigation = "prev" | "next";
 
-export type ExternalLinks = "website" | "user-guide" | "changelog" | "privacy";
+export type ExternalLinks = "website" | "user-guide" | "user-guide-ml" | "changelog" | "privacy";
 
 export type EdgeDetectionData = { enabled: false } | { enabled: true; value: number };
 
@@ -80,5 +81,26 @@ export type ImageTransformations = {
 export type ThemeMode = z.infer<typeof themeModeSchema>;
 
 export type Telemetry = z.infer<typeof telemetrySchema>;
+
+export type MLModel = z.infer<typeof mlModelSchema>;
+
+/**
+ * Always ensure this stays in sync with the OpenAPI specs.
+ * @see {../docs/assets/analysis-api-spec.yaml}
+ */
+export type MLMatch = {
+  rank: number;
+  id: string;
+  rating: number;
+  details: string;
+};
+
+/**
+ * Always ensure this stays in sync with the OpenAPI specs.
+ * @see {../docs/assets/analysis-api-spec.yaml}
+ */
+export type MLMatchResponse = {
+  matches: MLMatch[];
+};
 
 export type SettingsData = z.infer<typeof settingsDataSchema>;

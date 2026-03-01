@@ -1,8 +1,12 @@
 import path from "node:path";
 
-import { createCanvas, loadImage } from "@napi-rs/canvas";
+import { type Canvas, createCanvas, loadImage } from "@napi-rs/canvas";
 
-import { THUMBNAIL_SIZE } from "@/constants";
+import {
+  ANALYSIS_API_IMAGE_JPEG_QUALITY,
+  ANALYSIS_API_IMAGE_SIZE,
+  THUMBNAIL_SIZE,
+} from "@/constants";
 import { getCanvasFilters } from "@/helpers";
 import type { PhotoEdits } from "@/types";
 
@@ -39,42 +43,48 @@ const drawImageWithEditsToCanvas = async ({ sourcePath, edits }: RenderCanvasOpt
   return canvas;
 };
 
+/**
+ * Scales a canvas so that its longest edge equals maxSize, preserving aspect ratio.
+ */
+const scaleCanvas = (source: Canvas, maxSize: number): Canvas => {
+  const isLandscape = source.width >= source.height;
+  const scale = isLandscape ? maxSize / source.width : maxSize / source.height;
+
+  const outputWidth = Math.round(source.width * scale);
+  const outputHeight = Math.round(source.height * scale);
+
+  const output = createCanvas(outputWidth, outputHeight);
+  const context = output.getContext("2d");
+
+  context.drawImage(source, 0, 0, source.width, source.height, 0, 0, outputWidth, outputHeight);
+
+  return output;
+};
+
 export const renderThumbnailWithEdits = async ({
   sourcePath,
   edits,
 }: RenderCanvasOptions): Promise<Buffer> => {
   const canvasWithEdits = await drawImageWithEditsToCanvas({ sourcePath, edits });
-
-  const isLandscape = canvasWithEdits.width >= canvasWithEdits.height;
-  const scale = isLandscape
-    ? THUMBNAIL_SIZE / canvasWithEdits.width
-    : THUMBNAIL_SIZE / canvasWithEdits.height;
-
-  const thumbnailWidth = Math.round(canvasWithEdits.width * scale);
-  const thumbnailHeight = Math.round(canvasWithEdits.height * scale);
-
-  const thumbnailCanvas = createCanvas(thumbnailWidth, thumbnailHeight);
-  const thumbnailContext = thumbnailCanvas.getContext("2d");
-
-  thumbnailContext.drawImage(
-    canvasWithEdits,
-    0,
-    0,
-    canvasWithEdits.width,
-    canvasWithEdits.height,
-    0,
-    0,
-    thumbnailWidth,
-    thumbnailHeight,
-  );
+  const scaled = scaleCanvas(canvasWithEdits, THUMBNAIL_SIZE);
 
   const extension = path.extname(sourcePath).toLowerCase();
 
   if (extension === ".jpg" || extension === ".jpeg") {
-    return thumbnailCanvas.encode("jpeg");
+    return scaled.encode("jpeg");
   }
 
-  return thumbnailCanvas.encode("png");
+  return scaled.encode("png");
+};
+
+export const renderApiImage = async ({
+  sourcePath,
+  edits,
+}: RenderCanvasOptions): Promise<Buffer> => {
+  const canvasWithEdits = await drawImageWithEditsToCanvas({ sourcePath, edits });
+  const scaled = scaleCanvas(canvasWithEdits, ANALYSIS_API_IMAGE_SIZE);
+
+  return scaled.encode("jpeg", ANALYSIS_API_IMAGE_JPEG_QUALITY);
 };
 
 export const renderFullImageWithEdits = async ({

@@ -6,9 +6,18 @@ export const themeModeSchema = z.enum(["light", "dark", "auto"]);
 
 export const telemetrySchema = z.enum(["enabled", "disabled"]);
 
+export const mlModelSchema = z.object({
+  id: z.string(),
+  name: z.string().nonempty("Name is required"),
+  endpoint: z.string().nonempty("Endpoint is required"),
+  token: z.string().nonempty("Token is required"),
+});
+
 export const settingsDataSchema = z.object({
-  themeMode: themeModeSchema.default(DEFAULT_SETTINGS.themeMode),
-  telemetry: telemetrySchema.default(DEFAULT_SETTINGS.telemetry),
+  themeMode: themeModeSchema.default(DEFAULT_SETTINGS.themeMode as z.infer<typeof themeModeSchema>),
+  telemetry: telemetrySchema.default(DEFAULT_SETTINGS.telemetry as z.infer<typeof telemetrySchema>),
+  mlModels: z.array(mlModelSchema).default(DEFAULT_SETTINGS.mlModels),
+  selectedModelId: z.string().nullable().default(DEFAULT_SETTINGS.selectedModelId),
 });
 
 export const photoEditsSchema = z.object({

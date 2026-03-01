@@ -71,7 +71,7 @@ const MainSelection = observer(({ collection, total }: MainSelectionProps) => {
         Unassigned Photos
       </Text>
 
-      <Stack collection={collection} />
+      <Stack collection={collection} showAnalysisButton={false} />
 
       {collection.photos && (
         <ProgressElements progress={total - collection.photos.size} total={total} />

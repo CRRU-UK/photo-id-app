@@ -1,19 +1,38 @@
-import { FileMovedIcon, ReplyIcon, ThreeBarsIcon } from "@primer/octicons-react";
-import { ActionList, ActionMenu, IconButton, Stack as PrimerStack } from "@primer/react";
+import {
+  AiModelIcon,
+  FileMovedIcon,
+  ReplyIcon,
+  ThreeBarsIcon,
+  TriangleDownIcon,
+} from "@primer/octicons-react";
+import type { SelectPanelItemInput as ItemInput } from "@primer/react";
+import {
+  ActionList,
+  ActionMenu,
+  Button,
+  FormControl,
+  IconButton,
+  Stack as PrimerStack,
+  SelectPanel,
+} from "@primer/react";
 import { useNavigate } from "@tanstack/react-router";
 import { observer } from "mobx-react-lite";
 import { useCallback, useEffect, useState } from "react";
 
 import { PROJECT_KEYBOARD_HINTS, ROUTES } from "@/constants";
 import { useProject } from "@/contexts/ProjectContext";
+import { useSettings } from "@/contexts/SettingsContext";
 import DiscardedSelection from "@/frontend/components/DiscardedSelection";
 import MainSelection from "@/frontend/components/MainSelection";
 
 const Sidebar = observer(() => {
   const { project, setProject } = useProject();
+  const { settings: contextSettings, updateSettings } = useSettings();
 
   const [actionsOpen, setActionsOpen] = useState<boolean>(false);
   const [exporting, setExporting] = useState<boolean>(false);
+  const [modelPanelOpen, setModelPanelOpen] = useState<boolean>(false);
+  const [modelFilter, setModelFilter] = useState<string>("");
 
   const navigate = useNavigate();
 
@@ -26,6 +45,40 @@ const Sidebar = observer(() => {
   if (project === null) {
     return null;
   }
+
+  const mlModels = contextSettings?.mlModels ?? [];
+  const selectedModelId = contextSettings?.selectedModelId ?? null;
+  const selectedModel = mlModels.find((m) => m.id === selectedModelId) ?? null;
+
+  type ModelItem = ItemInput & { id: string; text: string };
+
+  const modelItems: ModelItem[] = mlModels.map((model) => ({
+    id: model.id,
+    text: model.name,
+    description: model.endpoint,
+    descriptionVariant: "block" as const,
+  }));
+
+  const filteredItems = modelItems.filter(
+    (item) =>
+      item.id === selectedModelId || item.text.toLowerCase().includes(modelFilter.toLowerCase()),
+  );
+
+  const selectedItem = modelItems.find((item) => item.id === selectedModelId) ?? undefined;
+
+  const handleModelChange = async (item: ItemInput | undefined) => {
+    if (!contextSettings) {
+      return;
+    }
+
+    const itemId = item ? (item as ModelItem).id : null;
+
+    try {
+      await updateSettings({ ...contextSettings, selectedModelId: itemId });
+    } catch (error) {
+      console.error("Error updating selected model:", error);
+    }
+  };
 
   const handleExport = async () => {
     setExporting(true);
@@ -64,11 +117,46 @@ const Sidebar = observer(() => {
         <MainSelection collection={project.unassigned} total={project.allPhotos.size} />
         <DiscardedSelection collection={project.discarded} />
 
+        <FormControl style={{ marginLeft: "auto", marginTop: "auto" }}>
+          <FormControl.Label visuallyHidden>Select analysis ML model</FormControl.Label>
+          <SelectPanel
+            title="Analysis ML Model"
+            subtitle="Select which ML model to use for stack analysis."
+            placeholderText="Filter models"
+            open={modelPanelOpen}
+            onOpenChange={setModelPanelOpen}
+            items={filteredItems}
+            selected={selectedItem}
+            onSelectedChange={(item: ItemInput | undefined) => void handleModelChange(item)}
+            onFilterChange={setModelFilter}
+            message={
+              modelItems.length === 0
+                ? {
+                    title: "No models configured",
+                    variant: "empty",
+                    body: "Add a model in settings.",
+                  }
+                : undefined
+            }
+            renderAnchor={(anchorProps) => (
+              <Button
+                {...anchorProps}
+                variant={selectedModel ? "primary" : "default"}
+                leadingVisual={AiModelIcon}
+                trailingAction={TriangleDownIcon}
+              >
+                {selectedModel?.name ?? "ML Model"}
+              </Button>
+            )}
+          />
+        </FormControl>
+
         <PrimerStack
           direction="horizontal"
-          align="start"
+          align="center"
           justify="space-between"
-          style={{ marginTop: "auto", width: "100%" }}
+          gap="condensed"
+          style={{ width: "100%" }}
         >
           <IconButton
             icon={ReplyIcon}

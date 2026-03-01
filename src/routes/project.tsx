@@ -20,11 +20,13 @@ import { observer } from "mobx-react-lite";
 import { useCallback, useEffect, useState } from "react";
 
 import { MATCHED_STACKS_PER_PAGE, ROUTES } from "@/constants";
+import { AnalysisProvider } from "@/contexts/AnalysisContext";
 import { useProject } from "@/contexts/ProjectContext";
 
+import AnalysisOverlay from "@/frontend/components/AnalysisOverlay";
 import LoadingOverlay from "@/frontend/components/LoadingOverlay";
 import Selections from "@/frontend/components/Selections";
-import Settings from "@/frontend/components/Settings";
+import SettingsOverlay from "@/frontend/components/SettingsOverlay";
 import Sidebar from "@/frontend/components/Sidebar";
 
 import { chunkArray, getAlphabetLetter } from "@/helpers";
@@ -196,14 +198,16 @@ const ProjectPage = observer(() => {
   });
 
   return (
-    <>
+    <AnalysisProvider>
       <LoadingOverlay data={loading} />
 
-      <Settings
+      <SettingsOverlay
         open={settingsOpen}
         onClose={() => setSettingsOpen(false)}
         onOpenRequest={() => setSettingsOpen(true)}
       />
+
+      <AnalysisOverlay />
 
       <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
         <DragOverlay dropAnimation={null}>
@@ -232,7 +236,7 @@ const ProjectPage = observer(() => {
           </div>
         </div>
       </DndContext>
-    </>
+    </AnalysisProvider>
   );
 });
 
