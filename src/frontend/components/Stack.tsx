@@ -54,7 +54,8 @@ const Stack = observer(({ collection, showAnalysisButton = true, stackLabel }: S
   const [actionsOpen, setActionsOpen] = useState<boolean>(false);
   const [revertingPhoto, setRevertingPhoto] = useState<boolean>(false);
 
-  const isMlConfigured = !!(settings?.ml?.endpoint && settings.ml.apiKey);
+  const selectedModel = settings?.mlModels?.find((m) => m.id === settings?.selectedModelId);
+  const isMlConfigured = !!(selectedModel?.endpoint && selectedModel?.apiKey);
 
   const handleAnalyseClick = () => {
     if (collection.photos.size === 0) {

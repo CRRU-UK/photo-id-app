@@ -419,11 +419,13 @@ app.whenReady().then(async () => {
     async (_event, photos: PhotoBody[]): Promise<MLMatchResponse | null> => {
       const settings = await getSettings();
 
-      if (!settings.ml?.endpoint || !settings.ml?.apiKey) {
+      const selectedModel = settings.mlModels?.find((m) => m.id === settings.selectedModelId);
+
+      if (!selectedModel?.endpoint || !selectedModel?.apiKey) {
         throw new Error("Machine Learning integration is not configured.");
       }
 
-      return analyseStack({ photos, settings: settings.ml });
+      return analyseStack({ photos, settings: selectedModel });
     },
   );
 

@@ -222,8 +222,10 @@ export const EDGE_DETECTION = {
 };
 
 export const DEFAULT_SETTINGS = {
-  themeMode: "dark",
-  telemetry: "disabled",
-} as const;
+  themeMode: "dark" as const,
+  telemetry: "disabled" as const,
+  mlModels: [] as never[],
+  selectedModelId: null,
+};
 
 export const ML_MATCHES_PER_PAGE = 10;

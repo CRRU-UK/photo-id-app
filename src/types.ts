@@ -5,7 +5,7 @@ import type Photo from "@/models/Photo";
 import type {
   collectionBodySchema,
   matchedBodySchema,
-  mlSettingsSchema,
+  mlModelSchema,
   photoBodySchema,
   photoEditsSchema,
   projectBodySchema,
@@ -82,7 +82,7 @@ export type ThemeMode = z.infer<typeof themeModeSchema>;
 
 export type Telemetry = z.infer<typeof telemetrySchema>;
 
-export type MLSettings = z.infer<typeof mlSettingsSchema>;
+export type MLModel = z.infer<typeof mlModelSchema>;
 
 /**
  * Always ensure this stays in sync with the OpenAPI specs.

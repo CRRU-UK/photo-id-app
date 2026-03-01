@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { MLMatchResponse, MLSettings, PhotoBody, PhotoEdits } from "@/types";
+import type { MLMatchResponse, MLModel, PhotoBody, PhotoEdits } from "@/types";
 
 type RenderApiImageOptions = { sourcePath: string; edits: PhotoEdits };
 
@@ -15,11 +15,12 @@ vi.stubGlobal("fetch", mockFetch);
 
 const { analyseStack, cancelAnalyseStack } = await import("./model");
 
-const defaultSettings: MLSettings = {
+const defaultSettings: MLModel = {
+  id: "test-model-id",
   name: "Test Model",
   endpoint: "https://api.example.com",
   apiKey: "test-api-key",
-  includeHeatmap: false,
+  createdAt: "2024-01-01T00:00:00.000Z",
 };
 
 const defaultPhoto: PhotoBody = {
@@ -112,29 +113,6 @@ describe(analyseStack, () => {
     await analyseStack({ photos: [defaultPhoto, secondPhoto], settings: defaultSettings });
 
     expect(mockRenderApiImage).toHaveBeenCalledTimes(2);
-  });
-
-  it("does not include include_heatmap when disabled", async () => {
-    mockFetch.mockResolvedValue(new Response(JSON.stringify(successResponse), { status: 200 }));
-
-    await analyseStack({ photos: [defaultPhoto], settings: defaultSettings });
-
-    const [, callInit] = mockFetch.mock.calls[0] as unknown as [string, RequestInit];
-    const formData = callInit.body as FormData;
-
-    expect(formData.get("include_heatmap")).toBeNull();
-  });
-
-  it("includes include_heatmap when enabled", async () => {
-    mockFetch.mockResolvedValue(new Response(JSON.stringify(successResponse), { status: 200 }));
-
-    const settingsWithHeatmap = { ...defaultSettings, includeHeatmap: true };
-    await analyseStack({ photos: [defaultPhoto], settings: settingsWithHeatmap });
-
-    const [, callInit] = mockFetch.mock.calls[0] as unknown as [string, RequestInit];
-    const formData = callInit.body as FormData;
-
-    expect(formData.get("include_heatmap")).toBe("true");
   });
 
   it("throws the API error detail on a 401 response", async () => {

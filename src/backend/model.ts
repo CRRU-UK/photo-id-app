@@ -1,11 +1,11 @@
 import path from "node:path";
 
 import { renderApiImage } from "@/backend/imageRenderer";
-import type { MLMatchResponse, MLSettings, PhotoBody } from "@/types";
+import type { MLMatchResponse, MLModel, PhotoBody } from "@/types";
 
 type AnalyseStackOptions = {
   photos: PhotoBody[];
-  settings: MLSettings;
+  settings: MLModel;
 };
 
 let currentAbortController: AbortController | null = null;
@@ -36,10 +36,6 @@ const analyseStack = async ({
       const blob = new Blob([new Uint8Array(imageBuffer)], { type: "image/jpeg" });
 
       formData.append("images", blob, `${path.basename(photo.name, path.extname(photo.name))}.jpg`);
-    }
-
-    if (settings.includeHeatmap) {
-      formData.append("include_heatmap", "true");
     }
 
     const endpoint = settings.endpoint.replace(/\/+$/, "");

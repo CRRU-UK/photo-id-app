@@ -89,6 +89,46 @@ body.copying *:hover {
   padding: 0;
 }
 
+/**
+ * ML Models list
+ */
+.ml-empty-state {
+  margin: 0;
+  padding: var(--stack-gap-spacious) 0;
+  color: var(--fgColor-muted);
+  font-size: var(--text-body-size-small);
+  text-align: center;
+}
+
+.ml-model-row {
+  display: flex;
+  align-items: center;
+  gap: var(--stack-gap-normal);
+  padding: var(--stack-gap-normal);
+  border-bottom: 1px solid var(--borderColor-muted);
+}
+
+.ml-model-row:last-child {
+  border-bottom: none;
+}
+
+.ml-model-name {
+  font-weight: var(--base-text-weight-semibold);
+  font-size: var(--text-body-size-small);
+  margin: 0;
+  line-height: var(--text-body-lineHeight-small);
+}
+
+.fg-muted {
+  color: var(--fgColor-muted);
+}
+
+.ml-model-endpoint {
+  color: var(--fgColor-muted);
+  font-size: var(--text-body-size-small);
+  display: block;
+}
+
 .sidebar .model-selected {
   align-self: stretch;
   margin-left: auto;

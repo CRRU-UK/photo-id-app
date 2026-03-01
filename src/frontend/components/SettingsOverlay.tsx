@@ -1,12 +1,36 @@
 import type { ChangeEvent, RefObject } from "react";
 import { useEffect, useState } from "react";
 
-import { AiModelIcon, EyeClosedIcon, EyeIcon, GearIcon } from "@primer/octicons-react";
-import { Checkbox, Dialog, FormControl, Link, Select, Stack, TextInput } from "@primer/react";
-import { UnderlinePanels } from "@primer/react/experimental";
+import { AiModelIcon, GearIcon, PlusIcon, TrashIcon } from "@primer/octicons-react";
+import {
+  Button,
+  Dialog,
+  FormControl,
+  IconButton,
+  Link,
+  Select,
+  Stack,
+  Truncate,
+} from "@primer/react";
+import { Blankslate, UnderlinePanels } from "@primer/react/experimental";
 
 import { useSettings } from "@/contexts/SettingsContext";
-import type { MLSettings, Telemetry, ThemeMode } from "@/types";
+import type { MLModel, Telemetry, ThemeMode } from "@/types";
+
+import AddModelOverlay from "./AddModelOverlay";
+
+const EmptyModels = (
+  <Blankslate narrow>
+    <Blankslate.Visual>
+      <AiModelIcon size="medium" />
+    </Blankslate.Visual>
+    <Blankslate.Heading>No ML Models Configured</Blankslate.Heading>
+    <Blankslate.Description>
+      Use a Machine Learning Model API to analyse photos in a stack. Click the Add Model button to
+      get started.
+    </Blankslate.Description>
+  </Blankslate>
+);
 
 interface SettingsProps {
   open: boolean;
@@ -19,42 +43,15 @@ const SettingsOverlay = ({ open, onClose, onOpenRequest, returnFocusRef }: Setti
   const { settings: contextSettings, updateSettings } = useSettings();
 
   const [isLoading, setIsLoading] = useState(false);
-  const [showApiKey, setShowApiKey] = useState<boolean>(false);
-  const [mlDraft, setMlDraft] = useState<MLSettings>({
-    name: contextSettings?.ml?.name ?? "",
-    endpoint: contextSettings?.ml?.endpoint ?? "",
-    apiKey: contextSettings?.ml?.apiKey ?? "",
-    includeHeatmap: contextSettings?.ml?.includeHeatmap ?? false,
-  });
+  const [isAddModelOpen, setIsAddModelOpen] = useState(false);
 
   useEffect(() => {
     if (!onOpenRequest) {
       return;
     }
 
-    setShowApiKey(false);
     return window.electronAPI.onOpenSettings(onOpenRequest);
   }, [onOpenRequest]);
-
-  useEffect(() => {
-    if (!contextSettings?.ml) {
-      return;
-    }
-
-    setMlDraft({ ...contextSettings.ml });
-  }, [contextSettings?.ml]);
-
-  const handleMLSettingsSave = async (draft: MLSettings = mlDraft) => {
-    if (!contextSettings) {
-      return;
-    }
-
-    try {
-      await updateSettings({ ...contextSettings, ml: draft });
-    } catch (error) {
-      console.error("Error saving ML settings:", error);
-    }
-  };
 
   const handleThemeModeChange = async (value: string) => {
     if (!contextSettings) {
@@ -94,153 +91,147 @@ const SettingsOverlay = ({ open, onClose, onOpenRequest, returnFocusRef }: Setti
     }
   };
 
+  const handleDeleteModel = async (model: MLModel) => {
+    if (!contextSettings) {
+      return;
+    }
+
+    try {
+      await updateSettings({
+        ...contextSettings,
+        mlModels: contextSettings.mlModels.filter((m) => m.id !== model.id),
+        selectedModelId:
+          contextSettings.selectedModelId === model.id ? null : contextSettings.selectedModelId,
+      });
+    } catch (error) {
+      console.error("Error deleting model:", error);
+    }
+  };
+
   if (!open) {
     return null;
   }
 
+  const sortedModels = contextSettings
+    ? [...contextSettings.mlModels].sort(
+        (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+      )
+    : [];
+
   return (
-    <Dialog
-      title="App Settings"
-      subtitle="App settings are per-user and affect all projects."
-      onClose={onClose}
-      returnFocusRef={returnFocusRef ?? undefined}
-      footerButtons={[{ buttonType: "default", content: "Close", onClick: onClose }]}
-      width="xlarge"
-      className="settings-overlay"
-    >
-      {contextSettings && (
-        <UnderlinePanels aria-label="Select a tab">
-          <UnderlinePanels.Tab icon={GearIcon}>General</UnderlinePanels.Tab>
-          <UnderlinePanels.Tab icon={AiModelIcon}>Machine Learning</UnderlinePanels.Tab>
+    <>
+      <Dialog
+        title="App Settings"
+        subtitle="App settings are per-user and affect all projects."
+        onClose={onClose}
+        returnFocusRef={returnFocusRef ?? undefined}
+        footerButtons={[{ buttonType: "default", content: "Close", onClick: onClose }]}
+        width="xlarge"
+        className="settings-overlay"
+      >
+        {contextSettings && (
+          <UnderlinePanels aria-label="Select a tab">
+            <UnderlinePanels.Tab icon={GearIcon}>General</UnderlinePanels.Tab>
+            <UnderlinePanels.Tab icon={AiModelIcon}>Machine Learning</UnderlinePanels.Tab>
 
-          <UnderlinePanels.Panel>
-            <Stack direction="vertical" gap="spacious" padding="spacious">
-              <FormControl>
-                <FormControl.Label>Theme Mode</FormControl.Label>
-                <Select
-                  size="large"
-                  value={contextSettings.themeMode}
-                  onChange={(event: ChangeEvent<HTMLSelectElement>) =>
-                    void handleThemeModeChange(event.target.value)
-                  }
-                  disabled={isLoading}
-                >
-                  <Select.Option value="light">Light</Select.Option>
-                  <Select.Option value="dark">Dark (Default)</Select.Option>
-                  <Select.Option value="auto">Auto</Select.Option>
-                </Select>
-                <FormControl.Caption>
-                  Choose your preferred theme. &quot;Auto&quot; will follow your system preference.
-                </FormControl.Caption>
-              </FormControl>
-
-              <FormControl>
-                <FormControl.Label>Telemetry</FormControl.Label>
-                <Select
-                  size="large"
-                  value={contextSettings.telemetry}
-                  onChange={(event: ChangeEvent<HTMLSelectElement>) =>
-                    void handleTelemetryChange(event.target.value)
-                  }
-                  disabled={isLoading}
-                >
-                  <Select.Option value="disabled">Disabled (Default)</Select.Option>
-                  <Select.Option value="enabled">Enabled</Select.Option>
-                </Select>
-                <FormControl.Caption>
-                  When enabled, helps us fix bugs by sending crash reports, error details,
-                  performance data, and session recordings that are captured only when an error
-                  occurs (not continuously). Please see our{" "}
-                  <Link
-                    onClick={(event) => {
-                      event.preventDefault();
-                      window.electronAPI.openExternalLink("privacy");
-                    }}
+            <UnderlinePanels.Panel>
+              <Stack direction="vertical" gap="spacious" padding="spacious">
+                <FormControl>
+                  <FormControl.Label>Theme Mode</FormControl.Label>
+                  <Select
+                    size="large"
+                    value={contextSettings.themeMode}
+                    onChange={(event: ChangeEvent<HTMLSelectElement>) =>
+                      void handleThemeModeChange(event.target.value)
+                    }
+                    disabled={isLoading}
                   >
-                    Privacy Policy
-                  </Link>{" "}
-                  for more information.
-                </FormControl.Caption>
-              </FormControl>
-            </Stack>
-          </UnderlinePanels.Panel>
+                    <Select.Option value="light">Light</Select.Option>
+                    <Select.Option value="dark">Dark (Default)</Select.Option>
+                    <Select.Option value="auto">Auto</Select.Option>
+                  </Select>
+                  <FormControl.Caption>
+                    Choose your preferred theme. &quot;Auto&quot; will follow your system
+                    preference.
+                  </FormControl.Caption>
+                </FormControl>
 
-          <UnderlinePanels.Panel>
-            <Stack direction="vertical" gap="spacious" padding="spacious">
-              <FormControl>
-                <FormControl.Label>Model name</FormControl.Label>
-                <TextInput
-                  size="large"
-                  value={mlDraft.name}
-                  placeholder="e.g. MiewID"
-                  onChange={(event: ChangeEvent<HTMLInputElement>) =>
-                    setMlDraft((prev) => ({ ...prev, name: event.target.value }))
-                  }
-                  onBlur={() => void handleMLSettingsSave()}
-                  block
-                />
-                <FormControl.Caption>
-                  Label shown in app to identify the active model.
-                </FormControl.Caption>
-              </FormControl>
+                <FormControl>
+                  <FormControl.Label>Telemetry</FormControl.Label>
+                  <Select
+                    size="large"
+                    value={contextSettings.telemetry}
+                    onChange={(event: ChangeEvent<HTMLSelectElement>) =>
+                      void handleTelemetryChange(event.target.value)
+                    }
+                    disabled={isLoading}
+                  >
+                    <Select.Option value="disabled">Disabled (Default)</Select.Option>
+                    <Select.Option value="enabled">Enabled</Select.Option>
+                  </Select>
+                  <FormControl.Caption>
+                    When enabled, helps us fix bugs by sending crash reports, error details,
+                    performance data, and session recordings that are captured only when an error
+                    occurs (not continuously). Please see our{" "}
+                    <Link
+                      onClick={(event) => {
+                        event.preventDefault();
+                        window.electronAPI.openExternalLink("privacy");
+                      }}
+                    >
+                      Privacy Policy
+                    </Link>{" "}
+                    for more information.
+                  </FormControl.Caption>
+                </FormControl>
+              </Stack>
+            </UnderlinePanels.Panel>
 
-              <FormControl>
-                <FormControl.Label>Model API URL</FormControl.Label>
-                <TextInput
-                  size="large"
-                  value={mlDraft.endpoint}
-                  placeholder="https://api.example.com/model"
-                  onChange={(event: ChangeEvent<HTMLInputElement>) =>
-                    setMlDraft((prev) => ({ ...prev, endpoint: event.target.value }))
-                  }
-                  onBlur={() => void handleMLSettingsSave()}
-                  block
-                />
-                <FormControl.Caption>Base URL of your model API.</FormControl.Caption>
-              </FormControl>
+            <UnderlinePanels.Panel>
+              <Stack direction="vertical" gap="none" padding="spacious">
+                <div style={{ display: "flex", justifyContent: "flex-end", paddingBottom: "12px" }}>
+                  <Button
+                    onClick={() => setIsAddModelOpen(true)}
+                    variant="primary"
+                    leadingVisual={PlusIcon}
+                  >
+                    Add Model
+                  </Button>
+                </div>
 
-              <FormControl>
-                <FormControl.Label>API key</FormControl.Label>
-                <TextInput
-                  type={showApiKey ? "text" : "password"}
-                  size="large"
-                  value={mlDraft.apiKey}
-                  onChange={(event: ChangeEvent<HTMLInputElement>) =>
-                    setMlDraft((prev) => ({ ...prev, apiKey: event.target.value }))
-                  }
-                  onBlur={() => void handleMLSettingsSave()}
-                  trailingAction={
-                    <TextInput.Action
-                      aria-label={showApiKey ? "Hide API key" : "Show API key"}
-                      icon={showApiKey ? EyeIcon : EyeClosedIcon}
-                      onClick={() => setShowApiKey(!showApiKey)}
-                    />
-                  }
-                  block
-                />
-                <FormControl.Caption>API token used for bearer authorization.</FormControl.Caption>
-              </FormControl>
+                {sortedModels.length === 0 ? (
+                  EmptyModels
+                ) : (
+                  <Stack direction="vertical" gap="none">
+                    {sortedModels.map((model) => (
+                      <div key={model.id} className="ml-model-row">
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <p className="ml-model-name">
+                            {model.name || <span className="fg-muted">Unnamed model</span>}
+                          </p>
+                          <Truncate title={model.endpoint} className="ml-model-endpoint">
+                            {model.endpoint || "No endpoint set"}
+                          </Truncate>
+                        </div>
+                        <IconButton
+                          aria-label={`Delete ${model.name || "model"}`}
+                          icon={TrashIcon}
+                          variant="danger"
+                          size="small"
+                          onClick={() => void handleDeleteModel(model)}
+                        />
+                      </div>
+                    ))}
+                  </Stack>
+                )}
+              </Stack>
+            </UnderlinePanels.Panel>
+          </UnderlinePanels>
+        )}
+      </Dialog>
 
-              <FormControl>
-                <Checkbox
-                  checked={mlDraft.includeHeatmap}
-                  onChange={(event: ChangeEvent<HTMLInputElement>) => {
-                    const newDraft = { ...mlDraft, includeHeatmap: event.target.checked };
-                    setMlDraft(newDraft);
-                    void handleMLSettingsSave(newDraft);
-                  }}
-                />
-                <FormControl.Label>Request debug information</FormControl.Label>
-                <FormControl.Caption>
-                  When enabled, requests debug information (as an image) from the model API and will
-                  display it in the results.
-                </FormControl.Caption>
-              </FormControl>
-            </Stack>
-          </UnderlinePanels.Panel>
-        </UnderlinePanels>
-      )}
-    </Dialog>
+      <AddModelOverlay open={isAddModelOpen} onClose={() => setIsAddModelOpen(false)} />
+    </>
   );
 };
 
