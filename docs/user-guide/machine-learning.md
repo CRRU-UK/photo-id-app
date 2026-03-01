@@ -32,7 +32,7 @@ Enter a model label, your base API URL, and token. Select the ==Save== button an
 
 ## Analysis
 
-To choose a model to use for analysis, open the ==Select ML Model== dropdown in the project view sidebar. Here you can choose from the models you have added. Select the model you want to use, and an ==:octicons-ai-model-16: analyse== button will appear below each stack.
+To choose a model to use for analysis, open the ==ML Model== dropdown in the project view sidebar. Here you can choose from the models you have added. Select the model you want to use, and an ==:octicons-ai-model-16: analyse== button will appear below each stack.
 
 ![Selecting a model](../assets/images/analysis-model-select.png?v1){ width="300" }
 
