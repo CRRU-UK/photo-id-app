@@ -1,7 +1,6 @@
-import type { ChangeEvent } from "react";
 import { useEffect, useState } from "react";
 
-import { EyeClosedIcon, EyeIcon } from "@primer/octicons-react";
+import { AiModelIcon, EyeClosedIcon, EyeIcon, KeyIcon, LinkIcon } from "@primer/octicons-react";
 import { Dialog, FormControl, Stack, TextInput } from "@primer/react";
 
 import { useSettings } from "@/contexts/SettingsContext";
@@ -18,9 +17,12 @@ const emptyDraft = (): ModelDraft => ({ name: "", endpoint: "", apiKey: "" });
 
 const AddModelOverlay = ({ open, onClose }: AddModelOverlayProps) => {
   const { settings: contextSettings, updateSettings } = useSettings();
+
   const [draft, setDraft] = useState<ModelDraft>(emptyDraft);
   const [showApiKey, setShowApiKey] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+
+  const fieldsValid = draft.name && draft.endpoint && draft.apiKey;
 
   useEffect(() => {
     if (open) {
@@ -42,7 +44,6 @@ const AddModelOverlay = ({ open, onClose }: AddModelOverlayProps) => {
 
     const newModel: MLModel = {
       id: crypto.randomUUID(),
-      createdAt: new Date().toISOString(),
       name: draft.name,
       endpoint: draft.endpoint,
       apiKey: draft.apiKey,
@@ -65,7 +66,7 @@ const AddModelOverlay = ({ open, onClose }: AddModelOverlayProps) => {
   return (
     <Dialog
       title="Add Model"
-      subtitle="Add a new machine learning model API."
+      position="right"
       onClose={onClose}
       footerButtons={[
         { buttonType: "default", content: "Cancel", onClick: onClose },
@@ -74,6 +75,7 @@ const AddModelOverlay = ({ open, onClose }: AddModelOverlayProps) => {
           content: "Save",
           onClick: () => void handleSave(),
           loading: isSaving,
+          disabled: !fieldsValid,
         },
       ]}
     >
@@ -83,11 +85,11 @@ const AddModelOverlay = ({ open, onClose }: AddModelOverlayProps) => {
           <TextInput
             size="large"
             value={draft.name}
+            leadingVisual={AiModelIcon}
             placeholder="e.g. MiewID"
-            onChange={(event: ChangeEvent<HTMLInputElement>) =>
-              setDraft((prev) => ({ ...prev, name: event.target.value }))
-            }
+            onChange={(event) => setDraft((prev) => ({ ...prev, name: event.target.value }))}
             block
+            required
           />
           <FormControl.Caption>Label shown in the app to identify this model.</FormControl.Caption>
         </FormControl>
@@ -98,10 +100,10 @@ const AddModelOverlay = ({ open, onClose }: AddModelOverlayProps) => {
             size="large"
             value={draft.endpoint}
             placeholder="https://api.example.com"
-            onChange={(event: ChangeEvent<HTMLInputElement>) =>
-              setDraft((prev) => ({ ...prev, endpoint: event.target.value }))
-            }
+            leadingVisual={LinkIcon}
+            onChange={(event) => setDraft((prev) => ({ ...prev, endpoint: event.target.value }))}
             block
+            required
           />
           <FormControl.Caption>Base URL of your model API.</FormControl.Caption>
         </FormControl>
@@ -112,9 +114,8 @@ const AddModelOverlay = ({ open, onClose }: AddModelOverlayProps) => {
             type={showApiKey ? "text" : "password"}
             size="large"
             value={draft.apiKey}
-            onChange={(event: ChangeEvent<HTMLInputElement>) =>
-              setDraft((prev) => ({ ...prev, apiKey: event.target.value }))
-            }
+            leadingVisual={KeyIcon}
+            onChange={(event) => setDraft((prev) => ({ ...prev, apiKey: event.target.value }))}
             trailingAction={
               <TextInput.Action
                 aria-label={showApiKey ? "Hide API key" : "Show API key"}
@@ -123,6 +124,7 @@ const AddModelOverlay = ({ open, onClose }: AddModelOverlayProps) => {
               />
             }
             block
+            required
           />
           <FormControl.Caption>API token used for bearer authorization.</FormControl.Caption>
         </FormControl>

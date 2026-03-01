@@ -20,7 +20,6 @@ const defaultSettings: MLModel = {
   name: "Test Model",
   endpoint: "https://api.example.com",
   apiKey: "test-api-key",
-  createdAt: "2024-01-01T00:00:00.000Z",
 };
 
 const defaultPhoto: PhotoBody = {

@@ -9,7 +9,6 @@ export const mlModelSchema = z.object({
   name: z.string().default(""),
   endpoint: z.string().default(""),
   apiKey: z.string().default(""),
-  createdAt: z.string(),
 });
 
 export const settingsDataSchema = z.object({

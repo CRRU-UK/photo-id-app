@@ -46,41 +46,31 @@ const Sidebar = observer(() => {
     return null;
   }
 
-  const sortedModels = contextSettings
-    ? [...contextSettings.mlModels].sort(
-        (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
-      )
-    : [];
+  const mlModels = contextSettings?.mlModels ?? [];
+  const selectedModelId = contextSettings?.selectedModelId ?? null;
+  const selectedModel = mlModels.find((m) => m.id === selectedModelId) ?? null;
 
-  const modelItems: ItemInput[] = sortedModels.map((model) => ({
+  type ModelItem = ItemInput & { id: string; text: string };
+
+  const modelItems: ModelItem[] = mlModels.map((model) => ({
     id: model.id,
-    text: model.name || "Unnamed model",
-    description: model.endpoint || undefined,
-    descriptionVariant: "block",
+    text: model.name,
+    description: model.endpoint,
+    descriptionVariant: "block" as const,
   }));
 
   const filteredItems = modelItems.filter((item) =>
-    (item as Record<string, unknown>).text
-      ? String((item as Record<string, unknown>).text)
-          .toLowerCase()
-          .includes(modelFilter.toLowerCase())
-      : true,
+    item.text.toLowerCase().includes(modelFilter.toLowerCase()),
   );
 
-  const selectedModelId = contextSettings?.selectedModelId ?? null;
-  const selectedItem =
-    modelItems.find((item) => (item as Record<string, unknown>).id === selectedModelId) ??
-    undefined;
-
-  const selectedModel = sortedModels.find((m) => m.id === selectedModelId) ?? null;
+  const selectedItem = modelItems.find((item) => item.id === selectedModelId) ?? undefined;
 
   const handleModelChange = async (item: ItemInput | undefined) => {
     if (!contextSettings) {
       return;
     }
 
-    const itemId =
-      item !== undefined ? ((item as Record<string, unknown>).id as string | undefined) : undefined;
+    const itemId = item !== undefined ? (item as ModelItem).id : undefined;
 
     try {
       await updateSettings({ ...contextSettings, selectedModelId: itemId ?? null });

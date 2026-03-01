@@ -1,17 +1,8 @@
-import type { ChangeEvent, RefObject } from "react";
+import type { RefObject } from "react";
 import { useEffect, useState } from "react";
 
 import { AiModelIcon, GearIcon, PlusIcon, TrashIcon } from "@primer/octicons-react";
-import {
-  Button,
-  Dialog,
-  FormControl,
-  IconButton,
-  Link,
-  Select,
-  Stack,
-  Truncate,
-} from "@primer/react";
+import { Button, Dialog, FormControl, IconButton, Link, Select, Stack, Text } from "@primer/react";
 import { Blankslate, UnderlinePanels } from "@primer/react/experimental";
 
 import { useSettings } from "@/contexts/SettingsContext";
@@ -26,9 +17,10 @@ const EmptyModels = (
     </Blankslate.Visual>
     <Blankslate.Heading>No ML Models Configured</Blankslate.Heading>
     <Blankslate.Description>
-      Use a Machine Learning Model API to analyse photos in a stack. Click the Add Model button to
-      get started.
+      Use a machine learning model to analyse photos in a stack. Click the Add Model button to get
+      started.
     </Blankslate.Description>
+    <Blankslate.SecondaryAction href="#">View documentation</Blankslate.SecondaryAction>
   </Blankslate>
 );
 
@@ -112,11 +104,7 @@ const SettingsOverlay = ({ open, onClose, onOpenRequest, returnFocusRef }: Setti
     return null;
   }
 
-  const sortedModels = contextSettings
-    ? [...contextSettings.mlModels].sort(
-        (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
-      )
-    : [];
+  const mlModels = contextSettings?.mlModels ?? [];
 
   return (
     <>
@@ -141,9 +129,7 @@ const SettingsOverlay = ({ open, onClose, onOpenRequest, returnFocusRef }: Setti
                   <Select
                     size="large"
                     value={contextSettings.themeMode}
-                    onChange={(event: ChangeEvent<HTMLSelectElement>) =>
-                      void handleThemeModeChange(event.target.value)
-                    }
+                    onChange={(event) => void handleThemeModeChange(event.target.value)}
                     disabled={isLoading}
                   >
                     <Select.Option value="light">Light</Select.Option>
@@ -161,9 +147,7 @@ const SettingsOverlay = ({ open, onClose, onOpenRequest, returnFocusRef }: Setti
                   <Select
                     size="large"
                     value={contextSettings.telemetry}
-                    onChange={(event: ChangeEvent<HTMLSelectElement>) =>
-                      void handleTelemetryChange(event.target.value)
-                    }
+                    onChange={(event) => void handleTelemetryChange(event.target.value)}
                     disabled={isLoading}
                   >
                     <Select.Option value="disabled">Disabled (Default)</Select.Option>
@@ -199,28 +183,43 @@ const SettingsOverlay = ({ open, onClose, onOpenRequest, returnFocusRef }: Setti
                   </Button>
                 </div>
 
-                {sortedModels.length === 0 ? (
+                {mlModels.length === 0 ? (
                   EmptyModels
                 ) : (
                   <Stack direction="vertical" gap="none">
-                    {sortedModels.map((model) => (
-                      <div key={model.id} className="ml-model-row">
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <p className="ml-model-name">
-                            {model.name || <span className="fg-muted">Unnamed model</span>}
-                          </p>
-                          <Truncate title={model.endpoint} className="ml-model-endpoint">
-                            {model.endpoint || "No endpoint set"}
-                          </Truncate>
-                        </div>
+                    {mlModels.map((model) => (
+                      <Stack
+                        key={model.id}
+                        direction="horizontal"
+                        gap="condensed"
+                        padding="normal"
+                        align="center"
+                        justify="start"
+                        className="ml-list-row"
+                      >
+                        <Stack direction="vertical" gap="none" style={{ width: "100%" }}>
+                          <Text weight="semibold" size="medium">
+                            {model.name}
+                          </Text>
+                          <Text
+                            size="small"
+                            style={{
+                              fontFamily: "var(--fontStack-monospace)",
+                              color: "var(--fgColor-muted)",
+                            }}
+                          >
+                            {model.endpoint}
+                          </Text>
+                        </Stack>
+
                         <IconButton
-                          aria-label={`Delete ${model.name || "model"}`}
+                          aria-label={`Delete ${model.name}`}
                           icon={TrashIcon}
                           variant="danger"
                           size="small"
                           onClick={() => void handleDeleteModel(model)}
                         />
-                      </div>
+                      </Stack>
                     ))}
                   </Stack>
                 )}
