@@ -6,9 +6,9 @@ export const telemetrySchema = z.enum(["enabled", "disabled"]);
 
 export const mlModelSchema = z.object({
   id: z.string(),
-  name: z.string().default(""),
-  endpoint: z.string().default(""),
-  token: z.string().default(""),
+  name: z.string().nonempty("Name is required"),
+  endpoint: z.string().nonempty("Endpoint is required"),
+  token: z.string().nonempty("Token is required"),
 });
 
 export const settingsDataSchema = z.object({
