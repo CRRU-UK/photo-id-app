@@ -32,12 +32,11 @@ const defaultPhoto: PhotoBody = {
 
 const successResponse: MLMatchResponse = {
   matches: [
-    { rank: 1, animal_id: "047", confidence: 0.91, source_path: "archive/047/photo.jpg" },
-    { rank: 2, animal_id: "012", confidence: 0.73, source_path: "archive/012/photo.jpg" },
+    { rank: 1, id: "047", rating: 0.91, details: "047_20220615_0034.jpg" },
+    { rank: 2, id: "012", rating: 0.73, details: "012_20190801_0005.jpg" },
   ],
   query_image_count: 1,
   model: "test-model",
-  heatmap: null,
 };
 
 describe(analyseStack, () => {

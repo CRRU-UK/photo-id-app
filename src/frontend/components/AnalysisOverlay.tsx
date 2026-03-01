@@ -17,8 +17,6 @@ import { ML_MATCHES_PER_PAGE } from "@/constants";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import type { MLMatch, MLMatchResponse } from "@/types";
 
-type MLMatchRow = MLMatch & { id: number };
-
 const Loading = ({ stackLabel }: { stackLabel: string | null }) => (
   <Table.Container>
     <Table.Subtitle as="p" id="subtitle">
@@ -40,17 +38,17 @@ const Loading = ({ stackLabel }: { stackLabel: string | null }) => (
         },
         {
           header: "ID",
-          id: "animal_id",
+          id: "id",
           width: "80px",
         },
         {
-          header: "Similarity / Confidence",
-          id: "confidence",
+          header: "Rating",
+          id: "rating",
           width: "grow",
         },
         {
           header: "",
-          id: "source_path",
+          id: "details",
           width: "50px",
         },
       ]}
@@ -65,13 +63,10 @@ const Results = ({ data, stackLabel }: { data: MLMatchResponse; stackLabel: stri
   const start = pageIndex * pageSize;
   const end = start + pageSize;
 
-  const rows: MLMatchRow[] = data.matches.slice(start, end).map((match) => ({
-    ...match,
-    id: match.rank,
-  }));
+  const rows = data.matches.slice(start, end);
 
   const tableContent = (
-    <DataTable<MLMatchRow>
+    <DataTable<MLMatch>
       data={rows}
       cellPadding="spacious"
       initialSortColumn="rank"
@@ -84,52 +79,52 @@ const Results = ({ data, stackLabel }: { data: MLMatchResponse; stackLabel: stri
         },
         {
           header: "ID",
-          field: "animal_id",
+          field: "id",
           width: "auto",
           rowHeader: true,
         },
         {
-          header: "Similarity / Confidence",
-          field: "confidence",
+          header: "Rating",
+          field: "rating",
           width: "grow",
-          renderCell: (row: MLMatchRow) => {
-            const confidence = Math.round(row.confidence * 100);
+          renderCell: (row: MLMatch) => {
+            const rating = Math.round(row.rating * 100);
 
             let progressBarColor = "success.emphasis";
 
-            if (confidence < 82) {
+            if (rating < 82) {
               progressBarColor = "attention.emphasis";
             }
 
-            if (confidence < 70) {
+            if (rating < 70) {
               progressBarColor = "danger.emphasis";
             }
 
             return (
               <>
                 <ProgressBar
-                  progress={confidence}
+                  progress={rating}
                   inline
                   bg={progressBarColor}
                   style={{ width: "100%", marginRight: "var(--stack-gap-condensed)" }}
                 />
-                <Text>{confidence}%</Text>
+                <Text>{rating}%</Text>
               </>
             );
           },
         },
         {
           header: "",
-          field: "source_path",
+          field: "details",
           width: "auto",
-          renderCell: (row: MLMatchRow) => {
+          renderCell: (row: MLMatch) => {
             return (
-              <Tooltip text={row.source_path} type="label">
+              <Tooltip text={row.details} type="label">
                 <IconButton
                   icon={InfoIcon}
                   size="small"
                   variant="invisible"
-                  aria-label="View source path"
+                  aria-label="View details"
                 />
               </Tooltip>
             );

@@ -90,9 +90,9 @@ export type MLModel = z.infer<typeof mlModelSchema>;
  */
 export type MLMatch = {
   rank: number;
-  animal_id: string;
-  confidence: number;
-  source_path: string;
+  id: string;
+  rating: number;
+  details: string;
 };
 
 /**
@@ -103,7 +103,6 @@ export type MLMatchResponse = {
   matches: MLMatch[];
   query_image_count: number;
   model: string | null;
-  heatmap: string | null;
 };
 
 export type SettingsData = z.infer<typeof settingsDataSchema>;
