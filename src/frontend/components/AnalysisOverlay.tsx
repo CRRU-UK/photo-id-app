@@ -29,7 +29,7 @@ const Loading = ({ stackLabel }: { stackLabel: string | null }) => (
       </PrimerStack>
     </Table.Subtitle>
     <Table.Skeleton
-      aria-labelledby="analysis-loading"
+      aria-labelledby="subtitle"
       rows={10}
       columns={[
         {
