@@ -175,6 +175,16 @@ describe(analyseStack, () => {
     ).rejects.toThrowError("Network connection failed");
   });
 
+  it("throws when renderApiImage fails", async () => {
+    mockRenderApiImage.mockRejectedValue(new Error("Could not load image: file not found"));
+
+    await expect(
+      analyseStack({ photos: [defaultPhoto], settings: defaultSettings }),
+    ).rejects.toThrowError("Could not load image: file not found");
+
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
+
   it("throws when called with an empty photos array", async () => {
     await expect(analyseStack({ photos: [], settings: defaultSettings })).rejects.toThrowError(
       "No photos to analyse.",

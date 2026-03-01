@@ -13,7 +13,7 @@ import {
 import { DataTable, Table } from "@primer/react/experimental";
 import { useState } from "react";
 
-import { ML_MATCHES_PER_PAGE } from "@/constants";
+import { ANALYSIS_RESULTS_PER_PAGE } from "@/constants";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { useSettings } from "@/contexts/SettingsContext";
 import type { MLMatch, MLMatchResponse } from "@/types";
@@ -74,7 +74,7 @@ const Results = ({
     setPageIndex(0);
   }
 
-  const pageSize = ML_MATCHES_PER_PAGE;
+  const pageSize = ANALYSIS_RESULTS_PER_PAGE;
   const start = pageIndex * pageSize;
   const end = start + pageSize;
 
