@@ -71,7 +71,7 @@ const Sidebar = observer(() => {
       return;
     }
 
-    const itemId = item !== undefined ? (item as ModelItem).id : undefined;
+    const itemId = item ? (item as ModelItem).id : null;
 
     try {
       await updateSettings({ ...contextSettings, selectedModelId: itemId ?? null });
