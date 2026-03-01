@@ -10,7 +10,7 @@ info:
 
     ## Authorization
 
-    All endpoints should expect a `Authorization` header with a bearer token which can be used for authorization (e.g. `Authorization: Bearer <token>`).
+    All endpoints should expect an `Authorization` header with a bearer token which can be used for authorization (e.g. `Authorization: Bearer <token>`).
 
 security: []
 
