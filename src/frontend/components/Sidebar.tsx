@@ -1,5 +1,12 @@
 import { AiModelIcon, FileMovedIcon, ReplyIcon, ThreeBarsIcon } from "@primer/octicons-react";
-import { ActionList, ActionMenu, IconButton, Stack as PrimerStack, Text } from "@primer/react";
+import {
+  ActionList,
+  ActionMenu,
+  IconButton,
+  Stack as PrimerStack,
+  Text,
+  Truncate,
+} from "@primer/react";
 import { useNavigate } from "@tanstack/react-router";
 import { observer } from "mobx-react-lite";
 import { useCallback, useEffect, useState } from "react";
@@ -68,8 +75,9 @@ const Sidebar = observer(() => {
 
         <PrimerStack
           direction="horizontal"
-          align="start"
+          align="center"
           justify="space-between"
+          gap="condensed"
           style={{ marginTop: "auto", width: "100%" }}
         >
           <IconButton
@@ -85,12 +93,12 @@ const Sidebar = observer(() => {
             <PrimerStack
               direction="horizontal"
               align="center"
-              gap="condensed"
-              style={{ marginLeft: "auto", marginRight: "var(--stack-gap-condensed)" }}
+              justify="start"
+              className="model-selected"
             >
-              <AiModelIcon size={16} />
-              <Text size="small" color="fg.muted">
-                {settings.ml.name}
+              <AiModelIcon size={14} />
+              <Text size="small" weight="semibold">
+                <Truncate title={settings.ml.name}>{settings.ml.name}</Truncate>
               </Text>
             </PrimerStack>
           )}

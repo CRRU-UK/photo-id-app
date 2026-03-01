@@ -89,6 +89,17 @@ body.copying *:hover {
   padding: 0;
 }
 
+.sidebar .model-selected {
+  align-self: stretch;
+  margin-left: auto;
+  padding: 0 var(--stack-gap-normal);
+  min-height: 100%;
+  color: var(--fgColor-done);
+  border: 1px solid var(--borderColor-done-emphasis);
+  border-radius: var(--borderRadius-default);
+  background: var(--bgColor-done-muted);
+}
+
 .project > .pages {
   z-index: 10;
   position: absolute;

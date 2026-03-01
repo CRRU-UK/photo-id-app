@@ -136,7 +136,7 @@ const Stack = observer(({ collection, showAnalysisButton = true, stackLabel }: S
           <IconButton
             icon={AiModelIcon}
             size="small"
-            aria-label="Analyse stack"
+            aria-label="Analyse photos"
             disabled={collection.photos.size === 0 || isAnalysing}
             onClick={handleAnalyseClick}
           />

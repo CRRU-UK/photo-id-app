@@ -41,7 +41,7 @@ const Loading = ({ stackLabel }: { stackLabel: string | null }) => (
         {
           header: "ID",
           id: "animal_id",
-          width: "auto",
+          width: "80px",
         },
         {
           header: "Similarity / Confidence",
@@ -51,7 +51,7 @@ const Loading = ({ stackLabel }: { stackLabel: string | null }) => (
         {
           header: "",
           id: "source_path",
-          width: "auto",
+          width: "50px",
         },
       ]}
     />
