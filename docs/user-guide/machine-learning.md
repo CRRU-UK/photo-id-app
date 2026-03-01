@@ -21,7 +21,7 @@ To add a model, open the app settings. Open the ==:octicons-ai-model-16: Machine
 
 ![Adding a model](../assets/images/analysis-model-add.png?v1){ width="700" }
 
-Enter a model label, your base API URL, and API key. Select the ==Save== button and the model will be added. You can view your models in the app settings. Models can be deleted by selecting the ==:octicons-trash-16: bin== icon in the model list.
+Enter a model label, your base API URL, and token. Select the ==Save== button and the model will be added. You can view your models in the app settings. Models can be deleted by selecting the ==:octicons-trash-16: bin== icon in the model list.
 
 !!! tip
 

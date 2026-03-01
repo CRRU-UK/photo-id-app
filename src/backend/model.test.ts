@@ -19,7 +19,7 @@ const defaultSettings: MLModel = {
   id: "test-model-id",
   name: "Test Model",
   endpoint: "https://api.example.com",
-  apiKey: "test-api-key",
+  token: "test-token",
 };
 
 const defaultPhoto: PhotoBody = {
@@ -96,7 +96,7 @@ describe(analyseStack, () => {
     const [, callInit] = mockFetch.mock.calls[0] as unknown as [string, RequestInit];
     const headers = callInit.headers as Record<string, string>;
 
-    expect(headers["Authorization"]).toBe("Bearer test-api-key");
+    expect(headers["Authorization"]).toBe("Bearer test-token");
   });
 
   it("renders each photo via renderApiImage with its edits", async () => {
@@ -126,12 +126,12 @@ describe(analyseStack, () => {
 
   it("throws the API error detail on a 401 response", async () => {
     mockFetch.mockResolvedValue(
-      new Response(JSON.stringify({ detail: "Invalid or missing API key" }), { status: 401 }),
+      new Response(JSON.stringify({ detail: "Invalid or missing token" }), { status: 401 }),
     );
 
     await expect(
       analyseStack({ photos: [defaultPhoto], settings: defaultSettings }),
-    ).rejects.toThrowError("Invalid or missing API key");
+    ).rejects.toThrowError("Invalid or missing token");
   });
 
   it("throws the API error detail on a 422 response", async () => {
@@ -244,7 +244,7 @@ describe(analyseStack, () => {
     ).rejects.toThrowError("The request timed out. The API took too long to respond.");
   });
 
-  it("does not log the API key", async () => {
+  it("does not log the token", async () => {
     const debugSpy = vi.spyOn(console, "debug").mockImplementation(() => {});
 
     mockFetch.mockResolvedValue(new Response(JSON.stringify(successResponse), { status: 200 }));
@@ -253,7 +253,7 @@ describe(analyseStack, () => {
 
     const debugOutput = JSON.stringify(debugSpy.mock.calls);
 
-    expect(debugOutput).not.toContain(defaultSettings.apiKey);
+    expect(debugOutput).not.toContain(defaultSettings.token);
 
     debugSpy.mockRestore();
   });

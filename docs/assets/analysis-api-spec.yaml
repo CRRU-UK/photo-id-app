@@ -6,11 +6,11 @@ info:
   description: |
     API contract for a machine learning model analysis API that can be integrated with the Photo ID App. It should be used when designing an API for the 'bring-your-own-model' machine learning integration. The app will send requests and expect responses to an API as outlined in this specification.
 
-    Users can set the API key and endpoint URLs in the Photo ID App settings to enable the machine learning integration described in the [documentation](https://photoidapp.crru.org.uk/user-guide/usage/#machine-learning).
+    Users can set the token and endpoint URLs in the Photo ID App settings to enable the machine learning integration described in the [documentation](https://photoidapp.crru.org.uk/user-guide/usage/#machine-learning).
 
     ## Authorization
 
-    All endpoints should expect a `Authorization` header with a bearer token which can be used for authorization (e.g. `Authorization: Bearer <api-key>`).
+    All endpoints should expect a `Authorization` header with a bearer token which can be used for authorization (e.g. `Authorization: Bearer <token>`).
 
 security: []
 
@@ -67,7 +67,7 @@ components:
         detail:
           type: string
           description: Human-readable error description.
-          example: Invalid or missing API key
+          example: Invalid or missing token
 
 paths:
   /match:
@@ -117,13 +117,13 @@ paths:
                     rating: 0.71
                     details: 237_20180623_0152.jpg
         "401":
-          description: Missing or invalid API key.
+          description: Missing or invalid token.
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
               example:
-                detail: Invalid or missing API key
+                detail: Invalid or missing token
         "422":
           description: >
             Required field(s) are missing or are invalid.

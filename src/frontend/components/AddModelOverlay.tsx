@@ -11,23 +11,23 @@ interface AddModelOverlayProps {
   onClose: () => void;
 }
 
-type ModelDraft = Pick<MLModel, "name" | "endpoint" | "apiKey">;
+type ModelDraft = Pick<MLModel, "name" | "endpoint" | "token">;
 
-const emptyDraft = (): ModelDraft => ({ name: "", endpoint: "", apiKey: "" });
+const emptyDraft = (): ModelDraft => ({ name: "", endpoint: "", token: "" });
 
 const AddModelOverlay = ({ open, onClose }: AddModelOverlayProps) => {
   const { settings: contextSettings, updateSettings } = useSettings();
 
   const [draft, setDraft] = useState<ModelDraft>(emptyDraft);
-  const [showApiKey, setShowApiKey] = useState(false);
+  const [showToken, setShowToken] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  const fieldsValid = draft.name && draft.endpoint && draft.apiKey;
+  const fieldsValid = draft.name && draft.endpoint && draft.token;
 
   useEffect(() => {
     if (open) {
       setDraft(emptyDraft());
-      setShowApiKey(false);
+      setShowToken(false);
     }
   }, [open]);
 
@@ -46,7 +46,7 @@ const AddModelOverlay = ({ open, onClose }: AddModelOverlayProps) => {
       id: crypto.randomUUID(),
       name: draft.name,
       endpoint: draft.endpoint,
-      apiKey: draft.apiKey,
+      token: draft.token,
     };
 
     try {
@@ -94,7 +94,7 @@ const AddModelOverlay = ({ open, onClose }: AddModelOverlayProps) => {
         </FormControl>
 
         <FormControl required>
-          <FormControl.Label>Model API URL</FormControl.Label>
+          <FormControl.Label>API URL</FormControl.Label>
           <TextInput
             size="large"
             value={draft.endpoint}
@@ -107,18 +107,18 @@ const AddModelOverlay = ({ open, onClose }: AddModelOverlayProps) => {
         </FormControl>
 
         <FormControl required>
-          <FormControl.Label>API key</FormControl.Label>
+          <FormControl.Label>API Token</FormControl.Label>
           <TextInput
-            type={showApiKey ? "text" : "password"}
+            type={showToken ? "text" : "password"}
             size="large"
-            value={draft.apiKey}
+            value={draft.token}
             leadingVisual={KeyIcon}
-            onChange={(event) => setDraft((prev) => ({ ...prev, apiKey: event.target.value }))}
+            onChange={(event) => setDraft((prev) => ({ ...prev, token: event.target.value }))}
             trailingAction={
               <TextInput.Action
-                aria-label={showApiKey ? "Hide API key" : "Show API key"}
-                icon={showApiKey ? EyeIcon : EyeClosedIcon}
-                onClick={() => setShowApiKey((prev) => !prev)}
+                aria-label={showToken ? "Hide token" : "Show token"}
+                icon={showToken ? EyeIcon : EyeClosedIcon}
+                onClick={() => setShowToken((prev) => !prev)}
               />
             }
             block

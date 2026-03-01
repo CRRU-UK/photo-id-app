@@ -423,7 +423,7 @@ app.whenReady().then(async () => {
         (model) => model.id === settings.selectedModelId,
       );
 
-      if (!selectedModel?.endpoint || !selectedModel?.apiKey) {
+      if (!selectedModel?.endpoint || !selectedModel?.token) {
         throw new Error("Machine Learning integration is not configured.");
       }
 

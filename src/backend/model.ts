@@ -56,7 +56,7 @@ const analyseStack = async ({
     const options = {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${settings.apiKey}`,
+        Authorization: `Bearer ${settings.token}`,
       },
       body: formData,
       signal,
