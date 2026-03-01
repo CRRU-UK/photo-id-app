@@ -165,7 +165,7 @@ export const INITIAL_MATCHED_STACKS = 52;
 export enum EXTERNAL_LINKS {
   WEBSITE = "https://crru.org.uk",
   USER_GUIDE = "https://photoidapp.crru.org.uk/user-guide/usage/",
-  USER_GUIDE_ML = "https://photoidapp.crru.org.uk/user-guide/usage/#machine-learning",
+  USER_GUIDE_ML = "https://photoidapp.crru.org.uk/user-guide/machine-learning/",
   KEYBOARD_SHORTCUTS = "https://photoidapp.crru.org.uk/user-guide/keyboard-shortcuts/",
   CHANGELOG = "https://github.com/CRRU-UK/photo-id-app/releases/$VERSION",
   PRIVACY = "https://photoidapp.crru.org.uk/privacy/",

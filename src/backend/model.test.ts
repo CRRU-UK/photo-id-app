@@ -216,7 +216,7 @@ describe(analyseStack, () => {
 
     await expect(
       analyseStack({ photos: [defaultPhoto], settings: defaultSettings }),
-    ).rejects.toThrowError("The request timed out. The server took too long to respond.");
+    ).rejects.toThrowError("The request timed out. The API took too long to respond.");
   });
 
   it("does not log the API key", async () => {
