@@ -81,10 +81,6 @@ export const renderThumbnailWithEdits = async ({
   return thumbnailCanvas.encode("png");
 };
 
-/**
- * Renders a photo at ANALYSIS_API_IMAGE_SIZE longest edge as JPEG and ANALYSIS_API_IMAGE_JPEG_QUALITY, with edits
- * applied. Always outputs JPEG regardless of source format. Used for ML API requests.
- */
 export const renderApiImage = async ({
   sourcePath,
   edits,

@@ -12,9 +12,8 @@ type AnalyseStackOptions = {
 let currentAbortController: AbortController | null = null;
 
 /**
- * Sends all photos in a stack to the ML API /match endpoint. Renders each photo at API image size
- * (longest edge 1000px, JPEG quality 85%) with edits applied before sending. Returns null when the
- * request was cancelled via cancelAnalyseStack.
+ * Sends all photos in a stack to the API /match endpoint. Returns null if the request is cancelled
+ * via cancelAnalyseStack.
  */
 const analyseStack = async ({
   photos,
