@@ -51,6 +51,21 @@ describe(analyseStack, () => {
     expect(result).toStrictEqual(successResponse);
   });
 
+  it("sorts matches by rank ascending", async () => {
+    const unorderedResponse: MLMatchResponse = {
+      matches: [
+        { rank: 3, id: "237", rating: 0.71, details: "237_20180623_0152.jpg" },
+        { rank: 1, id: "047", rating: 0.91, details: "047_20220615_0034.jpg" },
+        { rank: 2, id: "012", rating: 0.73, details: "012_20190801_0005.jpg" },
+      ],
+    };
+    mockFetch.mockResolvedValue(new Response(JSON.stringify(unorderedResponse), { status: 200 }));
+
+    const result = await analyseStack({ photos: [defaultPhoto], settings: defaultSettings });
+
+    expect(result?.matches.map((m) => m.rank)).toStrictEqual([1, 2, 3]);
+  });
+
   it("sends a POST to the endpoint /match URL", async () => {
     mockFetch.mockResolvedValue(new Response(JSON.stringify(successResponse), { status: 200 }));
 
@@ -187,7 +202,7 @@ describe(analyseStack, () => {
 
   it("throws when called with an empty photos array", async () => {
     await expect(analyseStack({ photos: [], settings: defaultSettings })).rejects.toThrowError(
-      "No photos to analyse.",
+      "No photos to analyse",
     );
 
     expect(mockFetch).not.toHaveBeenCalled();

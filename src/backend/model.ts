@@ -20,7 +20,7 @@ const analyseStack = async ({
   settings,
 }: AnalyseStackOptions): Promise<MLMatchResponse | null> => {
   if (photos.length === 0) {
-    throw new Error("No photos to analyse.");
+    throw new Error("No photos to analyse");
   }
 
   if (currentAbortController) {
@@ -74,6 +74,9 @@ const analyseStack = async ({
     }
 
     const result = (await response.json()) as MLMatchResponse;
+
+    // Ensure data is sorted by rank ascending
+    result.matches = result.matches.toSorted((a, b) => a.rank - b.rank);
 
     console.debug("response", result);
 

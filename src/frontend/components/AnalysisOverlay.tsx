@@ -1,7 +1,7 @@
 import { InfoIcon } from "@primer/octicons-react";
 import {
+  Banner,
   Dialog,
-  Flash,
   IconButton,
   Label,
   Stack as PrimerStack,
@@ -84,7 +84,6 @@ const Results = ({
     <DataTable<MLMatch>
       data={rows}
       cellPadding="spacious"
-      initialSortColumn="rank"
       columns={[
         {
           header: "Rank",
@@ -195,7 +194,11 @@ const AnalysisOverlay = () => {
 
       {result !== null && <Results data={result} stackLabel={stackLabel} modelLabel={modelLabel} />}
 
-      {error !== null && <Flash variant="danger">{error}</Flash>}
+      {error !== null && (
+        <Banner title="Error" variant="critical">
+          {error}
+        </Banner>
+      )}
     </Dialog>
   );
 };

@@ -17,7 +17,7 @@ A model API will need to be provided according to the [OpenAPI specifications pr
 
 ![Model list in settings](../assets/images/analysis-model-list.png?v1){ width="700" }
 
-To add a model, open the app settings. Open the  ==:octicons-ai-model-16: Machine Learning== tab, and select the ==:octicons-plus-16: Add Model== button.
+To add a model, open the app settings. Open the ==:octicons-ai-model-16: Machine Learning== tab, and select the ==:octicons-plus-16: Add Model== button.
 
 ![Adding a model](../assets/images/analysis-model-add.png?v1){ width="700" }
 
