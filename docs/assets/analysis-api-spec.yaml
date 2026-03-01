@@ -35,7 +35,7 @@ components:
           type: string
           description: >
             The identifier for the match.
-          example: '065L (Muddy)'
+          example: "065L (Muddy)"
         rating:
           type: number
           format: float
