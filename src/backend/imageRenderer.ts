@@ -2,7 +2,11 @@ import path from "node:path";
 
 import { createCanvas, loadImage } from "@napi-rs/canvas";
 
-import { API_IMAGE_JPEG_QUALITY, API_IMAGE_SIZE, THUMBNAIL_SIZE } from "@/constants";
+import {
+  ANALYSIS_API_IMAGE_JPEG_QUALITY,
+  ANALYSIS_API_IMAGE_SIZE,
+  THUMBNAIL_SIZE,
+} from "@/constants";
 import { getCanvasFilters } from "@/helpers";
 import type { PhotoEdits } from "@/types";
 
@@ -78,7 +82,7 @@ export const renderThumbnailWithEdits = async ({
 };
 
 /**
- * Renders a photo at API_IMAGE_SIZE longest edge as JPEG and API_IMAGE_JPEG_QUALITY, with edits
+ * Renders a photo at ANALYSIS_API_IMAGE_SIZE longest edge as JPEG and ANALYSIS_API_IMAGE_JPEG_QUALITY, with edits
  * applied. Always outputs JPEG regardless of source format. Used for ML API requests.
  */
 export const renderApiImage = async ({
@@ -89,8 +93,8 @@ export const renderApiImage = async ({
 
   const isLandscape = canvasWithEdits.width >= canvasWithEdits.height;
   const scale = isLandscape
-    ? API_IMAGE_SIZE / canvasWithEdits.width
-    : API_IMAGE_SIZE / canvasWithEdits.height;
+    ? ANALYSIS_API_IMAGE_SIZE / canvasWithEdits.width
+    : ANALYSIS_API_IMAGE_SIZE / canvasWithEdits.height;
 
   const outputWidth = Math.round(canvasWithEdits.width * scale);
   const outputHeight = Math.round(canvasWithEdits.height * scale);
@@ -110,7 +114,7 @@ export const renderApiImage = async ({
     outputHeight,
   );
 
-  return outputCanvas.encode("jpeg", API_IMAGE_JPEG_QUALITY);
+  return outputCanvas.encode("jpeg", ANALYSIS_API_IMAGE_JPEG_QUALITY);
 };
 
 export const renderFullImageWithEdits = async ({

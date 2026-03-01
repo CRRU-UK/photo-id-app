@@ -174,6 +174,64 @@ describe(analyseStack, () => {
       analyseStack({ photos: [defaultPhoto], settings: defaultSettings }),
     ).rejects.toThrowError("Network connection failed");
   });
+
+  it("throws when called with an empty photos array", async () => {
+    await expect(analyseStack({ photos: [], settings: defaultSettings })).rejects.toThrowError(
+      "No photos to analyse.",
+    );
+
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
+
+  it("returns null without sending the request when cancelled during image rendering", async () => {
+    let renderCount = 0;
+    mockRenderApiImage.mockImplementation(() => {
+      renderCount = renderCount + 1;
+      if (renderCount === 1) {
+        cancelAnalyseStack();
+      }
+      return Promise.resolve(Buffer.from("image-data"));
+    });
+
+    mockFetch.mockResolvedValue(new Response(JSON.stringify(successResponse), { status: 200 }));
+
+    const secondPhoto: PhotoBody = { ...defaultPhoto, name: "photo2.jpg" };
+    const result = await analyseStack({
+      photos: [defaultPhoto, secondPhoto],
+      settings: defaultSettings,
+    });
+
+    expect(result).toBeNull();
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
+
+  it("throws a timeout error when the request exceeds the timeout", async () => {
+    mockFetch.mockRejectedValue(
+      (() => {
+        const error = new Error("The operation timed out.");
+        error.name = "TimeoutError";
+        return error;
+      })(),
+    );
+
+    await expect(
+      analyseStack({ photos: [defaultPhoto], settings: defaultSettings }),
+    ).rejects.toThrowError("The request timed out. The server took too long to respond.");
+  });
+
+  it("does not log the API key", async () => {
+    const debugSpy = vi.spyOn(console, "debug").mockImplementation(() => {});
+
+    mockFetch.mockResolvedValue(new Response(JSON.stringify(successResponse), { status: 200 }));
+
+    await analyseStack({ photos: [defaultPhoto], settings: defaultSettings });
+
+    const debugOutput = JSON.stringify(debugSpy.mock.calls);
+
+    expect(debugOutput).not.toContain(defaultSettings.apiKey);
+
+    debugSpy.mockRestore();
+  });
 });
 
 describe(cancelAnalyseStack, () => {

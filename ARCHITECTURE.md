@@ -196,7 +196,7 @@ The project view is accessed when opening a project. It allows the user to:
 
 - An analysis button should show in stacks once a model has been selected in the sidebar
 - The unassigned and discarded stacks should NOT show the analysis button as this would not be useful
-- Clicking the analysis button sends all photos in that stack to the selected models API endpoint with the token
+- Clicking the analysis button sends all photos in that stack to the selected model's API endpoint with the token
 - Clicking the analysis button opens an overlay with a data table loading state while the request is being sent and the response is being received
 - Once the response has been received, the overlay content should update the data table with the data received
 - The data table contains the following columns:
@@ -206,7 +206,7 @@ The project view is accessed when opening a project. It allows the user to:
 - The API contract in [`analysis-api-spec.yaml`](./docs/assets/analysis-api-spec.yaml) should be used as the ONLY contract for what the app sends and expects to receive from a model API
 - The data table results should show all the results received, paginated at a fixed amount per page
 - The progress bars change colour depending on the value of the rating
-- Table rows are ordered by rank descending
+- Table rows are ordered by rank ascending (best match first)
 
 ### Edit View
 

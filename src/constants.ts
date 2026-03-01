@@ -146,9 +146,11 @@ export const PROJECT_EXPORT_DIRECTORY = "matched";
 
 export const THUMBNAIL_SIZE = 1000;
 
-export const API_IMAGE_SIZE = 1000;
+export const ANALYSIS_API_IMAGE_SIZE = 1000;
 
-export const API_IMAGE_JPEG_QUALITY = 85;
+export const ANALYSIS_API_IMAGE_JPEG_QUALITY = 85;
+
+export const ANALYSIS_API_REQUEST_TIMEOUT_MS = 120_000; // 2 minutes
 
 export const RECENT_PROJECTS_FILE_NAME = "recent-projects.json";
 

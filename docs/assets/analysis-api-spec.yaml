@@ -1,7 +1,7 @@
 openapi: "3.0.3"
 
 info:
-  title: Analysis APIcontract
+  title: Analysis API Contract
   version: "0.0.1"
   description: |
     API contract for a machine learning model analysis API that can be integrated with the Photo ID App. It should be used when designing an API for the 'bring-your-own-model' machine learning integration. The app will send requests and expect responses to an API as outlined in this specification.

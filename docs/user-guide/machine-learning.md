@@ -29,16 +29,20 @@ Enter a model label, your base API URL, and API key. Select the ==Save== button 
 
 ## Analysis
 
-To choose a model to use for analysis, open the ==Select ML Model== dropdown in the project view sidebar. Here you can chose from the models you have added. Select on the model you want to use, and an ==:octicons-ai-model-16: analyse== button will appear below each stack.
+To choose a model to use for analysis, open the ==Select ML Model== dropdown in the project view sidebar. Here you can choose from the models you have added. Select the model you want to use, and an ==:octicons-ai-model-16: analyse== button will appear below each stack.
 
 ![Selecting a model](../assets/images/analysis-model-select.png?v1){ width="300" }
 
 You can deselect a model by simply selecting it again in the list, which will disable the analysis buttons until a model is selected again. Note that the unassigned and discarded stacks do not support analysis.
 
-Analysing a stack will send _all_ photos in that stack to the API's `/match` endpoint. A table will be shown with the corresponding information:
+To analyse a stack, select the ==:octicons-ai-model-16: analyse== button below the photo. Analysing a stack will send _all_ photos in that stack to the API's `/match` endpoint. Photos are sent resized at 1000px longest edge and with 85% JPEG quality, with any edits applied (size and quality may be configurable in the future).
 
-- Match rank (ordered descending)
+A table will be shown with the corresponding information:
+
+- Match rank (ordered by best match first)
 - Rating (e.g. confidence, similarity)
 - Details (useful for debugging information)
+
+Results are paginated if there are many matches. You can cancel an in-progress analysis using the ==Cancel== button in the overlay.
 
 Users can use this data to cross-check the animal with their catalogues, and if a match is found the respective ID can be entered into the ID field in the stack.

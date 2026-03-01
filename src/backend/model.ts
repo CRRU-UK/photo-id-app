@@ -1,6 +1,7 @@
 import path from "node:path";
 
 import { renderApiImage } from "@/backend/imageRenderer";
+import { ANALYSIS_API_REQUEST_TIMEOUT_MS } from "@/constants";
 import type { MLMatchResponse, MLModel, PhotoBody } from "@/types";
 
 type AnalyseStackOptions = {
@@ -12,14 +13,17 @@ let currentAbortController: AbortController | null = null;
 
 /**
  * Sends all photos in a stack to the ML API /match endpoint. Renders each photo at API image size
- * (longest edge 1000px, JPEG quality 85%) with edits applied before sending.
- *
- * Returns null when the request was cancelled via cancelAnalyseStack.
+ * (longest edge 1000px, JPEG quality 85%) with edits applied before sending. Returns null when the
+ * request was cancelled via cancelAnalyseStack.
  */
 const analyseStack = async ({
   photos,
   settings,
 }: AnalyseStackOptions): Promise<MLMatchResponse | null> => {
+  if (photos.length === 0) {
+    throw new Error("No photos to analyse.");
+  }
+
   if (currentAbortController) {
     currentAbortController.abort();
   }
@@ -31,6 +35,10 @@ const analyseStack = async ({
     const formData = new FormData();
 
     for (const photo of photos) {
+      if (abortController.signal.aborted) {
+        return null;
+      }
+
       const sourcePath = path.join(photo.directory, photo.name);
       const imageBuffer = await renderApiImage({ sourcePath, edits: photo.edits });
       const blob = new Blob([new Uint8Array(imageBuffer)], { type: "image/jpeg" });
@@ -41,20 +49,21 @@ const analyseStack = async ({
     const endpoint = settings.endpoint.replace(/\/+$/, "");
     const url = `${endpoint}/match`;
 
+    const signal = AbortSignal.any([
+      abortController.signal,
+      AbortSignal.timeout(ANALYSIS_API_REQUEST_TIMEOUT_MS),
+    ]);
+
     const options = {
       method: "POST",
       headers: {
         Authorization: `Bearer ${settings.apiKey}`,
       },
       body: formData,
-      signal: abortController.signal,
+      signal,
     };
 
-    console.debug("Request:", {
-      url,
-      method: options.method,
-      headers: options.headers,
-    });
+    console.debug("request", { url, method: options.method });
 
     const response = await fetch(url, options);
 
@@ -67,7 +76,7 @@ const analyseStack = async ({
 
     const result = (await response.json()) as MLMatchResponse;
 
-    console.debug("Response:", result);
+    console.debug("response", result);
 
     return result;
   } catch (error) {
@@ -75,6 +84,10 @@ const analyseStack = async ({
 
     if (error instanceof Error && error.name === "AbortError") {
       return null;
+    }
+
+    if (error instanceof Error && error.name === "TimeoutError") {
+      throw new Error("The request timed out. The API took too long to respond.");
     }
 
     throw error;

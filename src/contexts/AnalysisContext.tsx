@@ -15,7 +15,7 @@ interface AnalysisContextValue {
   result: MLMatchResponse | null;
   error: string | null;
   stackLabel: string | null;
-  handleAnalyse: (photos: PhotoBody[], stackLabel: string) => void;
+  handleAnalyse: (photos: PhotoBody[], stackLabel: string) => Promise<void>;
   handleClose: () => void;
 }
 
@@ -53,11 +53,9 @@ export const AnalysisProvider = ({ children }: AnalysisProviderProps) => {
       try {
         const response = await window.electronAPI.analyseStack(photos);
         setResult(response);
-      } catch (analysisError) {
-        setError(
-          analysisError instanceof Error ? analysisError.message : "An unexpected error occurred.",
-        );
-        console.error("Analysis failed:", analysisError);
+      } catch (error) {
+        setError(error instanceof Error ? error.message : "An unexpected error occurred.");
+        console.error("Analysis failed:", error);
       } finally {
         setIsAnalysing(false);
       }
@@ -73,6 +71,7 @@ export const AnalysisProvider = ({ children }: AnalysisProviderProps) => {
 
     setResult(null);
     setError(null);
+    setStackLabel(null);
   }, [isAnalysing]);
 
   const value = useMemo<AnalysisContextValue>(

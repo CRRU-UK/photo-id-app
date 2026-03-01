@@ -29,7 +29,7 @@ const Loading = ({ stackLabel }: { stackLabel: string | null }) => (
       </PrimerStack>
     </Table.Subtitle>
     <Table.Skeleton
-      aria-labelledby="repositories-loading"
+      aria-labelledby="analysis-loading"
       rows={10}
       columns={[
         {
@@ -67,6 +67,12 @@ const Results = ({
   modelLabel: string | null;
 }) => {
   const [pageIndex, setPageIndex] = useState(0);
+  const [prevData, setPrevData] = useState(data);
+
+  if (data !== prevData) {
+    setPrevData(data);
+    setPageIndex(0);
+  }
 
   const pageSize = ML_MATCHES_PER_PAGE;
   const start = pageIndex * pageSize;
