@@ -1,6 +1,6 @@
 {
   "private": true,
-  "version": "0.4.1",
+  "version": "0.5.0",
   "name": "photo-id",
   "description": "Photo-identification research tool for longitudinal mark-recapture studies.",
   "productName": "Photo ID",
