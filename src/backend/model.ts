@@ -12,6 +12,17 @@ type AnalyseStackOptions = {
 let currentAbortController: AbortController | null = null;
 
 /**
+ * Generates a blob from a photo.
+ */
+const generateImageBlob = async (photo: PhotoBody): Promise<Blob> => {
+  const sourcePath = path.join(photo.directory, photo.name);
+  const imageBuffer = await renderApiImage({ sourcePath, edits: photo.edits });
+  const blob = new Blob([new Uint8Array(imageBuffer)], { type: "image/jpeg" });
+
+  return blob;
+};
+
+/**
  * Sends all photos in a stack to the API /match endpoint. Returns null if the request is cancelled
  * via cancelAnalyseStack.
  */
@@ -38,10 +49,7 @@ const analyseStack = async ({
         return null;
       }
 
-      const sourcePath = path.join(photo.directory, photo.name);
-      const imageBuffer = await renderApiImage({ sourcePath, edits: photo.edits });
-      const blob = new Blob([new Uint8Array(imageBuffer)], { type: "image/jpeg" });
-
+      const blob = await generateImageBlob(photo);
       formData.append("images", blob, `${path.basename(photo.name, path.extname(photo.name))}.jpg`);
     }
 

@@ -15,11 +15,14 @@ A machine learning model can be integrated in the app which can be used to analy
 
 A model API will need to be provided according to the [OpenAPI specifications provided here](../assets/analysis-api-spec.yaml). This specification is the contract the app will use to send requests and expect responses from an API.
 
-![Model list in settings](../assets/images/analysis-model-list.png?v1){ width="700" }
+<!-- markdownlint-disable MD033 -->
+<div class="grid cards" markdown>
+- ![Model list in settings](../assets/images/analysis-model-list.png?v1){ width="700" }
+- ![Adding a model](../assets/images/analysis-model-add.png?v1){ width="700" }
+</div>
+<!-- markdownlint-enable MD033 -->
 
 To add a model, open the app settings. Open the ==:octicons-ai-model-16: Machine Learning== tab, and select the ==:octicons-plus-16: Add Model== button.
-
-![Adding a model](../assets/images/analysis-model-add.png?v1){ width="700" }
 
 Enter a model label, your base API URL, and token. Select the ==Save== button and the model will be added. You can view your models in the app settings. Models can be deleted by selecting the ==:octicons-trash-16: bin== icon in the model list.
 
@@ -35,7 +38,7 @@ To choose a model to use for analysis, open the ==Select ML Model== dropdown in 
 
 You can deselect a model by simply selecting it again in the list, which will disable the analysis buttons until a model is selected again. Note that the unassigned and discarded stacks do not support analysis.
 
-To analyse a stack, select the ==:octicons-ai-model-16: analyse== button below the photo. Analysing a stack will send _all_ photos in that stack to the API's `/match` endpoint. Photos are sent resized at 1000px longest edge and with 85% JPEG quality, with any edits applied (size and quality may be configurable in the future).
+To analyse a stack, select the ==:octicons-ai-model-16: Analyse photos== button below the photo. Analysing a stack will send _all_ photos in that stack to the API's `/match` endpoint. Photos are sent resized at 1000px longest edge and with 85% JPEG quality, with any edits applied (size and quality may be configurable in the future).
 
 A table will be shown with the corresponding information:
 
