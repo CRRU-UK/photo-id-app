@@ -59,8 +59,9 @@ const Sidebar = observer(() => {
     descriptionVariant: "block" as const,
   }));
 
-  const filteredItems = modelItems.filter((item) =>
-    item.text.toLowerCase().includes(modelFilter.toLowerCase()),
+  const filteredItems = modelItems.filter(
+    (item) =>
+      item.id === selectedModelId || item.text.toLowerCase().includes(modelFilter.toLowerCase()),
   );
 
   const selectedItem = modelItems.find((item) => item.id === selectedModelId) ?? undefined;
