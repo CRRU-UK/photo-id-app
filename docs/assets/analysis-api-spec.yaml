@@ -6,7 +6,7 @@ info:
   description: |
     API contract for a machine learning model analysis API that can be integrated with the Photo ID App. It should be used when designing an API for the 'bring-your-own-model' machine learning integration. The app will send requests and expect responses to an API as outlined in this specification.
 
-    Users can set the token and endpoint URLs in the Photo ID App settings to enable the machine learning integration described in the [documentation](https://photoidapp.crru.org.uk/user-guide/usage/#machine-learning).
+    Users can set the token and endpoint URLs in the Photo ID App settings to enable the machine learning integration described in the [documentation](https://photoidapp.crru.org.uk/user-guide/machine-learning/).
 
     ## Authorization
 

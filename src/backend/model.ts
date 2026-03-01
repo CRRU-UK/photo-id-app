@@ -66,7 +66,9 @@ const analyseStack = async ({
 
     const response = await fetch(url, options);
 
-    currentAbortController = null;
+    if (currentAbortController === abortController) {
+      currentAbortController = null;
+    }
 
     if (!response.ok) {
       const body = (await response.json().catch(() => null)) as { detail?: string } | null;
@@ -82,7 +84,9 @@ const analyseStack = async ({
 
     return result;
   } catch (error) {
-    currentAbortController = null;
+    if (currentAbortController === abortController) {
+      currentAbortController = null;
+    }
 
     if (error instanceof Error && error.name === "AbortError") {
       return null;

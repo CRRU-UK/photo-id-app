@@ -22,7 +22,7 @@ const AddModelOverlay = ({ open, onClose }: AddModelOverlayProps) => {
   const [showToken, setShowToken] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  const fieldsValid = draft.name && draft.endpoint && draft.token;
+  const fieldsValid = draft.name.trim() && draft.endpoint.trim() && draft.token.trim();
 
   useEffect(() => {
     if (open) {
@@ -44,9 +44,9 @@ const AddModelOverlay = ({ open, onClose }: AddModelOverlayProps) => {
 
     const newModel: MLModel = {
       id: crypto.randomUUID(),
-      name: draft.name,
-      endpoint: draft.endpoint,
-      token: draft.token,
+      name: draft.name.trim(),
+      endpoint: draft.endpoint.trim(),
+      token: draft.token.trim(),
     };
 
     try {
