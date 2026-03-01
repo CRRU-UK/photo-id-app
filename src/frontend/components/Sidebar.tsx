@@ -146,15 +146,6 @@ const Sidebar = observer(() => {
                 {selectedModel?.name ?? "Select ML model"}
               </Button>
             )}
-            secondaryAction={
-              <Button
-                size="small"
-                variant="invisible"
-                onClick={() => alert("open models settings overlay on models page")}
-              >
-                Manage models
-              </Button>
-            }
           />
         </FormControl>
 

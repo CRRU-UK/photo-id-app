@@ -20,7 +20,15 @@ const EmptyModels = (
       Use a machine learning model to analyse photos in a stack. Click the Add Model button to get
       started.
     </Blankslate.Description>
-    <Blankslate.SecondaryAction href="#">View documentation</Blankslate.SecondaryAction>
+    <Link
+      href="#"
+      onClick={(event) => {
+        event.preventDefault();
+        window.electronAPI.openExternalLink("user-guide");
+      }}
+    >
+      View documentation
+    </Link>
   </Blankslate>
 );
 
