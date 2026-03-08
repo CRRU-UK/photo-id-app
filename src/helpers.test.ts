@@ -379,56 +379,18 @@ describe("encodeEditPayload and decodeEditPayload round-trip", () => {
     isEdited: false,
   };
 
-  it("round-trips a basic photo body", () => {
-    const decoded = decodeEditPayload(encodeEditPayload(defaultPhotoBody));
-
-    expect(decoded).toStrictEqual(defaultPhotoBody);
-  });
-
-  it("round-trips photo body with unicode in directory path", () => {
+  it.each([
+    { label: "basic photo body", name: "photo.jpg" },
+    { label: "unicode in directory path", name: "photo.jpg", directory: "/Users/foo/émoji/项目" },
+    { label: "unicode in filename", name: "テスト画像.png" },
+    { label: "special characters in filename", name: "photo (1) [final].jpg" },
+    { label: "spaces and apostrophe in filename", name: "O'la.jpg" },
+  ])("round-trips $label", ({ name, directory }) => {
     const data = {
       ...defaultPhotoBody,
-      directory: "/Users/foo/émoji/项目/photos",
-      name: "photo.jpg",
-      thumbnail: ".thumbnails/photo.jpg",
-    };
-
-    const decoded = decodeEditPayload(encodeEditPayload(data));
-
-    expect(decoded).toStrictEqual(data);
-  });
-
-  it("round-trips photo body with unicode in filename", () => {
-    const data = {
-      ...defaultPhotoBody,
-      directory: "/path/to/project",
-      name: "テスト画像.png",
-      thumbnail: ".thumbnails/テスト画像.png",
-    };
-
-    const decoded = decodeEditPayload(encodeEditPayload(data));
-
-    expect(decoded).toStrictEqual(data);
-  });
-
-  it("round-trips photo body with special characters in filename", () => {
-    const data = {
-      ...defaultPhotoBody,
-      directory: "/path/to/project",
-      name: "photo (1) [final].jpg",
-      thumbnail: ".thumbnails/photo (1) [final].jpg",
-    };
-
-    const decoded = decodeEditPayload(encodeEditPayload(data));
-
-    expect(decoded).toStrictEqual(data);
-  });
-
-  it("round-trips photo body with spaces and apostrophe in filename", () => {
-    const data = {
-      ...defaultPhotoBody,
-      name: "O'la.jpg",
-      thumbnail: ".thumbnails/O'la.jpg",
+      directory: directory ?? defaultPhotoBody.directory,
+      name,
+      thumbnail: `.thumbnails/${name}`,
     };
 
     const decoded = decodeEditPayload(encodeEditPayload(data));
