@@ -243,19 +243,34 @@ app.whenReady().then(async () => {
 
   ipcMain.on(IPC_EVENTS.OPEN_FOLDER, async (event) => {
     const webContents = event.sender;
-    const window = BrowserWindow.fromWebContents(webContents) as BrowserWindow;
+    const window = BrowserWindow.fromWebContents(webContents);
+
+    if (!window) {
+      return;
+    }
+
     await handleOpenDirectoryPrompt(window);
   });
 
   ipcMain.on(IPC_EVENTS.OPEN_FILE, async (event) => {
     const webContents = event.sender;
-    const window = BrowserWindow.fromWebContents(webContents) as BrowserWindow;
+    const window = BrowserWindow.fromWebContents(webContents);
+
+    if (!window) {
+      return;
+    }
+
     await handleOpenFilePrompt(window);
   });
 
   ipcMain.on(IPC_EVENTS.OPEN_PROJECT_FILE, async (event, file: string) => {
     const webContents = event.sender;
-    const window = BrowserWindow.fromWebContents(webContents) as BrowserWindow;
+    const window = BrowserWindow.fromWebContents(webContents);
+
+    if (!window) {
+      return;
+    }
+
     await handleOpenProjectFile(window, file);
   });
 
@@ -335,7 +350,11 @@ app.whenReady().then(async () => {
 
   ipcMain.handle(IPC_EVENTS.EXPORT_MATCHES, async (event, data: string): Promise<void> => {
     const webContents = event.sender;
-    const window = BrowserWindow.fromWebContents(webContents) as BrowserWindow;
+    const window = BrowserWindow.fromWebContents(webContents);
+
+    if (!window) {
+      return;
+    }
 
     const directory = await handleExportMatches(window, data);
 
