@@ -364,6 +364,79 @@ describe(decodeEditPayload, () => {
   });
 });
 
+describe("encodeEditPayload and decodeEditPayload round-trip", () => {
+  const defaultPhotoBody = {
+    directory: "/path/to/project",
+    name: "photo.jpg",
+    thumbnail: ".thumbnails/photo.jpg",
+    edits: {
+      brightness: 100,
+      contrast: 100,
+      saturate: 100,
+      zoom: 1,
+      pan: { x: 0, y: 0 },
+    },
+    isEdited: false,
+  };
+
+  it("round-trips a basic photo body", () => {
+    const decoded = decodeEditPayload(encodeEditPayload(defaultPhotoBody));
+
+    expect(decoded).toStrictEqual(defaultPhotoBody);
+  });
+
+  it("round-trips photo body with unicode in directory path", () => {
+    const data = {
+      ...defaultPhotoBody,
+      directory: "/Users/foo/émoji/项目/photos",
+      name: "photo.jpg",
+      thumbnail: ".thumbnails/photo.jpg",
+    };
+
+    const decoded = decodeEditPayload(encodeEditPayload(data));
+
+    expect(decoded).toStrictEqual(data);
+  });
+
+  it("round-trips photo body with unicode in filename", () => {
+    const data = {
+      ...defaultPhotoBody,
+      directory: "/path/to/project",
+      name: "café_照片.png",
+      thumbnail: ".thumbnails/café_照片.png",
+    };
+
+    const decoded = decodeEditPayload(encodeEditPayload(data));
+
+    expect(decoded).toStrictEqual(data);
+  });
+
+  it("round-trips photo body with special characters in filename", () => {
+    const data = {
+      ...defaultPhotoBody,
+      directory: "/path/to/project",
+      name: "photo (1) [final].jpg",
+      thumbnail: ".thumbnails/photo (1) [final].jpg",
+    };
+
+    const decoded = decodeEditPayload(encodeEditPayload(data));
+
+    expect(decoded).toStrictEqual(data);
+  });
+
+  it("round-trips photo body with spaces and apostrophe in filename", () => {
+    const data = {
+      ...defaultPhotoBody,
+      name: "O'Brien vacation photo.jpg",
+      thumbnail: ".thumbnails/O'Brien vacation photo.jpg",
+    };
+
+    const decoded = decodeEditPayload(encodeEditPayload(data));
+
+    expect(decoded).toStrictEqual(data);
+  });
+});
+
 describe(isEditWindow, () => {
   it("returns true if window is an edit window", () => {
     const hash = `#${ROUTES.EDIT}`;
