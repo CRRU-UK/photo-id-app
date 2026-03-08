@@ -17,7 +17,7 @@ import { SegmentedControl, Stack, UnderlineNav } from "@primer/react";
 import { KeybindingHint } from "@primer/react/experimental";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { observer } from "mobx-react-lite";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { MATCHED_STACKS_PER_PAGE, ROUTES } from "@/constants";
 import { AnalysisProvider } from "@/contexts/AnalysisContext";
@@ -71,9 +71,16 @@ const ProjectPage = observer(() => {
     return document.body.classList.remove("copying");
   }, [draggingPhoto, isCopying]);
 
-  const matchedArray = project === null ? [] : Array.from(project.matched);
-  const matchedPageCount =
-    project === null ? 0 : Math.ceil(matchedArray.length / MATCHED_STACKS_PER_PAGE);
+  const matchedSize = project === null ? 0 : project.matched.size;
+  const matchedArray = useMemo(
+    () => (project === null ? [] : Array.from(project.matched)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [project, matchedSize],
+  );
+  const matchedPageCount = useMemo(
+    () => (project === null ? 0 : Math.ceil(matchedArray.length / MATCHED_STACKS_PER_PAGE)),
+    [project, matchedArray.length],
+  );
 
   const handleKeyUp = useCallback(() => setIsCopying(false), []);
 
@@ -173,29 +180,37 @@ const ProjectPage = observer(() => {
 
   const handleColumnsChange = (i: number) => setColumns(i + 1);
 
-  const matchedRows = matchedArray.slice(
-    currentPage * MATCHED_STACKS_PER_PAGE,
-    (currentPage + 1) * MATCHED_STACKS_PER_PAGE,
+  const matchedRows = useMemo(
+    () =>
+      matchedArray.slice(
+        currentPage * MATCHED_STACKS_PER_PAGE,
+        (currentPage + 1) * MATCHED_STACKS_PER_PAGE,
+      ),
+    [matchedArray, currentPage],
   );
 
-  const matchedPages = chunkArray(matchedArray, MATCHED_STACKS_PER_PAGE).map((item, index) => {
-    const first = item.at(0)!.id;
-    const last = item.at(-1)!.id;
+  const matchedPages = useMemo(
+    () =>
+      chunkArray(matchedArray, MATCHED_STACKS_PER_PAGE).map((item, index) => {
+        const first = item.at(0)!.id;
+        const last = item.at(-1)!.id;
 
-    return (
-      <UnderlineNav.Item
-        aria-current={index === currentPage ? "page" : undefined}
-        onClick={(event) => {
-          event.preventDefault();
-          return setCurrentPage(index);
-        }}
-        key={`${first}-${last}`}
-        leadingVisual={<KeybindingHint keys={String(index + 1)} />}
-      >
-        {getAlphabetLetter(first)}-{getAlphabetLetter(last)}
-      </UnderlineNav.Item>
-    );
-  });
+        return (
+          <UnderlineNav.Item
+            aria-current={index === currentPage ? "page" : undefined}
+            onClick={(event) => {
+              event.preventDefault();
+              return setCurrentPage(index);
+            }}
+            key={`${first}-${last}`}
+            leadingVisual={<KeybindingHint keys={String(index + 1)} />}
+          >
+            {getAlphabetLetter(first)}-{getAlphabetLetter(last)}
+          </UnderlineNav.Item>
+        );
+      }),
+    [matchedArray, currentPage],
+  );
 
   return (
     <AnalysisProvider>
