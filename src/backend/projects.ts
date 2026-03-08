@@ -274,12 +274,10 @@ const handleSaveProject = async (data: string) => {
     throw new Error("No project open");
   }
 
-  const exportsDirectory = path.join(directory, PROJECT_EXPORT_DIRECTORY);
-
   const json: unknown = JSON.parse(data);
   projectBodySchema.parse(json);
 
-  await fs.promises.writeFile(path.join(exportsDirectory, PROJECT_FILE_NAME), data, "utf8");
+  await fs.promises.writeFile(path.join(directory, PROJECT_FILE_NAME), data, "utf8");
 };
 
 /**
@@ -298,7 +296,14 @@ const handleExportMatches = async (
     progressValue: 0,
   } as LoadingData);
 
-  const exportsDirectory = path.join(project.directory, PROJECT_EXPORT_DIRECTORY);
+  const directory = getCurrentProjectDirectory();
+
+  if (directory === null) {
+    throw new Error("No project open");
+  }
+
+  const exportsDirectory = path.join(directory, PROJECT_EXPORT_DIRECTORY);
+
   if (fs.existsSync(exportsDirectory)) {
     // Empty exports folder
     for (const file of await fs.promises.readdir(exportsDirectory)) {
