@@ -1,3 +1,5 @@
+import type { MLModel } from "@/types";
+
 export enum IPC_EVENTS {
   // Projects
   OPEN_FOLDER = "project:openFolderPrompt",
@@ -226,7 +228,7 @@ export const EDGE_DETECTION = {
 export const DEFAULT_SETTINGS = {
   themeMode: "dark" as const,
   telemetry: "disabled" as const,
-  mlModels: [] as never[],
+  mlModels: [] as MLModel[],
   selectedModelId: null,
 };
 
