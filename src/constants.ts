@@ -1,3 +1,5 @@
+import type { MLModel } from "@/types";
+
 export enum IPC_EVENTS {
   // Projects
   OPEN_FOLDER = "project:openFolderPrompt",
@@ -8,7 +10,6 @@ export enum IPC_EVENTS {
   REMOVE_RECENT_PROJECT = "project:removeRecentProject",
   SAVE_PROJECT = "project:saveProject",
   LOAD_PROJECT = "project:loadProject",
-  LOAD_RECENT_PROJECTS = "project:loadRecentProjects",
   CLOSE_PROJECT = "project:closeProject",
 
   // Photos
@@ -51,6 +52,12 @@ export const EXISTING_DATA_MESSAGE =
   "A data file already exists for this folder - choose whether to resume the existing data, replace/reset the existing data, or cancel.";
 
 export const EXISTING_DATA_BUTTONS = ["Cancel", "Open Existing Data", "Replace Existing Data"];
+
+export const EXISTING_DATA_RESPONSE = {
+  CANCEL: 0,
+  OPEN_EXISTING: 1,
+  REPLACE: 2,
+} as const;
 
 export const MISSING_RECENT_PROJECT_MESSAGE =
   "Project not found, directory or data file may have been deleted.";
@@ -221,7 +228,7 @@ export const EDGE_DETECTION = {
 export const DEFAULT_SETTINGS = {
   themeMode: "dark" as const,
   telemetry: "disabled" as const,
-  mlModels: [] as never[],
+  mlModels: [] as MLModel[],
   selectedModelId: null,
 };
 
@@ -234,3 +241,8 @@ export const ANALYSIS_API_IMAGE_JPEG_QUALITY = 85;
 export const ANALYSIS_API_REQUEST_TIMEOUT_MS = 120_000; // 2 minutes
 
 export const ANALYSIS_RESULTS_PER_PAGE = 10;
+
+export const RATING_THRESHOLDS = {
+  GOOD: 82,
+  AVERAGE: 70,
+};

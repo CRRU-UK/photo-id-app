@@ -51,8 +51,9 @@ contextBridge.exposeInMainWorld("electronAPI", {
   // Methods (renderer-to-main)
   openProjectFolder: () => ipcRenderer.send(IPC_EVENTS.OPEN_FOLDER),
   openProjectFile: () => ipcRenderer.send(IPC_EVENTS.OPEN_FILE),
-  openRecentProject: (path: string) => ipcRenderer.send(IPC_EVENTS.OPEN_PROJECT_FILE, path),
-  saveProject: (data: string) => ipcRenderer.send(IPC_EVENTS.SAVE_PROJECT, data),
+  openRecentProject: (path: string) =>
+    ipcRenderer.invoke(IPC_EVENTS.OPEN_PROJECT_FILE, path) as Promise<void>,
+  saveProject: (data: string) => ipcRenderer.invoke(IPC_EVENTS.SAVE_PROJECT, data) as Promise<void>,
   closeProject: () => ipcRenderer.send(IPC_EVENTS.CLOSE_PROJECT),
   openEditWindow: (data: PhotoBody) => ipcRenderer.send(IPC_EVENTS.OPEN_EDIT_WINDOW, data),
   openExternalLink: (link: ExternalLinks) => ipcRenderer.send(IPC_EVENTS.OPEN_EXTERNAL_LINK, link),

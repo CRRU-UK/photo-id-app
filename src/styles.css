@@ -275,3 +275,12 @@ html[data-color-mode="light"] .project .photo-stack {
   font-family: var(--BaseStyles-fontFamily);
   color: var(--BaseStyles-fgColor, var(--fgColor-default, var(--color-fg-default)));
 }
+
+.error-view {
+  background-color: var(--bgColor-default);
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}

@@ -19,6 +19,7 @@ import {
   DEFAULT_WINDOW_TITLE,
   EXISTING_DATA_BUTTONS,
   EXISTING_DATA_MESSAGE,
+  EXISTING_DATA_RESPONSE,
   INITIAL_MATCHED_STACKS,
   IPC_EVENTS,
   MISSING_RECENT_PROJECT_MESSAGE,
@@ -94,13 +95,11 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
       buttons: EXISTING_DATA_BUTTONS,
     });
 
-    // Cancelled
-    if (response === 0) {
+    if (response === EXISTING_DATA_RESPONSE.CANCEL) {
       return;
     }
 
-    // Pre-existing project
-    if (response === 1) {
+    if (response === EXISTING_DATA_RESPONSE.OPEN_EXISTING) {
       try {
         const data = await parseProjectFile(path.join(directory, PROJECT_FILE_NAME));
 
@@ -264,18 +263,32 @@ const handleOpenProjectFile = async (mainWindow: Electron.BrowserWindow, file: s
 };
 
 /**
- * Handles saving a project file.
+ * Handles saving a project file. Uses the currently open project directory (tracked when the
+ * project is loaded) so the write path is authoritative; the payload is only validated, not
+ * used for the file path.
  */
 const handleSaveProject = async (data: string) => {
-  const { directory } = JSON.parse(data) as ProjectBody;
+  const directory = getCurrentProjectDirectory();
+
+  if (directory === null) {
+    throw new Error("No project open");
+  }
+
+  const json: unknown = JSON.parse(data);
+  projectBodySchema.parse(json);
+
   await fs.promises.writeFile(path.join(directory, PROJECT_FILE_NAME), data, "utf8");
 };
 
 /**
  * Handles exporting matches.
  */
-const handleExportMatches = async (mainWindow: Electron.BrowserWindow, data: string) => {
-  const project = JSON.parse(data) as ProjectBody;
+const handleExportMatches = async (
+  mainWindow: Electron.BrowserWindow,
+  data: string,
+): Promise<string> => {
+  const json: unknown = JSON.parse(data);
+  const project = projectBodySchema.parse(json);
 
   mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, {
     show: true,
@@ -283,7 +296,14 @@ const handleExportMatches = async (mainWindow: Electron.BrowserWindow, data: str
     progressValue: 0,
   } as LoadingData);
 
-  const exportsDirectory = path.join(project.directory, PROJECT_EXPORT_DIRECTORY);
+  const directory = getCurrentProjectDirectory();
+
+  if (directory === null) {
+    throw new Error("No project open");
+  }
+
+  const exportsDirectory = path.join(directory, PROJECT_EXPORT_DIRECTORY);
+
   if (fs.existsSync(exportsDirectory)) {
     // Empty exports folder
     for (const file of await fs.promises.readdir(exportsDirectory)) {
@@ -301,7 +321,8 @@ const handleExportMatches = async (mainWindow: Electron.BrowserWindow, data: str
 
   const handleSide = async (id: string, side: CollectionBody, label: "L" | "R") => {
     for (const photo of side.photos) {
-      progress++;
+      progress = progress + 1;
+
       mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, {
         show: true,
         text: "Exporting matches",
@@ -317,7 +338,8 @@ const handleExportMatches = async (mainWindow: Electron.BrowserWindow, data: str
       const originalExtension = path.extname(photo.name);
       const baseExportName = `${photoName}${label}_${path.basename(photo.name, originalExtension)}`;
 
-      const sourcePath = path.join(project.directory, photo.name);
+      const sourcePath = path.join(directory, photo.name);
+
       const exportedName = `${baseExportName}${originalExtension}`;
       const exportedPath = path.join(exportsDirectory, exportedName);
 
@@ -351,6 +373,8 @@ const handleExportMatches = async (mainWindow: Electron.BrowserWindow, data: str
   }
 
   mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, { show: false });
+
+  return directory;
 };
 
 /**

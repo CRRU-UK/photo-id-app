@@ -26,8 +26,8 @@ export interface IElectronAPI {
   // Methods (renderer-to-main)
   openProjectFolder: () => void;
   openProjectFile: () => void;
-  openRecentProject: (path: string) => void;
-  saveProject: (data: string) => void;
+  openRecentProject: (path: string) => Promise<void>;
+  saveProject: (data: string) => Promise<void>;
   closeProject: () => void;
   openEditWindow: (data: PhotoBody) => void;
   openExternalLink: (link: ExternalLinks) => void;

@@ -1,8 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { THUMBNAIL_SIZE } from "@/constants";
+import {
+  ANALYSIS_API_IMAGE_JPEG_QUALITY,
+  ANALYSIS_API_IMAGE_SIZE,
+  THUMBNAIL_SIZE,
+} from "@/constants";
 
-const mockEncode = vi.fn<(format: "jpeg" | "png") => Promise<Buffer>>();
+const mockEncode = vi.fn<(format: "jpeg" | "png", quality?: number) => Promise<Buffer>>();
 
 const mockContext = {
   setTransform: vi.fn<() => void>(),
@@ -21,7 +25,8 @@ vi.mock("@napi-rs/canvas", () => ({
   loadImage: (...args: Parameters<typeof mockLoadImage>) => mockLoadImage(...args),
 }));
 
-const { renderThumbnailWithEdits, renderFullImageWithEdits } = await import("./imageRenderer");
+const { renderApiImage, renderFullImageWithEdits, renderThumbnailWithEdits } =
+  await import("./imageRenderer");
 
 const defaultEdits = {
   brightness: 100,
@@ -159,6 +164,90 @@ describe(renderThumbnailWithEdits, () => {
     expect(mockContext.filter).toContain("contrast(80%)");
     expect(mockContext.filter).toContain("saturate(120%)");
   });
+
+  it("uses colour filters only when edge detection is disabled", async () => {
+    await renderThumbnailWithEdits({
+      sourcePath: "/project/photo.jpg",
+      edits: defaultEdits,
+    });
+
+    expect(mockContext.filter).toContain("brightness(");
+    expect(mockContext.filter).not.toContain("grayscale");
+    expect(mockContext.filter).not.toContain("invert");
+  });
+
+  it("handles zero edits (identity zoom and pan)", async () => {
+    const result = await renderThumbnailWithEdits({
+      sourcePath: "/project/photo.jpg",
+      edits: { ...defaultEdits, zoom: 1, pan: { x: 0, y: 0 } },
+    });
+
+    expect(result).toBeInstanceOf(Buffer);
+    expect(mockEncode).toHaveBeenCalledWith("jpeg");
+  });
+});
+
+describe(renderApiImage, () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+
+    mockLoadImage.mockResolvedValue({ width: 4000, height: 3000 });
+
+    mockCreateCanvas
+      .mockReturnValueOnce({
+        width: 4000,
+        height: 3000,
+        getContext: () => mockContext,
+        encode: mockEncode,
+      })
+      .mockReturnValueOnce({
+        width: ANALYSIS_API_IMAGE_SIZE,
+        height: 750,
+        getContext: () => mockContext,
+        encode: mockEncode,
+      });
+
+    mockEncode.mockResolvedValue(Buffer.from("api-image-data"));
+  });
+
+  it("returns a buffer", async () => {
+    const result = await renderApiImage({
+      sourcePath: "/project/photo.jpg",
+      edits: defaultEdits,
+    });
+
+    expect(result).toBeInstanceOf(Buffer);
+  });
+
+  it("loads the image from the source path", async () => {
+    await renderApiImage({
+      sourcePath: "/project/photo.jpg",
+      edits: defaultEdits,
+    });
+
+    expect(mockLoadImage).toHaveBeenCalledWith("/project/photo.jpg");
+  });
+
+  it("scales canvas so longest edge equals ANALYSIS_API_IMAGE_SIZE", async () => {
+    await renderApiImage({
+      sourcePath: "/project/photo.jpg",
+      edits: defaultEdits,
+    });
+
+    const secondCall = mockCreateCanvas.mock.calls[1];
+
+    expect(secondCall[0]).toBe(ANALYSIS_API_IMAGE_SIZE);
+    expect(secondCall[1]).toBeLessThanOrEqual(ANALYSIS_API_IMAGE_SIZE);
+  });
+
+  it("encodes as jpeg with ANALYSIS_API_IMAGE_JPEG_QUALITY", async () => {
+    await renderApiImage({
+      sourcePath: "/project/photo.jpg",
+      edits: defaultEdits,
+    });
+
+    expect(mockEncode).toHaveBeenCalledWith("jpeg", ANALYSIS_API_IMAGE_JPEG_QUALITY);
+  });
 });
 
 describe(renderFullImageWithEdits, () => {
@@ -223,5 +312,26 @@ describe(renderFullImageWithEdits, () => {
       expect.any(Number),
       expect.any(Number),
     );
+  });
+
+  it("uses colour filters only when edge detection is disabled", async () => {
+    await renderFullImageWithEdits({
+      sourcePath: "/project/photo.png",
+      edits: defaultEdits,
+    });
+
+    expect(mockContext.filter).toContain("brightness(");
+    expect(mockContext.filter).not.toContain("grayscale");
+    expect(mockContext.filter).not.toContain("invert");
+  });
+
+  it("handles zero edits (identity zoom and pan)", async () => {
+    const result = await renderFullImageWithEdits({
+      sourcePath: "/project/photo.png",
+      edits: { ...defaultEdits, zoom: 1, pan: { x: 0, y: 0 } },
+    });
+
+    expect(result).toBeInstanceOf(Buffer);
+    expect(mockEncode).toHaveBeenCalledWith("png");
   });
 });

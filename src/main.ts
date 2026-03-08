@@ -1,6 +1,6 @@
 import "dotenv/config";
 
-import { app, BrowserWindow, ipcMain, Menu, net, protocol, shell } from "electron";
+import { app, BrowserWindow, dialog, ipcMain, Menu, net, protocol, shell } from "electron";
 import {
   installExtension,
   MOBX_DEVTOOLS,
@@ -85,6 +85,9 @@ let pendingFilePath: string | null = null;
 const findPhotoidArg = (argv: string[]): string | undefined =>
   argv.find((arg) => arg.endsWith(`.${PROJECT_FILE_EXTENSION}`));
 
+const getWindowFromSender = (webContents: Electron.WebContents): BrowserWindow | null =>
+  BrowserWindow.fromWebContents(webContents);
+
 /**
  * Closes the current project by resetting state, closing any and all edit windows, and resetting
  * the window title.
@@ -131,6 +134,7 @@ app.on("open-file", async (event, filePath) => {
       await openProjectFromPath(filePath);
     } catch (error) {
       console.error("Failed to open project from file:", error);
+      dialog.showErrorBox("Failed to open project", String(error));
     }
 
     return;
@@ -150,6 +154,7 @@ app.on("second-instance", async (_event, argv) => {
       await openProjectFromPath(filePath);
     } catch (error) {
       console.error("Failed to open project from second instance:", error);
+      dialog.showErrorBox("Failed to open project", String(error));
     }
   }
 });
@@ -197,6 +202,8 @@ const createMainWindow = async () => {
     });
   });
 
+  mainWindow.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
+
   const menu = Menu.buildFromTemplate(getMenu(mainWindow));
   Menu.setApplicationMenu(menu);
 
@@ -242,21 +249,45 @@ app.whenReady().then(async () => {
   }
 
   ipcMain.on(IPC_EVENTS.OPEN_FOLDER, async (event) => {
-    const webContents = event.sender;
-    const window = BrowserWindow.fromWebContents(webContents) as BrowserWindow;
-    await handleOpenDirectoryPrompt(window);
+    const window = getWindowFromSender(event.sender);
+    if (!window) {
+      return;
+    }
+
+    try {
+      await handleOpenDirectoryPrompt(window);
+    } catch (error) {
+      console.error("Failed to open folder:", error);
+      dialog.showErrorBox("Failed to open folder", String(error));
+    }
   });
 
   ipcMain.on(IPC_EVENTS.OPEN_FILE, async (event) => {
-    const webContents = event.sender;
-    const window = BrowserWindow.fromWebContents(webContents) as BrowserWindow;
-    await handleOpenFilePrompt(window);
+    const window = getWindowFromSender(event.sender);
+    if (!window) {
+      return;
+    }
+
+    try {
+      await handleOpenFilePrompt(window);
+    } catch (error) {
+      console.error("Failed to open file:", error);
+      dialog.showErrorBox("Failed to open file", String(error));
+    }
   });
 
-  ipcMain.on(IPC_EVENTS.OPEN_PROJECT_FILE, async (event, file: string) => {
-    const webContents = event.sender;
-    const window = BrowserWindow.fromWebContents(webContents) as BrowserWindow;
-    await handleOpenProjectFile(window, file);
+  ipcMain.handle(IPC_EVENTS.OPEN_PROJECT_FILE, async (_event, file: string): Promise<void> => {
+    const mainWindow = windowManager.getMainWindow();
+    if (!mainWindow) {
+      throw new Error("Main window not available");
+    }
+
+    try {
+      await handleOpenProjectFile(mainWindow, file);
+    } catch (error) {
+      console.error("Failed to open project file:", error);
+      throw error;
+    }
   });
 
   ipcMain.handle(IPC_EVENTS.GET_RECENT_PROJECTS, async (): Promise<RecentProject[]> => {
@@ -301,6 +332,8 @@ app.whenReady().then(async () => {
       fullscreenable: false,
     });
 
+    editWindow.removeMenu();
+
     windowManager.addEditWindow(editWindow);
 
     if (!production) {
@@ -324,24 +357,27 @@ app.whenReady().then(async () => {
       );
     }
 
-    editWindow.removeMenu();
-
     editWindow.once("ready-to-show", () => editWindow.show());
   });
 
-  ipcMain.on(IPC_EVENTS.SAVE_PROJECT, async (event, data: string): Promise<void> => {
-    await handleSaveProject(data);
+  ipcMain.handle(IPC_EVENTS.SAVE_PROJECT, async (_event, data: string): Promise<void> => {
+    try {
+      await handleSaveProject(data);
+    } catch (error) {
+      console.error("Failed to save project:", error);
+      throw error;
+    }
   });
 
   ipcMain.handle(IPC_EVENTS.EXPORT_MATCHES, async (event, data: string): Promise<void> => {
-    const webContents = event.sender;
-    const window = BrowserWindow.fromWebContents(webContents) as BrowserWindow;
+    const window = getWindowFromSender(event.sender);
+    if (!window) {
+      return;
+    }
 
-    await handleExportMatches(window, data);
+    const directory = await handleExportMatches(window, data);
 
-    const projectData = JSON.parse(data) as ProjectBody;
-
-    shell.openPath(path.join(projectData.directory, PROJECT_EXPORT_DIRECTORY));
+    shell.openPath(path.join(directory, PROJECT_EXPORT_DIRECTORY));
   });
 
   ipcMain.handle(IPC_EVENTS.SAVE_PHOTO_FILE, async (event, data: PhotoBody): Promise<void> => {

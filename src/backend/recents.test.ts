@@ -162,6 +162,24 @@ describe(getRecentProjects, () => {
       "utf8",
     );
   });
+
+  it("returns empty array when file content is not valid JSON", async () => {
+    mockExistsSync.mockReturnValue(true);
+    mockReadFile.mockResolvedValue("not json {");
+
+    const result = await getRecentProjects();
+
+    expect(result).toStrictEqual([]);
+  });
+
+  it("returns empty array when file content does not match schema", async () => {
+    mockExistsSync.mockReturnValue(true);
+    mockReadFile.mockResolvedValue(JSON.stringify([{ name: "A", path: "/a" }]));
+
+    const result = await getRecentProjects();
+
+    expect(result).toStrictEqual([]);
+  });
 });
 
 describe(addRecentProject, () => {

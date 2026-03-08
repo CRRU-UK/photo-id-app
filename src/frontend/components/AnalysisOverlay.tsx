@@ -11,9 +11,9 @@ import {
   Tooltip,
 } from "@primer/react";
 import { DataTable, Table } from "@primer/react/experimental";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-import { ANALYSIS_RESULTS_PER_PAGE } from "@/constants";
+import { ANALYSIS_RESULTS_PER_PAGE, RATING_THRESHOLDS } from "@/constants";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { useSettings } from "@/contexts/SettingsContext";
 import type { MLMatch, MLMatchResponse } from "@/types";
@@ -67,12 +67,12 @@ const Results = ({
   modelLabel: string | null;
 }) => {
   const [pageIndex, setPageIndex] = useState(0);
-  const [prevData, setPrevData] = useState(data);
 
-  if (data !== prevData) {
-    setPrevData(data);
+  useEffect(() => {
+    // Reset pagination when analysis result changes (reset state when prop changes).
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- reset local UI state when data prop changes
     setPageIndex(0);
-  }
+  }, [data]);
 
   const pageSize = ANALYSIS_RESULTS_PER_PAGE;
   const start = pageIndex * pageSize;
@@ -106,11 +106,11 @@ const Results = ({
 
             let progressBarColor = "success.emphasis";
 
-            if (rating < 82) {
+            if (rating < RATING_THRESHOLDS.GOOD) {
               progressBarColor = "attention.emphasis";
             }
 
-            if (rating < 70) {
+            if (rating < RATING_THRESHOLDS.AVERAGE) {
               progressBarColor = "danger.emphasis";
             }
 
