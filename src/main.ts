@@ -327,6 +327,8 @@ app.whenReady().then(async () => {
       fullscreenable: false,
     });
 
+    editWindow.removeMenu();
+
     windowManager.addEditWindow(editWindow);
 
     if (!production) {
@@ -349,8 +351,6 @@ app.whenReady().then(async () => {
         }),
       );
     }
-
-    editWindow.removeMenu();
 
     editWindow.once("ready-to-show", () => editWindow.show());
   });
