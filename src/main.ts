@@ -249,7 +249,11 @@ app.whenReady().then(async () => {
       return;
     }
 
-    await handleOpenDirectoryPrompt(window);
+    try {
+      await handleOpenDirectoryPrompt(window);
+    } catch (error) {
+      console.error("Failed to open folder:", error);
+    }
   });
 
   ipcMain.on(IPC_EVENTS.OPEN_FILE, async (event) => {
@@ -260,18 +264,25 @@ app.whenReady().then(async () => {
       return;
     }
 
-    await handleOpenFilePrompt(window);
+    try {
+      await handleOpenFilePrompt(window);
+    } catch (error) {
+      console.error("Failed to open file:", error);
+    }
   });
 
-  ipcMain.on(IPC_EVENTS.OPEN_PROJECT_FILE, async (event, file: string) => {
-    const webContents = event.sender;
-    const window = BrowserWindow.fromWebContents(webContents);
-
-    if (!window) {
-      return;
+  ipcMain.handle(IPC_EVENTS.OPEN_PROJECT_FILE, async (_event, file: string): Promise<void> => {
+    const mainWindow = windowManager.getMainWindow();
+    if (!mainWindow) {
+      throw new Error("Main window not available");
     }
 
-    await handleOpenProjectFile(window, file);
+    try {
+      await handleOpenProjectFile(mainWindow, file);
+    } catch (error) {
+      console.error("Failed to open project file:", error);
+      throw error;
+    }
   });
 
   ipcMain.handle(IPC_EVENTS.GET_RECENT_PROJECTS, async (): Promise<RecentProject[]> => {
@@ -344,8 +355,13 @@ app.whenReady().then(async () => {
     editWindow.once("ready-to-show", () => editWindow.show());
   });
 
-  ipcMain.on(IPC_EVENTS.SAVE_PROJECT, async (event, data: string): Promise<void> => {
-    await handleSaveProject(data);
+  ipcMain.handle(IPC_EVENTS.SAVE_PROJECT, async (_event, data: string): Promise<void> => {
+    try {
+      await handleSaveProject(data);
+    } catch (error) {
+      console.error("Failed to save project:", error);
+      throw error;
+    }
   });
 
   ipcMain.handle(IPC_EVENTS.EXPORT_MATCHES, async (event, data: string): Promise<void> => {
