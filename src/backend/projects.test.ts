@@ -547,6 +547,7 @@ describe(handleOpenProjectFile, () => {
 describe(handleExportMatches, () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    setCurrentProject("/project");
     mockWriteFile.mockResolvedValue(undefined);
     mockCopyFile.mockResolvedValue(undefined);
     mockUnlink.mockResolvedValue(undefined);
@@ -758,6 +759,7 @@ describe(handleExportMatches, () => {
         },
       ],
     });
+    setCurrentProject(project.directory);
     mockExistsSync.mockReturnValue(false);
 
     await handleExportMatches(mainWindow, JSON.stringify(project));
@@ -771,6 +773,7 @@ describe(handleExportMatches, () => {
   it("returns the project directory", async () => {
     const mainWindow = createMockMainWindow();
     const project = createProject({ directory: "/my/project", matched: [] });
+    setCurrentProject(project.directory);
     mockExistsSync.mockReturnValue(false);
 
     const directory = await handleExportMatches(mainWindow, JSON.stringify(project));

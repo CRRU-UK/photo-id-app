@@ -338,7 +338,8 @@ const handleExportMatches = async (
       const originalExtension = path.extname(photo.name);
       const baseExportName = `${photoName}${label}_${path.basename(photo.name, originalExtension)}`;
 
-      const sourcePath = path.join(project.directory, photo.name);
+      const sourcePath = path.join(directory, photo.name);
+
       const exportedName = `${baseExportName}${originalExtension}`;
       const exportedPath = path.join(exportsDirectory, exportedName);
 
@@ -373,7 +374,7 @@ const handleExportMatches = async (
 
   mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, { show: false });
 
-  return project.directory;
+  return directory;
 };
 
 /**
