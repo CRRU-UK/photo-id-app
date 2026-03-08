@@ -19,6 +19,7 @@ import {
   DEFAULT_WINDOW_TITLE,
   EXISTING_DATA_BUTTONS,
   EXISTING_DATA_MESSAGE,
+  EXISTING_DATA_RESPONSE,
   INITIAL_MATCHED_STACKS,
   IPC_EVENTS,
   MISSING_RECENT_PROJECT_MESSAGE,
@@ -94,13 +95,11 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
       buttons: EXISTING_DATA_BUTTONS,
     });
 
-    // Cancelled
-    if (response === 0) {
+    if (response === EXISTING_DATA_RESPONSE.CANCEL) {
       return;
     }
 
-    // Pre-existing project
-    if (response === 1) {
+    if (response === EXISTING_DATA_RESPONSE.OPEN_EXISTING) {
       try {
         const data = await parseProjectFile(path.join(directory, PROJECT_FILE_NAME));
 
