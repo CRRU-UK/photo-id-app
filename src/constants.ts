@@ -233,3 +233,8 @@ export const ANALYSIS_API_IMAGE_JPEG_QUALITY = 85;
 export const ANALYSIS_API_REQUEST_TIMEOUT_MS = 120_000; // 2 minutes
 
 export const ANALYSIS_RESULTS_PER_PAGE = 10;
+
+export const RATING_THRESHOLDS = {
+  GOOD: 82,
+  AVERAGE: 70,
+};

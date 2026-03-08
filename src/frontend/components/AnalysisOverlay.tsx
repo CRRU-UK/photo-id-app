@@ -13,7 +13,7 @@ import {
 import { DataTable, Table } from "@primer/react/experimental";
 import { useEffect, useState } from "react";
 
-import { ANALYSIS_RESULTS_PER_PAGE } from "@/constants";
+import { ANALYSIS_RESULTS_PER_PAGE, RATING_THRESHOLDS } from "@/constants";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { useSettings } from "@/contexts/SettingsContext";
 import type { MLMatch, MLMatchResponse } from "@/types";
@@ -106,11 +106,11 @@ const Results = ({
 
             let progressBarColor = "success.emphasis";
 
-            if (rating < 82) {
+            if (rating < RATING_THRESHOLDS.GOOD) {
               progressBarColor = "attention.emphasis";
             }
 
-            if (rating < 70) {
+            if (rating < RATING_THRESHOLDS.AVERAGE) {
               progressBarColor = "danger.emphasis";
             }
 
