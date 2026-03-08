@@ -269,14 +269,17 @@ const handleOpenProjectFile = async (mainWindow: Electron.BrowserWindow, file: s
  */
 const handleSaveProject = async (data: string) => {
   const directory = getCurrentProjectDirectory();
+
   if (directory === null) {
     throw new Error("No project open");
   }
 
+  const exportsDirectory = path.join(directory, PROJECT_EXPORT_DIRECTORY);
+
   const json: unknown = JSON.parse(data);
   projectBodySchema.parse(json);
 
-  await fs.promises.writeFile(path.join(directory, PROJECT_FILE_NAME), data, "utf8");
+  await fs.promises.writeFile(path.join(exportsDirectory, PROJECT_FILE_NAME), data, "utf8");
 };
 
 /**
