@@ -85,6 +85,9 @@ let pendingFilePath: string | null = null;
 const findPhotoidArg = (argv: string[]): string | undefined =>
   argv.find((arg) => arg.endsWith(`.${PROJECT_FILE_EXTENSION}`));
 
+const getWindowFromSender = (webContents: Electron.WebContents): BrowserWindow | null =>
+  BrowserWindow.fromWebContents(webContents);
+
 /**
  * Closes the current project by resetting state, closing any and all edit windows, and resetting
  * the window title.
@@ -246,9 +249,7 @@ app.whenReady().then(async () => {
   }
 
   ipcMain.on(IPC_EVENTS.OPEN_FOLDER, async (event) => {
-    const webContents = event.sender;
-    const window = BrowserWindow.fromWebContents(webContents);
-
+    const window = getWindowFromSender(event.sender);
     if (!window) {
       return;
     }
@@ -261,9 +262,7 @@ app.whenReady().then(async () => {
   });
 
   ipcMain.on(IPC_EVENTS.OPEN_FILE, async (event) => {
-    const webContents = event.sender;
-    const window = BrowserWindow.fromWebContents(webContents);
-
+    const window = getWindowFromSender(event.sender);
     if (!window) {
       return;
     }
@@ -369,9 +368,7 @@ app.whenReady().then(async () => {
   });
 
   ipcMain.handle(IPC_EVENTS.EXPORT_MATCHES, async (event, data: string): Promise<void> => {
-    const webContents = event.sender;
-    const window = BrowserWindow.fromWebContents(webContents);
-
+    const window = getWindowFromSender(event.sender);
     if (!window) {
       return;
     }
