@@ -8,7 +8,6 @@ export enum IPC_EVENTS {
   REMOVE_RECENT_PROJECT = "project:removeRecentProject",
   SAVE_PROJECT = "project:saveProject",
   LOAD_PROJECT = "project:loadProject",
-  LOAD_RECENT_PROJECTS = "project:loadRecentProjects",
   CLOSE_PROJECT = "project:closeProject",
 
   // Photos
