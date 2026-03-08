@@ -1,6 +1,6 @@
 import "dotenv/config";
 
-import { app, BrowserWindow, ipcMain, Menu, net, protocol, shell } from "electron";
+import { app, BrowserWindow, dialog, ipcMain, Menu, net, protocol, shell } from "electron";
 import {
   installExtension,
   MOBX_DEVTOOLS,
@@ -131,6 +131,7 @@ app.on("open-file", async (event, filePath) => {
       await openProjectFromPath(filePath);
     } catch (error) {
       console.error("Failed to open project from file:", error);
+      dialog.showErrorBox("Failed to open project", String(error));
     }
 
     return;
@@ -150,6 +151,7 @@ app.on("second-instance", async (_event, argv) => {
       await openProjectFromPath(filePath);
     } catch (error) {
       console.error("Failed to open project from second instance:", error);
+      dialog.showErrorBox("Failed to open project", String(error));
     }
   }
 });
