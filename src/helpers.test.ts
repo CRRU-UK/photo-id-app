@@ -360,7 +360,7 @@ describe(decodeEditPayload, () => {
       "base64",
     );
 
-    expect(() => decodeEditPayload(invalidPayload)).toThrowError();
+    expect(() => decodeEditPayload(invalidPayload)).toThrowError(/ZodError|invalid_type/);
   });
 });
 

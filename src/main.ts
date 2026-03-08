@@ -258,6 +258,7 @@ app.whenReady().then(async () => {
       await handleOpenDirectoryPrompt(window);
     } catch (error) {
       console.error("Failed to open folder:", error);
+      dialog.showErrorBox("Failed to open folder", String(error));
     }
   });
 
@@ -271,6 +272,7 @@ app.whenReady().then(async () => {
       await handleOpenFilePrompt(window);
     } catch (error) {
       console.error("Failed to open file:", error);
+      dialog.showErrorBox("Failed to open file", String(error));
     }
   });
 
