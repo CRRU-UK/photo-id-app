@@ -2,6 +2,12 @@ import { z } from "zod";
 
 import { DEFAULT_SETTINGS } from "@/constants";
 
+export const recentProjectSchema = z.object({
+  name: z.string(),
+  path: z.string(),
+  lastOpened: z.string(),
+});
+
 export const themeModeSchema = z.enum(["light", "dark", "auto"]);
 
 export const telemetrySchema = z.enum(["enabled", "disabled"]);
