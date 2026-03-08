@@ -264,6 +264,16 @@ describe(handleSaveProject, () => {
 
     expect(writtenData).toBe(data);
   });
+
+  it("throws when data is invalid JSON", async () => {
+    await expect(handleSaveProject("not json")).rejects.toThrowError(/Unexpected token|JSON/);
+  });
+
+  it("throws when data does not match project schema", async () => {
+    const invalidPayload = JSON.stringify({ directory: "/path", version: "v1" });
+
+    await expect(handleSaveProject(invalidPayload)).rejects.toThrowError(/invalid_type|required/);
+  });
 });
 
 describe(handleDuplicatePhotoFile, () => {
@@ -739,6 +749,33 @@ describe(handleExportMatches, () => {
     expect(mockCopyFile).toHaveBeenCalledWith(
       expect.any(String),
       expect.stringContaining(`/my/project/${PROJECT_EXPORT_DIRECTORY}/`),
+    );
+  });
+
+  it("returns the project directory", async () => {
+    const mainWindow = createMockMainWindow();
+    const project = createProject({ directory: "/my/project", matched: [] });
+    mockExistsSync.mockReturnValue(false);
+
+    const directory = await handleExportMatches(mainWindow, JSON.stringify(project));
+
+    expect(directory).toBe("/my/project");
+  });
+
+  it("throws when data is invalid JSON", async () => {
+    const mainWindow = createMockMainWindow();
+
+    await expect(handleExportMatches(mainWindow, "not json")).rejects.toThrowError(
+      /Unexpected token|JSON/,
+    );
+  });
+
+  it("throws when data does not match project schema", async () => {
+    const mainWindow = createMockMainWindow();
+    const invalidPayload = JSON.stringify({ directory: "/path", version: "v1" });
+
+    await expect(handleExportMatches(mainWindow, invalidPayload)).rejects.toThrowError(
+      /invalid_type|required/,
     );
   });
 });

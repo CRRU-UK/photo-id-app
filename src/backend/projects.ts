@@ -267,15 +267,21 @@ const handleOpenProjectFile = async (mainWindow: Electron.BrowserWindow, file: s
  * Handles saving a project file.
  */
 const handleSaveProject = async (data: string) => {
-  const { directory } = JSON.parse(data) as ProjectBody;
-  await fs.promises.writeFile(path.join(directory, PROJECT_FILE_NAME), data, "utf8");
+  const json: unknown = JSON.parse(data);
+  const project = projectBodySchema.parse(json);
+
+  await fs.promises.writeFile(path.join(project.directory, PROJECT_FILE_NAME), data, "utf8");
 };
 
 /**
  * Handles exporting matches.
  */
-const handleExportMatches = async (mainWindow: Electron.BrowserWindow, data: string) => {
-  const project = JSON.parse(data) as ProjectBody;
+const handleExportMatches = async (
+  mainWindow: Electron.BrowserWindow,
+  data: string,
+): Promise<string> => {
+  const json: unknown = JSON.parse(data);
+  const project = projectBodySchema.parse(json);
 
   mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, {
     show: true,
@@ -351,6 +357,8 @@ const handleExportMatches = async (mainWindow: Electron.BrowserWindow, data: str
   }
 
   mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, { show: false });
+
+  return project.directory;
 };
 
 /**

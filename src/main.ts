@@ -337,11 +337,9 @@ app.whenReady().then(async () => {
     const webContents = event.sender;
     const window = BrowserWindow.fromWebContents(webContents) as BrowserWindow;
 
-    await handleExportMatches(window, data);
+    const directory = await handleExportMatches(window, data);
 
-    const projectData = JSON.parse(data) as ProjectBody;
-
-    shell.openPath(path.join(projectData.directory, PROJECT_EXPORT_DIRECTORY));
+    shell.openPath(path.join(directory, PROJECT_EXPORT_DIRECTORY));
   });
 
   ipcMain.handle(IPC_EVENTS.SAVE_PHOTO_FILE, async (event, data: PhotoBody): Promise<void> => {
