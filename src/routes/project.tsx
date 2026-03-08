@@ -91,7 +91,7 @@ const ProjectPage = observer(() => {
       }
 
       if (event.ctrlKey || event.altKey) {
-        return setIsCopying(event.ctrlKey || event.altKey);
+        return setIsCopying(true);
       }
 
       const keyNumber = Number(event.key);
@@ -162,8 +162,11 @@ const ProjectPage = observer(() => {
 
       if (isCopying) {
         setLoading({ show: true, text: "Duplicating photo" });
-        await project.duplicatePhotoToStack(draggingCollectionTo, draggingPhoto as Photo);
-        setLoading({ show: false });
+        try {
+          await project.duplicatePhotoToStack(draggingCollectionTo, draggingPhoto as Photo);
+        } finally {
+          setLoading({ show: false });
+        }
 
         return;
       }
