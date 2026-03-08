@@ -144,6 +144,38 @@ const ProjectPage = observer(() => {
   const pointerSensor = useSensor(PointerSensor, { activationConstraint: { distance: 5 } });
   const sensors = useSensors(pointerSensor);
 
+  const matchedRows = useMemo(
+    () =>
+      matchedArray.slice(
+        currentPage * MATCHED_STACKS_PER_PAGE,
+        (currentPage + 1) * MATCHED_STACKS_PER_PAGE,
+      ),
+    [matchedArray, currentPage],
+  );
+
+  const matchedPages = useMemo(
+    () =>
+      chunkArray(matchedArray, MATCHED_STACKS_PER_PAGE).map((item, index) => {
+        const first = item.at(0)!.id;
+        const last = item.at(-1)!.id;
+
+        return (
+          <UnderlineNav.Item
+            aria-current={index === currentPage ? "page" : undefined}
+            onClick={(event) => {
+              event.preventDefault();
+              return setCurrentPage(index);
+            }}
+            key={`${first}-${last}`}
+            leadingVisual={<KeybindingHint keys={String(index + 1)} />}
+          >
+            {getAlphabetLetter(first)}-{getAlphabetLetter(last)}
+          </UnderlineNav.Item>
+        );
+      }),
+    [matchedArray, currentPage],
+  );
+
   if (project === null) {
     return null;
   }
@@ -182,38 +214,6 @@ const ProjectPage = observer(() => {
   };
 
   const handleColumnsChange = (i: number) => setColumns(i + 1);
-
-  const matchedRows = useMemo(
-    () =>
-      matchedArray.slice(
-        currentPage * MATCHED_STACKS_PER_PAGE,
-        (currentPage + 1) * MATCHED_STACKS_PER_PAGE,
-      ),
-    [matchedArray, currentPage],
-  );
-
-  const matchedPages = useMemo(
-    () =>
-      chunkArray(matchedArray, MATCHED_STACKS_PER_PAGE).map((item, index) => {
-        const first = item.at(0)!.id;
-        const last = item.at(-1)!.id;
-
-        return (
-          <UnderlineNav.Item
-            aria-current={index === currentPage ? "page" : undefined}
-            onClick={(event) => {
-              event.preventDefault();
-              return setCurrentPage(index);
-            }}
-            key={`${first}-${last}`}
-            leadingVisual={<KeybindingHint keys={String(index + 1)} />}
-          >
-            {getAlphabetLetter(first)}-{getAlphabetLetter(last)}
-          </UnderlineNav.Item>
-        );
-      }),
-    [matchedArray, currentPage],
-  );
 
   return (
     <AnalysisProvider>
