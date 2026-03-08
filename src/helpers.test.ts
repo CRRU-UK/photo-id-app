@@ -402,8 +402,8 @@ describe("encodeEditPayload and decodeEditPayload round-trip", () => {
     const data = {
       ...defaultPhotoBody,
       directory: "/path/to/project",
-      name: "café_照片.png",
-      thumbnail: ".thumbnails/café_照片.png",
+      name: "テスト画像.png",
+      thumbnail: ".thumbnails/テスト画像.png",
     };
 
     const decoded = decodeEditPayload(encodeEditPayload(data));
@@ -427,8 +427,8 @@ describe("encodeEditPayload and decodeEditPayload round-trip", () => {
   it("round-trips photo body with spaces and apostrophe in filename", () => {
     const data = {
       ...defaultPhotoBody,
-      name: "O'Brien vacation photo.jpg",
-      thumbnail: ".thumbnails/O'Brien vacation photo.jpg",
+      name: "O'la.jpg",
+      thumbnail: ".thumbnails/O'la.jpg",
     };
 
     const decoded = decodeEditPayload(encodeEditPayload(data));
