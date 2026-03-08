@@ -1,6 +1,7 @@
 import type { EdgeDetectionData, PhotoBody, PhotoEdits } from "@/types";
 
 import { DEFAULT_PHOTO_EDITS, EDGE_DETECTION, PHOTO_PROTOCOL_SCHEME, ROUTES } from "@/constants";
+import { photoBodySchema } from "@/schemas";
 
 /**
  * Encodes photo data for the edit window URL query.
@@ -29,7 +30,7 @@ export const decodeEditPayload = (encoded: string): PhotoBody => {
     decoded = Buffer.from(encoded, "base64").toString("utf8");
   }
 
-  return JSON.parse(decoded) as PhotoBody;
+  return photoBodySchema.parse(JSON.parse(decoded));
 };
 
 export const getAlphabetLetter = (index: number): string => {

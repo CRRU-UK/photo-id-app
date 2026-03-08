@@ -354,6 +354,14 @@ describe(decodeEditPayload, () => {
 
     expect(decoded).toStrictEqual(data);
   });
+
+  it("throws when decoded payload does not match photo body schema", () => {
+    const invalidPayload = Buffer.from(JSON.stringify({ wrong: "shape" }), "utf8").toString(
+      "base64",
+    );
+
+    expect(() => decodeEditPayload(invalidPayload)).toThrowError();
+  });
 });
 
 describe(isEditWindow, () => {
