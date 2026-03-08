@@ -313,7 +313,8 @@ const handleExportMatches = async (
 
   const handleSide = async (id: string, side: CollectionBody, label: "L" | "R") => {
     for (const photo of side.photos) {
-      progress++;
+      progress = progress + 1;
+
       mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, {
         show: true,
         text: "Exporting matches",
