@@ -11,7 +11,7 @@ import {
   Tooltip,
 } from "@primer/react";
 import { DataTable, Table } from "@primer/react/experimental";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { ANALYSIS_RESULTS_PER_PAGE } from "@/constants";
 import { useAnalysis } from "@/contexts/AnalysisContext";
@@ -67,12 +67,12 @@ const Results = ({
   modelLabel: string | null;
 }) => {
   const [pageIndex, setPageIndex] = useState(0);
-  const [prevData, setPrevData] = useState(data);
 
-  if (data !== prevData) {
-    setPrevData(data);
+  useEffect(() => {
+    // Reset pagination when analysis result changes (reset state when prop changes).
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- reset local UI state when data prop changes
     setPageIndex(0);
-  }
+  }, [data]);
 
   const pageSize = ANALYSIS_RESULTS_PER_PAGE;
   const start = pageIndex * pageSize;
