@@ -46,7 +46,11 @@ const DefaultRouteErrorComponent = ({ error }: RouteErrorComponentProps) => {
     recovery = { label: "Reload page", onClick: () => window.location.reload() };
   }
 
-  return <RouteErrorFallback error={error} recovery={recovery} />;
+  return (
+    <div className="error-view">
+      <RouteErrorFallback error={error} recovery={recovery} />
+    </div>
+  );
 };
 
 const memoryHistory = createHashHistory();

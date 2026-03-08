@@ -17,10 +17,8 @@ const RouteErrorFallback = ({ error, recovery }: RouteErrorFallbackProps) => {
       <Blankslate.Visual>
         <BugIcon size="medium" />
       </Blankslate.Visual>
-      <Blankslate.Heading style={{ color: "black" }}>
-        An error occurred. You can try going back, reloading the page, or closing this window.
-      </Blankslate.Heading>
-      <Blankslate.Description style={{ color: "black" }}>{error.message}</Blankslate.Description>
+      <Blankslate.Heading>An error occurred</Blankslate.Heading>
+      <Blankslate.Description>{error.message}</Blankslate.Description>
       <Blankslate.PrimaryAction title={recovery.label} onClick={recovery.onClick}>
         {recovery.label}
       </Blankslate.PrimaryAction>
