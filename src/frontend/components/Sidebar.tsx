@@ -17,7 +17,7 @@ import {
 } from "@primer/react";
 import { useNavigate } from "@tanstack/react-router";
 import { observer } from "mobx-react-lite";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { PROJECT_KEYBOARD_HINTS, ROUTES } from "@/constants";
 import { useProject } from "@/contexts/ProjectContext";
@@ -46,22 +46,31 @@ const Sidebar = observer(() => {
     return null;
   }
 
-  const mlModels = contextSettings?.mlModels ?? [];
+  const mlModels = useMemo(() => contextSettings?.mlModels ?? [], [contextSettings?.mlModels]);
   const selectedModelId = contextSettings?.selectedModelId ?? null;
   const selectedModel = mlModels.find((m) => m.id === selectedModelId) ?? null;
 
   type ModelItem = ItemInput & { id: string; text: string };
 
-  const modelItems: ModelItem[] = mlModels.map((model) => ({
-    id: model.id,
-    text: model.name,
-    description: model.endpoint,
-    descriptionVariant: "block" as const,
-  }));
+  const modelItems = useMemo<ModelItem[]>(
+    () =>
+      mlModels.map((model) => ({
+        id: model.id,
+        text: model.name,
+        description: model.endpoint,
+        descriptionVariant: "block" as const,
+      })),
+    [mlModels],
+  );
 
-  const filteredItems = modelItems.filter(
-    (item) =>
-      item.id === selectedModelId || item.text.toLowerCase().includes(modelFilter.toLowerCase()),
+  const filteredItems = useMemo(
+    () =>
+      modelItems.filter(
+        (item) =>
+          item.id === selectedModelId ||
+          item.text.toLowerCase().includes(modelFilter.toLowerCase()),
+      ),
+    [modelItems, modelFilter, selectedModelId],
   );
 
   const selectedItem = modelItems.find((item) => item.id === selectedModelId) ?? undefined;
