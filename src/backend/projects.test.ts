@@ -247,6 +247,7 @@ describe(handleSaveProject, () => {
   });
 
   it("writes the project data to the correct file path", async () => {
+    setCurrentProject("/my/project");
     const project = createProject({ directory: "/my/project" });
     const data = JSON.stringify(project);
 
@@ -256,6 +257,7 @@ describe(handleSaveProject, () => {
   });
 
   it("writes the raw JSON string, not re-serialised data", async () => {
+    setCurrentProject("/my/project");
     const data = JSON.stringify(createProject());
 
     await handleSaveProject(data);
@@ -265,11 +267,21 @@ describe(handleSaveProject, () => {
     expect(writtenData).toBe(data);
   });
 
+  it("throws when no project is open", async () => {
+    setCurrentProject(null);
+    const data = JSON.stringify(createProject());
+
+    await expect(handleSaveProject(data)).rejects.toThrowError("No project open");
+  });
+
   it("throws when data is invalid JSON", async () => {
+    setCurrentProject("/my/project");
+
     await expect(handleSaveProject("not json")).rejects.toThrowError(/Unexpected token|JSON/);
   });
 
   it("throws when data does not match project schema", async () => {
+    setCurrentProject("/my/project");
     const invalidPayload = JSON.stringify({ directory: "/path", version: "v1" });
 
     await expect(handleSaveProject(invalidPayload)).rejects.toThrowError(/invalid_type|required/);

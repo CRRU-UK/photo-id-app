@@ -264,13 +264,20 @@ const handleOpenProjectFile = async (mainWindow: Electron.BrowserWindow, file: s
 };
 
 /**
- * Handles saving a project file.
+ * Handles saving a project file. Uses the currently open project directory (tracked when the
+ * project is loaded) so the write path is authoritative; the payload is only validated, not
+ * used for the file path.
  */
 const handleSaveProject = async (data: string) => {
-  const json: unknown = JSON.parse(data);
-  const project = projectBodySchema.parse(json);
+  const directory = getCurrentProjectDirectory();
+  if (directory === null) {
+    throw new Error("No project open");
+  }
 
-  await fs.promises.writeFile(path.join(project.directory, PROJECT_FILE_NAME), data, "utf8");
+  const json: unknown = JSON.parse(data);
+  projectBodySchema.parse(json);
+
+  await fs.promises.writeFile(path.join(directory, PROJECT_FILE_NAME), data, "utf8");
 };
 
 /**
