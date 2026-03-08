@@ -6,18 +6,55 @@ import "@primer/primitives/dist/css/functional/themes/light.css";
 import "@primer/primitives/dist/css/primitives.css";
 
 import { BaseStyles, ThemeProvider } from "@primer/react";
-import { RouterProvider, createHashHistory, createRouter } from "@tanstack/react-router";
+import {
+  RouterProvider,
+  createHashHistory,
+  createRouter,
+  useNavigate,
+  useRouterState,
+} from "@tanstack/react-router";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 
 import { SettingsProvider, useSettings } from "@/contexts/SettingsContext";
+import RouteErrorFallback from "@/frontend/components/RouteErrorFallback";
 
+import { ROUTES } from "./constants";
 import { routeTree } from "./routeTree.gen";
 
 import "./styles.css";
 
+type RouteErrorComponentProps = {
+  error: Error;
+};
+
+const DefaultRouteErrorComponent = ({ error }: RouteErrorComponentProps) => {
+  const navigate = useNavigate();
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+
+  let recovery: { label: string; onClick: () => void };
+  if (pathname === ROUTES.PROJECT) {
+    recovery = {
+      label: "Back to start",
+      onClick: () => {
+        navigate({ to: ROUTES.INDEX });
+      },
+    };
+  } else if (pathname === ROUTES.EDIT) {
+    recovery = { label: "Close window", onClick: () => window.close() };
+  } else {
+    recovery = { label: "Reload page", onClick: () => window.location.reload() };
+  }
+
+  return <RouteErrorFallback error={error} recovery={recovery} />;
+};
+
 const memoryHistory = createHashHistory();
-const router = createRouter({ routeTree, history: memoryHistory });
+const router = createRouter({
+  routeTree,
+  history: memoryHistory,
+  defaultErrorComponent: DefaultRouteErrorComponent,
+});
 
 declare module "@tanstack/react-router" {
   interface Register {
