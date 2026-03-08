@@ -197,6 +197,8 @@ const createMainWindow = async () => {
     });
   });
 
+  mainWindow.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
+
   const menu = Menu.buildFromTemplate(getMenu(mainWindow));
   Menu.setApplicationMenu(menu);
 
