@@ -18,6 +18,7 @@ import {
 import { observer } from "mobx-react-lite";
 import { useState } from "react";
 
+import { PROJECT_TOOLTIPS } from "@/constants";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { useSettings } from "@/contexts/SettingsContext";
 import type Collection from "@/models/Collection";
@@ -137,7 +138,7 @@ const Stack = observer(({ collection, showAnalysisButton = true, stackLabel }: S
           <IconButton
             icon={AiModelIcon}
             size="small"
-            aria-label="Analyse photos"
+            aria-label={PROJECT_TOOLTIPS.ANALYSE_PHOTOS}
             disabled={collection.photos.size === 0 || isAnalysing}
             onClick={handleAnalyseClick}
           />
@@ -147,7 +148,7 @@ const Stack = observer(({ collection, showAnalysisButton = true, stackLabel }: S
           <IconButton
             icon={PencilIcon}
             size="small"
-            aria-label="Edit photo"
+            aria-label={PROJECT_TOOLTIPS.EDIT_PHOTO}
             onClick={(event) => {
               event.preventDefault();
               return handleOpenEdit();
@@ -158,7 +159,7 @@ const Stack = observer(({ collection, showAnalysisButton = true, stackLabel }: S
           </IconButton>
           <ActionMenu open={actionsOpen} onOpenChange={setActionsOpen}>
             <ActionMenu.Button
-              aria-label="More options"
+              aria-label={PROJECT_TOOLTIPS.MORE_OPTIONS}
               icon={TriangleDownIcon}
               size="small"
               disabled={collection.photos.size <= 0}
@@ -176,7 +177,9 @@ const Stack = observer(({ collection, showAnalysisButton = true, stackLabel }: S
                   <ActionList.LeadingVisual>
                     <UndoIcon />
                   </ActionList.LeadingVisual>
-                  {revertingPhoto ? "Reverting..." : "Revert to original"}
+                  {revertingPhoto
+                    ? PROJECT_TOOLTIPS.REVERTING_PHOTO
+                    : PROJECT_TOOLTIPS.REVERT_PHOTO}
                 </ActionList.Item>
               </ActionList>
             </ActionMenu.Overlay>
@@ -187,14 +190,14 @@ const Stack = observer(({ collection, showAnalysisButton = true, stackLabel }: S
           <IconButton
             icon={ChevronLeftIcon}
             size="small"
-            aria-label="Previous photo"
+            aria-label={PROJECT_TOOLTIPS.PREVIOUS_PHOTO}
             onClick={handlePrev}
             disabled={collection.photos.size <= 1}
           />
           <IconButton
             icon={ChevronRightIcon}
             size="small"
-            aria-label="Next photo"
+            aria-label={PROJECT_TOOLTIPS.NEXT_PHOTO}
             onClick={handleNext}
             disabled={collection.photos.size <= 1}
           />
