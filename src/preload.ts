@@ -3,6 +3,7 @@ import type {
   ExternalLinks,
   LoadingData,
   MLMatchResponse,
+  MLModelDraft,
   PhotoBody,
   ProjectBody,
   RecentProject,
@@ -47,6 +48,10 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ipcRenderer.invoke(IPC_EVENTS.UPDATE_SETTINGS, settings),
   analyseStack: (photos: PhotoBody[]): Promise<MLMatchResponse | null> =>
     ipcRenderer.invoke(IPC_EVENTS.ANALYSE_STACK, photos),
+  saveModel: (draft: MLModelDraft): Promise<void> =>
+    ipcRenderer.invoke(IPC_EVENTS.SAVE_MODEL, draft),
+  deleteModel: (modelId: string): Promise<void> =>
+    ipcRenderer.invoke(IPC_EVENTS.DELETE_MODEL, modelId),
 
   // Methods (renderer-to-main)
   openProjectFolder: () => ipcRenderer.send(IPC_EVENTS.OPEN_FOLDER),

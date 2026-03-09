@@ -32,6 +32,8 @@ export enum IPC_EVENTS {
   NAVIGATE_EDITOR_PHOTO = "edit:navigateEditorPhoto",
 
   // Machine Learning
+  SAVE_MODEL = "ml:saveModel",
+  DELETE_MODEL = "ml:deleteModel",
   ANALYSE_STACK = "ml:analyseStack",
   CANCEL_ANALYSE_STACK = "ml:cancelAnalyseStack",
 }
@@ -167,6 +169,8 @@ export const RECENT_PROJECTS_FILE_NAME = "recent-projects.json";
 
 export const SETTINGS_FILE_NAME = "settings.json";
 
+export const TOKENS_FILE_NAME = "tokens.json";
+
 export const MAX_RECENT_PROJECTS = 5;
 
 export const MATCHED_STACKS_PER_PAGE = 8;
@@ -241,6 +245,7 @@ export const DEFAULT_SETTINGS = {
   telemetry: "disabled" as const,
   mlModels: [] as MLModel[],
   selectedModelId: null,
+  isTokenEncryptionAvailable: true,
 };
 
 // Machine Learning

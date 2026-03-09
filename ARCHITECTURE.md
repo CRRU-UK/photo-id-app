@@ -22,13 +22,14 @@ Technical information, specifications, requirements, and user journeys.
 - AnalysisContext flow: `AnalysisProvider` wraps only the project route (project page). The context is consumed by **Sidebar** (model selection), **Stack** (the “Analyse” action that triggers analysis), and **AnalysisOverlay** (loading state, results table, and errors). Analysis state and the overlay are thus shared across these components via context rather than props.
 - SAVE_PROJECT IPC: The `SAVE_PROJECT` handler receives a **pre-serialized JSON string** (not a typed object). The renderer calls `project.save()`, which serializes the project to JSON and sends that string over IPC. The main process validates the payload and writes it to disk using the current project directory. This differs from other IPC handlers that receive typed payloads.
 - Platform-specific file association: Opening a `.photoid` file from the OS uses **macOS**: the `open-file` app event (may fire before `whenReady`). **Windows/Linux**: `second-instance` and the process `argv` (the path is passed as an argument). The app handles both so that double-clicking a `.photoid` opens that project.
-- **Settings storage**: Settings are stored in the app user data directory (per user) as a JSON file, validated on read with `settingsDataSchema` in `src/schemas.ts`. Invalid or missing data causes a silent fallback to defaults.
+- **Settings storage**: Settings are stored in the app user data directory (per user) as a JSON file, validated on read with `settingsDataSchema` in `src/schemas.ts`. Invalid or missing data causes a silent fallback to defaults. ML model API tokens are stored separately in `tokens.json` using Electron's `safeStorage` API for encryption at rest; on machines where secure storage is unavailable, tokens fall back to plaintext storage with a UI warning.
 
 ## Security
 
 - **photo:// protocol**: The custom protocol serves only files whose extension is in `PHOTO_FILE_EXTENSIONS` (allowed image types). Other paths return 403. Files are served from the project directory; the renderer never receives raw filesystem paths for image `src` (use `photo://` URLs only, not `file://`).
 - **External links**: The renderer calls `openExternalLink(link)` with an enum value (`ExternalLinks`); the main process maps it to a URL from `EXTERNAL_LINKS`. No arbitrary URLs can be opened from the renderer.
 - **Renderer isolation**: The renderer has no Node.js or `require` access; it only sees `window.electronAPI` as exposed by the preload script. All file I/O and system access happen in the main process.
+- **Token security**: ML model API tokens are encrypted using Electron's `safeStorage` API and stored in a separate `tokens.json` file. Tokens never leave the main process — the renderer only receives a `hasToken` boolean flag per model. Decryption happens only at the moment of an API request. Per-token encryption flags handle edge cases where encryption availability changes between sessions. Dedicated `SAVE_MODEL` and `DELETE_MODEL` IPC handlers manage token lifecycle.
 
 ## Repository Structure
 
@@ -143,7 +144,8 @@ The index view is the default view when opening the app. It allows the user to:
     - Adding a model should show another overlay where the information can be added
     - Models MUST contain a value for all fields
     - Models cannot be added if ANY of the fields are empty
-    - Models cannot be edited once added, only removed
+    - Models can be edited (name, endpoint) but the API token must be re-entered as tokens are write-only
+    - Models can be removed
 - Settings should use default values on new installations
 - Settings should persist between sessions
 - ONLY the main window should have the settings overlay - edit windows should NEVER display the settings overlay

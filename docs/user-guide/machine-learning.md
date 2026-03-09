@@ -24,7 +24,11 @@ A model API will need to be provided according to the [OpenAPI specifications pr
 
 To add a model, open the app settings. Open the ==:octicons-ai-model-16: Machine Learning== tab, and select the ==:octicons-plus-16: Add Model== button.
 
-Enter a model label, your base API URL, and token. Select the ==Save== button and the model will be added. You can view your models in the app settings. Models can be deleted by selecting the ==:octicons-trash-16: bin== icon in the model list.
+Enter a model label, your base API URL, and token. Select the ==Save== button and the model will be added. You can view your models in the app settings. Models can be edited by selecting the ==:octicons-pencil-16: edit== icon, or deleted by selecting the ==:octicons-trash-16: bin== icon in the model list.
+
+!!! note
+
+    API tokens are encrypted at rest using your operating system's secure storage. Tokens cannot be viewed after saving — when editing a model, the token must be re-entered. On machines where secure storage is not available, a warning will be shown and tokens will be stored without encryption. Tokens are stored in the app settings and not in project data files.
 
 !!! tip
 

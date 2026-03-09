@@ -3,58 +3,53 @@ import { useEffect, useState } from "react";
 import { AiModelIcon, EyeClosedIcon, EyeIcon, KeyIcon, LinkIcon } from "@primer/octicons-react";
 import { Dialog, FormControl, Stack, TextInput } from "@primer/react";
 
-import { useSettings } from "@/contexts/SettingsContext";
-import type { MLModel } from "@/types";
+import type { MLModel, MLModelDraft } from "@/types";
 
-interface AddModelOverlayProps {
+interface ModelOverlayProps {
   open: boolean;
   onClose: () => void;
+  editingModel?: MLModel | null;
 }
 
-type ModelDraft = Pick<MLModel, "name" | "endpoint" | "token">;
+type ModelFields = Pick<MLModelDraft, "name" | "endpoint" | "token">;
 
-const emptyDraft = (): ModelDraft => ({ name: "", endpoint: "", token: "" });
+const emptyFields = (): ModelFields => ({ name: "", endpoint: "", token: "" });
 
-const AddModelOverlay = ({ open, onClose }: AddModelOverlayProps) => {
-  const { settings: contextSettings, updateSettings } = useSettings();
-
-  const [draft, setDraft] = useState<ModelDraft>(emptyDraft);
+const ModelOverlay = ({ open, onClose, editingModel }: ModelOverlayProps) => {
+  const [draft, setDraft] = useState<ModelFields>(emptyFields);
   const [showToken, setShowToken] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
+  const isEditing = !!editingModel;
   const fieldsValid = draft.name.trim() && draft.endpoint.trim() && draft.token.trim();
 
   useEffect(() => {
     if (open) {
-      setDraft(emptyDraft());
+      setDraft({
+        name: editingModel?.name ?? "",
+        endpoint: editingModel?.endpoint ?? "",
+        token: "",
+      });
       setShowToken(false);
     }
-  }, [open]);
+  }, [open, editingModel]);
 
   if (!open) {
     return null;
   }
 
   const handleSave = async () => {
-    if (!contextSettings) {
-      return;
-    }
-
     setIsSaving(true);
 
-    const newModel: MLModel = {
-      id: crypto.randomUUID(),
+    const modelDraft: MLModelDraft = {
+      ...(editingModel ? { id: editingModel.id } : {}),
       name: draft.name.trim(),
       endpoint: draft.endpoint.trim(),
       token: draft.token.trim(),
     };
 
     try {
-      await updateSettings({
-        ...contextSettings,
-        mlModels: [...contextSettings.mlModels, newModel],
-      });
-
+      await window.electronAPI.saveModel(modelDraft);
       onClose();
     } catch (error) {
       console.error("Error saving model:", error);
@@ -65,7 +60,7 @@ const AddModelOverlay = ({ open, onClose }: AddModelOverlayProps) => {
 
   return (
     <Dialog
-      title="Add Model"
+      title={isEditing ? "Edit Model" : "Add Model"}
       position="right"
       onClose={onClose}
       footerButtons={[
@@ -112,6 +107,7 @@ const AddModelOverlay = ({ open, onClose }: AddModelOverlayProps) => {
             type={showToken ? "text" : "password"}
             size="large"
             value={draft.token}
+            placeholder={isEditing ? "••••••" : ""}
             leadingVisual={KeyIcon}
             onChange={(event) => setDraft((prev) => ({ ...prev, token: event.target.value }))}
             trailingAction={
@@ -123,11 +119,13 @@ const AddModelOverlay = ({ open, onClose }: AddModelOverlayProps) => {
             }
             block
           />
-          <FormControl.Caption>API token used for bearer authorization.</FormControl.Caption>
+          <FormControl.Caption>
+            API token used for bearer authorization. Tokens cannot be retrieved after saving.
+          </FormControl.Caption>
         </FormControl>
       </Stack>
     </Dialog>
   );
 };
 
-export default AddModelOverlay;
+export default ModelOverlay;

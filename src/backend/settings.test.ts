@@ -7,6 +7,9 @@ vi.mock("electron", () => ({
   app: {
     getPath: vi.fn<() => string>(() => "/mock/userData"),
   },
+  safeStorage: {
+    isEncryptionAvailable: vi.fn<() => boolean>(() => true),
+  },
 }));
 
 const mockExistsSync = vi.fn<(path: string) => boolean>();
@@ -21,6 +24,14 @@ vi.mock("node:fs", () => ({
       writeFile: (...args: Parameters<typeof mockWriteFile>) => mockWriteFile(...args),
     },
   },
+}));
+
+const mockHasToken = vi.fn<(modelId: string) => Promise<boolean>>(() => Promise.resolve(false));
+const mockIsEncryptionAvailable = vi.fn<() => boolean>(() => true);
+
+vi.mock("@/backend/tokens", () => ({
+  hasToken: (modelId: string) => mockHasToken(modelId),
+  isEncryptionAvailable: () => mockIsEncryptionAvailable(),
 }));
 
 const mockSentryInit = vi.fn<(options: Record<string, unknown>) => void>();
@@ -39,7 +50,8 @@ vi.mock("@sentry/electron/main", () => ({
   getClient: () => mockSentryGetClient(),
 }));
 
-const { getSettings, initSentry, setSentryEnabled, updateSettings } = await import("./settings");
+const { getSettings, getSettingsForRenderer, initSentry, setSentryEnabled, updateSettings } =
+  await import("./settings");
 
 describe("settings", () => {
   beforeEach(() => {
@@ -75,6 +87,7 @@ describe("settings", () => {
         telemetry: "enabled",
         mlModels: [],
         selectedModelId: null,
+        isTokenEncryptionAvailable: true,
       };
       mockExistsSync.mockReturnValue(true);
       mockReadFile.mockResolvedValue(JSON.stringify(savedSettings));
@@ -168,6 +181,48 @@ describe("settings", () => {
     });
   });
 
+  describe(getSettingsForRenderer, () => {
+    it("enriches models with hasToken from the token store", async () => {
+      const savedSettings: SettingsData = {
+        version: "v1",
+        themeMode: "dark",
+        telemetry: "disabled",
+        mlModels: [
+          { id: "model-1", name: "Model A", endpoint: "https://a.com", hasToken: false },
+          { id: "model-2", name: "Model B", endpoint: "https://b.com", hasToken: false },
+        ],
+        selectedModelId: null,
+        isTokenEncryptionAvailable: true,
+      };
+      mockExistsSync.mockReturnValue(true);
+      mockReadFile.mockResolvedValue(JSON.stringify(savedSettings));
+      mockHasToken.mockImplementation((modelId: string) => Promise.resolve(modelId === "model-1"));
+
+      const result = await getSettingsForRenderer();
+
+      expect(result.mlModels[0].hasToken).toBe(true);
+      expect(result.mlModels[1].hasToken).toBe(false);
+    });
+
+    it("includes isTokenEncryptionAvailable from safeStorage", async () => {
+      mockExistsSync.mockReturnValue(false);
+      mockIsEncryptionAvailable.mockReturnValue(false);
+
+      const result = await getSettingsForRenderer();
+
+      expect(result.isTokenEncryptionAvailable).toBe(false);
+    });
+
+    it("returns true for isTokenEncryptionAvailable when encryption is available", async () => {
+      mockExistsSync.mockReturnValue(false);
+      mockIsEncryptionAvailable.mockReturnValue(true);
+
+      const result = await getSettingsForRenderer();
+
+      expect(result.isTokenEncryptionAvailable).toBe(true);
+    });
+  });
+
   describe(updateSettings, () => {
     it("writes settings as formatted JSON to the correct file", async () => {
       const settings: SettingsData = {
@@ -176,6 +231,7 @@ describe("settings", () => {
         telemetry: "disabled",
         mlModels: [],
         selectedModelId: null,
+        isTokenEncryptionAvailable: true,
       };
 
       await updateSettings(settings);

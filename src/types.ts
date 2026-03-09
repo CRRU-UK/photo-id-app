@@ -5,6 +5,7 @@ import type Photo from "@/models/Photo";
 import type {
   collectionBodySchema,
   matchedBodySchema,
+  mlModelDraftSchema,
   mlModelSchema,
   photoBodySchema,
   photoEditsSchema,
@@ -12,6 +13,8 @@ import type {
   settingsDataSchema,
   telemetrySchema,
   themeModeSchema,
+  tokenEntrySchema,
+  tokenStoreSchema,
 } from "@/schemas";
 
 export type Directory = string;
@@ -83,6 +86,12 @@ export type ThemeMode = z.infer<typeof themeModeSchema>;
 export type Telemetry = z.infer<typeof telemetrySchema>;
 
 export type MLModel = z.infer<typeof mlModelSchema>;
+
+export type MLModelDraft = z.infer<typeof mlModelDraftSchema>;
+
+export type TokenEntry = z.infer<typeof tokenEntrySchema>;
+
+export type TokenStore = z.infer<typeof tokenStoreSchema>;
 
 /**
  * Always ensure this stays in sync with the OpenAPI specs.
