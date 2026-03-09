@@ -171,7 +171,8 @@ const AnalysisOverlay = () => {
   const { isAnalysing, result, error, stackLabel, handleClose } = useAnalysis();
   const { settings } = useSettings();
 
-  const selectedModel = settings?.mlModels.find((m) => m.id === settings.selectedModelId) ?? null;
+  const selectedModel =
+    settings?.mlModels.find(({ id }) => id === settings.selectedModelId) ?? null;
   const modelLabel = selectedModel?.name ?? null;
 
   const open = isAnalysing || result !== null || error !== null;

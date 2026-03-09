@@ -466,7 +466,7 @@ void app.whenReady().then(async () => {
       endpoint: validatedDraft.endpoint,
     };
 
-    const existingIndex = settings.mlModels.findIndex((m) => m.id === modelId);
+    const existingIndex = settings.mlModels.findIndex(({ id }) => id === modelId);
     const updatedModels = [...settings.mlModels];
 
     if (existingIndex >= 0) {
@@ -491,7 +491,7 @@ void app.whenReady().then(async () => {
 
     const updatedSettings: SettingsData = {
       ...settings,
-      mlModels: settings.mlModels.filter((m) => m.id !== modelId),
+      mlModels: settings.mlModels.filter(({ id }) => id !== modelId),
       selectedModelId: settings.selectedModelId === modelId ? null : settings.selectedModelId,
     };
 
@@ -522,9 +522,7 @@ void app.whenReady().then(async () => {
 
       const settings = await getSettings();
 
-      const selectedModel = settings.mlModels.find(
-        (model) => model.id === settings.selectedModelId,
-      );
+      const selectedModel = settings.mlModels.find(({ id }) => id === settings.selectedModelId);
 
       if (!selectedModel?.endpoint) {
         throw new Error("Machine Learning integration is not configured.");
