@@ -51,6 +51,7 @@ import {
   ROUTES,
 } from "@/constants";
 import { encodeEditPayload } from "@/helpers";
+import { photoBodySchema, settingsDataSchema } from "@/schemas";
 
 import { version } from "../package.json";
 
@@ -224,7 +225,7 @@ app.on("activate", async () => {
   }
 });
 
-app.whenReady().then(async () => {
+void app.whenReady().then(async () => {
   const settings = await getSettings();
   setSentryEnabled(settings.telemetry);
 
@@ -245,7 +246,7 @@ app.whenReady().then(async () => {
   });
 
   if (!production) {
-    installExtension([REACT_DEVELOPER_TOOLS, MOBX_DEVTOOLS]);
+    await installExtension([REACT_DEVELOPER_TOOLS, MOBX_DEVTOOLS]);
   }
 
   ipcMain.on(IPC_EVENTS.OPEN_FOLDER, async (event) => {
@@ -344,9 +345,11 @@ app.whenReady().then(async () => {
     const encodedQuery = encodeURIComponent(encodedData);
 
     if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
-      editWindow.loadURL(`${MAIN_WINDOW_VITE_DEV_SERVER_URL}?data=${encodedQuery}#${ROUTES.EDIT}`);
+      void editWindow.loadURL(
+        `${MAIN_WINDOW_VITE_DEV_SERVER_URL}?data=${encodedQuery}#${ROUTES.EDIT}`,
+      );
     } else {
-      editWindow.loadURL(
+      void editWindow.loadURL(
         url.format({
           protocol: "file",
           slashes: true,
@@ -377,7 +380,7 @@ app.whenReady().then(async () => {
 
     const directory = await handleExportMatches(window, data);
 
-    shell.openPath(path.join(directory, PROJECT_EXPORT_DIRECTORY));
+    void shell.openPath(path.join(directory, PROJECT_EXPORT_DIRECTORY));
   });
 
   ipcMain.handle(IPC_EVENTS.SAVE_PHOTO_FILE, async (event, data: PhotoBody): Promise<void> => {
@@ -429,14 +432,15 @@ app.whenReady().then(async () => {
   ipcMain.handle(
     IPC_EVENTS.UPDATE_SETTINGS,
     async (_event, settings: SettingsData): Promise<void> => {
-      await updateSettings(settings);
+      const validatedSettings = settingsDataSchema.parse(settings);
 
-      setSentryEnabled(settings.telemetry);
+      await updateSettings(validatedSettings);
+      setSentryEnabled(validatedSettings.telemetry);
 
       // Notify all windows of settings change
       const allWindows = BrowserWindow.getAllWindows();
       for (const window of allWindows) {
-        window.webContents.send(IPC_EVENTS.SETTINGS_UPDATED, settings);
+        window.webContents.send(IPC_EVENTS.SETTINGS_UPDATED, validatedSettings);
       }
     },
   );
@@ -453,6 +457,8 @@ app.whenReady().then(async () => {
   ipcMain.handle(
     IPC_EVENTS.ANALYSE_STACK,
     async (_event, photos: PhotoBody[]): Promise<MLMatchResponse | null> => {
+      const validatedPhotos = photos.map((photo) => photoBodySchema.parse(photo));
+
       const settings = await getSettings();
 
       const selectedModel = settings.mlModels.find(
@@ -463,7 +469,7 @@ app.whenReady().then(async () => {
         throw new Error("Machine Learning integration is not configured.");
       }
 
-      return analyseStack({ photos, settings: selectedModel });
+      return analyseStack({ photos: validatedPhotos, settings: selectedModel });
     },
   );
 

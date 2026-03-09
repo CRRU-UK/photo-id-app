@@ -1,5 +1,9 @@
 import { cleanup } from "@testing-library/react";
-import { afterEach } from "vitest";
+import { afterEach, beforeEach, expect } from "vitest";
+
+beforeEach(() => {
+  expect.hasAssertions();
+});
 
 // Auto-cleanup DOM after each test to prevent state leaking between tests
 afterEach(cleanup);

@@ -70,6 +70,7 @@ describe("settings", () => {
 
     it("reads and returns settings from disk when the file exists", async () => {
       const savedSettings: SettingsData = {
+        version: "v1",
         themeMode: "light",
         telemetry: "enabled",
         mlModels: [],
@@ -84,8 +85,7 @@ describe("settings", () => {
     });
 
     it("merges saved settings with defaults to fill missing fields", async () => {
-      // Simulate a settings file with only one field
-      const partialSettings = { themeMode: "light" };
+      const partialSettings = { version: "v1" as const, themeMode: "light" as const };
       mockExistsSync.mockReturnValue(true);
       mockReadFile.mockResolvedValue(JSON.stringify(partialSettings));
 
@@ -128,8 +128,23 @@ describe("settings", () => {
       expect(result).toStrictEqual(DEFAULT_SETTINGS);
     });
 
+    it("returns default settings when version is missing", async () => {
+      const settingsWithoutVersion = {
+        themeMode: "light",
+        telemetry: "enabled",
+        mlModels: [],
+        selectedModelId: null,
+      };
+      mockExistsSync.mockReturnValue(true);
+      mockReadFile.mockResolvedValue(JSON.stringify(settingsWithoutVersion));
+
+      const result = await getSettings();
+
+      expect(result).toStrictEqual(DEFAULT_SETTINGS);
+    });
+
     it("returns default settings when a field has an invalid value", async () => {
-      const invalidSettings = { themeMode: "neon", telemetry: "enabled" };
+      const invalidSettings = { version: "v1", themeMode: "neon", telemetry: "enabled" };
       mockExistsSync.mockReturnValue(true);
       mockReadFile.mockResolvedValue(JSON.stringify(invalidSettings));
 
@@ -156,6 +171,7 @@ describe("settings", () => {
   describe(updateSettings, () => {
     it("writes settings as formatted JSON to the correct file", async () => {
       const settings: SettingsData = {
+        version: "v1",
         themeMode: "auto",
         telemetry: "disabled",
         mlModels: [],

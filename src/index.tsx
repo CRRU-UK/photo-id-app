@@ -37,7 +37,7 @@ const DefaultRouteErrorComponent = ({ error }: RouteErrorComponentProps) => {
     recovery = {
       label: "Back to start",
       onClick: () => {
-        navigate({ to: ROUTES.INDEX });
+        void navigate({ to: ROUTES.INDEX });
       },
     };
   } else if (pathname === ROUTES.EDIT) {

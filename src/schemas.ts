@@ -20,6 +20,7 @@ export const mlModelSchema = z.object({
 });
 
 export const settingsDataSchema = z.object({
+  version: z.literal("v1"),
   themeMode: themeModeSchema.default(DEFAULT_SETTINGS.themeMode as z.infer<typeof themeModeSchema>),
   telemetry: telemetrySchema.default(DEFAULT_SETTINGS.telemetry as z.infer<typeof telemetrySchema>),
   mlModels: z.array(mlModelSchema).default(DEFAULT_SETTINGS.mlModels),

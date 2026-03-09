@@ -46,7 +46,7 @@ const initializeSentry = () => {
       }),
       Sentry.consoleLoggingIntegration({ levels: ["log", "warn", "error"] }),
     ],
-    _experiments: { enableLogs: true },
+    enableLogs: true,
   });
 };
 
@@ -130,7 +130,7 @@ export const SettingsProvider = ({ children }: SettingsProviderProps) => {
       }
     };
 
-    loadSettings();
+    void loadSettings();
 
     const unsubscribe = window.electronAPI.onSettingsUpdated((updatedSettings: SettingsData) => {
       setSettings(updatedSettings);
