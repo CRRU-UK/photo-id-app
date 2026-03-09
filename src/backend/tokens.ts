@@ -101,13 +101,4 @@ const deleteToken = async (modelId: string): Promise<void> => {
   await writeTokenStore(store);
 };
 
-/**
- * Checks whether a token exists for the given model ID.
- */
-const hasToken = async (modelId: string): Promise<boolean> => {
-  const store = await readTokenStore();
-
-  return modelId in store.tokens;
-};
-
-export { deleteToken, getToken, hasToken, isEncryptionAvailable, saveToken };
+export { deleteToken, getToken, isEncryptionAvailable, saveToken };

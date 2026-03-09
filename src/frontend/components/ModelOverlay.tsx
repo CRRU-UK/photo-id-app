@@ -1,6 +1,13 @@
 import { useEffect, useState } from "react";
 
-import { AiModelIcon, EyeClosedIcon, EyeIcon, KeyIcon, LinkIcon } from "@primer/octicons-react";
+import {
+  AiModelIcon,
+  EyeClosedIcon,
+  EyeIcon,
+  KeyIcon,
+  LinkIcon,
+  PencilIcon,
+} from "@primer/octicons-react";
 import { Dialog, FormControl, Stack, TextInput } from "@primer/react";
 
 import type { MLModel, MLModelDraft } from "@/types";
@@ -11,17 +18,25 @@ interface ModelOverlayProps {
   editingModel?: MLModel | null;
 }
 
-type ModelFields = Pick<MLModelDraft, "name" | "endpoint" | "token">;
+type ModelFields = {
+  name: string;
+  endpoint: string;
+  token: string;
+};
 
 const emptyFields = (): ModelFields => ({ name: "", endpoint: "", token: "" });
 
 const ModelOverlay = ({ open, onClose, editingModel }: ModelOverlayProps) => {
   const [draft, setDraft] = useState<ModelFields>(emptyFields);
   const [showToken, setShowToken] = useState(false);
+  const [isEditingToken, setIsEditingToken] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   const isEditing = !!editingModel;
-  const fieldsValid = draft.name.trim() && draft.endpoint.trim() && draft.token.trim();
+  const tokenLocked = isEditing && !isEditingToken;
+  const fieldsValid = tokenLocked
+    ? draft.name.trim() && draft.endpoint.trim()
+    : draft.name.trim() && draft.endpoint.trim() && draft.token.trim();
 
   useEffect(() => {
     if (open) {
@@ -31,6 +46,7 @@ const ModelOverlay = ({ open, onClose, editingModel }: ModelOverlayProps) => {
         token: "",
       });
       setShowToken(false);
+      setIsEditingToken(false);
     }
   }, [open, editingModel]);
 
@@ -45,7 +61,7 @@ const ModelOverlay = ({ open, onClose, editingModel }: ModelOverlayProps) => {
       ...(editingModel ? { id: editingModel.id } : {}),
       name: draft.name.trim(),
       endpoint: draft.endpoint.trim(),
-      token: draft.token.trim(),
+      token: tokenLocked ? undefined : draft.token.trim() || undefined,
     };
 
     try {
@@ -101,25 +117,48 @@ const ModelOverlay = ({ open, onClose, editingModel }: ModelOverlayProps) => {
           <FormControl.Caption>Base URL of your model API.</FormControl.Caption>
         </FormControl>
 
-        <FormControl required>
+        <FormControl required={!tokenLocked}>
           <FormControl.Label>API Token</FormControl.Label>
-          <TextInput
-            type={showToken ? "text" : "password"}
-            size="large"
-            value={draft.token}
-            placeholder={isEditing ? "••••••" : ""}
-            leadingVisual={KeyIcon}
-            onChange={(event) => setDraft((prev) => ({ ...prev, token: event.target.value }))}
-            trailingAction={
-              <TextInput.Action
-                aria-label={showToken ? "Hide token" : "Show token"}
-                icon={showToken ? EyeIcon : EyeClosedIcon}
-                onClick={() => setShowToken((prev) => !prev)}
-              />
-            }
-            block
-          />
-          <FormControl.Caption>Tokens cannot be viewed after saving.</FormControl.Caption>
+          {tokenLocked ? (
+            <TextInput
+              type="password"
+              size="large"
+              value=""
+              placeholder="••••••••••••"
+              readOnly
+              leadingVisual={KeyIcon}
+              trailingAction={
+                <TextInput.Action
+                  aria-label="Edit token"
+                  icon={PencilIcon}
+                  variant="default"
+                  onClick={() => setIsEditingToken(true)}
+                />
+              }
+              block
+            />
+          ) : (
+            <TextInput
+              type={showToken ? "text" : "password"}
+              size="large"
+              value={draft.token}
+              leadingVisual={KeyIcon}
+              onChange={(event) => setDraft((prev) => ({ ...prev, token: event.target.value }))}
+              trailingAction={
+                <TextInput.Action
+                  aria-label={showToken ? "Hide token" : "Show token"}
+                  icon={showToken ? EyeIcon : EyeClosedIcon}
+                  onClick={() => setShowToken((prev) => !prev)}
+                />
+              }
+              block
+            />
+          )}
+          <FormControl.Caption>
+            {tokenLocked
+              ? "A token is currently saved. Click the edit icon to replace it."
+              : "Tokens cannot be viewed after saving."}
+          </FormControl.Caption>
         </FormControl>
       </Stack>
     </Dialog>

@@ -445,7 +445,7 @@ void app.whenReady().then(async () => {
       await updateSettings(validatedSettings);
       setSentryEnabled(validatedSettings.telemetry);
 
-      // Notify all windows with enriched settings (includes hasToken flags)
+      // Notify all windows with enriched settings
       const enrichedSettings = await getSettingsForRenderer();
       const allWindows = BrowserWindow.getAllWindows();
       for (const window of allWindows) {
@@ -475,7 +475,9 @@ void app.whenReady().then(async () => {
       updatedModels.push(modelMetadata as SettingsData["mlModels"][number]);
     }
 
-    await saveToken(modelId, validatedDraft.token);
+    if (validatedDraft.token) {
+      await saveToken(modelId, validatedDraft.token);
+    }
     await updateSettings({ ...settings, mlModels: updatedModels });
 
     // Notify all windows with enriched settings

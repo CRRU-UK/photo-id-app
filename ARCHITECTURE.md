@@ -29,7 +29,7 @@ Technical information, specifications, requirements, and user journeys.
 - **photo:// protocol**: The custom protocol serves only files whose extension is in `PHOTO_FILE_EXTENSIONS` (allowed image types). Other paths return 403. Files are served from the project directory; the renderer never receives raw filesystem paths for image `src` (use `photo://` URLs only, not `file://`).
 - **External links**: The renderer calls `openExternalLink(link)` with an enum value (`ExternalLinks`); the main process maps it to a URL from `EXTERNAL_LINKS`. No arbitrary URLs can be opened from the renderer.
 - **Renderer isolation**: The renderer has no Node.js or `require` access; it only sees `window.electronAPI` as exposed by the preload script. All file I/O and system access happen in the main process.
-- **Token security**: ML model API tokens are encrypted using Electron's `safeStorage` API and stored in a separate `tokens.json` file. Tokens never leave the main process — the renderer only receives a `hasToken` boolean flag per model. Decryption happens only at the moment of an API request. Per-token encryption flags handle edge cases where encryption availability changes between sessions. Dedicated `SAVE_MODEL` and `DELETE_MODEL` IPC handlers manage token lifecycle.
+- **Token security**: ML model API tokens are encrypted using Electron's `safeStorage` API and stored in a separate `tokens.json` file. Tokens never leave the main process. Decryption happens only at the moment of an API request. Per-token encryption flags handle edge cases where encryption availability changes between sessions. Dedicated `SAVE_MODEL` and `DELETE_MODEL` IPC handlers manage token lifecycle.
 
 ## Repository Structure
 

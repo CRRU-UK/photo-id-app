@@ -3,7 +3,7 @@ import { app } from "electron";
 import fs from "node:fs";
 import path from "node:path";
 
-import { hasToken as checkHasToken, isEncryptionAvailable } from "@/backend/tokens";
+import { isEncryptionAvailable } from "@/backend/tokens";
 import { DEFAULT_SETTINGS, SETTINGS_FILE_NAME } from "@/constants";
 import { settingsDataSchema } from "@/schemas";
 import type { SettingsData, Telemetry } from "@/types";
@@ -75,24 +75,13 @@ const setSentryEnabled = (telemetry: Telemetry): void => {
 };
 
 /**
- * Gets settings enriched with hasToken flags for each model and encryption availability, suitable
- * for sending to the renderer. Tokens are never included.
+ * Gets settings with encryption availability set from the live safeStorage check, suitable for
+ * sending to the renderer. Tokens are never included.
  */
 const getSettingsForRenderer = async (): Promise<SettingsData> => {
   const settings = await getSettings();
 
-  const enrichedModels = await Promise.all(
-    settings.mlModels.map(async (model) => ({
-      ...model,
-      hasToken: await checkHasToken(model.id),
-    })),
-  );
-
-  return {
-    ...settings,
-    mlModels: enrichedModels,
-    isTokenEncryptionAvailable: isEncryptionAvailable(),
-  };
+  return { ...settings, isTokenEncryptionAvailable: isEncryptionAvailable() };
 };
 
 export { getSettings, getSettingsForRenderer, initSentry, setSentryEnabled, updateSettings };

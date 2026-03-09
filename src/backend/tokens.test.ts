@@ -42,8 +42,7 @@ vi.mock("electron", () => ({
   },
 }));
 
-const { deleteToken, getToken, hasToken, isEncryptionAvailable, saveToken } =
-  await import("./tokens");
+const { deleteToken, getToken, isEncryptionAvailable, saveToken } = await import("./tokens");
 
 describe("tokens", () => {
   beforeEach(() => {
@@ -220,55 +219,23 @@ describe("tokens", () => {
     });
   });
 
-  describe(hasToken, () => {
-    it("returns true when a token exists for the model ID", async () => {
-      const store = {
-        tokens: { "model-1": { value: "token", encrypted: false } },
-      };
-      mockExistsSync.mockReturnValue(true);
-      mockReadFile.mockResolvedValue(JSON.stringify(store));
-
-      const result = await hasToken("model-1");
-
-      expect(result).toBe(true);
-    });
-
-    it("returns false when no token exists for the model ID", async () => {
-      const store = { tokens: {} };
-      mockExistsSync.mockReturnValue(true);
-      mockReadFile.mockResolvedValue(JSON.stringify(store));
-
-      const result = await hasToken("model-1");
-
-      expect(result).toBe(false);
-    });
-
-    it("returns false when the tokens file does not exist", async () => {
-      mockExistsSync.mockReturnValue(false);
-
-      const result = await hasToken("model-1");
-
-      expect(result).toBe(false);
-    });
-  });
-
   describe("readTokenStore", () => {
     it("returns an empty store when the file contains invalid JSON", async () => {
       mockExistsSync.mockReturnValue(true);
       mockReadFile.mockResolvedValue("not valid json {{{");
 
-      const result = await hasToken("model-1");
+      const result = await getToken("model-1");
 
-      expect(result).toBe(false);
+      expect(result).toBeNull();
     });
 
     it("returns an empty store when reading the file throws an error", async () => {
       mockExistsSync.mockReturnValue(true);
       mockReadFile.mockRejectedValue(new Error("Permission denied"));
 
-      const result = await hasToken("model-1");
+      const result = await getToken("model-1");
 
-      expect(result).toBe(false);
+      expect(result).toBeNull();
     });
   });
 });

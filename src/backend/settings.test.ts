@@ -26,11 +26,9 @@ vi.mock("node:fs", () => ({
   },
 }));
 
-const mockHasToken = vi.fn<(modelId: string) => Promise<boolean>>(() => Promise.resolve(false));
 const mockIsEncryptionAvailable = vi.fn<() => boolean>(() => true);
 
 vi.mock("@/backend/tokens", () => ({
-  hasToken: (modelId: string) => mockHasToken(modelId),
   isEncryptionAvailable: () => mockIsEncryptionAvailable(),
 }));
 
@@ -182,28 +180,6 @@ describe("settings", () => {
   });
 
   describe(getSettingsForRenderer, () => {
-    it("enriches models with hasToken from the token store", async () => {
-      const savedSettings: SettingsData = {
-        version: "v1",
-        themeMode: "dark",
-        telemetry: "disabled",
-        mlModels: [
-          { id: "model-1", name: "Model A", endpoint: "https://a.com", hasToken: false },
-          { id: "model-2", name: "Model B", endpoint: "https://b.com", hasToken: false },
-        ],
-        selectedModelId: null,
-        isTokenEncryptionAvailable: true,
-      };
-      mockExistsSync.mockReturnValue(true);
-      mockReadFile.mockResolvedValue(JSON.stringify(savedSettings));
-      mockHasToken.mockImplementation((modelId: string) => Promise.resolve(modelId === "model-1"));
-
-      const result = await getSettingsForRenderer();
-
-      expect(result.mlModels[0].hasToken).toBe(true);
-      expect(result.mlModels[1].hasToken).toBe(false);
-    });
-
     it("includes isTokenEncryptionAvailable from safeStorage", async () => {
       mockExistsSync.mockReturnValue(false);
       mockIsEncryptionAvailable.mockReturnValue(false);

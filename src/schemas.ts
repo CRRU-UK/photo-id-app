@@ -16,14 +16,13 @@ export const mlModelSchema = z.object({
   id: z.string(),
   name: z.string().nonempty("Name is required"),
   endpoint: z.string().nonempty("Endpoint is required"),
-  hasToken: z.boolean().default(false),
 });
 
 export const mlModelDraftSchema = z.object({
   id: z.string().optional(),
   name: z.string().nonempty("Name is required"),
   endpoint: z.string().nonempty("Endpoint is required"),
-  token: z.string().nonempty("Token is required"),
+  token: z.string().optional(),
 });
 
 export const tokenEntrySchema = z.object({
