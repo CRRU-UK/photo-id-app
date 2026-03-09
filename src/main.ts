@@ -51,7 +51,7 @@ import {
   ROUTES,
 } from "@/constants";
 import { encodeEditPayload } from "@/helpers";
-import { settingsDataSchema } from "@/schemas";
+import { photoBodySchema, settingsDataSchema } from "@/schemas";
 
 import { version } from "../package.json";
 
@@ -430,15 +430,15 @@ app.whenReady().then(async () => {
   ipcMain.handle(
     IPC_EVENTS.UPDATE_SETTINGS,
     async (_event, settings: SettingsData): Promise<void> => {
-      const data = settingsDataSchema.parse(settings);
+      const validatedSettings = settingsDataSchema.parse(settings);
 
-      await updateSettings(data);
-      setSentryEnabled(data.telemetry);
+      await updateSettings(validatedSettings);
+      setSentryEnabled(validatedSettings.telemetry);
 
       // Notify all windows of settings change
       const allWindows = BrowserWindow.getAllWindows();
       for (const window of allWindows) {
-        window.webContents.send(IPC_EVENTS.SETTINGS_UPDATED, data);
+        window.webContents.send(IPC_EVENTS.SETTINGS_UPDATED, validatedSettings);
       }
     },
   );
@@ -455,6 +455,8 @@ app.whenReady().then(async () => {
   ipcMain.handle(
     IPC_EVENTS.ANALYSE_STACK,
     async (_event, photos: PhotoBody[]): Promise<MLMatchResponse | null> => {
+      const validatedPhotos = photos.map((photo) => photoBodySchema.parse(photo));
+
       const settings = await getSettings();
 
       const selectedModel = settings.mlModels.find(
@@ -465,7 +467,7 @@ app.whenReady().then(async () => {
         throw new Error("Machine Learning integration is not configured.");
       }
 
-      return analyseStack({ photos, settings: selectedModel });
+      return analyseStack({ photos: validatedPhotos, settings: selectedModel });
     },
   );
 
