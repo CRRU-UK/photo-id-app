@@ -246,7 +246,7 @@ app.whenReady().then(async () => {
   });
 
   if (!production) {
-    installExtension([REACT_DEVELOPER_TOOLS, MOBX_DEVTOOLS]);
+    await installExtension([REACT_DEVELOPER_TOOLS, MOBX_DEVTOOLS]);
   }
 
   ipcMain.on(IPC_EVENTS.OPEN_FOLDER, async (event) => {
