@@ -72,6 +72,16 @@ export const PROJECT_KEYBOARD_HINTS = {
   CLOSE_PROJECT: "Mod+W",
 };
 
+export const PROJECT_TOOLTIPS = {
+  EDIT_PHOTO: "Edit photo",
+  PREVIOUS_PHOTO: "Previous photo",
+  NEXT_PHOTO: "Next photo",
+  MORE_OPTIONS: "More options",
+  REVERT_PHOTO: "Revert to original",
+  REVERTING_PHOTO: "Reverting...",
+  ANALYSE_PHOTOS: "Analyse photos",
+};
+
 export const EDITOR_TOOLTIPS = {
   ENABLE_EDGE_DETECTION: "Enable edge detection",
   DISABLE_EDGE_DETECTION: "Disable edge detection",
@@ -226,6 +236,7 @@ export const EDGE_DETECTION = {
 };
 
 export const DEFAULT_SETTINGS = {
+  version: "v1" as const,
   themeMode: "dark" as const,
   telemetry: "disabled" as const,
   mlModels: [] as MLModel[],
