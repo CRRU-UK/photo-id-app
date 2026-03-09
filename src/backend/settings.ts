@@ -75,8 +75,9 @@ const setSentryEnabled = (telemetry: Telemetry): void => {
 };
 
 /**
- * Gets settings with encryption availability set from the live safeStorage check, suitable for
- * sending to the renderer. Tokens are never included.
+ * Gets settings suitable for sending to the renderer. Overrides `isTokenEncryptionAvailable` with
+ * the live `safeStorage` result — the value on disk is a schema placeholder and should not be
+ * trusted. Tokens are never included.
  */
 const getSettingsForRenderer = async (): Promise<SettingsData> => {
   const settings = await getSettings();
