@@ -2,18 +2,16 @@
   "compilerOptions": {
     "target": "ESNext",
     "module": "esnext",
+    "strict": true,
     "jsx": "react-jsx",
-    "allowJs": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
-    "noImplicitAny": true,
     "sourceMap": true,
     "baseUrl": ".",
     "outDir": "dist",
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "incremental": true,
-    "strictNullChecks": true,
     "paths": {
       "@/*": ["src/*"]
     },
