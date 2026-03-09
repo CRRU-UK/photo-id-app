@@ -22,6 +22,13 @@ Technical information, specifications, requirements, and user journeys.
 - AnalysisContext flow: `AnalysisProvider` wraps only the project route (project page). The context is consumed by **Sidebar** (model selection), **Stack** (the “Analyse” action that triggers analysis), and **AnalysisOverlay** (loading state, results table, and errors). Analysis state and the overlay are thus shared across these components via context rather than props.
 - SAVE_PROJECT IPC: The `SAVE_PROJECT` handler receives a **pre-serialized JSON string** (not a typed object). The renderer calls `project.save()`, which serializes the project to JSON and sends that string over IPC. The main process validates the payload and writes it to disk using the current project directory. This differs from other IPC handlers that receive typed payloads.
 - Platform-specific file association: Opening a `.photoid` file from the OS uses **macOS**: the `open-file` app event (may fire before `whenReady`). **Windows/Linux**: `second-instance` and the process `argv` (the path is passed as an argument). The app handles both so that double-clicking a `.photoid` opens that project.
+- **Settings storage**: Settings are stored in the app user data directory (per user) as a JSON file, validated on read with `settingsDataSchema` in `src/schemas.ts`. Invalid or missing data causes a silent fallback to defaults.
+
+## Security
+
+- **photo:// protocol**: The custom protocol serves only files whose extension is in `PHOTO_FILE_EXTENSIONS` (allowed image types). Other paths return 403. Files are served from the project directory; the renderer never receives raw filesystem paths for image `src` (use `photo://` URLs only, not `file://`).
+- **External links**: The renderer calls `openExternalLink(link)` with an enum value (`ExternalLinks`); the main process maps it to a URL from `EXTERNAL_LINKS`. No arbitrary URLs can be opened from the renderer.
+- **Renderer isolation**: The renderer has no Node.js or `require` access; it only sees `window.electronAPI` as exposed by the preload script. All file I/O and system access happen in the main process.
 
 ## Repository Structure
 
@@ -50,7 +57,10 @@ Technical information, specifications, requirements, and user journeys.
   - `Project.ts` — Project model
   - `Photo.ts` — Photo model
   - `Collection.ts` — Collection (stack) model
-- `src/contexts/` — React Context providers (e.g. ProjectContext, SettingsContext)
+- `src/contexts/` — React Context providers:
+  - **ProjectContext** — Holds the current open project (MobX Project instance or null). Subscribes to `onLoadProject` IPC; when a project is loaded, sets the project and triggers navigation to the project route.
+  - **SettingsContext** — App settings (theme, telemetry, ML models). Fetches via `getSettings` and subscribes to `onSettingsUpdated` IPC so all windows receive live updates when settings change.
+  - **AnalysisContext** — ML analysis state (selected model, analysis in progress, results, errors). Shared between Sidebar (model selection), Stack (Analyse button), and AnalysisOverlay (loading state, results table). Wraps only the project route.
 - `docs/` — User and technical documentation
 - Tests: `*.test.ts` files co-located with source files
 - Configuration: `tsconfig.json`, `vite.*.mts`, `forge.config.ts`, `vitest.config.ts`

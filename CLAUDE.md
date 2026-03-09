@@ -5,6 +5,12 @@
 - ALWAYS read `ARCHITECTURE.md` for specifications and requirements of user journeys and flows.
 - ALWAYS read `docs/` as it contains user-facing documentation and should be kept in sync with any changes, as well as providing further context.
 
+## Architecture overview
+
+- **Main / preload / renderer**: Main process (`src/main.ts`) owns windows and IPC handlers; preload (`src/preload.ts`) exposes `window.electronAPI`; renderer is React + TanStack Router. All file I/O and project persistence happen on the main side.
+- **State management**: MobX with `mobx-react-lite`. Models (Project, Photo, Collection in `src/models/`) use `makeObservable` with `observable`, `action`, and `computed`. React components that read from these models use `observer()` to subscribe. Contexts (`src/contexts/`) wrap providers (e.g. ProjectContext, SettingsContext) for cross-component state.
+- **IPC**: Event names from `IPC_EVENTS` in `src/constants.ts`. Invocations use `invoke`/`send`; main-to-renderer updates use listeners that return unsubscribe functions (see subscribeIpc pattern below).
+
 ## Build / dev / test
 
 ### Required Before Each Commit
@@ -47,7 +53,9 @@
 - IPC naming is explicit. Prefer using the `IPC_EVENTS` enum from `src/constants.ts` instead of raw strings.
 - File operations and project persistence happen on the main side (`src/backend/*.ts`). Frontend should call preload helpers and assume I/O is async.
 - State management uses MobX: project data lives in observable models (`src/models/`). Any React component that reads from Project, Collection, or Photo (e.g. via ProjectContext) should be wrapped with `observer()` from `mobx-react-lite` so it re-renders when those observables change.
-- Edit-window lifecycle: when navigating editor photos, the renderer calls `window.electronAPI.navigateEditorPhoto(data, direction)` which returns a base64-encoded JSON string that the edit route sets back into its query param.
+- **subscribeIpc pattern**: IPC listeners (e.g. `onLoadProject`, `onSettingsUpdated`, `onOpenSettings`) are implemented in preload via `subscribeIpc`: they return an **unsubscribe function**. The renderer must call that unsubscribe in a `useEffect` cleanup so listeners are removed when the component unmounts; otherwise you get duplicate handlers and setState-on-unmounted warnings. Example: `useEffect(() => { const unsub = window.electronAPI.onLoadProject(callback); return unsub; }, [])`.
+- **Edit window data flow**: Edit windows receive photo data via the URL query. The main process encodes `PhotoBody` with `encodeEditPayload` (JSON stringify then **base64 encode**) and opens the window with `?data=<base64>`. The edit route reads the query, decodes with `decodeEditPayload` (base64 → JSON → Zod parse). Navigating between photos uses `navigateEditorPhoto`, which returns a new base64 payload that the route sets back into the query. The base64 step is required so the payload can live in the URL without breaking parsing.
+- **photo:// protocol**: All image `src` attributes in the renderer must use the custom `photo://` protocol (`PHOTO_PROTOCOL_SCHEME` in `src/constants.ts`), not `file://`. The main process registers a protocol handler that serves files from the project directory and validates file extensions. Use helpers that build photo:// URLs (e.g. `thumbnailFullPath` on Photo) so paths are safe and consistent.
 - Thumbnails are stored next to the project: see `PROJECT_THUMBNAIL_DIRECTORY` in `src/constants.ts`.
 - Avoid editing generated files: `src/routeTree.gen.ts` and other generator outputs.
 
@@ -79,6 +87,7 @@ When unsure, look at these files first
 - The app is often run on machines with limited hardware. Be conservative with memory and avoid loading many full-resolution images into memory at once.
 - Favour streaming, thumbnails (`src/backend/photos.ts`), and on-disk edits over keeping large buffers in renderer memory. Use the backend helpers for file I/O and image processing (`@napi-rs/canvas`).
 - In React, avoid retaining large binary blobs in state across long sessions; prefer references to on-disk filenames and load File/ArrayBuffer only when needed (see `src/routes/edit.tsx` and `src/frontend/hooks/usePhotoEditor.ts`).
+- **Settings schema**: `getSettings()` validates the file with `settingsDataSchema`; invalid or missing data falls back to defaults.
 
 ## Key Guidelines
 
