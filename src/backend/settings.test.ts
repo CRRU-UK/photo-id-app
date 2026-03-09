@@ -197,6 +197,24 @@ describe("settings", () => {
 
       expect(result.isTokenEncryptionAvailable).toBe(true);
     });
+
+    it("overrides a stale false value on disk when encryption is available", async () => {
+      const savedSettings: SettingsData = {
+        version: "v1",
+        themeMode: "dark",
+        telemetry: "disabled",
+        mlModels: [],
+        selectedModelId: null,
+        isTokenEncryptionAvailable: false,
+      };
+      mockExistsSync.mockReturnValue(true);
+      mockReadFile.mockResolvedValue(JSON.stringify(savedSettings));
+      mockIsEncryptionAvailable.mockReturnValue(true);
+
+      const result = await getSettingsForRenderer();
+
+      expect(result.isTokenEncryptionAvailable).toBe(true);
+    });
   });
 
   describe(updateSettings, () => {
