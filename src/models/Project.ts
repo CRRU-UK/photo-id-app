@@ -130,7 +130,7 @@ class Project {
     this.lastModified = new Date();
 
     const data = this.returnAsJSONString();
-    window.electronAPI.saveProject(data);
+    void window.electronAPI.saveProject(data);
   }
 
   public addPhotoToStack(from: Collection, to: Collection, photo: Photo): this {

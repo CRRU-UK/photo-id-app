@@ -57,7 +57,7 @@ const initSentry = (): void => {
     enabled: false,
     integrations: [Sentry.consoleLoggingIntegration({ levels: ["log", "warn", "error"] })],
     enableRendererProfiling: true,
-    _experiments: { enableLogs: true },
+    enableLogs: true,
   });
 };
 

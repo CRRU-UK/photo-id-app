@@ -7,7 +7,7 @@ import { defineConfig, globalIgnores } from "eslint/config";
 import globals from "globals";
 import tseslint from "typescript-eslint";
 
-const ignores = globalIgnores(["**/*.gen.ts"]);
+const ignores = globalIgnores(["**/*.gen.ts", "eslint.config.mjs"]);
 
 const recommendedConfigs = [
   eslint.configs.recommended,
@@ -30,7 +30,6 @@ const recommendedConfigs = [
           checksVoidReturn: false,
         },
       ],
-      "@typescript-eslint/no-floating-promises": "off",
     },
   },
   {
@@ -40,9 +39,9 @@ const recommendedConfigs = [
     },
     rules: {
       ...vitest.configs.all.rules,
-      "vitest/prefer-expect-assertions": ["off"],
       "vitest/no-hooks": ["off"],
       "vitest/prefer-import-in-mock": ["off"],
+      "vitest/prefer-expect-assertions": ["off"],
     },
     settings: {
       vitest: {

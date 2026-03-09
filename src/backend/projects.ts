@@ -61,7 +61,7 @@ const sendData = (mainWindow: Electron.BrowserWindow, data: ProjectBody) => {
   mainWindow.webContents.send(IPC_EVENTS.LOAD_PROJECT, data);
   mainWindow.focus();
 
-  addRecentProject({
+  void addRecentProject({
     name: path.basename(data.directory),
     path: path.join(data.directory, PROJECT_FILE_NAME),
   });
@@ -305,9 +305,15 @@ const handleExportMatches = async (
   const exportsDirectory = path.join(directory, PROJECT_EXPORT_DIRECTORY);
 
   if (fs.existsSync(exportsDirectory)) {
-    // Empty exports folder
+    // Empty exports folder; per-file try/catch so one locked or permission-denied file does not abort export
     for (const file of await fs.promises.readdir(exportsDirectory)) {
-      await fs.promises.unlink(path.join(exportsDirectory, file));
+      const filePath = path.join(exportsDirectory, file);
+
+      try {
+        await fs.promises.unlink(filePath);
+      } catch (error) {
+        console.warn("Could not remove existing export file during cleanup:", filePath, error);
+      }
     }
   } else {
     await fs.promises.mkdir(exportsDirectory);

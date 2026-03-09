@@ -79,7 +79,7 @@ const EditPage = () => {
       }
     }
 
-    fetchData(queryValue);
+    void fetchData(queryValue);
   }, [query]);
 
   const handleImageLoaded = useCallback(() => {

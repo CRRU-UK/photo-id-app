@@ -39,7 +39,7 @@ const Sidebar = observer(() => {
   const handleCloseProject = useCallback(() => {
     setProject(null);
     window.electronAPI.closeProject();
-    navigate({ to: ROUTES.INDEX });
+    void navigate({ to: ROUTES.INDEX });
   }, [navigate, setProject]);
 
   if (project === null) {

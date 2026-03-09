@@ -60,7 +60,7 @@ const ProjectPage = observer(() => {
 
   useEffect(() => {
     if (project === null) {
-      navigate({ to: ROUTES.INDEX });
+      void navigate({ to: ROUTES.INDEX });
     }
   }, [project, navigate]);
 

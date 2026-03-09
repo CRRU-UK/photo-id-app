@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from "react";
 
+import { ROUTES } from "@/constants";
 import { isEditWindow } from "@/helpers";
 import ProjectModel from "@/models/Project";
 import type { ProjectBody } from "@/types";
@@ -68,7 +69,7 @@ export const ProjectProvider = ({ children }: ProjectProviderProps) => {
   useEffect(() => {
     if (project !== null && pendingNavigateToProjectRef.current) {
       pendingNavigateToProjectRef.current = false;
-      navigate({ to: "/project" });
+      void navigate({ to: ROUTES.PROJECT });
     }
   }, [project, navigate]);
 

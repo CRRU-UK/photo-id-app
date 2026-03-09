@@ -26,7 +26,7 @@ const RecentProjects = () => {
       }
     }
 
-    getRecentProjects();
+    void getRecentProjects();
 
     return () => {
       isCancelled = true;
