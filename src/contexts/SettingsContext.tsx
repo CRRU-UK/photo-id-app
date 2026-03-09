@@ -130,7 +130,7 @@ export const SettingsProvider = ({ children }: SettingsProviderProps) => {
       }
     };
 
-    loadSettings();
+    void loadSettings();
 
     const unsubscribe = window.electronAPI.onSettingsUpdated((updatedSettings: SettingsData) => {
       setSettings(updatedSettings);

@@ -42,14 +42,14 @@ const getMenu = (mainWindow: BrowserWindow) => {
           label: "Open Project Folder",
           accelerator: "CmdOrCtrl+O",
           click() {
-            handleOpenDirectoryPrompt(mainWindow);
+            void handleOpenDirectoryPrompt(mainWindow);
           },
         },
         {
           label: "Open Project File",
           accelerator: "CmdOrCtrl+Shift+O",
           click() {
-            handleOpenFilePrompt(mainWindow);
+            void handleOpenFilePrompt(mainWindow);
           },
         },
         ...(!isMac

@@ -61,7 +61,7 @@ const sendData = (mainWindow: Electron.BrowserWindow, data: ProjectBody) => {
   mainWindow.webContents.send(IPC_EVENTS.LOAD_PROJECT, data);
   mainWindow.focus();
 
-  addRecentProject({
+  void addRecentProject({
     name: path.basename(data.directory),
     path: path.join(data.directory, PROJECT_FILE_NAME),
   });

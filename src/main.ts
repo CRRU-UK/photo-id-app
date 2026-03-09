@@ -225,7 +225,7 @@ app.on("activate", async () => {
   }
 });
 
-app.whenReady().then(async () => {
+void app.whenReady().then(async () => {
   const settings = await getSettings();
   setSentryEnabled(settings.telemetry);
 
@@ -345,9 +345,11 @@ app.whenReady().then(async () => {
     const encodedQuery = encodeURIComponent(encodedData);
 
     if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
-      editWindow.loadURL(`${MAIN_WINDOW_VITE_DEV_SERVER_URL}?data=${encodedQuery}#${ROUTES.EDIT}`);
+      void editWindow.loadURL(
+        `${MAIN_WINDOW_VITE_DEV_SERVER_URL}?data=${encodedQuery}#${ROUTES.EDIT}`,
+      );
     } else {
-      editWindow.loadURL(
+      void editWindow.loadURL(
         url.format({
           protocol: "file",
           slashes: true,
@@ -378,7 +380,7 @@ app.whenReady().then(async () => {
 
     const directory = await handleExportMatches(window, data);
 
-    shell.openPath(path.join(directory, PROJECT_EXPORT_DIRECTORY));
+    void shell.openPath(path.join(directory, PROJECT_EXPORT_DIRECTORY));
   });
 
   ipcMain.handle(IPC_EVENTS.SAVE_PHOTO_FILE, async (event, data: PhotoBody): Promise<void> => {

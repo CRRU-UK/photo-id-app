@@ -69,7 +69,7 @@ export const ProjectProvider = ({ children }: ProjectProviderProps) => {
   useEffect(() => {
     if (project !== null && pendingNavigateToProjectRef.current) {
       pendingNavigateToProjectRef.current = false;
-      navigate({ to: ROUTES.PROJECT });
+      void navigate({ to: ROUTES.PROJECT });
     }
   }, [project, navigate]);
 
