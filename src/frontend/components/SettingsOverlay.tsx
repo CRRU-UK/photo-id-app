@@ -1,5 +1,5 @@
 import type { RefObject } from "react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { AiModelIcon, GearIcon, PlusIcon, TrashIcon } from "@primer/octicons-react";
 import { Button, Dialog, FormControl, IconButton, Link, Select, Stack, Text } from "@primer/react";
@@ -58,60 +58,69 @@ const SettingsOverlay = ({ open, onClose, onOpenRequest, returnFocusRef }: Setti
     }
   }, [open]);
 
-  const handleThemeModeChange = async (value: string) => {
-    if (!contextSettings) {
-      return;
-    }
+  const handleThemeModeChange = useCallback(
+    async (value: string) => {
+      if (!contextSettings) {
+        return;
+      }
 
-    setIsLoading(true);
+      setIsLoading(true);
 
-    try {
-      await updateSettings({
-        ...contextSettings,
-        themeMode: value as ThemeMode,
-      });
-    } catch (error) {
-      console.error("Error saving settings:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      try {
+        await updateSettings({
+          ...contextSettings,
+          themeMode: value as ThemeMode,
+        });
+      } catch (error) {
+        console.error("Error saving settings:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [contextSettings, updateSettings],
+  );
 
-  const handleTelemetryChange = async (value: string) => {
-    if (!contextSettings) {
-      return;
-    }
+  const handleTelemetryChange = useCallback(
+    async (value: string) => {
+      if (!contextSettings) {
+        return;
+      }
 
-    setIsLoading(true);
+      setIsLoading(true);
 
-    try {
-      await updateSettings({
-        ...contextSettings,
-        telemetry: value as Telemetry,
-      });
-    } catch (error) {
-      console.error("Error saving settings:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      try {
+        await updateSettings({
+          ...contextSettings,
+          telemetry: value as Telemetry,
+        });
+      } catch (error) {
+        console.error("Error saving settings:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [contextSettings, updateSettings],
+  );
 
-  const handleDeleteModel = async (model: MLModel) => {
-    if (!contextSettings) {
-      return;
-    }
+  const handleDeleteModel = useCallback(
+    async (model: MLModel) => {
+      if (!contextSettings) {
+        return;
+      }
 
-    try {
-      await updateSettings({
-        ...contextSettings,
-        mlModels: contextSettings.mlModels.filter((m) => m.id !== model.id),
-        selectedModelId:
-          contextSettings.selectedModelId === model.id ? null : contextSettings.selectedModelId,
-      });
-    } catch (error) {
-      console.error("Error deleting model:", error);
-    }
-  };
+      try {
+        await updateSettings({
+          ...contextSettings,
+          mlModels: contextSettings.mlModels.filter((item) => item.id !== model.id),
+          selectedModelId:
+            contextSettings.selectedModelId === model.id ? null : contextSettings.selectedModelId,
+        });
+      } catch (error) {
+        console.error("Error deleting model:", error);
+      }
+    },
+    [contextSettings, updateSettings],
+  );
 
   if (!open) {
     return null;
