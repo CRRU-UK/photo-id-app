@@ -56,7 +56,7 @@ Users can use this data to cross-check the animal with their catalogues, and if 
 
 API tokens are encrypted and decrypted using your operating system's secure storage:
 
-- **Windows:** [DPAPI](https://support.apple.com/en-ca/guide/keychain-access/kyca1083/mac)
+- **Windows:** [DPAPI](https://learn.microsoft.com/en-us/windows/win32/api/dpapi/nf-dpapi-cryptprotectdata)
 - **macOS:** [Keychain Access](https://support.apple.com/en-ca/guide/keychain-access/kyca1083/mac)
 - **Linux:** Various ([more information](https://www.electronjs.org/docs/latest/api/safe-storage))
 

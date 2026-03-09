@@ -35,8 +35,8 @@ const ModelOverlay = ({ open, onClose, editingModel }: ModelOverlayProps) => {
   const isEditing = !!editingModel;
   const tokenLocked = isEditing && !isEditingToken;
   const fieldsValid = tokenLocked
-    ? draft.name.trim() && draft.endpoint.trim()
-    : draft.name.trim() && draft.endpoint.trim() && draft.token.trim();
+    ? Boolean(draft.name.trim() && draft.endpoint.trim())
+    : Boolean(draft.name.trim() && draft.endpoint.trim() && draft.token.trim());
 
   useEffect(() => {
     if (open) {
