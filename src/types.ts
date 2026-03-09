@@ -65,7 +65,13 @@ export type LoadingData = {
 
 export type EditorNavigation = "prev" | "next";
 
-export type ExternalLinks = "website" | "user-guide" | "user-guide-ml" | "changelog" | "privacy";
+export type ExternalLinks =
+  | "website"
+  | "user-guide"
+  | "user-guide-ml"
+  | "user-guide-ml-tokens"
+  | "changelog"
+  | "privacy";
 
 export type EdgeDetectionData = { enabled: false } | { enabled: true; value: number };
 

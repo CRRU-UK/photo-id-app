@@ -119,9 +119,7 @@ const ModelOverlay = ({ open, onClose, editingModel }: ModelOverlayProps) => {
             }
             block
           />
-          <FormControl.Caption>
-            API token used for bearer authorization. Tokens cannot be retrieved after saving.
-          </FormControl.Caption>
+          <FormControl.Caption>Tokens cannot be viewed after saving.</FormControl.Caption>
         </FormControl>
       </Stack>
     </Dialog>

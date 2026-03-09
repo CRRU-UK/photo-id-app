@@ -10,9 +10,9 @@ import {
   TrashIcon,
 } from "@primer/octicons-react";
 import {
+  Banner,
   Button,
   Dialog,
-  Flash,
   FormControl,
   IconButton,
   Link,
@@ -218,11 +218,21 @@ const SettingsOverlay = ({ open, onClose, onOpenRequest, returnFocusRef }: Setti
             <UnderlinePanels.Panel>
               <Stack direction="vertical" gap="none" padding="spacious">
                 {contextSettings.isTokenEncryptionAvailable === false && (
-                  <Flash variant="warning" style={{ marginBottom: "12px" }}>
-                    <AlertIcon />
-                    Secure storage is not available on this machine. API tokens will be stored
-                    without encryption.
-                  </Flash>
+                  <Banner
+                    title="Warning"
+                    description="Secure storage is not available on this machine."
+                    leadingVisual={<AlertIcon size="small" />}
+                    primaryAction={
+                      <Banner.PrimaryAction
+                        onClick={() => window.electronAPI.openExternalLink("user-guide-ml-tokens")}
+                      >
+                        View Details
+                      </Banner.PrimaryAction>
+                    }
+                    variant="warning"
+                    hideTitle
+                    style={{ marginBottom: "var(--stack-gap-spacious)" }}
+                  />
                 )}
 
                 <div style={{ display: "flex", justifyContent: "flex-end", paddingBottom: "12px" }}>

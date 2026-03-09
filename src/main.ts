@@ -560,6 +560,10 @@ void app.whenReady().then(async () => {
       return shell.openExternal(EXTERNAL_LINKS.USER_GUIDE_ML);
     }
 
+    if (link === "user-guide-ml-tokens") {
+      return shell.openExternal(EXTERNAL_LINKS.USER_GUIDE_ML_TOKENS);
+    }
+
     if (link === "privacy") {
       return shell.openExternal(EXTERNAL_LINKS.PRIVACY);
     }
