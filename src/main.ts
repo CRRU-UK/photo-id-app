@@ -51,6 +51,7 @@ import {
   ROUTES,
 } from "@/constants";
 import { encodeEditPayload } from "@/helpers";
+import { settingsDataSchema } from "@/schemas";
 
 import { version } from "../package.json";
 
@@ -429,14 +430,15 @@ app.whenReady().then(async () => {
   ipcMain.handle(
     IPC_EVENTS.UPDATE_SETTINGS,
     async (_event, settings: SettingsData): Promise<void> => {
-      await updateSettings(settings);
+      const data = settingsDataSchema.parse(settings);
 
-      setSentryEnabled(settings.telemetry);
+      await updateSettings(data);
+      setSentryEnabled(data.telemetry);
 
       // Notify all windows of settings change
       const allWindows = BrowserWindow.getAllWindows();
       for (const window of allWindows) {
-        window.webContents.send(IPC_EVENTS.SETTINGS_UPDATED, settings);
+        window.webContents.send(IPC_EVENTS.SETTINGS_UPDATED, data);
       }
     },
   );
