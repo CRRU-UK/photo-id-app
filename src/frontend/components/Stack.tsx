@@ -187,14 +187,14 @@ const Stack = observer(({ collection, showAnalysisButton = true, stackLabel }: S
           <IconButton
             icon={ChevronLeftIcon}
             size="small"
-            aria-label=""
+            aria-label="Previous photo"
             onClick={handlePrev}
             disabled={collection.photos.size <= 1}
           />
           <IconButton
             icon={ChevronRightIcon}
             size="small"
-            aria-label=""
+            aria-label="Next photo"
             onClick={handleNext}
             disabled={collection.photos.size <= 1}
           />
