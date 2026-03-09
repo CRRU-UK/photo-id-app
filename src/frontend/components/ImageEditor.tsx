@@ -140,13 +140,19 @@ const ImageEditor = ({ data, image, setQueryCallback, onImageLoaded }: ImageEdit
       handlers.handlePointerMove(event);
       handlers.handleLoupeMove(event);
     },
-    [handlers],
+    // Intentionally list specific handler refs so this callback only updates when they change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [handlers.handlePointerMove, handlers.handleLoupeMove],
   );
 
-  const handleCanvasPointerLeave = useCallback(() => {
-    handlers.handlePointerUp();
-    handlers.handleLoupeLeave();
-  }, [handlers]);
+  const handleCanvasPointerLeave = useCallback(
+    () => {
+      handlers.handlePointerUp();
+      handlers.handleLoupeLeave();
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- specific handler refs for tighter deps
+    [handlers.handlePointerUp, handlers.handleLoupeLeave],
+  );
 
   const handleToggleLoupe = useCallback(() => {
     setLoupeEnabled((prev) => {
@@ -156,7 +162,8 @@ const ImageEditor = ({ data, image, setQueryCallback, onImageLoaded }: ImageEdit
 
       return !prev;
     });
-  }, [handlers]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- specific handler ref for tighter deps
+  }, [handlers.handleLoupeLeave]);
 
   const [edgeDetectionEnabled, setEdgeDetectionEnabled] = useState<boolean>(false);
   const edgeDetectionValueRef = useRef<number>(EDGE_DETECTION.DEFAULT);
@@ -271,7 +278,8 @@ const ImageEditor = ({ data, image, setQueryCallback, onImageLoaded }: ImageEdit
 
       handlers.handlePan({ x: deltaX, y: deltaY });
     },
-    [refs, handlers],
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- specific refs/handler for tighter deps
+    [refs.canvasRef, refs.imageRef, handlers.handlePan],
   );
 
   const handleKeyDown = useCallback(
@@ -336,6 +344,7 @@ const ImageEditor = ({ data, image, setQueryCallback, onImageLoaded }: ImageEdit
         return handlers.handleZoomIn();
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- specific handler refs for tighter deps
     [
       handlePanDirection,
       handleEditorNavigation,
@@ -343,7 +352,8 @@ const ImageEditor = ({ data, image, setQueryCallback, onImageLoaded }: ImageEdit
       handleToggleEdgeDetection,
       handleReset,
       handleSave,
-      handlers,
+      handlers.handleZoomOut,
+      handlers.handleZoomIn,
     ],
   );
 
