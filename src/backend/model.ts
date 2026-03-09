@@ -44,6 +44,9 @@ const analyseStack = async ({
   try {
     const formData = new FormData();
 
+    // All photo blobs are held in memory in FormData until the request body is sent. This is a
+    // deliberate trade-off for simplicity; for large stacks memory usage can be high. A pipeline
+    // (streaming multipart) would require API support and a more complex implementation.
     for (const photo of photos) {
       if (abortController.signal.aborted) {
         return null;
