@@ -130,58 +130,33 @@ const ImageEditor = ({ data, image, setQueryCallback, onImageLoaded }: ImageEdit
     saturate: edits.saturate,
   });
 
-  const {
-    canvasRef,
-    imageRef,
-    imageLoaded,
-    draw,
-    setBrightness,
-    setContrast,
-    setSaturate,
-    setEdgeDetection,
-    getFilters,
-    getTransform,
-    handleZoomIn,
-    handleZoomOut,
-    handlePointerDown,
-    handlePointerUp,
-    handlePointerMove,
-    handleWheel,
-    handlePan,
-    resetAll,
-    applyEdits,
-    resetKey,
-    loupeCanvasRef,
-    loupeContainerRef,
-    handleLoupeMove,
-    handleLoupeLeave,
-  } = useImageEditor({
+  const { refs, state, getters, filters, handlers, actions } = useImageEditor({
     file: image,
     loupeEnabled,
   });
 
   const handleCanvasPointerMove = useCallback(
     (event: React.PointerEvent<HTMLCanvasElement>) => {
-      handlePointerMove(event);
-      handleLoupeMove(event);
+      handlers.handlePointerMove(event);
+      handlers.handleLoupeMove(event);
     },
-    [handlePointerMove, handleLoupeMove],
+    [handlers],
   );
 
   const handleCanvasPointerLeave = useCallback(() => {
-    handlePointerUp();
-    handleLoupeLeave();
-  }, [handlePointerUp, handleLoupeLeave]);
+    handlers.handlePointerUp();
+    handlers.handleLoupeLeave();
+  }, [handlers]);
 
   const handleToggleLoupe = useCallback(() => {
     setLoupeEnabled((prev) => {
       if (prev) {
-        handleLoupeLeave();
+        handlers.handleLoupeLeave();
       }
 
       return !prev;
     });
-  }, [handleLoupeLeave]);
+  }, [handlers]);
 
   const [edgeDetectionEnabled, setEdgeDetectionEnabled] = useState<boolean>(false);
   const edgeDetectionValueRef = useRef<number>(EDGE_DETECTION.DEFAULT);
@@ -191,29 +166,29 @@ const ImageEditor = ({ data, image, setQueryCallback, onImageLoaded }: ImageEdit
     setEdgeDetectionEnabled(newEnabled);
 
     if (newEnabled) {
-      return setEdgeDetection({ enabled: true, value: edgeDetectionValueRef.current });
+      return filters.setEdgeDetection({ enabled: true, value: edgeDetectionValueRef.current });
     }
 
     // When toggling off, just disable it (but keep the value in the ref)
-    return setEdgeDetection({ enabled: false });
-  }, [edgeDetectionEnabled, setEdgeDetection]);
+    return filters.setEdgeDetection({ enabled: false });
+  }, [edgeDetectionEnabled, filters]);
 
   const handleEdgeDetectionValue = useCallback(
     (value: number) => {
       edgeDetectionValueRef.current = value;
-      setEdgeDetection({ enabled: true, value });
+      filters.setEdgeDetection({ enabled: true, value });
     },
-    [setEdgeDetection],
+    [filters],
   );
 
   const resetEdgeDetection = useCallback(() => {
     setEdgeDetectionEnabled(false);
     edgeDetectionValueRef.current = EDGE_DETECTION.DEFAULT;
-    setEdgeDetection({ enabled: false });
-  }, [setEdgeDetection]);
+    filters.setEdgeDetection({ enabled: false });
+  }, [filters]);
 
   const handleReset = useCallback(() => {
-    resetAll();
+    actions.resetAll();
     resetEdgeDetection();
     setLoupeEnabled(false);
     setSliderInitials({
@@ -221,19 +196,19 @@ const ImageEditor = ({ data, image, setQueryCallback, onImageLoaded }: ImageEdit
       contrast: IMAGE_FILTERS.CONTRAST.DEFAULT,
       saturate: IMAGE_FILTERS.SATURATE.DEFAULT,
     });
-  }, [resetAll, resetEdgeDetection]);
+  }, [actions, resetEdgeDetection]);
 
   const handleSave = useCallback(async () => {
     setSaving(true);
 
     try {
-      const filters = getFilters();
-      const transform = getTransform();
+      const currentFilters = getters.getFilters();
+      const transform = getters.getTransform();
 
       const edits = {
-        brightness: filters.brightness,
-        contrast: filters.contrast,
-        saturate: filters.saturate,
+        brightness: currentFilters.brightness,
+        contrast: currentFilters.contrast,
+        saturate: currentFilters.saturate,
         zoom: transform.zoom,
         pan: transform.pan,
       };
@@ -248,7 +223,7 @@ const ImageEditor = ({ data, image, setQueryCallback, onImageLoaded }: ImageEdit
     } finally {
       setSaving(false);
     }
-  }, [data, getFilters, getTransform]);
+  }, [data, getters]);
 
   const handleEditorNavigation = useCallback(
     async (direction: EditorNavigation) => {
@@ -271,8 +246,8 @@ const ImageEditor = ({ data, image, setQueryCallback, onImageLoaded }: ImageEdit
 
   const handlePanDirection = useCallback(
     (direction: EditorPanDirection) => {
-      const canvas = canvasRef.current;
-      const image = imageRef.current;
+      const canvas = refs.canvasRef.current;
+      const image = refs.imageRef.current;
 
       if (!canvas || !image) {
         return;
@@ -294,9 +269,9 @@ const ImageEditor = ({ data, image, setQueryCallback, onImageLoaded }: ImageEdit
         deltaY = -PAN_AMOUNT * scaleY;
       }
 
-      handlePan({ x: deltaX, y: deltaY });
+      handlers.handlePan({ x: deltaX, y: deltaY });
     },
-    [canvasRef, imageRef, handlePan],
+    [refs, handlers],
   );
 
   const handleKeyDown = useCallback(
@@ -353,12 +328,12 @@ const ImageEditor = ({ data, image, setQueryCallback, onImageLoaded }: ImageEdit
 
       if (modifierKey && key === EDITOR_KEYBOARD_CODES.ZOOM_OUT) {
         event.preventDefault();
-        return handleZoomOut();
+        return handlers.handleZoomOut();
       }
 
       if (modifierKey && key === EDITOR_KEYBOARD_CODES.ZOOM_IN) {
         event.preventDefault();
-        return handleZoomIn();
+        return handlers.handleZoomIn();
       }
     },
     [
@@ -368,8 +343,7 @@ const ImageEditor = ({ data, image, setQueryCallback, onImageLoaded }: ImageEdit
       handleToggleEdgeDetection,
       handleReset,
       handleSave,
-      handleZoomOut,
-      handleZoomIn,
+      handlers,
     ],
   );
 
@@ -388,10 +362,10 @@ const ImageEditor = ({ data, image, setQueryCallback, onImageLoaded }: ImageEdit
     const currentPhotoId = `${data.directory}/${data.name}`;
     let frameId: number | undefined;
 
-    if (imageLoaded && loadedPhotoIdRef.current !== currentPhotoId) {
+    if (state.imageLoaded && loadedPhotoIdRef.current !== currentPhotoId) {
       loadedPhotoIdRef.current = currentPhotoId;
 
-      applyEdits(edits);
+      actions.applyEdits(edits);
       setSliderInitials({
         brightness: edits.brightness,
         contrast: edits.contrast,
@@ -401,7 +375,7 @@ const ImageEditor = ({ data, image, setQueryCallback, onImageLoaded }: ImageEdit
       resetEdgeDetection();
       setLoupeEnabled(false);
 
-      draw();
+      actions.draw();
 
       frameId = requestAnimationFrame(() => {
         setNavigating(false);
@@ -417,33 +391,32 @@ const ImageEditor = ({ data, image, setQueryCallback, onImageLoaded }: ImageEdit
   }, [
     data.directory,
     data.name,
-    imageLoaded,
-    applyEdits,
+    state.imageLoaded,
+    actions,
     resetEdgeDetection,
     edits,
-    draw,
     onImageLoaded,
   ]);
 
   useEffect(() => {
-    const canvas = canvasRef.current;
+    const canvas = refs.canvasRef.current;
 
     if (!canvas) {
       return;
     }
 
-    canvas.addEventListener("wheel", handleWheel, { passive: false });
+    canvas.addEventListener("wheel", handlers.handleWheel, { passive: false });
     document.addEventListener("keydown", handleKeyDown);
 
     return () => {
-      canvas.removeEventListener("wheel", handleWheel);
+      canvas.removeEventListener("wheel", handlers.handleWheel);
       document.removeEventListener("keydown", handleKeyDown);
     };
 
-    // We intentionally omit canvasRef from dependencies so this effect only re-runs when
+    // We intentionally omit refs.canvasRef from dependencies so this effect only re-runs when
     // handleWheel or handleKeyDown change, not when canvasRef.current changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [handleWheel, handleKeyDown]);
+  }, [handlers.handleWheel, handleKeyDown]);
 
   return (
     <>
@@ -451,16 +424,16 @@ const ImageEditor = ({ data, image, setQueryCallback, onImageLoaded }: ImageEdit
 
       <div className="edit">
         <CanvasImage
-          ref={canvasRef}
-          handlePointerDown={handlePointerDown}
+          ref={refs.canvasRef}
+          handlePointerDown={handlers.handlePointerDown}
           handlePointerMove={handleCanvasPointerMove}
-          handlePointerUp={handlePointerUp}
+          handlePointerUp={handlers.handlePointerUp}
           handlePointerLeave={handleCanvasPointerLeave}
         />
 
-        <div ref={loupeContainerRef} className="loupe">
+        <div ref={refs.loupeContainerRef} className="loupe">
           <canvas
-            ref={loupeCanvasRef}
+            ref={refs.loupeCanvasRef}
             width={LOUPE.SIZE}
             height={LOUPE.SIZE}
             className="canvas-loupe"
@@ -483,7 +456,7 @@ const ImageEditor = ({ data, image, setQueryCallback, onImageLoaded }: ImageEdit
 
           {edgeDetectionEnabled && (
             <Slider
-              key={`edge-detection-${resetKey}`}
+              key={`edge-detection-${state.resetKey}`}
               name="Edge Detection"
               initial={edgeDetectionValueRef.current}
               min={EDGE_DETECTION.MIN}
@@ -497,31 +470,31 @@ const ImageEditor = ({ data, image, setQueryCallback, onImageLoaded }: ImageEdit
         <div className="toolbar">
           <Stack direction="horizontal" align="center" gap="condensed">
             <Slider
-              key={`brightness-${resetKey}`}
+              key={`brightness-${state.resetKey}`}
               name="Brightness"
               initial={sliderInitials.brightness}
               min={IMAGE_FILTERS.BRIGHTNESS.MIN}
               max={IMAGE_FILTERS.BRIGHTNESS.MAX}
               disabled={edgeDetectionEnabled}
-              callback={setBrightness}
+              callback={filters.setBrightness}
             />
             <Slider
-              key={`contrast-${resetKey}`}
+              key={`contrast-${state.resetKey}`}
               name="Contrast"
               initial={sliderInitials.contrast}
               min={IMAGE_FILTERS.CONTRAST.MIN}
               max={IMAGE_FILTERS.CONTRAST.MAX}
               disabled={edgeDetectionEnabled}
-              callback={setContrast}
+              callback={filters.setContrast}
             />
             <Slider
-              key={`saturation-${resetKey}`}
+              key={`saturation-${state.resetKey}`}
               name="Saturation"
               initial={sliderInitials.saturate}
               min={IMAGE_FILTERS.SATURATE.MIN}
               max={IMAGE_FILTERS.SATURATE.MAX}
               disabled={edgeDetectionEnabled}
-              callback={setSaturate}
+              callback={filters.setSaturate}
             />
           </Stack>
 
@@ -562,14 +535,14 @@ const ImageEditor = ({ data, image, setQueryCallback, onImageLoaded }: ImageEdit
               size="large"
               aria-label={EDITOR_TOOLTIPS.ZOOM_OUT}
               keybindingHint={EDITOR_KEYBOARD_HINTS.ZOOM_OUT}
-              onClick={handleZoomOut}
+              onClick={handlers.handleZoomOut}
             />
             <IconButton
               icon={ZoomInIcon}
               size="large"
               aria-label={EDITOR_TOOLTIPS.ZOOM_IN}
               keybindingHint={EDITOR_KEYBOARD_HINTS.ZOOM_IN}
-              onClick={handleZoomIn}
+              onClick={handlers.handleZoomIn}
             />
           </ButtonGroup>
 
