@@ -236,6 +236,7 @@ export const EDGE_DETECTION = {
 };
 
 export const DEFAULT_SETTINGS = {
+  version: "v1" as const,
   themeMode: "dark" as const,
   telemetry: "disabled" as const,
   mlModels: [] as MLModel[],
