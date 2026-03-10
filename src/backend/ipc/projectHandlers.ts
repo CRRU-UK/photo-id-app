@@ -1,5 +1,4 @@
-import type { IpcMainEvent, IpcMainInvokeEvent } from "electron";
-import { dialog, shell } from "electron";
+import { type IpcMainEvent, type IpcMainInvokeEvent, dialog, shell } from "electron";
 import path from "node:path";
 
 import { closeCurrentProject, getWindowFromSender } from "@/backend/ipc/shared";

@@ -1,5 +1,4 @@
-import type { IpcMainEvent, IpcMainInvokeEvent } from "electron";
-import { shell } from "electron";
+import { type IpcMainEvent, type IpcMainInvokeEvent, shell } from "electron";
 
 import { broadcastToAllWindows, resolveExternalLinkUrl } from "@/backend/ipc/shared";
 import { getSettingsForRenderer, setSentryEnabled, updateSettings } from "@/backend/settings";
