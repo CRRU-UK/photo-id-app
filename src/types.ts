@@ -101,7 +101,7 @@ export type TokenStore = z.infer<typeof tokenStoreSchema>;
 
 /**
  * Always ensure this stays in sync with the OpenAPI specs.
- * @see {../docs/assets/analysis-api-spec.yaml}
+ * @see [analysis-api-spec.yaml](../docs/assets/analysis-api-spec.yaml)
  */
 export type MLMatch = {
   rank: number;
@@ -112,7 +112,7 @@ export type MLMatch = {
 
 /**
  * Always ensure this stays in sync with the OpenAPI specs.
- * @see {../docs/assets/analysis-api-spec.yaml}
+ * @see [analysis-api-spec.yaml](../docs/assets/analysis-api-spec.yaml)
  */
 export type MLMatchResponse = {
   matches: MLMatch[];
