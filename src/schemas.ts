@@ -13,13 +13,13 @@ export const themeModeSchema = z.enum(["light", "dark", "auto"]);
 export const telemetrySchema = z.enum(["enabled", "disabled"]);
 
 export const mlModelSchema = z.object({
-  id: z.string(),
+  id: z.uuid(),
   name: z.string().nonempty("Name is required"),
   endpoint: z.string().nonempty("Endpoint is required"),
 });
 
 export const mlModelDraftSchema = z.object({
-  id: z.string().optional(),
+  id: z.uuid().optional(),
   name: z.string().nonempty("Name is required"),
   endpoint: z.string().nonempty("Endpoint is required"),
   token: z.string().optional(),

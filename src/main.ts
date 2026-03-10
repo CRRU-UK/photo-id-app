@@ -15,6 +15,7 @@ import type {
   EditorNavigation,
   ExternalLinks,
   MLMatchResponse,
+  MLModel,
   MLModelDraft,
   PhotoBody,
   ProjectBody,
@@ -42,8 +43,10 @@ import {
   getSettings,
   getSettingsForRenderer,
   initSentry,
+  removeModel,
   setSentryEnabled,
   updateSettings,
+  upsertModel,
 } from "@/backend/settings";
 import { deleteToken, getToken, saveToken } from "@/backend/tokens";
 import { windowManager } from "@/backend/WindowManager";
@@ -59,7 +62,7 @@ import {
   ROUTES,
 } from "@/constants";
 import { encodeEditPayload } from "@/helpers";
-import { mlModelDraftSchema, photoBodySchema, settingsDataSchema } from "@/schemas";
+import { mlModelDraftSchema, mlModelSchema, photoBodySchema, settingsDataSchema } from "@/schemas";
 
 import { version } from "../package.json";
 
@@ -460,25 +463,18 @@ void app.whenReady().then(async () => {
 
     const modelId = validatedDraft.id ?? crypto.randomUUID();
 
-    const modelMetadata = {
+    const modelMetadata: MLModel = {
       id: modelId,
       name: validatedDraft.name,
       endpoint: validatedDraft.endpoint,
     };
 
-    const existingIndex = settings.mlModels.findIndex(({ id }) => id === modelId);
-    const updatedModels = [...settings.mlModels];
-
-    if (existingIndex >= 0) {
-      updatedModels[existingIndex] = modelMetadata as SettingsData["mlModels"][number];
-    } else {
-      updatedModels.push(modelMetadata as SettingsData["mlModels"][number]);
-    }
+    const updatedSettings = upsertModel(settings, modelId, modelMetadata);
 
     if (validatedDraft.token) {
       await saveToken(modelId, validatedDraft.token);
     }
-    await updateSettings({ ...settings, mlModels: updatedModels });
+    await updateSettings(updatedSettings);
 
     // Notify all windows with enriched settings
     const enrichedSettings = await getSettingsForRenderer();
@@ -489,13 +485,10 @@ void app.whenReady().then(async () => {
   });
 
   ipcMain.handle(IPC_EVENTS.DELETE_MODEL, async (_event, modelId: string): Promise<void> => {
-    const settings = await getSettings();
+    mlModelSchema.shape.id.parse(modelId);
 
-    const updatedSettings: SettingsData = {
-      ...settings,
-      mlModels: settings.mlModels.filter(({ id }) => id !== modelId),
-      selectedModelId: settings.selectedModelId === modelId ? null : settings.selectedModelId,
-    };
+    const settings = await getSettings();
+    const updatedSettings = removeModel(settings, modelId);
 
     await deleteToken(modelId);
     await updateSettings(updatedSettings);

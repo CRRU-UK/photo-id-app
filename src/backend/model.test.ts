@@ -61,7 +61,7 @@ describe(analyseStack, () => {
 
     const result = await analyseStack({ photos: [defaultPhoto], settings: defaultSettings });
 
-    expect(result?.matches.map((m) => m.rank)).toStrictEqual([1, 2, 3]);
+    expect(result?.matches.map(({ rank }) => rank)).toStrictEqual([1, 2, 3]);
   });
 
   it("sends a POST to the endpoint /match URL", async () => {

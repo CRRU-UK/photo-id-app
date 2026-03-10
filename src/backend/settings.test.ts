@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { DEFAULT_SETTINGS, SETTINGS_FILE_NAME } from "@/constants";
-import type { SettingsData } from "@/types";
+import type { MLModel, SettingsData } from "@/types";
 
 vi.mock("electron", () => ({
   app: {
@@ -48,8 +48,15 @@ vi.mock("@sentry/electron/main", () => ({
   getClient: () => mockSentryGetClient(),
 }));
 
-const { getSettings, getSettingsForRenderer, initSentry, setSentryEnabled, updateSettings } =
-  await import("./settings");
+const {
+  getSettings,
+  getSettingsForRenderer,
+  initSentry,
+  removeModel,
+  setSentryEnabled,
+  updateSettings,
+  upsertModel,
+} = await import("./settings");
 
 describe("settings", () => {
   beforeEach(() => {
@@ -214,6 +221,118 @@ describe("settings", () => {
       const result = await getSettingsForRenderer();
 
       expect(result.isTokenEncryptionAvailable).toBe(true);
+    });
+  });
+
+  describe(upsertModel, () => {
+    const modelA: MLModel = {
+      id: "00000000-0000-0000-0000-000000000001",
+      name: "Model A",
+      endpoint: "https://a.com",
+    };
+    const modelB: MLModel = {
+      id: "00000000-0000-0000-0000-000000000002",
+      name: "Model B",
+      endpoint: "https://b.com",
+    };
+
+    it("adds a new model when no model with that ID exists", () => {
+      const settings: SettingsData = { ...DEFAULT_SETTINGS, mlModels: [] };
+
+      const result = upsertModel(settings, modelA.id, modelA);
+
+      expect(result.mlModels).toHaveLength(1);
+      expect(result.mlModels[0]).toStrictEqual(modelA);
+    });
+
+    it("replaces an existing model when a model with that ID already exists", () => {
+      const updated: MLModel = { ...modelA, name: "Updated Name", endpoint: "https://new.com" };
+      const settings: SettingsData = { ...DEFAULT_SETTINGS, mlModels: [modelA] };
+
+      const result = upsertModel(settings, modelA.id, updated);
+
+      expect(result.mlModels).toHaveLength(1);
+      expect(result.mlModels[0]).toStrictEqual(updated);
+    });
+
+    it("preserves other models when adding a new one", () => {
+      const settings: SettingsData = { ...DEFAULT_SETTINGS, mlModels: [modelA] };
+
+      const result = upsertModel(settings, modelB.id, modelB);
+
+      expect(result.mlModels).toHaveLength(2);
+      expect(result.mlModels[0]).toStrictEqual(modelA);
+      expect(result.mlModels[1]).toStrictEqual(modelB);
+    });
+
+    it("does not mutate the original settings", () => {
+      const settings: SettingsData = { ...DEFAULT_SETTINGS, mlModels: [] };
+
+      upsertModel(settings, modelA.id, modelA);
+
+      expect(settings.mlModels).toHaveLength(0);
+    });
+  });
+
+  describe(removeModel, () => {
+    const modelA: MLModel = {
+      id: "00000000-0000-0000-0000-000000000001",
+      name: "Model A",
+      endpoint: "https://a.com",
+    };
+    const modelB: MLModel = {
+      id: "00000000-0000-0000-0000-000000000002",
+      name: "Model B",
+      endpoint: "https://b.com",
+    };
+
+    it("removes the model with the given ID", () => {
+      const settings: SettingsData = { ...DEFAULT_SETTINGS, mlModels: [modelA] };
+
+      const result = removeModel(settings, modelA.id);
+
+      expect(result.mlModels).toHaveLength(0);
+    });
+
+    it("preserves other models when removing", () => {
+      const settings: SettingsData = { ...DEFAULT_SETTINGS, mlModels: [modelA, modelB] };
+
+      const result = removeModel(settings, modelA.id);
+
+      expect(result.mlModels).toHaveLength(1);
+      expect(result.mlModels[0]).toStrictEqual(modelB);
+    });
+
+    it("clears selectedModelId when removing the selected model", () => {
+      const settings: SettingsData = {
+        ...DEFAULT_SETTINGS,
+        mlModels: [modelA],
+        selectedModelId: modelA.id,
+      };
+
+      const result = removeModel(settings, modelA.id);
+
+      expect(result.selectedModelId).toBeNull();
+    });
+
+    it("preserves selectedModelId when removing a different model", () => {
+      const settings: SettingsData = {
+        ...DEFAULT_SETTINGS,
+        mlModels: [modelA, modelB],
+        selectedModelId: modelA.id,
+      };
+
+      const result = removeModel(settings, modelB.id);
+
+      expect(result.selectedModelId).toBe(modelA.id);
+    });
+
+    it("does not mutate the original settings", () => {
+      const settings: SettingsData = { ...DEFAULT_SETTINGS, mlModels: [modelA] };
+
+      removeModel(settings, modelA.id);
+
+      expect(settings.mlModels).toHaveLength(1);
     });
   });
 
