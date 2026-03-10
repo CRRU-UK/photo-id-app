@@ -41,19 +41,19 @@ const config: ForgeConfig = {
       build: [
         {
           entry: "src/main.ts",
-          config: "config/vite.main.config.mts",
+          config: "vite.main.config.mts",
           target: "main",
         },
         {
           entry: "src/preload.ts",
-          config: "config/vite.preload.config.mts",
+          config: "vite.preload.config.mts",
           target: "preload",
         },
       ],
       renderer: [
         {
           name: "main_window",
-          config: "config/vite.renderer.config.mts",
+          config: "vite.renderer.config.mts",
         },
       ],
     }),
