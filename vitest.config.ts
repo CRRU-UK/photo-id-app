@@ -16,7 +16,7 @@ export default defineConfig({
       enabled: true,
       cleanOnRerun: true,
       provider: "v8",
-      reporter: ["lcov"],
+      reporter: ["text", "json", "html", "lcov"],
       include: ["src/**/*.ts", "src/**/*.tsx"],
       exclude: [
         "src/**/*.gen.ts",
@@ -29,8 +29,6 @@ export default defineConfig({
         "src/backend/menu.ts",
         "src/frontend/components/**",
         "src/frontend/hooks/**",
-        "!src/frontend/hooks/imageEditor/useImageFilters.ts",
-        "!src/frontend/hooks/imageEditor/useImageTransform.ts",
       ],
     },
   },
