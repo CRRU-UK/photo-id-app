@@ -1,14 +1,31 @@
 import type { RefObject } from "react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
-import { AiModelIcon, GearIcon, PlusIcon, TrashIcon } from "@primer/octicons-react";
-import { Button, Dialog, FormControl, IconButton, Link, Select, Stack, Text } from "@primer/react";
+import {
+  AiModelIcon,
+  AlertIcon,
+  GearIcon,
+  PencilIcon,
+  PlusIcon,
+  TrashIcon,
+} from "@primer/octicons-react";
+import {
+  Banner,
+  Button,
+  Dialog,
+  FormControl,
+  IconButton,
+  Link,
+  Select,
+  Stack,
+  Text,
+} from "@primer/react";
 import { Blankslate, UnderlinePanels } from "@primer/react/experimental";
 
 import { useSettings } from "@/contexts/SettingsContext";
 import type { MLModel, Telemetry, ThemeMode } from "@/types";
 
-import AddModelOverlay from "./AddModelOverlay";
+import ModelOverlay from "./ModelOverlay";
 
 const EmptyModels = (
   <Blankslate narrow>
@@ -42,7 +59,8 @@ const SettingsOverlay = ({ open, onClose, onOpenRequest, returnFocusRef }: Setti
   const { settings: contextSettings, updateSettings } = useSettings();
 
   const [isLoading, setIsLoading] = useState(false);
-  const [isAddModelOpen, setIsAddModelOpen] = useState(false);
+  const [isModelOverlayOpen, setIsModelOverlayOpen] = useState(false);
+  const [editingModel, setEditingModel] = useState<MLModel | null>(null);
 
   useEffect(() => {
     if (!onOpenRequest) {
@@ -54,64 +72,77 @@ const SettingsOverlay = ({ open, onClose, onOpenRequest, returnFocusRef }: Setti
 
   useEffect(() => {
     if (!open) {
-      setIsAddModelOpen(false);
+      setIsModelOverlayOpen(false);
+      setEditingModel(null);
     }
   }, [open]);
 
-  const handleThemeModeChange = async (value: string) => {
-    if (!contextSettings) {
-      return;
-    }
+  const handleThemeModeChange = useCallback(
+    async (value: string) => {
+      if (!contextSettings) {
+        return;
+      }
 
-    setIsLoading(true);
+      setIsLoading(true);
 
+      try {
+        await updateSettings({
+          ...contextSettings,
+          themeMode: value as ThemeMode,
+        });
+      } catch (error) {
+        console.error("Error saving settings:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [contextSettings, updateSettings],
+  );
+
+  const handleTelemetryChange = useCallback(
+    async (value: string) => {
+      if (!contextSettings) {
+        return;
+      }
+
+      setIsLoading(true);
+
+      try {
+        await updateSettings({
+          ...contextSettings,
+          telemetry: value as Telemetry,
+        });
+      } catch (error) {
+        console.error("Error saving settings:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [contextSettings, updateSettings],
+  );
+
+  const handleDeleteModel = useCallback(async (model: MLModel) => {
     try {
-      await updateSettings({
-        ...contextSettings,
-        themeMode: value as ThemeMode,
-      });
-    } catch (error) {
-      console.error("Error saving settings:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleTelemetryChange = async (value: string) => {
-    if (!contextSettings) {
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      await updateSettings({
-        ...contextSettings,
-        telemetry: value as Telemetry,
-      });
-    } catch (error) {
-      console.error("Error saving settings:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleDeleteModel = async (model: MLModel) => {
-    if (!contextSettings) {
-      return;
-    }
-
-    try {
-      await updateSettings({
-        ...contextSettings,
-        mlModels: contextSettings.mlModels.filter((m) => m.id !== model.id),
-        selectedModelId:
-          contextSettings.selectedModelId === model.id ? null : contextSettings.selectedModelId,
-      });
+      await window.electronAPI.deleteModel(model.id);
     } catch (error) {
       console.error("Error deleting model:", error);
     }
-  };
+  }, []);
+
+  const handleEditModel = useCallback((model: MLModel) => {
+    setEditingModel(model);
+    setIsModelOverlayOpen(true);
+  }, []);
+
+  const handleAddModel = useCallback(() => {
+    setEditingModel(null);
+    setIsModelOverlayOpen(true);
+  }, []);
+
+  const handleModelOverlayClose = useCallback(() => {
+    setIsModelOverlayOpen(false);
+    setEditingModel(null);
+  }, []);
 
   if (!open) {
     return null;
@@ -186,12 +217,26 @@ const SettingsOverlay = ({ open, onClose, onOpenRequest, returnFocusRef }: Setti
 
             <UnderlinePanels.Panel>
               <Stack direction="vertical" gap="none" padding="spacious">
+                {contextSettings.isTokenEncryptionAvailable === false && (
+                  <Banner
+                    title="Warning"
+                    description="Secure storage is not available on this machine."
+                    leadingVisual={<AlertIcon size="small" />}
+                    primaryAction={
+                      <Banner.PrimaryAction
+                        onClick={() => window.electronAPI.openExternalLink("user-guide-ml-tokens")}
+                      >
+                        View Details
+                      </Banner.PrimaryAction>
+                    }
+                    variant="warning"
+                    hideTitle
+                    style={{ marginBottom: "var(--stack-gap-spacious)" }}
+                  />
+                )}
+
                 <div style={{ display: "flex", justifyContent: "flex-end", paddingBottom: "12px" }}>
-                  <Button
-                    onClick={() => setIsAddModelOpen(true)}
-                    variant="primary"
-                    leadingVisual={PlusIcon}
-                  >
+                  <Button onClick={handleAddModel} variant="primary" leadingVisual={PlusIcon}>
                     Add Model
                   </Button>
                 </div>
@@ -226,6 +271,14 @@ const SettingsOverlay = ({ open, onClose, onOpenRequest, returnFocusRef }: Setti
                         </Stack>
 
                         <IconButton
+                          aria-label={`Edit ${model.name}`}
+                          icon={PencilIcon}
+                          variant="default"
+                          size="small"
+                          onClick={() => handleEditModel(model)}
+                        />
+
+                        <IconButton
                           aria-label={`Delete ${model.name}`}
                           icon={TrashIcon}
                           variant="danger"
@@ -242,7 +295,11 @@ const SettingsOverlay = ({ open, onClose, onOpenRequest, returnFocusRef }: Setti
         )}
       </Dialog>
 
-      <AddModelOverlay open={isAddModelOpen} onClose={() => setIsAddModelOpen(false)} />
+      <ModelOverlay
+        open={isModelOverlayOpen}
+        onClose={handleModelOverlayClose}
+        editingModel={editingModel}
+      />
     </>
   );
 };

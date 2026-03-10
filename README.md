@@ -8,6 +8,7 @@
 [![Bugs](https://sonarcloud.io/api/project_badges/measure?project=CRRU-UK_photo-id-app&metric=bugs)](https://sonarcloud.io/summary/new_code?id=CRRU-UK_photo-id-app)
 [![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=CRRU-UK_photo-id-app&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=CRRU-UK_photo-id-app)
 [![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=CRRU-UK_photo-id-app&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=CRRU-UK_photo-id-app)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=CRRU-UK_photo-id-app&metric=coverage)](https://sonarcloud.io/summary/new_code?id=CRRU-UK_photo-id-app)
 
 - [Introduction](#introduction)
 - [Development](#development)

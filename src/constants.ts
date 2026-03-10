@@ -1,3 +1,5 @@
+import type { MLModel } from "@/types";
+
 export enum IPC_EVENTS {
   // Projects
   OPEN_FOLDER = "project:openFolderPrompt",
@@ -8,7 +10,6 @@ export enum IPC_EVENTS {
   REMOVE_RECENT_PROJECT = "project:removeRecentProject",
   SAVE_PROJECT = "project:saveProject",
   LOAD_PROJECT = "project:loadProject",
-  LOAD_RECENT_PROJECTS = "project:loadRecentProjects",
   CLOSE_PROJECT = "project:closeProject",
 
   // Photos
@@ -31,6 +32,8 @@ export enum IPC_EVENTS {
   NAVIGATE_EDITOR_PHOTO = "edit:navigateEditorPhoto",
 
   // Machine Learning
+  SAVE_MODEL = "ml:saveModel",
+  DELETE_MODEL = "ml:deleteModel",
   ANALYSE_STACK = "ml:analyseStack",
   CANCEL_ANALYSE_STACK = "ml:cancelAnalyseStack",
 }
@@ -52,6 +55,12 @@ export const EXISTING_DATA_MESSAGE =
 
 export const EXISTING_DATA_BUTTONS = ["Cancel", "Open Existing Data", "Replace Existing Data"];
 
+export const EXISTING_DATA_RESPONSE = {
+  CANCEL: 0,
+  OPEN_EXISTING: 1,
+  REPLACE: 2,
+} as const;
+
 export const MISSING_RECENT_PROJECT_MESSAGE =
   "Project not found, directory or data file may have been deleted.";
 
@@ -63,6 +72,16 @@ export const PROJECT_KEYBOARD_HINTS = {
   OPEN_PROJECT_FOLDER: "Mod+O",
   OPEN_PROJECT_FILE: "Mod+Shift+O",
   CLOSE_PROJECT: "Mod+W",
+};
+
+export const PROJECT_TOOLTIPS = {
+  EDIT_PHOTO: "Edit photo",
+  PREVIOUS_PHOTO: "Previous photo",
+  NEXT_PHOTO: "Next photo",
+  MORE_OPTIONS: "More options",
+  REVERT_PHOTO: "Revert to original",
+  REVERTING_PHOTO: "Reverting...",
+  ANALYSE_PHOTOS: "Analyse photos",
 };
 
 export const EDITOR_TOOLTIPS = {
@@ -150,6 +169,8 @@ export const RECENT_PROJECTS_FILE_NAME = "recent-projects.json";
 
 export const SETTINGS_FILE_NAME = "settings.json";
 
+export const TOKENS_FILE_NAME = "tokens.json";
+
 export const MAX_RECENT_PROJECTS = 5;
 
 export const MATCHED_STACKS_PER_PAGE = 8;
@@ -160,6 +181,7 @@ export enum EXTERNAL_LINKS {
   WEBSITE = "https://crru.org.uk",
   USER_GUIDE = "https://photoidapp.crru.org.uk/user-guide/usage/",
   USER_GUIDE_ML = "https://photoidapp.crru.org.uk/user-guide/machine-learning/",
+  USER_GUIDE_ML_TOKENS = "https://photoidapp.crru.org.uk/user-guide/machine-learning/#api-tokens",
   KEYBOARD_SHORTCUTS = "https://photoidapp.crru.org.uk/user-guide/keyboard-shortcuts/",
   CHANGELOG = "https://github.com/CRRU-UK/photo-id-app/releases/$VERSION",
   PRIVACY = "https://photoidapp.crru.org.uk/privacy/",
@@ -219,10 +241,12 @@ export const EDGE_DETECTION = {
 };
 
 export const DEFAULT_SETTINGS = {
+  version: "v1" as const,
   themeMode: "dark" as const,
   telemetry: "disabled" as const,
-  mlModels: [] as never[],
+  mlModels: [] as MLModel[],
   selectedModelId: null,
+  isTokenEncryptionAvailable: true,
 };
 
 // Machine Learning
@@ -234,3 +258,8 @@ export const ANALYSIS_API_IMAGE_JPEG_QUALITY = 85;
 export const ANALYSIS_API_REQUEST_TIMEOUT_MS = 120_000; // 2 minutes
 
 export const ANALYSIS_RESULTS_PER_PAGE = 10;
+
+export const RATING_THRESHOLDS = {
+  GOOD: 82,
+  AVERAGE: 70,
+};

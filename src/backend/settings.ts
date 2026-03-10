@@ -3,9 +3,10 @@ import { app } from "electron";
 import fs from "node:fs";
 import path from "node:path";
 
+import { isEncryptionAvailable } from "@/backend/tokens";
 import { DEFAULT_SETTINGS, SETTINGS_FILE_NAME } from "@/constants";
 import { settingsDataSchema } from "@/schemas";
-import type { SettingsData, Telemetry } from "@/types";
+import type { MLModel, SettingsData, Telemetry } from "@/types";
 
 const getSettingsFilePath = (): string => path.join(app.getPath("userData"), SETTINGS_FILE_NAME);
 
@@ -57,7 +58,7 @@ const initSentry = (): void => {
     enabled: false,
     integrations: [Sentry.consoleLoggingIntegration({ levels: ["log", "warn", "error"] })],
     enableRendererProfiling: true,
-    _experiments: { enableLogs: true },
+    enableLogs: true,
   });
 };
 
@@ -73,4 +74,50 @@ const setSentryEnabled = (telemetry: Telemetry): void => {
   }
 };
 
-export { getSettings, initSentry, setSentryEnabled, updateSettings };
+/**
+ * Returns updated settings with the given model added or replaced (matched by ID).
+ */
+const upsertModel = (settings: SettingsData, modelId: string, metadata: MLModel): SettingsData => {
+  const updatedModels = [...settings.mlModels];
+  const existingIndex = updatedModels.findIndex(({ id }) => id === modelId);
+
+  if (existingIndex >= 0) {
+    updatedModels[existingIndex] = metadata;
+  } else {
+    updatedModels.push(metadata);
+  }
+
+  return { ...settings, mlModels: updatedModels };
+};
+
+/**
+ * Returns updated settings with the given model removed. Clears selectedModelId if it matches.
+ */
+const removeModel = (settings: SettingsData, modelId: string): SettingsData => {
+  const updatedModels = settings.mlModels.filter(({ id }) => id !== modelId);
+  const updatedSelectedModelId =
+    settings.selectedModelId === modelId ? null : settings.selectedModelId;
+
+  return { ...settings, mlModels: updatedModels, selectedModelId: updatedSelectedModelId };
+};
+
+/**
+ * Gets settings suitable for sending to the renderer. Overrides `isTokenEncryptionAvailable` with
+ * the live `safeStorage` result — the value on disk is a schema placeholder and should not be
+ * trusted. Tokens are never included.
+ */
+const getSettingsForRenderer = async (): Promise<SettingsData> => {
+  const settings = await getSettings();
+
+  return { ...settings, isTokenEncryptionAvailable: isEncryptionAvailable() };
+};
+
+export {
+  getSettings,
+  getSettingsForRenderer,
+  initSentry,
+  removeModel,
+  setSentryEnabled,
+  updateSettings,
+  upsertModel,
+};

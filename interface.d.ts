@@ -3,6 +3,7 @@ import type {
   ExternalLinks,
   LoadingData,
   MLMatchResponse,
+  MLModelDraft,
   PhotoBody,
   ProjectBody,
   RecentProject,
@@ -22,12 +23,14 @@ export interface IElectronAPI {
   getSettings: () => Promise<SettingsData>;
   updateSettings: (settings: SettingsData) => Promise<void>;
   analyseStack: (photos: PhotoBody[]) => Promise<MLMatchResponse | null>;
+  saveModel: (draft: MLModelDraft) => Promise<void>;
+  deleteModel: (modelId: string) => Promise<void>;
 
   // Methods (renderer-to-main)
   openProjectFolder: () => void;
   openProjectFile: () => void;
-  openRecentProject: (path: string) => void;
-  saveProject: (data: string) => void;
+  openRecentProject: (path: string) => Promise<void>;
+  saveProject: (data: string) => Promise<void>;
   closeProject: () => void;
   openEditWindow: (data: PhotoBody) => void;
   openExternalLink: (link: ExternalLinks) => void;

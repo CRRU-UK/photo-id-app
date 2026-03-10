@@ -1,8 +1,10 @@
 import { app } from "electron";
 import fs from "node:fs";
 import path from "node:path";
+import { z } from "zod";
 
 import { MAX_RECENT_PROJECTS, RECENT_PROJECTS_FILE_NAME } from "@/constants";
+import { recentProjectSchema } from "@/schemas";
 import type { RecentProject } from "@/types";
 
 /**
@@ -21,6 +23,8 @@ export const dedupeRecentProjects = (items: RecentProject[], max: number): Recen
 const userDataPath = app.getPath("userData");
 const recentProjectsFile = path.join(userDataPath, RECENT_PROJECTS_FILE_NAME);
 
+const recentProjectsFileSchema = z.array(recentProjectSchema);
+
 /**
  * Gets a list of recent projects from the internal file.
  */
@@ -29,8 +33,13 @@ const getRecentProjects = async (): Promise<RecentProject[]> => {
     return [];
   }
 
-  const data = await fs.promises.readFile(recentProjectsFile, "utf8");
-  return JSON.parse(data) as RecentProject[];
+  try {
+    const raw = await fs.promises.readFile(recentProjectsFile, "utf8");
+    return recentProjectsFileSchema.parse(JSON.parse(raw));
+  } catch (error) {
+    console.error("Error reading recent projects file:", error);
+    return [];
+  }
 };
 
 /**

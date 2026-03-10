@@ -354,6 +354,49 @@ describe(decodeEditPayload, () => {
 
     expect(decoded).toStrictEqual(data);
   });
+
+  it("throws when decoded payload does not match photo body schema", () => {
+    const invalidPayload = Buffer.from(JSON.stringify({ wrong: "shape" }), "utf8").toString(
+      "base64",
+    );
+
+    expect(() => decodeEditPayload(invalidPayload)).toThrowError(/ZodError|invalid_type/);
+  });
+});
+
+describe("encodeEditPayload and decodeEditPayload round-trip", () => {
+  const defaultPhotoBody = {
+    directory: "/path/to/project",
+    name: "photo.jpg",
+    thumbnail: ".thumbnails/photo.jpg",
+    edits: {
+      brightness: 100,
+      contrast: 100,
+      saturate: 100,
+      zoom: 1,
+      pan: { x: 0, y: 0 },
+    },
+    isEdited: false,
+  };
+
+  it.each([
+    { label: "basic photo body", name: "photo.jpg" },
+    { label: "unicode in directory path", name: "photo.jpg", directory: "/Users/foo/émoji/项目" },
+    { label: "unicode in filename", name: "テスト画像.png" },
+    { label: "special characters in filename", name: "photo (1) [final].jpg" },
+    { label: "spaces and apostrophe in filename", name: "O'la.jpg" },
+  ])("round-trips $label", ({ name, directory }) => {
+    const data = {
+      ...defaultPhotoBody,
+      directory: directory ?? defaultPhotoBody.directory,
+      name,
+      thumbnail: `.thumbnails/${name}`,
+    };
+
+    const decoded = decodeEditPayload(encodeEditPayload(data));
+
+    expect(decoded).toStrictEqual(data);
+  });
 });
 
 describe(isEditWindow, () => {

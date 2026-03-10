@@ -2,11 +2,16 @@ import path from "node:path";
 
 import { renderApiImage } from "@/backend/imageRenderer";
 import { ANALYSIS_API_REQUEST_TIMEOUT_MS } from "@/constants";
-import type { MLMatchResponse, MLModel, PhotoBody } from "@/types";
+import type { MLMatchResponse, PhotoBody } from "@/types";
+
+type AnalyseStackSettings = {
+  endpoint: string;
+  token: string;
+};
 
 type AnalyseStackOptions = {
   photos: PhotoBody[];
-  settings: MLModel;
+  settings: AnalyseStackSettings;
 };
 
 let currentAbortController: AbortController | null = null;
@@ -44,6 +49,9 @@ const analyseStack = async ({
   try {
     const formData = new FormData();
 
+    // All photo blobs are held in memory in FormData until the request body is sent. This is a
+    // deliberate trade-off for simplicity; for large stacks memory usage can be high. A pipeline
+    // (streaming multipart) would require API support and a more complex implementation.
     for (const photo of photos) {
       if (abortController.signal.aborted) {
         return null;

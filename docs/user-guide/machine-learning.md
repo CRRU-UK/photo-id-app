@@ -24,7 +24,7 @@ A model API will need to be provided according to the [OpenAPI specifications pr
 
 To add a model, open the app settings. Open the ==:octicons-ai-model-16: Machine Learning== tab, and select the ==:octicons-plus-16: Add Model== button.
 
-Enter a model label, your base API URL, and token. Select the ==Save== button and the model will be added. You can view your models in the app settings. Models can be deleted by selecting the ==:octicons-trash-16: bin== icon in the model list.
+Enter a model label, your base API URL, and token. Tokens cannot be viewed after saving. Select the ==Save== button and the model will be added. You can view your models in the app settings. Models can be edited by selecting the ==:octicons-pencil-16: edit== icon, or deleted by selecting the ==:octicons-trash-16: bin== icon in the model list.
 
 !!! tip
 
@@ -49,3 +49,17 @@ A table will be shown with the corresponding information:
 Results are paginated if there are many matches. You can cancel an in-progress analysis using the ==Cancel== button in the overlay.
 
 Users can use this data to cross-check the animal with their catalogues, and if a match is found the respective ID can be entered into the ID field in the stack.
+
+## Notes
+
+### API Tokens
+
+API tokens are encrypted and decrypted using your operating system's secure storage:
+
+- **Windows:** [DPAPI](https://learn.microsoft.com/en-us/windows/win32/api/dpapi/nf-dpapi-cryptprotectdata)
+- **macOS:** [Keychain Access](https://support.apple.com/en-ca/guide/keychain-access/kyca1083/mac)
+- **Linux:** Various ([more information](https://www.electronjs.org/docs/latest/api/safe-storage))
+
+On systems where secure storage is not available, you will still be able to add and use models, however **tokens will be stored without encryption in plaintext**. Note that tokens are stored in the app settings and not in project data files.
+
+Contact your system administrator if encounter issues with your system's secure storage.

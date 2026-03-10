@@ -17,7 +17,7 @@ import {
 } from "@primer/react";
 import { useNavigate } from "@tanstack/react-router";
 import { observer } from "mobx-react-lite";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { PROJECT_KEYBOARD_HINTS, ROUTES } from "@/constants";
 import { useProject } from "@/contexts/ProjectContext";
@@ -39,32 +39,41 @@ const Sidebar = observer(() => {
   const handleCloseProject = useCallback(() => {
     setProject(null);
     window.electronAPI.closeProject();
-    navigate({ to: ROUTES.INDEX });
+    void navigate({ to: ROUTES.INDEX });
   }, [navigate, setProject]);
 
   if (project === null) {
     return null;
   }
 
-  const mlModels = contextSettings?.mlModels ?? [];
+  const mlModels = useMemo(() => contextSettings?.mlModels ?? [], [contextSettings?.mlModels]);
   const selectedModelId = contextSettings?.selectedModelId ?? null;
-  const selectedModel = mlModels.find((m) => m.id === selectedModelId) ?? null;
+  const selectedModel = mlModels.find(({ id }) => id === selectedModelId) ?? null;
 
   type ModelItem = ItemInput & { id: string; text: string };
 
-  const modelItems: ModelItem[] = mlModels.map((model) => ({
-    id: model.id,
-    text: model.name,
-    description: model.endpoint,
-    descriptionVariant: "block" as const,
-  }));
-
-  const filteredItems = modelItems.filter(
-    (item) =>
-      item.id === selectedModelId || item.text.toLowerCase().includes(modelFilter.toLowerCase()),
+  const modelItems = useMemo<ModelItem[]>(
+    () =>
+      mlModels.map((model) => ({
+        id: model.id,
+        text: model.name,
+        description: model.endpoint,
+        descriptionVariant: "block" as const,
+      })),
+    [mlModels],
   );
 
-  const selectedItem = modelItems.find((item) => item.id === selectedModelId) ?? undefined;
+  const filteredItems = useMemo(
+    () =>
+      modelItems.filter(
+        (item) =>
+          item.id === selectedModelId ||
+          item.text.toLowerCase().includes(modelFilter.toLowerCase()),
+      ),
+    [modelItems, modelFilter, selectedModelId],
+  );
+
+  const selectedItem = modelItems.find(({ id }) => id === selectedModelId) ?? undefined;
 
   const handleModelChange = async (item: ItemInput | undefined) => {
     if (!contextSettings) {

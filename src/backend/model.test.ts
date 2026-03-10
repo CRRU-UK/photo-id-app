@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { MLMatchResponse, MLModel, PhotoBody, PhotoEdits } from "@/types";
+import type { MLMatchResponse, PhotoBody, PhotoEdits } from "@/types";
 
 type RenderApiImageOptions = { sourcePath: string; edits: PhotoEdits };
 
@@ -15,9 +15,7 @@ vi.stubGlobal("fetch", mockFetch);
 
 const { analyseStack, cancelAnalyseStack } = await import("./model");
 
-const defaultSettings: MLModel = {
-  id: "test-model-id",
-  name: "Test Model",
+const defaultSettings = {
   endpoint: "https://api.example.com",
   token: "test-token",
 };
@@ -63,7 +61,7 @@ describe(analyseStack, () => {
 
     const result = await analyseStack({ photos: [defaultPhoto], settings: defaultSettings });
 
-    expect(result?.matches.map((m) => m.rank)).toStrictEqual([1, 2, 3]);
+    expect(result?.matches.map(({ rank }) => rank)).toStrictEqual([1, 2, 3]);
   });
 
   it("sends a POST to the endpoint /match URL", async () => {

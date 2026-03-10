@@ -16,12 +16,21 @@ const RecentProjects = () => {
   const [recentProjects, setRecentProjects] = useState<RecentProject[] | null>(null);
 
   useEffect(() => {
+    let isCancelled = false;
+
     async function getRecentProjects() {
       const data = await window.electronAPI.getRecentProjects();
-      setRecentProjects(data);
+
+      if (!isCancelled) {
+        setRecentProjects(data);
+      }
     }
 
-    getRecentProjects();
+    void getRecentProjects();
+
+    return () => {
+      isCancelled = true;
+    };
   }, []);
 
   const handleRemoveRecentProject = async (path: string): Promise<void> => {
