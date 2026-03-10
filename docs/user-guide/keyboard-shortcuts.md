@@ -11,20 +11,20 @@ Keyboard shortcuts can be used for many functions in the app:
 
 ## Home screen
 
-| Function              | Shortcut (Windows / Linux) | Shortcut (macOS) |
-| --------------------- | -------------------------- | ---------------- |
-| Start new project     | ++ctrl+o++                 | ++cmd+o++        |
-| Open project file     | ++ctrl+shift+o++           | ++cmd+shift+o++  |
-| Open settings         | ++ctrl+comma++             | ++cmd+comma++    |
-| Close app             | ++ctrl+w++                 | ++cmd+w++        |
+| Function          | Shortcut (Windows / Linux) | Shortcut (macOS) |
+| ----------------- | -------------------------- | ---------------- |
+| Start new project | ++ctrl+o++                 | ++cmd+o++        |
+| Open project file | ++ctrl+shift+o++           | ++cmd+shift+o++  |
+| Open settings     | ++ctrl+comma++             | ++cmd+comma++    |
+| Close app         | ++ctrl+w++                 | ++cmd+w++        |
 
 ## Project screen
 
-| Function              | Shortcut (Windows / Linux) | Shortcut (macOS) |
-| --------------------- | -------------------------- | ---------------- |
-| Select page           | ++1++ - ++7++              | ++1++ - ++7++    |
-| Open settings         | ++ctrl+comma++             | ++cmd+comma++    |
-| Close project         | ++ctrl+w++                 | ++cmd+w++        |
+| Function      | Shortcut (Windows / Linux) | Shortcut (macOS) |
+| ------------- | -------------------------- | ---------------- |
+| Select page   | ++1++ - ++7++              | ++1++ - ++7++    |
+| Open settings | ++ctrl+comma++             | ++cmd+comma++    |
+| Close project | ++ctrl+w++                 | ++cmd+w++        |
 
 ## Photo editor
 
