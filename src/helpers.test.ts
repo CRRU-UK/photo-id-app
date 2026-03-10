@@ -161,7 +161,7 @@ describe(getImageCoordinates, () => {
     expect(result).toBeNull();
   });
 
-  it("handles different aspect ratios correctly", () => {
+  it("maps the canvas centre to the image centre regardless of aspect ratio", () => {
     const canvas = {
       getBoundingClientRect: () => ({
         left: 0,
@@ -179,6 +179,52 @@ describe(getImageCoordinates, () => {
     const result = getImageCoordinates({ clientX: 500, clientY: 250, canvas, image });
 
     expect(result).toStrictEqual({ x: 1000, y: 1000 });
+  });
+
+  it("accounts for letterbox offset when image is wider than canvas (top/bottom bars)", () => {
+    // 1600×400 image (4:1) in an 800×600 canvas (4:3) — image fits width, letterbox top/bottom
+    // displayedWidth = 800, displayedHeight = 800/4 = 200, topOffset = (600-200)/2 = 200
+    const canvas = {
+      getBoundingClientRect: () => ({
+        left: 0,
+        top: 0,
+      }),
+      clientWidth: 800,
+      clientHeight: 600,
+    } as unknown as HTMLCanvasElement;
+
+    const image = {
+      naturalWidth: 1600,
+      naturalHeight: 400,
+    } as HTMLImageElement;
+
+    // Cursor at the top-left corner of the displayed image content (CSS y = topOffset = 200)
+    const result = getImageCoordinates({ clientX: 0, clientY: 200, canvas, image });
+
+    expect(result).toStrictEqual({ x: 0, y: 0 });
+  });
+
+  it("accounts for letterbox offset when image is taller than canvas (left/right bars)", () => {
+    // 200×1200 image (1:6) in an 800×600 canvas — image fits height, letterbox left/right
+    // displayedHeight = 600, displayedWidth = 600*(200/1200) = 100, leftOffset = (800-100)/2 = 350
+    const canvas = {
+      getBoundingClientRect: () => ({
+        left: 0,
+        top: 0,
+      }),
+      clientWidth: 800,
+      clientHeight: 600,
+    } as unknown as HTMLCanvasElement;
+
+    const image = {
+      naturalWidth: 200,
+      naturalHeight: 1200,
+    } as HTMLImageElement;
+
+    // Cursor at the top-right corner of the displayed image content (CSS x = leftOffset + displayedWidth = 450)
+    const result = getImageCoordinates({ clientX: 450, clientY: 0, canvas, image });
+
+    expect(result).toStrictEqual({ x: 200, y: 0 });
   });
 });
 
