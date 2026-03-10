@@ -17,7 +17,6 @@ export const useCanvasRenderer = ({ imageRef, getFilters, getTransform, clamp }:
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const throttleRef = useRef<number | null>(null);
   const debounceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const canvasSizeRef = useRef<{ width: number; height: number } | null>(null);
 
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
@@ -33,32 +32,53 @@ export const useCanvasRenderer = ({ imageRef, getFilters, getTransform, clamp }:
       return;
     }
 
-    const imageWidth = image.naturalWidth;
-    const imageHeight = image.naturalHeight;
+    // Size the canvas buffer to the display area scaled by device pixel ratio so rendering is
+    // sharp on high-DPI displays and the buffer avoids holding the full image at natural resolution
+    const dpr = window.devicePixelRatio || 1;
+    const bufferWidth = Math.round(canvas.clientWidth * dpr);
+    const bufferHeight = Math.round(canvas.clientHeight * dpr);
 
-    const sizeChanged =
-      canvasSizeRef.current?.width !== imageWidth || canvasSizeRef.current?.height !== imageHeight;
-    if (sizeChanged) {
-      canvas.width = imageWidth;
-      canvas.height = imageHeight;
-      canvasSizeRef.current = { width: imageWidth, height: imageHeight };
+    if (canvas.width !== bufferWidth || canvas.height !== bufferHeight) {
+      canvas.width = bufferWidth;
+      canvas.height = bufferHeight;
     }
 
-    context.setTransform(1, 0, 0, 1, 0, 0);
-    context.clearRect(0, 0, canvas.width, canvas.height);
+    // Scale the transform so all subsequent drawing operations work in CSS pixels.
+    context.setTransform(dpr, 0, 0, dpr, 0, 0);
+    context.clearRect(0, 0, canvas.clientWidth, canvas.clientHeight);
 
     const filters = getFilters();
 
-    const centreX = canvas.width / 2;
-    const centreY = canvas.height / 2;
+    // fitScale maps image pixels to CSS pixels so the image fills the display area while
+    // maintaining its aspect ratio (equivalent to object-fit: contain).
+    const fitScale = Math.min(
+      canvas.clientWidth / image.naturalWidth,
+      canvas.clientHeight / image.naturalHeight,
+    );
+
+    const centreX = canvas.clientWidth / 2;
+    const centreY = canvas.clientHeight / 2;
 
     clamp(canvas);
 
     const transform = getTransform();
 
-    context.translate(centreX + transform.pan.x, centreY + transform.pan.y);
-    context.scale(transform.zoom, transform.zoom);
-    context.translate(-centreX, -centreY);
+    // Clip all drawing to the photo's display rectangle so the image never bleeds into letterbox
+    // space when zoomed in. The clip rect is the fitScale-constrained area centred in the canvas.
+    context.save();
+    context.beginPath();
+    context.rect(
+      centreX - (image.naturalWidth * fitScale) / 2,
+      centreY - (image.naturalHeight * fitScale) / 2,
+      image.naturalWidth * fitScale,
+      image.naturalHeight * fitScale,
+    );
+    context.clip();
+
+    // Pan is stored in image pixels; multiply by fitScale to convert to the CSS-pixel offset.
+    context.translate(centreX + transform.pan.x * fitScale, centreY + transform.pan.y * fitScale);
+    context.scale(fitScale * transform.zoom, fitScale * transform.zoom);
+    context.translate(-image.naturalWidth / 2, -image.naturalHeight / 2);
 
     context.filter = getCanvasFilters({
       brightness: filters.brightness,
@@ -68,6 +88,8 @@ export const useCanvasRenderer = ({ imageRef, getFilters, getTransform, clamp }:
     });
 
     context.drawImage(image, 0, 0);
+
+    context.restore();
   }, [imageRef, getFilters, getTransform, clamp]);
 
   /**
@@ -110,6 +132,27 @@ export const useCanvasRenderer = ({ imageRef, getFilters, getTransform, clamp }:
       debounceTimeoutRef.current = null;
     }
   }, []);
+
+  // Trigger a redraw when the canvas element is resized (e.g. window resize). Previously
+  // object-fit: contain handled display scaling automatically; now the rendering code must
+  // re-run to recompute fitScale and resize the buffer.
+  useEffect(() => {
+    const canvas = canvasRef.current;
+
+    if (!canvas) {
+      return;
+    }
+
+    const observer = new ResizeObserver(() => {
+      drawThrottled();
+    });
+
+    observer.observe(canvas);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [drawThrottled]);
 
   useEffect(() => {
     return () => {

@@ -268,20 +268,24 @@ const ImageEditor = ({
         return;
       }
 
-      const scaleX = image.naturalWidth / canvas.clientWidth;
-      const scaleY = image.naturalHeight / canvas.clientHeight;
+      // Uniform scale (1/fitScale) gives isotropic keyboard panning in image-pixel space,
+      // matching the pointer-drag pan calculation in usePanInteraction.
+      const scale = Math.max(
+        image.naturalWidth / canvas.clientWidth,
+        image.naturalHeight / canvas.clientHeight,
+      );
 
       let deltaX = 0;
       let deltaY = 0;
 
       if (direction === EditorPanDirection.LEFT) {
-        deltaX = PAN_AMOUNT * scaleX;
+        deltaX = PAN_AMOUNT * scale;
       } else if (direction === EditorPanDirection.RIGHT) {
-        deltaX = -PAN_AMOUNT * scaleX;
+        deltaX = -PAN_AMOUNT * scale;
       } else if (direction === EditorPanDirection.UP) {
-        deltaY = PAN_AMOUNT * scaleY;
+        deltaY = PAN_AMOUNT * scale;
       } else if (direction === EditorPanDirection.DOWN) {
-        deltaY = -PAN_AMOUNT * scaleY;
+        deltaY = -PAN_AMOUNT * scale;
       }
 
       handlers.handlePan({ x: deltaX, y: deltaY });

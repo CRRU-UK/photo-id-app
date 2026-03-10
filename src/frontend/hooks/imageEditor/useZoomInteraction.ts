@@ -47,8 +47,11 @@ export const useZoomInteraction = ({
       const transform = getTransform();
       const zoom = transform.zoom;
       const pan = transform.pan;
-      const centreX = canvas.width / 2;
-      const centreY = canvas.height / 2;
+
+      // The canvas buffer is sized to the display area and not the image, therefore use natural
+      // image dimensions so the zoom-centre calculation remains in image-pixel space.
+      const centreX = image.naturalWidth / 2;
+      const centreY = image.naturalHeight / 2;
 
       const imagePointX = (imageCoords.x - centreX - pan.x) / zoom + centreX;
       const imagePointY = (imageCoords.y - centreY - pan.y) / zoom + centreY;

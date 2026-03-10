@@ -181,9 +181,10 @@ describe(getImageCoordinates, () => {
     expect(result).toStrictEqual({ x: 1000, y: 1000 });
   });
 
-  it("accounts for letterbox offset when image is wider than canvas (top/bottom bars)", () => {
-    // 1600×400 image (4:1) in an 800×600 canvas (4:3) — image fits width, letterbox top/bottom
-    // displayedWidth = 800, displayedHeight = 800/4 = 200, topOffset = (600-200)/2 = 200
+  it("applies fitScale correctly when image is wider than canvas (height is the constraining dimension)", () => {
+    // 1600×400 image (4:1) in an 800×600 canvas — fitScale = min(800/1600, 600/400) = min(0.5, 1.5) = 0.5
+    // Top-left of image in CSS: centre (400, 300) offset by (-naturalWidth/2 * fitScale, -naturalHeight/2 * fitScale)
+    //   = (400 - 400, 300 - 100) = (0, 200)
     const canvas = {
       getBoundingClientRect: () => ({
         left: 0,
@@ -198,15 +199,16 @@ describe(getImageCoordinates, () => {
       naturalHeight: 400,
     } as HTMLImageElement;
 
-    // Cursor at the top-left corner of the displayed image content (CSS y = topOffset = 200)
+    // Cursor at the top-left corner of the displayed image (CSS x=0, y=200)
     const result = getImageCoordinates({ clientX: 0, clientY: 200, canvas, image });
 
     expect(result).toStrictEqual({ x: 0, y: 0 });
   });
 
-  it("accounts for letterbox offset when image is taller than canvas (left/right bars)", () => {
-    // 200×1200 image (1:6) in an 800×600 canvas — image fits height, letterbox left/right
-    // displayedHeight = 600, displayedWidth = 600*(200/1200) = 100, leftOffset = (800-100)/2 = 350
+  it("applies fitScale correctly when image is taller than canvas (width is the constraining dimension)", () => {
+    // 200×1200 image (1:6) in an 800×600 canvas — fitScale = min(800/200, 600/1200) = min(4, 0.5) = 0.5
+    // Top-right of image in CSS: centre (400, 300) offset by (naturalWidth/2 * fitScale, -naturalHeight/2 * fitScale)
+    //   = (400 + 50, 300 - 300) = (450, 0)
     const canvas = {
       getBoundingClientRect: () => ({
         left: 0,
@@ -221,7 +223,7 @@ describe(getImageCoordinates, () => {
       naturalHeight: 1200,
     } as HTMLImageElement;
 
-    // Cursor at the top-right corner of the displayed image content (CSS x = leftOffset + displayedWidth = 450)
+    // Cursor at the top-right corner of the displayed image (CSS x=450, y=0)
     const result = getImageCoordinates({ clientX: 450, clientY: 0, canvas, image });
 
     expect(result).toStrictEqual({ x: 200, y: 0 });

@@ -97,10 +97,12 @@ export const getBoundaries = (
 /**
  * Convert viewport (client) coordinates to image coordinates.
  *
- * The canvas element uses `object-fit: contain`, which letterboxes the canvas bitmap when the
- * image aspect ratio differs from the CSS canvas aspect ratio. We compute the actual displayed
- * dimensions and offset so the coordinate mapping is accurate across the full canvas area, not
- * just at the centre where the letterbox offset cancels out.
+ * The rendering applies a fitScale transform so the image fills the display area while maintaining
+ * its aspect ratio (equivalent to object-fit: contain). To invert that transform: subtract the
+ * display centre to get an offset from centre in CSS pixels, divide by fitScale to convert to
+ * image pixels, then add the image centre to get an absolute image-pixel position.
+ *
+ * fitScale = min(clientWidth / naturalWidth, clientHeight / naturalHeight)
  */
 export const getImageCoordinates = ({
   clientX,
@@ -125,34 +127,14 @@ export const getImageCoordinates = ({
   const offsetX = clientX - rect.left;
   const offsetY = clientY - rect.top;
 
-  const imageAspect = image.naturalWidth / image.naturalHeight;
-  const canvasAspect = canvas.clientWidth / canvas.clientHeight;
-
-  let displayedWidth: number;
-  let displayedHeight: number;
-  let leftOffset: number;
-  let topOffset: number;
-
-  if (imageAspect > canvasAspect) {
-    // Image is wider than canvas — fits width, letterbox top/bottom
-    displayedWidth = canvas.clientWidth;
-    displayedHeight = canvas.clientWidth / imageAspect;
-    leftOffset = 0;
-    topOffset = (canvas.clientHeight - displayedHeight) / 2;
-  } else {
-    // Image is taller than canvas — fits height, letterbox left/right
-    displayedHeight = canvas.clientHeight;
-    displayedWidth = canvas.clientHeight * imageAspect;
-    leftOffset = (canvas.clientWidth - displayedWidth) / 2;
-    topOffset = 0;
-  }
-
-  const scaleX = image.naturalWidth / displayedWidth;
-  const scaleY = image.naturalHeight / displayedHeight;
+  const fitScale = Math.min(
+    canvas.clientWidth / image.naturalWidth,
+    canvas.clientHeight / image.naturalHeight,
+  );
 
   return {
-    x: (offsetX - leftOffset) * scaleX,
-    y: (offsetY - topOffset) * scaleY,
+    x: (offsetX - canvas.clientWidth / 2) / fitScale + image.naturalWidth / 2,
+    y: (offsetY - canvas.clientHeight / 2) / fitScale + image.naturalHeight / 2,
   };
 };
 

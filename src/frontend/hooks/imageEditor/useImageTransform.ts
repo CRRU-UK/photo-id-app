@@ -3,7 +3,7 @@ import type { ImageTransformations } from "@/types";
 import { useCallback, useRef } from "react";
 
 import { IMAGE_EDITS } from "@/constants";
-import { clampPan, getImageCoordinates } from "@/helpers";
+import { getImageCoordinates } from "@/helpers";
 
 export const useImageTransform = (imageRef: React.RefObject<HTMLImageElement | null>) => {
   const zoomRef = useRef<number>(IMAGE_EDITS.ZOOM);
@@ -33,14 +33,19 @@ export const useImageTransform = (imageRef: React.RefObject<HTMLImageElement | n
       }
 
       const zoom = zoomRef.current;
-      const scaledImageWidth = image.naturalWidth * zoom;
-      const scaledImageHeight = image.naturalHeight * zoom;
 
-      panRef.current = clampPan({
-        pan: panRef.current,
-        canvas: { width: canvas.width, height: canvas.height },
-        scaledImage: { width: scaledImageWidth, height: scaledImageHeight },
-      });
+      // The pan boundary is the edge of the photo's display rectangle (the fitScale-constrained
+      // area), not the canvas edge. At zoom = z, the image is z* larger than the photo area in
+      // each dimension, so the user can pan by (z - 1)/2 of the image's natural extent before
+      // the image edge reaches the photo area edge. This is independent of canvas/window size -
+      // resizing the window changes the photo area's CSS size but not the image-pixel boundary.
+      const maxPanX = (image.naturalWidth * (zoom - 1)) / 2;
+      const maxPanY = (image.naturalHeight * (zoom - 1)) / 2;
+
+      panRef.current = {
+        x: Math.max(-maxPanX, Math.min(maxPanX, panRef.current.x)),
+        y: Math.max(-maxPanY, Math.min(maxPanY, panRef.current.y)),
+      };
     },
     [imageRef],
   );

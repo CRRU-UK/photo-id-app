@@ -46,14 +46,17 @@ export const usePanInteraction = ({
       const deltaY = event.clientY - lastPointerRef.current.y;
 
       /**
-       * Convert screen pixel deltas to image pixel deltas. Use clientWidth/clientHeight to match
-       * the coordinate conversion in getImageCoordinates.
+       * Convert screen pixel deltas to image pixel deltas using a uniform scale (1/fitScale).
+       * Using the same factor for both axes gives isotropic panning regardless of whether the
+       * image is letterboxed horizontally or vertically.
        */
-      const scaleX = image.naturalWidth / canvas.clientWidth;
-      const scaleY = image.naturalHeight / canvas.clientHeight;
+      const scale = Math.max(
+        image.naturalWidth / canvas.clientWidth,
+        image.naturalHeight / canvas.clientHeight,
+      );
 
-      const scaledDeltaX = deltaX * scaleX;
-      const scaledDeltaY = deltaY * scaleY;
+      const scaledDeltaX = deltaX * scale;
+      const scaledDeltaY = deltaY * scale;
 
       const currentPan = getTransform().pan;
 
