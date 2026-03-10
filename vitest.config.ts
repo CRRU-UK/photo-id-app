@@ -16,7 +16,7 @@ export default defineConfig({
       enabled: true,
       cleanOnRerun: true,
       provider: "v8",
-      reporter: ["text", "json", "html"],
+      reporter: ["html", "lcov"],
       include: ["src/**/*.ts", "src/**/*.tsx"],
       exclude: [
         "src/**/*.gen.ts",
