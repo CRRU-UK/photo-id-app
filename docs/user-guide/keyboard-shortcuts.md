@@ -5,22 +5,31 @@ description: Different keyboard shortcuts in the app.
 
 !!! tip
 
-    You can open this page from the app by selecting ==Help > Keyboard shortcuts== in the menu bar.
+    You can open this page from the app by selecting ==Help > Keyboard Shortcuts== in the menu bar.
 
 Keyboard shortcuts can be used for many functions in the app:
 
+## Home screen
+
+| Function          | Shortcut (Windows / Linux) | Shortcut (macOS) |
+| ----------------- | -------------------------- | ---------------- |
+| Start new project | ++ctrl+o++                 | ++cmd+o++        |
+| Open project file | ++ctrl+shift+o++           | ++cmd+shift+o++  |
+| Open settings     | ++ctrl+comma++             | ++cmd+comma++    |
+| Close app         | ++ctrl+w++                 | ++cmd+w++        |
+
+## Project screen
+
+| Function      | Shortcut (Windows / Linux) | Shortcut (macOS) |
+| ------------- | -------------------------- | ---------------- |
+| Select page   | ++1++ - ++7++              | ++1++ - ++7++    |
+| Open settings | ++ctrl+comma++             | ++cmd+comma++    |
+| Close project | ++ctrl+w++                 | ++cmd+w++        |
+
+## Photo editor
+
 | Function              | Shortcut (Windows / Linux) | Shortcut (macOS) |
 | --------------------- | -------------------------- | ---------------- |
-| **Home screen**       |                            |                  |
-| Start new project     | ++ctrl+o++                 | ++cmd+o++        |
-| Open project file     | ++ctrl+shift+o++           | ++cmd+shift+o++  |
-| Open settings         | ++ctrl+comma++             | ++cmd+comma++    |
-| Close app             | ++ctrl+w++                 | ++cmd+w++        |
-| **Project screen**    |                            |                  |
-| Select page           | ++1++ - ++7++              | ++1++ - ++7++    |
-| Open settings         | ++ctrl+comma++             | ++cmd+comma++    |
-| Close project         | ++ctrl+w++                 | ++cmd+w++        |
-| **Photo editor**      |                            |                  |
 | Zoom photo in         | ++ctrl+plus++              | ++cmd+plus++     |
 | Zoom photo out        | ++ctrl+minus++             | ++cmd+minus++    |
 | Pan photo left        | ++arrow-left++             | ++arrow-left++   |

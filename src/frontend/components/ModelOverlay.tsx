@@ -156,7 +156,7 @@ const ModelOverlay = ({ open, onClose, editingModel }: ModelOverlayProps) => {
           )}
           <FormControl.Caption>
             {tokenLocked
-              ? "A token is currently saved. Click the edit icon to replace it."
+              ? "A token is currently saved and cannot be viewed. Select the edit icon to replace it."
               : "Tokens cannot be viewed after saving."}
           </FormControl.Caption>
         </FormControl>

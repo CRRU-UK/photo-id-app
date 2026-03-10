@@ -34,7 +34,7 @@ const EmptyModels = (
     </Blankslate.Visual>
     <Blankslate.Heading>No ML Models Configured</Blankslate.Heading>
     <Blankslate.Description>
-      Use a machine learning model to analyse photos in a stack. Click the Add Model button to get
+      Use a machine learning model to analyse photos in a stack. Select the Add Model button to get
       started.
       <Button
         block
