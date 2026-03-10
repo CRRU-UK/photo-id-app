@@ -11,12 +11,13 @@ import { useZoomInteraction } from "./imageEditor/useZoomInteraction";
 interface UseImageEditorProps {
   file: File;
   loupeEnabled: boolean;
+  onError?: () => void;
 }
 
-const useImageEditor = ({ file, loupeEnabled }: UseImageEditorProps) => {
+const useImageEditor = ({ file, loupeEnabled, onError }: UseImageEditorProps) => {
   const [resetKey, setResetKey] = useState(0);
 
-  const { imageRef, imageLoaded } = useImageLoader(file);
+  const { imageRef, imageLoaded } = useImageLoader(file, { onError });
 
   const {
     setBrightness: setBrightnessInternal,
