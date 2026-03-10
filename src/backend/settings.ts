@@ -103,7 +103,7 @@ const removeModel = (settings: SettingsData, modelId: string): SettingsData => {
 
 /**
  * Gets settings suitable for sending to the renderer. Overrides `isTokenEncryptionAvailable` with
- * the live `safeStorage` result — the value on disk is a schema placeholder and should not be
+ * the live `safeStorage` result - the value on disk is a schema placeholder and should not be
  * trusted. Tokens are never included.
  */
 const getSettingsForRenderer = async (): Promise<SettingsData> => {

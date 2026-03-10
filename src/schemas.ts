@@ -42,7 +42,7 @@ export const settingsDataSchema = z.object({
   selectedModelId: z.string().nullable().default(DEFAULT_SETTINGS.selectedModelId),
 
   /**
-   * Not a persisted setting — always overridden by `getSettingsForRenderer()` with the live
+   * Not a persisted setting - always overridden by `getSettingsForRenderer()` with the live
    * `safeStorage.isEncryptionAvailable()` result before being sent to the renderer. The default
    * here only ensures the field is present and typed correctly on the disk schema.
    */

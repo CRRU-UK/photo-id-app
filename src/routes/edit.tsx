@@ -87,7 +87,7 @@ const EditPage = () => {
   }, []);
 
   const handleImageError = useCallback(() => {
-    setError("Failed to load image — the file may be corrupt or in an unsupported format.");
+    setError("Failed to load image: the file may be corrupt or in an unsupported format.");
     setLoading({ show: false });
   }, []);
 
