@@ -64,7 +64,7 @@ Technical information, specifications, requirements, and user journeys.
   - **AnalysisContext** — ML analysis state (selected model, analysis in progress, results, errors). Shared between Sidebar (model selection), Stack (Analyse button), and AnalysisOverlay (loading state, results table). Wraps only the project route.
 - `docs/` — User and technical documentation
 - Tests: `*.test.ts` files co-located with source files
-- Configuration: `tsconfig.json`, `vite.*.mts`, `forge.config.ts`, `vitest.config.ts`
+- Configuration: `tsconfig.json`, `config/vite.*.mts`, `forge.config.ts`, `vitest.config.ts`
 
 ## Specifications
 

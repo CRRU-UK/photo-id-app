@@ -61,7 +61,7 @@
 
 ## Integration points / external deps
 
-- Electron + electron-forge + vite: packaging handled by `electron-forge` + forge Vite plugin (configs at project root: `vite.*.mts`, `forge.config.ts`).
+- Electron + electron-forge + vite: packaging handled by `electron-forge` + forge Vite plugin (`vite.*.mts`, `forge.config.ts`).
 - MobX (`mobx`, `mobx-react-lite`): reactive state for the project UI. Models in `src/models/` (Project, Collection, Photo) use `makeObservable` with `observable`, `action`, and `computed`. Components that read from these models must be wrapped with `observer()` from `mobx-react-lite` so they re-render when observables change. Use `runInAction` for batch updates (e.g. `loadFromJSON` in Project) so observers re-run once per batch.
 - Sentry: integrated in both main (`@sentry/electron`) and renderer (`@sentry/electron/renderer`). Opt-in via settings; when enabled, captures crashes, errors, session replay (error-only), tracing, profiling, and console logs. Initialised before app ready; user preference applied in `whenReady`. Privacy policy at `docs/privacy.md`. Environment variables: `VITE_SENTRY_DSN` (renderer) and `SENTRY_DSN` (main). See `.env.example`.
 - Native image processing: `@napi-rs/canvas` is used in backend image helpers.
