@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-export const useImageLoader = (file: File) => {
+export const useImageLoader = (file: File, { onError }: { onError?: () => void } = {}) => {
   const imageRef = useRef<HTMLImageElement | null>(null);
   const [imageLoaded, setImageLoaded] = useState(false);
 
@@ -27,6 +27,7 @@ export const useImageLoader = (file: File) => {
         URL.revokeObjectURL(url);
         imageRef.current = null;
         setImageLoaded(false);
+        onError?.();
       }
     };
 
@@ -50,7 +51,7 @@ export const useImageLoader = (file: File) => {
 
       setImageLoaded(false);
     };
-  }, [file]);
+  }, [file, onError]);
 
   return { imageRef, imageLoaded };
 };

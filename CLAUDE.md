@@ -45,7 +45,7 @@
 - Prefer adding comments only for workarounds, hacks, or non-obvious code paths. Never remove existing comments, only update them if necessary instead.
 - Prefer adding JSDocs where helpful, but avoid redundant types that are already covered by TypeScript.
 - For functions with more than two parameters, prefer using objects.
-- The UI uses GitHub Primer components/icons — prefer reusing Primer primitives and icons for consistency.
+- The UI uses GitHub Primer components/icons - prefer reusing Primer primitives and icons for consistency.
 - Do not remove console logs.
 
 ### Architecture-specific conventions
@@ -69,7 +69,7 @@
 ## If you need to change behaviour
 
 - For IPC additions: add a new `IPC_EVENTS` entry, implement handler in `src/main.ts` (or backend helper) and expose through `src/preload.ts`.
-- For UI routes: add/edit files in `src/routes/` — the generated `routeTree.gen.ts` will be updated by the router tooling.
+- For UI routes: add/edit files in `src/routes/` - the generated `routeTree.gen.ts` will be updated by the router tooling.
 
 When unsure, look at these files first
 
@@ -111,6 +111,6 @@ For each issue: describe concretely with file:line references, present options w
 
 **Test behaviour, not implementation**. Tests should verify what code does, not how. If a refactor breaks your tests but not your code, the tests were wrong.
 
-**Test edges and errors, not just the happy path**. Empty inputs, boundaries, malformed data, missing files, network failures — bugs live in edges. Every error path the code handles should have a test that triggers it.
+**Test edges and errors, not just the happy path**. Empty inputs, boundaries, malformed data, missing files, network failures - bugs live in edges. Every error path the code handles should have a test that triggers it.
 
 **Mock boundaries, not logic**. Only mock things that are slow (network, filesystem), non-deterministic (time, randomness), or external services you don't control.

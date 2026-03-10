@@ -86,6 +86,11 @@ const EditPage = () => {
     setLoading({ show: false });
   }, []);
 
+  const handleImageError = useCallback(() => {
+    setError("Failed to load image: the file may be corrupt or in an unsupported format.");
+    setLoading({ show: false });
+  }, []);
+
   if (error) {
     return (
       <>
@@ -104,6 +109,7 @@ const EditPage = () => {
           image={file}
           setQueryCallback={setQueryCallback}
           onImageLoaded={handleImageLoaded}
+          onError={handleImageError}
         />
       )}
     </>

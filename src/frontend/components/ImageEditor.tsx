@@ -113,9 +113,16 @@ interface ImageEditorProps {
   image: File;
   setQueryCallback: React.Dispatch<React.SetStateAction<string>>;
   onImageLoaded?: () => void;
+  onError?: () => void;
 }
 
-const ImageEditor = ({ data, image, setQueryCallback, onImageLoaded }: ImageEditorProps) => {
+const ImageEditor = ({
+  data,
+  image,
+  setQueryCallback,
+  onImageLoaded,
+  onError,
+}: ImageEditorProps) => {
   console.debug("Loaded photo edit data:", data);
 
   const [saving, setSaving] = useState<boolean>(false);
@@ -133,6 +140,7 @@ const ImageEditor = ({ data, image, setQueryCallback, onImageLoaded }: ImageEdit
   const { refs, state, getters, filters, handlers, actions } = useImageEditor({
     file: image,
     loupeEnabled,
+    onError,
   });
 
   const handleCanvasPointerMove = useCallback(
