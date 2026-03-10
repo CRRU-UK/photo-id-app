@@ -96,6 +96,11 @@ export const getBoundaries = (
 
 /**
  * Convert viewport (client) coordinates to image coordinates.
+ *
+ * The canvas element uses `object-fit: contain`, which letterboxes the canvas bitmap when the
+ * image aspect ratio differs from the CSS canvas aspect ratio. We compute the actual displayed
+ * dimensions and offset so the coordinate mapping is accurate across the full canvas area, not
+ * just at the centre where the letterbox offset cancels out.
  */
 export const getImageCoordinates = ({
   clientX,
@@ -120,12 +125,34 @@ export const getImageCoordinates = ({
   const offsetX = clientX - rect.left;
   const offsetY = clientY - rect.top;
 
-  const scaleX = image.naturalWidth / canvas.clientWidth;
-  const scaleY = image.naturalHeight / canvas.clientHeight;
+  const imageAspect = image.naturalWidth / image.naturalHeight;
+  const canvasAspect = canvas.clientWidth / canvas.clientHeight;
+
+  let displayedWidth: number;
+  let displayedHeight: number;
+  let leftOffset: number;
+  let topOffset: number;
+
+  if (imageAspect > canvasAspect) {
+    // Image is wider than canvas — fits width, letterbox top/bottom
+    displayedWidth = canvas.clientWidth;
+    displayedHeight = canvas.clientWidth / imageAspect;
+    leftOffset = 0;
+    topOffset = (canvas.clientHeight - displayedHeight) / 2;
+  } else {
+    // Image is taller than canvas — fits height, letterbox left/right
+    displayedHeight = canvas.clientHeight;
+    displayedWidth = canvas.clientHeight * imageAspect;
+    leftOffset = (canvas.clientWidth - displayedWidth) / 2;
+    topOffset = 0;
+  }
+
+  const scaleX = image.naturalWidth / displayedWidth;
+  const scaleY = image.naturalHeight / displayedHeight;
 
   return {
-    x: offsetX * scaleX,
-    y: offsetY * scaleY,
+    x: (offsetX - leftOffset) * scaleX,
+    y: (offsetY - topOffset) * scaleY,
   };
 };
 
