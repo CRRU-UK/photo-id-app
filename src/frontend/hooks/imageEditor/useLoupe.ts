@@ -89,7 +89,15 @@ export const useLoupe = ({
         panY: transform.pan.y,
       });
 
-      const regionSize = LOUPE.SIZE / (LOUPE.ZOOM * transform.zoom);
+      // Scale the loupe size relative to the canvas rendered dimensions so the loupe feels
+      // proportionate on small windows while capping at the original maximum on large ones.
+      const canvasRect = canvas.getBoundingClientRect();
+      const loupeSize = Math.max(
+        LOUPE.MIN_SIZE,
+        Math.min(Math.round(Math.min(canvasRect.width, canvasRect.height) * 0.4), LOUPE.SIZE),
+      );
+
+      const regionSize = loupeSize / (LOUPE.ZOOM * transform.zoom);
       const halfRegion = regionSize / 2;
 
       const sx = Math.max(0, Math.min(imageCoords.x - halfRegion, image.naturalWidth - regionSize));
@@ -103,13 +111,13 @@ export const useLoupe = ({
        * high DPI displays.
        */
       const dpr = window.devicePixelRatio || 1;
-      const bufferSize = Math.round(LOUPE.SIZE * dpr);
+      const bufferSize = Math.round(loupeSize * dpr);
 
       if (loupeCanvas.width !== bufferSize || loupeCanvas.height !== bufferSize) {
         loupeCanvas.width = bufferSize;
         loupeCanvas.height = bufferSize;
-        loupeCanvas.style.width = `${LOUPE.SIZE}px`;
-        loupeCanvas.style.height = `${LOUPE.SIZE}px`;
+        loupeCanvas.style.width = `${loupeSize}px`;
+        loupeCanvas.style.height = `${loupeSize}px`;
 
         // Resizing the canvas clears the context state, so re-acquire it
         loupeContextRef.current = loupeCanvas.getContext("2d");
@@ -124,7 +132,7 @@ export const useLoupe = ({
       }
 
       loupeContext.setTransform(dpr, 0, 0, dpr, 0, 0);
-      loupeContext.clearRect(0, 0, LOUPE.SIZE, LOUPE.SIZE);
+      loupeContext.clearRect(0, 0, loupeSize, loupeSize);
 
       const filters = getFilters();
       loupeContext.filter = getCanvasFilters({
@@ -134,14 +142,17 @@ export const useLoupe = ({
         edgeDetection: filters.edgeDetection,
       });
 
-      loupeContext.drawImage(image, sx, sy, regionSize, regionSize, 0, 0, LOUPE.SIZE, LOUPE.SIZE);
+      loupeContext.drawImage(image, sx, sy, regionSize, regionSize, 0, 0, loupeSize, loupeSize);
 
-      const rect = canvas.getBoundingClientRect();
-      const cursorX = clientX - rect.left;
-      const cursorY = clientY - rect.top;
+      // Use the loupe container's parent (.edit) as the position reference so the transform is
+      // always relative to the element the loupe is absolutely positioned within, regardless of
+      // where the canvas element sits within that container.
+      const editRect = (loupeContainer.parentElement ?? canvas).getBoundingClientRect();
+      const cursorX = clientX - editRect.left;
+      const cursorY = clientY - editRect.top;
 
-      const loupeX = cursorX - LOUPE.SIZE + LOUPE.CURSOR_PADDING;
-      const loupeY = cursorY - LOUPE.SIZE + LOUPE.CURSOR_PADDING;
+      const loupeX = cursorX - loupeSize + LOUPE.CURSOR_PADDING;
+      const loupeY = cursorY - loupeSize + LOUPE.CURSOR_PADDING;
 
       loupeContainer.style.display = "block";
       loupeContainer.style.transform = `translate(${loupeX}px, ${loupeY}px)`;

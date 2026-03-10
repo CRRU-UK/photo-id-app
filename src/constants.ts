@@ -228,9 +228,10 @@ export const ZOOM_FACTORS = {
 export const PAN_AMOUNT = 50;
 
 export const LOUPE = {
-  SIZE: 450,
+  SIZE: 450, // Maximum size in CSS pixels
+  MIN_SIZE: 150, // Minimum size in CSS pixels
   ZOOM: 2,
-  CURSOR_PADDING: 40, // Padding towards cursor
+  CURSOR_PADDING: 30, // Offset from cursor to bottom-right corner of the loupe
 };
 
 export const EDGE_DETECTION = {
