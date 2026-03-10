@@ -2,11 +2,16 @@ import path from "node:path";
 
 import { renderApiImage } from "@/backend/imageRenderer";
 import { ANALYSIS_API_REQUEST_TIMEOUT_MS } from "@/constants";
-import type { MLMatchResponse, MLModel, PhotoBody } from "@/types";
+import type { MLMatchResponse, PhotoBody } from "@/types";
+
+type AnalyseStackSettings = {
+  endpoint: string;
+  token: string;
+};
 
 type AnalyseStackOptions = {
   photos: PhotoBody[];
-  settings: MLModel;
+  settings: AnalyseStackSettings;
 };
 
 let currentAbortController: AbortController | null = null;

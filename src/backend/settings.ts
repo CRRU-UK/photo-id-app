@@ -3,6 +3,7 @@ import { app } from "electron";
 import fs from "node:fs";
 import path from "node:path";
 
+import { isEncryptionAvailable } from "@/backend/tokens";
 import { DEFAULT_SETTINGS, SETTINGS_FILE_NAME } from "@/constants";
 import { settingsDataSchema } from "@/schemas";
 import type { SettingsData, Telemetry } from "@/types";
@@ -73,4 +74,15 @@ const setSentryEnabled = (telemetry: Telemetry): void => {
   }
 };
 
-export { getSettings, initSentry, setSentryEnabled, updateSettings };
+/**
+ * Gets settings suitable for sending to the renderer. Overrides `isTokenEncryptionAvailable` with
+ * the live `safeStorage` result — the value on disk is a schema placeholder and should not be
+ * trusted. Tokens are never included.
+ */
+const getSettingsForRenderer = async (): Promise<SettingsData> => {
+  const settings = await getSettings();
+
+  return { ...settings, isTokenEncryptionAvailable: isEncryptionAvailable() };
+};
+
+export { getSettings, getSettingsForRenderer, initSentry, setSentryEnabled, updateSettings };

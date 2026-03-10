@@ -48,7 +48,7 @@ const Sidebar = observer(() => {
 
   const mlModels = useMemo(() => contextSettings?.mlModels ?? [], [contextSettings?.mlModels]);
   const selectedModelId = contextSettings?.selectedModelId ?? null;
-  const selectedModel = mlModels.find((m) => m.id === selectedModelId) ?? null;
+  const selectedModel = mlModels.find(({ id }) => id === selectedModelId) ?? null;
 
   type ModelItem = ItemInput & { id: string; text: string };
 
@@ -73,7 +73,7 @@ const Sidebar = observer(() => {
     [modelItems, modelFilter, selectedModelId],
   );
 
-  const selectedItem = modelItems.find((item) => item.id === selectedModelId) ?? undefined;
+  const selectedItem = modelItems.find(({ id }) => id === selectedModelId) ?? undefined;
 
   const handleModelChange = async (item: ItemInput | undefined) => {
     if (!contextSettings) {

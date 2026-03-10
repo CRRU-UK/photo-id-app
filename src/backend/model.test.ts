@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { MLMatchResponse, MLModel, PhotoBody, PhotoEdits } from "@/types";
+import type { MLMatchResponse, PhotoBody, PhotoEdits } from "@/types";
 
 type RenderApiImageOptions = { sourcePath: string; edits: PhotoEdits };
 
@@ -15,9 +15,7 @@ vi.stubGlobal("fetch", mockFetch);
 
 const { analyseStack, cancelAnalyseStack } = await import("./model");
 
-const defaultSettings: MLModel = {
-  id: "test-model-id",
-  name: "Test Model",
+const defaultSettings = {
   endpoint: "https://api.example.com",
   token: "test-token",
 };

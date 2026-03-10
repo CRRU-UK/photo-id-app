@@ -15,6 +15,7 @@ import type {
   EditorNavigation,
   ExternalLinks,
   MLMatchResponse,
+  MLModelDraft,
   PhotoBody,
   ProjectBody,
   RecentProject,
@@ -37,7 +38,14 @@ import {
   setCurrentProject,
 } from "@/backend/projects";
 import { getRecentProjects, removeRecentProject } from "@/backend/recents";
-import { getSettings, initSentry, setSentryEnabled, updateSettings } from "@/backend/settings";
+import {
+  getSettings,
+  getSettingsForRenderer,
+  initSentry,
+  setSentryEnabled,
+  updateSettings,
+} from "@/backend/settings";
+import { deleteToken, getToken, saveToken } from "@/backend/tokens";
 import { windowManager } from "@/backend/WindowManager";
 import {
   DEFAULT_WINDOW_TITLE,
@@ -51,7 +59,7 @@ import {
   ROUTES,
 } from "@/constants";
 import { encodeEditPayload } from "@/helpers";
-import { photoBodySchema, settingsDataSchema } from "@/schemas";
+import { mlModelDraftSchema, photoBodySchema, settingsDataSchema } from "@/schemas";
 
 import { version } from "../package.json";
 
@@ -425,7 +433,7 @@ void app.whenReady().then(async () => {
   });
 
   ipcMain.handle(IPC_EVENTS.GET_SETTINGS, async (): Promise<SettingsData> => {
-    const result = await getSettings();
+    const result = await getSettingsForRenderer();
     return result;
   });
 
@@ -437,13 +445,68 @@ void app.whenReady().then(async () => {
       await updateSettings(validatedSettings);
       setSentryEnabled(validatedSettings.telemetry);
 
-      // Notify all windows of settings change
+      // Notify all windows with enriched settings
+      const enrichedSettings = await getSettingsForRenderer();
       const allWindows = BrowserWindow.getAllWindows();
       for (const window of allWindows) {
-        window.webContents.send(IPC_EVENTS.SETTINGS_UPDATED, validatedSettings);
+        window.webContents.send(IPC_EVENTS.SETTINGS_UPDATED, enrichedSettings);
       }
     },
   );
+
+  ipcMain.handle(IPC_EVENTS.SAVE_MODEL, async (_event, draft: MLModelDraft): Promise<void> => {
+    const validatedDraft = mlModelDraftSchema.parse(draft);
+    const settings = await getSettings();
+
+    const modelId = validatedDraft.id ?? crypto.randomUUID();
+
+    const modelMetadata = {
+      id: modelId,
+      name: validatedDraft.name,
+      endpoint: validatedDraft.endpoint,
+    };
+
+    const existingIndex = settings.mlModels.findIndex(({ id }) => id === modelId);
+    const updatedModels = [...settings.mlModels];
+
+    if (existingIndex >= 0) {
+      updatedModels[existingIndex] = modelMetadata as SettingsData["mlModels"][number];
+    } else {
+      updatedModels.push(modelMetadata as SettingsData["mlModels"][number]);
+    }
+
+    if (validatedDraft.token) {
+      await saveToken(modelId, validatedDraft.token);
+    }
+    await updateSettings({ ...settings, mlModels: updatedModels });
+
+    // Notify all windows with enriched settings
+    const enrichedSettings = await getSettingsForRenderer();
+    const allWindows = BrowserWindow.getAllWindows();
+    for (const window of allWindows) {
+      window.webContents.send(IPC_EVENTS.SETTINGS_UPDATED, enrichedSettings);
+    }
+  });
+
+  ipcMain.handle(IPC_EVENTS.DELETE_MODEL, async (_event, modelId: string): Promise<void> => {
+    const settings = await getSettings();
+
+    const updatedSettings: SettingsData = {
+      ...settings,
+      mlModels: settings.mlModels.filter(({ id }) => id !== modelId),
+      selectedModelId: settings.selectedModelId === modelId ? null : settings.selectedModelId,
+    };
+
+    await deleteToken(modelId);
+    await updateSettings(updatedSettings);
+
+    // Notify all windows with enriched settings
+    const enrichedSettings = await getSettingsForRenderer();
+    const allWindows = BrowserWindow.getAllWindows();
+    for (const window of allWindows) {
+      window.webContents.send(IPC_EVENTS.SETTINGS_UPDATED, enrichedSettings);
+    }
+  });
 
   ipcMain.on(IPC_EVENTS.OPEN_SETTINGS, () => {
     const mainWindow = windowManager.getMainWindow();
@@ -461,15 +524,22 @@ void app.whenReady().then(async () => {
 
       const settings = await getSettings();
 
-      const selectedModel = settings.mlModels.find(
-        (model) => model.id === settings.selectedModelId,
-      );
+      const selectedModel = settings.mlModels.find(({ id }) => id === settings.selectedModelId);
 
-      if (!selectedModel?.endpoint || !selectedModel?.token) {
+      if (!selectedModel?.endpoint) {
         throw new Error("Machine Learning integration is not configured.");
       }
 
-      return analyseStack({ photos: validatedPhotos, settings: selectedModel });
+      const token = await getToken(selectedModel.id);
+
+      if (!token) {
+        throw new Error("Machine Learning API token is not configured or could not be decrypted.");
+      }
+
+      return analyseStack({
+        photos: validatedPhotos,
+        settings: { endpoint: selectedModel.endpoint, token },
+      });
     },
   );
 
@@ -488,6 +558,10 @@ void app.whenReady().then(async () => {
 
     if (link === "user-guide-ml") {
       return shell.openExternal(EXTERNAL_LINKS.USER_GUIDE_ML);
+    }
+
+    if (link === "user-guide-ml-tokens") {
+      return shell.openExternal(EXTERNAL_LINKS.USER_GUIDE_ML_TOKENS);
     }
 
     if (link === "privacy") {
