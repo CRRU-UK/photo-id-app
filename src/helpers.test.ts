@@ -6,12 +6,10 @@ import { ROUTES } from "@/constants";
 import {
   buildPhotoUrl,
   chunkArray,
-  clampPan,
   computeIsEdited,
   decodeEditPayload,
   encodeEditPayload,
   getAlphabetLetter,
-  getBoundaries,
   getCanvasFilters,
   getImageCoordinates,
   isEditWindow,
@@ -67,20 +65,6 @@ describe(getCanvasFilters, () => {
     });
 
     expect(result).toBe("grayscale(1) invert(1) contrast(150%)");
-  });
-});
-
-describe(getBoundaries, () => {
-  it("calculates boundaries when image is larger than canvas", () => {
-    const result = getBoundaries(400, 800);
-
-    expect(result).toStrictEqual({ min: -200, max: 200 });
-  });
-
-  it("calculates boundaries when image is smaller than canvas", () => {
-    const result = getBoundaries(800, 400);
-
-    expect(result).toStrictEqual({ min: 200, max: -200 });
   });
 });
 
@@ -228,106 +212,79 @@ describe(getImageCoordinates, () => {
 
     expect(result).toStrictEqual({ x: 200, y: 0 });
   });
-});
 
-describe(clampPan, () => {
-  it("returns pan unchanged when within bounds", () => {
-    const pan = { x: 50, y: 75 };
-    const result = clampPan({
-      pan,
-      canvas: { width: 800, height: 600 },
-      scaledImage: { width: 1000, height: 800 },
+  it("maps canvas centre to image centre at zoom=2 with no pan", () => {
+    // fitScale = min(800/1600, 600/1200) = 0.5
+    // x = (400 - 400 - 0) / (0.5 * 2) + 800 = 0 + 800 = 800
+    // y = (300 - 300 - 0) / (0.5 * 2) + 600 = 0 + 600 = 600
+    const canvas = {
+      getBoundingClientRect: () => ({ left: 0, top: 0 }),
+      clientWidth: 800,
+      clientHeight: 600,
+    } as unknown as HTMLCanvasElement;
+
+    const image = { naturalWidth: 1600, naturalHeight: 1200 } as HTMLImageElement;
+
+    const result = getImageCoordinates({
+      clientX: 400,
+      clientY: 300,
+      canvas,
+      image,
+      zoom: 2,
+      pan: { x: 0, y: 0 },
     });
 
-    expect(result).toStrictEqual({ x: 50, y: 75 });
+    expect(result).toStrictEqual({ x: 800, y: 600 });
   });
 
-  it("clamps pan.x to max when exceeding upper bound", () => {
-    const pan = { x: 200, y: 0 };
-    const result = clampPan({
-      pan,
-      canvas: { width: 800, height: 600 },
-      scaledImage: { width: 1000, height: 800 },
+  it("accounts for pan when zoom=1 and image is panned right", () => {
+    // pan.x = 100 image pixels right shifts the image right on canvas; the canvas centre now
+    // shows image pixel 700 (100px left of centre).
+    // fitScale = 0.5
+    // x = (400 - 400 - 100*0.5) / (0.5 * 1) + 800 = -50 / 0.5 + 800 = 700
+    // y = (300 - 300 - 0) / (0.5 * 1) + 600 = 600
+    const canvas = {
+      getBoundingClientRect: () => ({ left: 0, top: 0 }),
+      clientWidth: 800,
+      clientHeight: 600,
+    } as unknown as HTMLCanvasElement;
+
+    const image = { naturalWidth: 1600, naturalHeight: 1200 } as HTMLImageElement;
+
+    const result = getImageCoordinates({
+      clientX: 400,
+      clientY: 300,
+      canvas,
+      image,
+      zoom: 1,
+      pan: { x: 100, y: 0 },
     });
 
-    expect(result).toStrictEqual({ x: 100, y: 0 });
+    expect(result).toStrictEqual({ x: 700, y: 600 });
   });
 
-  it("clamps pan.x to min when below lower bound", () => {
-    const pan = { x: -200, y: 0 };
-    const result = clampPan({
-      pan,
-      canvas: { width: 800, height: 600 },
-      scaledImage: { width: 1000, height: 800 },
+  it("accounts for both zoom and pan together", () => {
+    // fitScale = 0.5, zoom=2, pan.x=100
+    // x = (400 - 400 - 100*0.5) / (0.5 * 2) + 800 = -50 / 1 + 800 = 750
+    // y = (300 - 300 - 0) / (0.5 * 2) + 600 = 600
+    const canvas = {
+      getBoundingClientRect: () => ({ left: 0, top: 0 }),
+      clientWidth: 800,
+      clientHeight: 600,
+    } as unknown as HTMLCanvasElement;
+
+    const image = { naturalWidth: 1600, naturalHeight: 1200 } as HTMLImageElement;
+
+    const result = getImageCoordinates({
+      clientX: 400,
+      clientY: 300,
+      canvas,
+      image,
+      zoom: 2,
+      pan: { x: 100, y: 0 },
     });
 
-    expect(result).toStrictEqual({ x: -100, y: 0 });
-  });
-
-  it("clamps pan.y to max when exceeding upper bound", () => {
-    const pan = { x: 0, y: 200 };
-    const result = clampPan({
-      pan,
-      canvas: { width: 800, height: 600 },
-      scaledImage: { width: 1000, height: 800 },
-    });
-
-    expect(result).toStrictEqual({ x: 0, y: 100 });
-  });
-
-  it("clamps pan.y to min when below lower bound", () => {
-    const pan = { x: 0, y: -200 };
-    const result = clampPan({
-      pan,
-      canvas: { width: 800, height: 600 },
-      scaledImage: { width: 1000, height: 800 },
-    });
-
-    expect(result).toStrictEqual({ x: 0, y: -100 });
-  });
-
-  it("clamps both x and y when both exceed bounds", () => {
-    const pan = { x: 300, y: 300 };
-    const result = clampPan({
-      pan,
-      canvas: { width: 800, height: 600 },
-      scaledImage: { width: 1000, height: 800 },
-    });
-
-    expect(result).toStrictEqual({ x: 100, y: 100 });
-  });
-
-  it("handles image smaller than canvas", () => {
-    const pan = { x: 0, y: 0 };
-    const result = clampPan({
-      pan,
-      canvas: { width: 800, height: 600 },
-      scaledImage: { width: 400, height: 300 },
-    });
-
-    expect(result).toStrictEqual({ x: 200, y: 150 });
-  });
-
-  it("handles image exactly same size as canvas", () => {
-    const pan = { x: 100, y: 100 };
-    const result = clampPan({
-      pan,
-      canvas: { width: 800, height: 600 },
-      scaledImage: { width: 800, height: 600 },
-    });
-
-    expect(result).toStrictEqual({ x: 0, y: 0 });
-  });
-
-  it("handles pan at exact boundary values", () => {
-    const pan = { x: 100, y: 100 };
-    const result = clampPan({
-      pan,
-      canvas: { width: 800, height: 600 },
-      scaledImage: { width: 1000, height: 800 },
-    });
-
-    expect(result).toStrictEqual({ x: 100, y: 100 });
+    expect(result).toStrictEqual({ x: 750, y: 600 });
   });
 });
 

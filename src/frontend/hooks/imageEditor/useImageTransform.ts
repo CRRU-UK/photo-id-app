@@ -28,6 +28,8 @@ export const useImageTransform = (imageRef: React.RefObject<HTMLImageElement | n
     (canvas: HTMLCanvasElement | null): void => {
       const image = imageRef.current;
 
+      // Canvas is checked for presence only — its dimensions are not used in the boundary formula.
+      // The guard ensures clamping is skipped before the canvas mounts or after it unmounts.
       if (!canvas || !image) {
         return;
       }
@@ -62,6 +64,11 @@ export const useImageTransform = (imageRef: React.RefObject<HTMLImageElement | n
         return null;
       }
 
+      // Intentionally called without zoom or pan — returns fitScale-only coordinates (zoom=1,
+      // pan=0 view). useZoomInteraction.handleWheel relies on this intermediate representation
+      // and applies its own pan/zoom correction to complete the full transform inversion.
+      // Callers that need the true image pixel under the cursor should call getImageCoordinates
+      // directly with the current zoom and pan values.
       return getImageCoordinates({ clientX, clientY, canvas, image });
     },
     [imageRef],

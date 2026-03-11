@@ -85,22 +85,16 @@ export const getCanvasFilters = ({
   );
 };
 
-// Calculate boundaries for given canvas and image size
-export const getBoundaries = (
-  canvasSize: number,
-  scaledImageSize: number,
-): { min: number; max: number } => ({
-  min: (canvasSize - scaledImageSize) / 2,
-  max: (scaledImageSize - canvasSize) / 2,
-});
-
 /**
- * Convert viewport (client) coordinates to image coordinates.
+ * Convert viewport (client) coordinates to image coordinates, inverting the canvas rendering
+ * transform.
  *
- * The rendering applies a fitScale transform so the image fills the display area while maintaining
- * its aspect ratio (equivalent to object-fit: contain). To invert that transform: subtract the
- * display centre to get an offset from centre in CSS pixels, divide by fitScale to convert to
- * image pixels, then add the image centre to get an absolute image-pixel position.
+ * The rendering transform maps image pixel (x, y) to canvas position:
+ * canvas_x = (x − naturalWidth/2) * fitScale * zoom + centreX + pan.x * fitScale
+ *
+ * This function inverts that transform. When called without `zoom` and `pan` (defaulting to 1
+ * and {x:0,y:0}), it inverts `fitScale` only - equivalent to the zoom=1, pan=0 view. Callers that
+ * need the true image pixel under the cursor at non-default zoom or pan should pass those values.
  *
  * fitScale = min(clientWidth / naturalWidth, clientHeight / naturalHeight)
  */
@@ -109,11 +103,15 @@ export const getImageCoordinates = ({
   clientY,
   canvas,
   image,
+  zoom = 1,
+  pan = { x: 0, y: 0 },
 }: {
   clientX: number;
   clientY: number;
   canvas: HTMLCanvasElement | null;
   image: HTMLImageElement | null;
+  zoom?: number;
+  pan?: { x: number; y: number };
 }): {
   x: number;
   y: number;
@@ -133,32 +131,12 @@ export const getImageCoordinates = ({
   );
 
   return {
-    x: (offsetX - canvas.clientWidth / 2) / fitScale + image.naturalWidth / 2,
-    y: (offsetY - canvas.clientHeight / 2) / fitScale + image.naturalHeight / 2,
-  };
-};
-
-/**
- * Clamp pan values to ensure image stays within canvas bounds
- */
-export const clampPan = ({
-  pan,
-  canvas,
-  scaledImage,
-}: {
-  pan: { x: number; y: number };
-  canvas: { width: number; height: number };
-  scaledImage: { width: number; height: number };
-}): {
-  x: number;
-  y: number;
-} => {
-  const boundaryX = getBoundaries(canvas.width, scaledImage.width);
-  const boundaryY = getBoundaries(canvas.height, scaledImage.height);
-
-  return {
-    x: Math.max(boundaryX.min, Math.min(boundaryX.max, pan.x)),
-    y: Math.max(boundaryY.min, Math.min(boundaryY.max, pan.y)),
+    x:
+      (offsetX - canvas.clientWidth / 2 - pan.x * fitScale) / (fitScale * zoom) +
+      image.naturalWidth / 2,
+    y:
+      (offsetY - canvas.clientHeight / 2 - pan.y * fitScale) / (fitScale * zoom) +
+      image.naturalHeight / 2,
   };
 };
 

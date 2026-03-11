@@ -53,6 +53,12 @@ export const useZoomInteraction = ({
       const centreX = image.naturalWidth / 2;
       const centreY = image.naturalHeight / 2;
 
+      // getImageCoords returns fitScale-only coordinates (zoom=1, pan=0). The lines below complete
+      // the full transform inversion by applying the current pan and zoom, giving the actual image
+      // pixel under the cursor. Derivation: imageCoords.x - centreX = (offsetX - clientWidth/2) /
+      // fitScale, so (imageCoords.x - centreX - pan.x) / zoom + centreX equals
+      // (offsetX - clientWidth/2 - pan.x * fitScale) / (fitScale * zoom) + naturalWidth / 2
+      // identical to calling getImageCoordinates with zoom and pan directly.
       const imagePointX = (imageCoords.x - centreX - pan.x) / zoom + centreX;
       const imagePointY = (imageCoords.y - centreY - pan.y) / zoom + centreY;
 
