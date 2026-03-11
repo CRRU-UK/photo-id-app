@@ -15,7 +15,7 @@ export interface IElectronAPI {
   getCurrentProject: () => Promise<ProjectBody | null>;
   getRecentProjects: () => Promise<RecentProject[]>;
   removeRecentProject: (path: string) => Promise<RecentProject[]>;
-  exportMatches: (data: string) => Promise<void>;
+  exportMatches: (data: string, type: ExportTypes) => Promise<void>;
   savePhotoFile: (data: PhotoBody) => Promise<void>;
   revertPhotoFile: (data: PhotoBody) => Promise<PhotoBody>;
   navigateEditorPhoto: (data: PhotoBody, direction: EditorNavigation) => Promise<string | null>;

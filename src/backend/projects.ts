@@ -6,6 +6,7 @@ import path from "node:path";
 import type {
   CollectionBody,
   EditorNavigation,
+  ExportTypes,
   LoadingData,
   PhotoBody,
   ProjectBody,
@@ -286,6 +287,7 @@ const handleSaveProject = async (data: string) => {
 const handleExportMatches = async (
   mainWindow: Electron.BrowserWindow,
   data: string,
+  type: ExportTypes,
 ): Promise<string> => {
   const json: unknown = JSON.parse(data);
   const project = projectBodySchema.parse(json);

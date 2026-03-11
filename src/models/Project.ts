@@ -1,4 +1,11 @@
-import type { CollectionBody, Directory, Matches, PhotoBody, ProjectBody } from "@/types";
+import type {
+  CollectionBody,
+  Directory,
+  ExportTypes,
+  Matches,
+  PhotoBody,
+  ProjectBody,
+} from "@/types";
 
 import { makeObservable, observable, runInAction } from "mobx";
 
@@ -166,9 +173,9 @@ class Project {
     return this;
   }
 
-  public async exportMatches(): Promise<this> {
+  public async exportMatches(type: ExportTypes): Promise<this> {
     const data = this.returnAsJSONString();
-    await window.electronAPI.exportMatches(data);
+    await window.electronAPI.exportMatches(data, type);
 
     return this;
   }

@@ -14,7 +14,7 @@ import {
 import { getRecentProjects, removeRecentProject } from "@/backend/recents";
 import { windowManager } from "@/backend/WindowManager";
 import { IPC_EVENTS, PROJECT_EXPORT_DIRECTORY, PROJECT_FILE_NAME } from "@/constants";
-import type { ProjectBody, RecentProject } from "@/types";
+import type { ExportTypes, ProjectBody, RecentProject } from "@/types";
 
 export const handleOpenFolder = async (event: IpcMainEvent): Promise<void> => {
   const window = getWindowFromSender(event.sender);
@@ -104,13 +104,14 @@ export const handleSaveProjectInvoke = async (
 export const handleExportMatchesInvoke = async (
   event: IpcMainInvokeEvent,
   data: string,
+  type: ExportTypes,
 ): Promise<void> => {
   const window = getWindowFromSender(event.sender);
   if (!window) {
     return;
   }
 
-  const directory = await handleExportMatches(window, data);
+  const directory = await handleExportMatches(window, data, type);
 
   void shell.openPath(path.join(directory, PROJECT_EXPORT_DIRECTORY));
 };

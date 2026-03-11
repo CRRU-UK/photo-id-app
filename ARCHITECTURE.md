@@ -159,8 +159,13 @@ The project view is accessed when opening a project. It allows the user to:
 
 - Organise photos into various stacks
 - Open a photo in the photo editor
-- Export matches
-  - Exporting matches should automatically open and focus the export folder after exported photos have been generated
+- Export photos
+  - Matched photos can be exported with or without edits applied
+  - Exporting photos should automatically open and focus the export folder when completed
+  - Previous exports should be removed before exporting new matches to avoid mixed data
+- Export data
+  - A CSV of the data can be exported, with two columns: original file name and match ID
+  - The CSV is saved to the root of the project (instead of the matched directory)
 - Change number of columns
   - The value is retained in state and not intended to be saved as a session
 - Close the project (and navigate back to the index view)
