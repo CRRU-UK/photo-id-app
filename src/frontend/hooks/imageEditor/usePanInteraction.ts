@@ -47,9 +47,9 @@ export const usePanInteraction = ({
 
       /**
        * Convert screen pixel deltas to image pixel deltas. In the rendering transform, pan is
-       * multiplied by fitScale only (not fitScale × zoom), so a change of pan image pixels moves
-       * the image by pan × fitScale CSS pixels - independent of zoom. For 1:1 cursor tracking:
-       * pan = delta / fitScale = delta × Math.max(nw/cw, nh/ch). Using Math.max gives a uniform
+       * multiplied by fitScale only (not fitScale * zoom), so a change of pan image pixels moves
+       * the image by pan * fitScale CSS pixels - independent of zoom. For 1:1 cursor tracking:
+       * pan = delta / fitScale = delta * Math.max(nw/cw, nh/ch). Using Math.max gives a uniform
        * scale for both axes regardless of letterboxing.
        */
       const scale = Math.max(
