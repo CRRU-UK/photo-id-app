@@ -305,6 +305,20 @@ Inverts the rendering transform to map viewport (screen) coordinates to image pi
 - Without zoom/pan (defaults to zoom=1, pan=0): inverts `fitScale` only, giving coordinates in the un-zoomed/un-panned view (used by `useZoomInteraction.handleWheel` as an intermediate step)
 - With zoom/pan: performs the full inversion to get the actual image pixel under the cursor (used by the loupe)
 
+##### Loupe positioning
+
+The loupe is a circular magnifier. Its container is positioned using a `translate` transform relative to the parent edit element. The cursor must always sit at the 45° (bottom-right) point on the circle's edge and not inside it.
+
+For a circle of radius `r`, the 45° point is at `r / √2` from the centre along each axis. So to place the cursor at that point, the centre must be at `(cursorX - r/√2, cursorY - r/√2)`, and the top-left of the bounding box is `r` further back:
+
+```plaintext
+offset = r * (1 + 1/√2)  =  (loupeSize / 2) * (1 + 1 / Math.SQRT2)
+loupeX = cursorX - offset - CURSOR_PADDING
+loupeY = cursorY - offset - CURSOR_PADDING
+```
+
+`CURSOR_PADDING` is a small gap in pixels added along the 45° diagonal to keep the cursor tip visually clear of the circle edge. This offset is size-independent as the cursor always lands at the same relative position on the arc regardless of how large or small the loupe is scaled.
+
 ##### Zoom towards cursor (`useZoomInteraction.handleWheel`)
 
 Uses a two-step inversion. First, `getImageCoords` returns `fitScale`-only coordinates (zoom=1, pan=0). Then the current zoom and pan are applied manually to find the true image pixel under the cursor. After computing the new zoom, the pan is adjusted so that same image pixel stays under the cursor.
