@@ -86,17 +86,10 @@ export const getCanvasFilters = ({
 };
 
 /**
- * Convert viewport (client) coordinates to image coordinates, inverting the canvas rendering
- * transform.
- *
- * The rendering transform maps image pixel (x, y) to canvas position:
- * canvas_x = (x − naturalWidth/2) * fitScale * zoom + centreX + pan.x * fitScale
- *
- * This function inverts that transform. When called without `zoom` and `pan` (defaulting to 1
- * and {x:0,y:0}), it inverts `fitScale` only - equivalent to the zoom=1, pan=0 view. Callers that
- * need the true image pixel under the cursor at non-default zoom or pan should pass those values.
- *
- * fitScale = min(clientWidth / naturalWidth, clientHeight / naturalHeight)
+ * Convert viewport (client) coordinates to image coordinates by inverting the canvas rendering
+ * transform. Without `zoom`/`pan` (defaults: 1 and {0,0}), inverts `fitScale` only. Pass zoom and
+ * pan to get the true image pixel under the cursor.
+ * @see [ARCHITECTURE.md](../ARCHITECTURE.md) "Canvas rendering and coordinate system"
  */
 export const getImageCoordinates = ({
   clientX,

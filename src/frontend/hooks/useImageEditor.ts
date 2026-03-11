@@ -50,15 +50,46 @@ const useImageEditor = ({ file, loupeEnabled, onError }: UseImageEditorProps) =>
     }
   }, [imageLoaded, draw]);
 
-  const { handlePointerDown, handlePointerMove, handlePointerUp } = usePanInteraction({
-    canvasRef,
-    imageRef,
-    onPan: setPanInternal,
-    onDraw: draw,
-    onDrawThrottled: drawThrottled,
-    onCancelThrottle: cancelThrottle,
-    getTransform,
-  });
+  const { loupeCanvasRef, loupeContainerRef, handleLoupeMove, handleLoupeLeave, redrawLoupe } =
+    useLoupe({
+      enabled: loupeEnabled,
+      imageRef,
+      canvasRef,
+      getFilters,
+      getTransform,
+    });
+
+  /**
+   * Pans the image by a delta amount in image coordinates.
+   * @param delta - Delta pan values in image coordinates
+   */
+  const handlePan = useCallback(
+    (delta: { x: number; y: number }) => {
+      const currentTransform = getTransform();
+      const newPan = {
+        x: currentTransform.pan.x + delta.x,
+        y: currentTransform.pan.y + delta.y,
+      };
+
+      setPanInternal(newPan);
+      clamp(canvasRef.current);
+      drawThrottled();
+      redrawLoupe();
+    },
+    [getTransform, setPanInternal, clamp, canvasRef, drawThrottled, redrawLoupe],
+  );
+
+  const { handlePointerDown, handlePointerMove, handlePointerUp, handleDirectionalPan } =
+    usePanInteraction({
+      canvasRef,
+      imageRef,
+      onPan: setPanInternal,
+      onDirectionalPan: handlePan,
+      onDraw: draw,
+      onDrawThrottled: drawThrottled,
+      onCancelThrottle: cancelThrottle,
+      getTransform,
+    });
 
   const {
     handleWheel: handleWheelInternal,
@@ -74,15 +105,6 @@ const useImageEditor = ({ file, loupeEnabled, onError }: UseImageEditorProps) =>
     clamp,
     onDraw: draw,
   });
-
-  const { loupeCanvasRef, loupeContainerRef, handleLoupeMove, handleLoupeLeave, redrawLoupe } =
-    useLoupe({
-      enabled: loupeEnabled,
-      imageRef,
-      canvasRef,
-      getFilters,
-      getTransform,
-    });
 
   const handleWheel = useCallback(
     (event: WheelEvent) => {
@@ -149,26 +171,6 @@ const useImageEditor = ({ file, loupeEnabled, onError }: UseImageEditorProps) =>
       redrawLoupe();
     },
     [setEdgeDetectionInternal, drawThrottled, redrawLoupe],
-  );
-
-  /**
-   * Pans the image by a delta amount in image coordinates.
-   * @param delta - Delta pan values in image coordinates
-   */
-  const handlePan = useCallback(
-    (delta: { x: number; y: number }) => {
-      const currentTransform = getTransform();
-      const newPan = {
-        x: currentTransform.pan.x + delta.x,
-        y: currentTransform.pan.y + delta.y,
-      };
-
-      setPanInternal(newPan);
-      clamp(canvasRef.current);
-      drawThrottled();
-      redrawLoupe();
-    },
-    [getTransform, setPanInternal, clamp, canvasRef, drawThrottled, redrawLoupe],
   );
 
   const resetAll = useCallback(() => {
@@ -238,7 +240,7 @@ const useImageEditor = ({ file, loupeEnabled, onError }: UseImageEditorProps) =>
         handlePointerUp,
         handlePointerMove,
         handleWheel,
-        handlePan,
+        handleDirectionalPan,
         handleLoupeMove,
         handleLoupeLeave,
       },
@@ -267,7 +269,7 @@ const useImageEditor = ({ file, loupeEnabled, onError }: UseImageEditorProps) =>
       handlePointerUp,
       handlePointerMove,
       handleWheel,
-      handlePan,
+      handleDirectionalPan,
       handleLoupeMove,
       handleLoupeLeave,
       draw,

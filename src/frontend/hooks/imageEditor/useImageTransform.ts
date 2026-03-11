@@ -28,10 +28,7 @@ export const useImageTransform = (imageRef: React.RefObject<HTMLImageElement | n
     (canvas: HTMLCanvasElement | null): void => {
       const image = imageRef.current;
 
-      /**
-       * Canvas is checked for presence only — its dimensions are not used in the boundary formula.
-       * The guard ensures clamping is skipped before the canvas mounts or after it unmounts.
-       */
+      // Canvas checked for presence only — dimensions are not used in the boundary formula
       if (!canvas || !image) {
         return;
       }
@@ -41,13 +38,7 @@ export const useImageTransform = (imageRef: React.RefObject<HTMLImageElement | n
       const maxPanX = (image.naturalWidth * (zoom - 1)) / 2;
       const maxPanY = (image.naturalHeight * (zoom - 1)) / 2;
 
-      /**
-       * The pan boundary is the edge of the photo's display rectangle (the fitScale-constrained
-       * area), not the canvas edge. At zoom = z, the image is z* larger than the photo area in
-       * each dimension, so the user can pan by (z - 1)/2 of the image's natural extent before
-       * the image edge reaches the photo area edge. This is independent of canvas/window size -
-       * resizing the window changes the photo area's CSS size but not the image-pixel boundary.
-       */
+      // Pan boundary = naturalDim * (zoom - 1) / 2, independent of canvas size
       panRef.current = {
         x: Math.max(-maxPanX, Math.min(maxPanX, panRef.current.x)),
         y: Math.max(-maxPanY, Math.min(maxPanY, panRef.current.y)),
@@ -68,13 +59,7 @@ export const useImageTransform = (imageRef: React.RefObject<HTMLImageElement | n
         return null;
       }
 
-      /**
-       * Intentionally called without zoom or pan - returns `fitScale`-only coordinates (zoom=1,
-       * pan=0 view). `useZoomInteraction.handleWheel` relies on this intermediate representation
-       * and applies its own pan/zoom correction to complete the full transform inversion.
-       * Callers that need the true image pixel under the cursor should call `getImageCoordinates`
-       * directly with the current zoom and pan values.
-       */
+      // Returns `fitScale`-only coordinates (zoom=1, pan=0).
       return getImageCoordinates({ clientX, clientY, canvas, image });
     },
     [imageRef],

@@ -32,10 +32,7 @@ export const useCanvasRenderer = ({ imageRef, getFilters, getTransform, clamp }:
       return;
     }
 
-    /**
-     * Size the canvas buffer to the display area scaled by device pixel ratio so rendering is sharp
-     * on high-DPI displays and the buffer avoids holding the full image at natural resolution
-     */
+    // See ARCHITECTURE.md "Canvas rendering and coordinate system"
     const dpr = window.devicePixelRatio || 1;
 
     const bufferWidth = Math.round(canvas.clientWidth * dpr);
@@ -52,10 +49,6 @@ export const useCanvasRenderer = ({ imageRef, getFilters, getTransform, clamp }:
 
     const filters = getFilters();
 
-    /**
-     * Maps image pixels to CSS pixels so the image fills the display area while maintaining its
-     * aspect ratio (equivalent to `object-fit: contain`).
-     */
     const fitScale = Math.min(
       canvas.clientWidth / image.naturalWidth,
       canvas.clientHeight / image.naturalHeight,
@@ -71,10 +64,7 @@ export const useCanvasRenderer = ({ imageRef, getFilters, getTransform, clamp }:
     context.save();
     context.beginPath();
 
-    /**
-     * Clip all drawing to the photo's display rectangle so the image never bleeds into letterbox
-     * space when zoomed in. The clip rect is the `fitScale`-constrained area centred in the canvas.
-     */
+    // Clip to the photo's display rectangle so the image never bleeds into letterbox space
     context.rect(
       centreX - (image.naturalWidth * fitScale) / 2,
       centreY - (image.naturalHeight * fitScale) / 2,
@@ -142,11 +132,7 @@ export const useCanvasRenderer = ({ imageRef, getFilters, getTransform, clamp }:
     }
   }, []);
 
-  /**
-   * Trigger a redraw when the canvas element is resized (e.g. window resize). Previously
-   * `object-fit: contain` handled display scaling automatically; now the rendering code must
-   * re-run to recompute `fitScale` and resize the buffer.
-   */
+  // Redraw when the canvas element is resized (e.g. window resize) to recompute fitScale and the buffer
   useEffect(() => {
     const canvas = canvasRef.current;
 

@@ -259,6 +259,55 @@ The project view is accessed when opening a project. It allows the user to:
   - Resetting the edits only resets the edits back to their defaults, and does NOT automatically save the photo
 - Failure in saving a photo or regenerating its thumbnail should not be automatically retried, and should show an error
 
+#### Canvas rendering and coordinate system
+
+The rendering transform, coordinate conversion, and pan/zoom mathematics are described here, and inline comments in the hooks reference this section.
+
+##### Buffer sizing
+
+The canvas backing buffer is sized to the CSS display area multiplied by `devicePixelRatio` (DPR), not the full image resolution. The 2D context is then scaled by DPR (`setTransform(dpr, 0, 0, dpr, 0, 0)`) so all subsequent drawing works in CSS pixels. This keeps the buffer small (good for low-spec hardware) while rendering sharply on high-DPI screens.
+
+#### `fitScale`
+
+The following formula maps image pixels to CSS pixels so the image fills the display area while maintaining its aspect ratio:
+
+```plaintext
+fitScale = Math.min(canvas.clientWidth / image.naturalWidth, canvas.clientHeight / image.naturalHeight)
+```
+
+When the image aspect ratio differs from the canvas, the remaining space is letterboxed (essentially matching the behaviour of `object-fit`).
+
+#### Rendering transform (applied in `useCanvasRenderer.draw`)
+
+1. **Clip** to the photo's display rectangle (`fitScale`-constrained area centred in the canvas) so the image never bleeds into letterbox space when zoomed
+2. **Translate** to canvas centre plus pan offset: `translate(centreX + pan.x * fitScale, centreY + pan.y * fitScale)`
+3. **Scale** by `fitScale * zoom`
+4. **Translate** back by half the natural image dimensions: `translate(-naturalWidth / 2, -naturalHeight / 2)`
+5. **Draw** the image at origin
+
+##### Pan units
+
+Pan is stored in **image pixels** and multiplied by `fitScale` only (not `fitScale * zoom`) during rendering. This means a pan delta produces the same CSS-pixel movement regardless of the current zoom level, giving 1:1 cursor tracking during drag panning.
+
+##### Pan boundaries
+
+The maximum pan at zoom `z` is `naturalDim * (z - 1) / 2` image pixels in each axis. This is the distance the image edge can travel before it reaches the photo display area edge. The boundary depends only on the image's natural dimensions and zoom level - it is independent of the canvas/window size. At zoom 1, pan is locked to (0, 0).
+
+##### Coordinate conversion (`getImageCoordinates`)
+
+Inverts the rendering transform to map viewport (screen) coordinates to image pixel coordinates. Accepts optional `zoom` and `pan` parameters:
+
+- Without zoom/pan (defaults to zoom=1, pan=0): inverts `fitScale` only, giving coordinates in the un-zoomed/un-panned view (used by `useZoomInteraction.handleWheel` as an intermediate step)
+- With zoom/pan: performs the full inversion to get the actual image pixel under the cursor (used by the loupe)
+
+##### Zoom towards cursor (`useZoomInteraction.handleWheel`)
+
+Uses a two-step inversion. First, `getImageCoords` returns `fitScale`-only coordinates (zoom=1, pan=0). Then the current zoom and pan are applied manually to find the true image pixel under the cursor. After computing the new zoom, the pan is adjusted so that same image pixel stays under the cursor.
+
+#### Pan scaling (pointer drag and keyboard)
+
+Screen-pixel drag deltas are converted to image-pixel deltas by multiplying by `1/fitScale = Math.max(naturalWidth/clientWidth, naturalHeight/clientHeight)`. `Math.max` gives a uniform scale for both axes regardless of letterboxing, ensuring isotropic (direction-independent) panning. This calculation lives in `usePanInteraction` for both pointer and keyboard panning.
+
 ### Project Data
 
 - The project data file (`project.photoid`) is the ONLY source of truth for project data

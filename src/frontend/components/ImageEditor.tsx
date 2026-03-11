@@ -26,7 +26,6 @@ import {
   IMAGE_FILTERS,
   KEYBOARD_CODE_TO_PAN_DIRECTION,
   LOUPE,
-  PAN_AMOUNT,
 } from "@/constants";
 import LoadingOverlay from "@/frontend/components/LoadingOverlay";
 import useImageEditor from "@/frontend/hooks/useImageEditor";
@@ -259,43 +258,6 @@ const ImageEditor = ({
     [data, navigating, setQueryCallback],
   );
 
-  const handlePanDirection = useCallback(
-    (direction: EditorPanDirection) => {
-      const canvas = refs.canvasRef.current;
-      const image = refs.imageRef.current;
-
-      if (!canvas || !image) {
-        return;
-      }
-
-      /**
-       * Uniform scale (1/fitScale) gives isotropic keyboard panning in image-pixel space, matching
-       * the pointer-drag pan calculation in usePanInteraction
-       */
-      const scale = Math.max(
-        image.naturalWidth / canvas.clientWidth,
-        image.naturalHeight / canvas.clientHeight,
-      );
-
-      let deltaX = 0;
-      let deltaY = 0;
-
-      if (direction === EditorPanDirection.LEFT) {
-        deltaX = PAN_AMOUNT * scale;
-      } else if (direction === EditorPanDirection.RIGHT) {
-        deltaX = -PAN_AMOUNT * scale;
-      } else if (direction === EditorPanDirection.UP) {
-        deltaY = PAN_AMOUNT * scale;
-      } else if (direction === EditorPanDirection.DOWN) {
-        deltaY = -PAN_AMOUNT * scale;
-      }
-
-      handlers.handlePan({ x: deltaX, y: deltaY });
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- specific refs/handler for tighter deps
-    [refs.canvasRef, refs.imageRef, handlers.handlePan],
-  );
-
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
       const modifierKey = event.ctrlKey || event.metaKey;
@@ -303,7 +265,7 @@ const ImageEditor = ({
       const panDirection = KEYBOARD_CODE_TO_PAN_DIRECTION?.[event.code];
       if (!modifierKey && panDirection) {
         event.preventDefault();
-        return handlePanDirection(panDirection);
+        return handlers.handleDirectionalPan(panDirection);
       }
 
       const key = event.key.toLowerCase();
@@ -360,7 +322,7 @@ const ImageEditor = ({
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps -- specific handler refs for tighter deps
     [
-      handlePanDirection,
+      handlers.handleDirectionalPan,
       handleEditorNavigation,
       handleToggleLoupe,
       handleToggleEdgeDetection,
@@ -528,28 +490,28 @@ const ImageEditor = ({
               size="large"
               aria-label={EDITOR_TOOLTIPS.PAN_LEFT}
               keybindingHint={EDITOR_KEYBOARD_HINTS.PAN_LEFT}
-              onClick={() => handlePanDirection(EditorPanDirection.LEFT)}
+              onClick={() => handlers.handleDirectionalPan(EditorPanDirection.LEFT)}
             />
             <IconButton
               icon={ArrowUpIcon}
               size="large"
               aria-label={EDITOR_TOOLTIPS.PAN_UP}
               keybindingHint={EDITOR_KEYBOARD_HINTS.PAN_UP}
-              onClick={() => handlePanDirection(EditorPanDirection.UP)}
+              onClick={() => handlers.handleDirectionalPan(EditorPanDirection.UP)}
             />
             <IconButton
               icon={ArrowDownIcon}
               size="large"
               aria-label={EDITOR_TOOLTIPS.PAN_DOWN}
               keybindingHint={EDITOR_KEYBOARD_HINTS.PAN_DOWN}
-              onClick={() => handlePanDirection(EditorPanDirection.DOWN)}
+              onClick={() => handlers.handleDirectionalPan(EditorPanDirection.DOWN)}
             />
             <IconButton
               icon={ArrowRightIcon}
               size="large"
               aria-label={EDITOR_TOOLTIPS.PAN_RIGHT}
               keybindingHint={EDITOR_KEYBOARD_HINTS.PAN_RIGHT}
-              onClick={() => handlePanDirection(EditorPanDirection.RIGHT)}
+              onClick={() => handlers.handleDirectionalPan(EditorPanDirection.RIGHT)}
             />
           </ButtonGroup>
 
