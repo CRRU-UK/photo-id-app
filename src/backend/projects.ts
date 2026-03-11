@@ -27,6 +27,7 @@ import {
   MISSING_RECENT_PROJECT_MESSAGE,
   PHOTO_FILE_EXTENSIONS,
   PROJECT_EXPORT_CSV_FILE_NAME,
+  PROJECT_EXPORT_DATA_DIRECTORY,
   PROJECT_EXPORT_DIRECTORY,
   PROJECT_FILE_EXTENSION,
   PROJECT_FILE_NAME,
@@ -319,7 +320,13 @@ const exportMatchesAsCsv = async (
     addSide(match.right);
   }
 
-  const csvPath = path.join(directory, PROJECT_EXPORT_CSV_FILE_NAME);
+  const dataDirectory = path.join(directory, PROJECT_EXPORT_DATA_DIRECTORY);
+
+  if (!fs.existsSync(dataDirectory)) {
+    await fs.promises.mkdir(dataDirectory);
+  }
+
+  const csvPath = path.join(dataDirectory, PROJECT_EXPORT_CSV_FILE_NAME);
   const csvContent = stringify(records);
   await fs.promises.writeFile(csvPath, csvContent, "utf8");
 

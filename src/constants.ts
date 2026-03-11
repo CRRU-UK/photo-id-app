@@ -163,6 +163,8 @@ export const PROJECT_THUMBNAIL_DIRECTORY = "thumbnails";
 
 export const PROJECT_EXPORT_DIRECTORY = "matched";
 
+export const PROJECT_EXPORT_DATA_DIRECTORY = "data";
+
 export const PROJECT_EXPORT_CSV_FILE_NAME = "matches.csv";
 
 export const THUMBNAIL_SIZE = 1000;

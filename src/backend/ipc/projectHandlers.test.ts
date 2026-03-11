@@ -1,10 +1,12 @@
 import type { BrowserWindow, IpcMainEvent, IpcMainInvokeEvent } from "electron";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { PROJECT_EXPORT_CSV_FILE_NAME, PROJECT_EXPORT_DATA_DIRECTORY } from "@/constants";
 import type { ProjectBody, RecentProject } from "@/types";
 
 const mockShowErrorBox = vi.fn<(title: string, content: string) => void>();
 const mockOpenPath = vi.fn<(path: string) => Promise<string>>();
+const mockShowItemInFolder = vi.fn<(path: string) => void>();
 
 vi.mock("electron", () => ({
   dialog: {
@@ -12,6 +14,8 @@ vi.mock("electron", () => ({
   },
   shell: {
     openPath: (...args: Parameters<typeof mockOpenPath>) => mockOpenPath(...args),
+    showItemInFolder: (...args: Parameters<typeof mockShowItemInFolder>) =>
+      mockShowItemInFolder(...args),
   },
 }));
 
@@ -297,7 +301,7 @@ describe("project IPC handlers", () => {
       expect(mockOpenPath).toHaveBeenCalledWith("/project/dir/matched");
     });
 
-    it("exports matches and opens the project root for csv export", async () => {
+    it("exports matches and shows CSV file selected in folder for csv export", async () => {
       const mockWindow = createMockWindow();
       mockGetWindowFromSender.mockReturnValue(mockWindow);
       mockHandleExportMatches.mockResolvedValue("/project/dir");
@@ -305,7 +309,10 @@ describe("project IPC handlers", () => {
       await handleExportMatchesInvoke(createMockInvokeEvent(mockWindow), "{}", "csv");
 
       expect(mockHandleExportMatches).toHaveBeenCalledWith(mockWindow, "{}", "csv");
-      expect(mockOpenPath).toHaveBeenCalledWith("/project/dir");
+      expect(mockShowItemInFolder).toHaveBeenCalledWith(
+        `/project/dir/${PROJECT_EXPORT_DATA_DIRECTORY}/${PROJECT_EXPORT_CSV_FILE_NAME}`,
+      );
+      expect(mockOpenPath).not.toHaveBeenCalled();
     });
   });
 });
