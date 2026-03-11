@@ -182,7 +182,7 @@ describe(useImageTransform, () => {
 
       const transform = result.current.getTransform();
 
-      // Same boundary as the 800×600 case above — window size has no effect.
+      // Same boundary as the 800*600 case above — window size has no effect.
       expect(transform.pan.x).toBe(800);
       expect(transform.pan.y).toBe(600);
     });
