@@ -171,7 +171,7 @@ describe(useImageTransform, () => {
       const { result } = renderHook(() => useImageTransform(imageRef));
 
       // A wider canvas does not change the pan boundary — the photo area edge is always
-      // naturalDim * (zoom-1) / 2 in image pixels, regardless of window size.
+      // naturalDimension * (zoom-1) / 2 in image pixels, regardless of window size.
       const canvas = { clientWidth: 1200, clientHeight: 600 } as HTMLCanvasElement;
 
       act(() => {
@@ -191,7 +191,7 @@ describe(useImageTransform, () => {
       const imageRef = createImageRef(1600, 1200);
       const { result } = renderHook(() => useImageTransform(imageRef));
 
-      // At zoom 1: maxPanX = 1600 * (1-1) / 2 = 0 → pan locked to (0, 0).
+      // At zoom 1: maxPanX = 1600 * (1-1) / 2 = 0 > pan locked to (0, 0).
       const canvas = { clientWidth: 800, clientHeight: 600 } as HTMLCanvasElement;
 
       act(() => {

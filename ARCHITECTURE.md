@@ -291,7 +291,7 @@ Pan is stored in **image pixels** and multiplied by `fitScale` only (not `fitSca
 
 ##### Pan boundaries
 
-The maximum pan at zoom `z` is `naturalDim * (z - 1) / 2` image pixels in each axis. This is the distance the image edge can travel before it reaches the photo display area edge. The boundary depends only on the image's natural dimensions and zoom level - it is independent of the canvas/window size. At zoom 1, pan is locked to (0, 0).
+The maximum pan at zoom `z` is `naturalDimension * (z - 1) / 2` image pixels in each axis. This is the distance the image edge can travel before it reaches the photo display area edge. The boundary depends only on the image's natural dimensions and zoom level - it is independent of the canvas/window size. At zoom 1, pan is locked to (0, 0).
 
 ##### Coordinate conversion (`getImageCoordinates`)
 

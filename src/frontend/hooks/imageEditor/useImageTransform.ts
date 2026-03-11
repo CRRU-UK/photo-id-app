@@ -38,7 +38,7 @@ export const useImageTransform = (imageRef: React.RefObject<HTMLImageElement | n
       const maxPanX = (image.naturalWidth * (zoom - 1)) / 2;
       const maxPanY = (image.naturalHeight * (zoom - 1)) / 2;
 
-      // Pan boundary = naturalDim * (zoom - 1) / 2, independent of canvas size
+      // Pan boundary = naturalDimension * (zoom - 1) / 2, independent of canvas size
       panRef.current = {
         x: Math.max(-maxPanX, Math.min(maxPanX, panRef.current.x)),
         y: Math.max(-maxPanY, Math.min(maxPanY, panRef.current.y)),

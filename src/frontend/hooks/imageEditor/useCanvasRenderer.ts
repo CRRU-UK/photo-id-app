@@ -13,6 +13,9 @@ interface RenderOptions {
   clamp: (canvas: HTMLCanvasElement | null) => void;
 }
 
+/**
+ * @link [ARCHITECTURE.md](../../../../ARCHITECTURE.md)
+ */
 export const useCanvasRenderer = ({ imageRef, getFilters, getTransform, clamp }: RenderOptions) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const throttleRef = useRef<number | null>(null);
@@ -32,7 +35,6 @@ export const useCanvasRenderer = ({ imageRef, getFilters, getTransform, clamp }:
       return;
     }
 
-    // See ARCHITECTURE.md "Canvas rendering and coordinate system"
     const dpr = window.devicePixelRatio || 1;
 
     const bufferWidth = Math.round(canvas.clientWidth * dpr);
@@ -64,7 +66,7 @@ export const useCanvasRenderer = ({ imageRef, getFilters, getTransform, clamp }:
     context.save();
     context.beginPath();
 
-    // Clip to the photo's display rectangle so the image never bleeds into letterbox space
+    // Clip to the image display rectangle so the image never bleeds into letterbox space
     context.rect(
       centreX - (image.naturalWidth * fitScale) / 2,
       centreY - (image.naturalHeight * fitScale) / 2,
@@ -92,8 +94,8 @@ export const useCanvasRenderer = ({ imageRef, getFilters, getTransform, clamp }:
   }, [imageRef, getFilters, getTransform, clamp]);
 
   /**
-   * Schedules a single draw after `TRAILING_DRAW_DEBOUNCE_MS` of no further calls.
-   * Ensures a final render after interactions stop (e.g. slider release).
+   * Schedules a single draw after `TRAILING_DRAW_DEBOUNCE_MS` of no further calls. Ensures a final
+   * render after interactions stop (e.g. slider release).
    */
   const drawDebounced = useCallback(() => {
     if (debounceTimeoutRef.current !== null) {
@@ -132,7 +134,7 @@ export const useCanvasRenderer = ({ imageRef, getFilters, getTransform, clamp }:
     }
   }, []);
 
-  // Redraw when the canvas element is resized (e.g. window resize) to recompute fitScale and the buffer
+  // Redraw on resize (e.g. window/canvas element resize) to recompute `fitScale` and the buffer
   useEffect(() => {
     const canvas = canvasRef.current;
 

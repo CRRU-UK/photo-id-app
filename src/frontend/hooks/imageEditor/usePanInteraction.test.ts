@@ -22,8 +22,8 @@ const createPointerEvent = (clientX: number, clientY: number) =>
 
 describe(usePanInteraction, () => {
   it("converts drag delta to image pixel delta", () => {
-    // fitScale = min(800/1600, 600/1200) = 0.5 → scale = Math.max(2, 2) = 2
-    // drag (10, 5)px → pan delta = (20, 10) image pixels
+    // fitScale = min(800/1600, 600/1200) = 0.5 > scale = Math.max(2, 2) = 2
+    // drag (10, 5)px > pan delta = (20, 10) image pixels
     const onPan = vi.fn<(pan: { x: number; y: number }) => void>();
 
     const { result } = renderHook(() =>
@@ -134,7 +134,7 @@ describe(usePanInteraction, () => {
     act(() => result.current.handlePointerDown(createPointerEvent(200, 200)));
     act(() => result.current.handlePointerMove(createPointerEvent(205, 202)));
 
-    // scale = 2; delta = (5, 2) → scaled = (10, 4); added to existing (100, 50)
+    // scale = 2; delta = (5, 2) > scaled = (10, 4); added to existing (100, 50)
     expect(onPan).toHaveBeenCalledWith({ x: 110, y: 54 });
   });
 
