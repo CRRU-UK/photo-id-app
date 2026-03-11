@@ -1,5 +1,19 @@
 # photo-id
 
+## 0.5.0
+
+### Minor Changes
+
+- 5f2ab31: Add CSV export
+- 21bc343: Encrypt model API tokens.
+- 5cbb9c0: Add machine learning model integration
+- dc75ae3: Improve photo editor performance
+
+### Patch Changes
+
+- b496bdb: Fix loupe size and position
+- c6af093: Update CSV export location
+
 ## 0.4.1
 
 ### Patch Changes
