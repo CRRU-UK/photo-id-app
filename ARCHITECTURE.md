@@ -164,7 +164,7 @@ The project view is accessed when opening a project. It allows the user to:
   - Exporting photos should automatically open and focus the export folder when completed
   - Previous exports should be removed before exporting new matches to avoid mixed data
 - Export data
-  - A CSV of the data can be exported, with two columns: original file name and match ID
+  - A CSV (comma-delimited) of the data can be exported, with two columns: original file name and match ID
   - The CSV is saved to the root of the project (instead of the matched directory)
 - Change number of columns
   - The value is retained in state and not intended to be saved as a session
