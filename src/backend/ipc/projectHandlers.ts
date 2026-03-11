@@ -13,7 +13,13 @@ import {
 } from "@/backend/projects";
 import { getRecentProjects, removeRecentProject } from "@/backend/recents";
 import { windowManager } from "@/backend/WindowManager";
-import { IPC_EVENTS, PROJECT_EXPORT_DIRECTORY, PROJECT_FILE_NAME } from "@/constants";
+import {
+  IPC_EVENTS,
+  PROJECT_EXPORT_CSV_FILE_NAME,
+  PROJECT_EXPORT_DATA_DIRECTORY,
+  PROJECT_EXPORT_DIRECTORY,
+  PROJECT_FILE_NAME,
+} from "@/constants";
 import type { ExportTypes, ProjectBody, RecentProject } from "@/types";
 
 export const handleOpenFolder = async (event: IpcMainEvent): Promise<void> => {
@@ -114,7 +120,13 @@ export const handleExportMatchesInvoke = async (
   const directory = await handleExportMatches(window, data, type);
 
   if (type === "csv") {
-    return void shell.openPath(directory);
+    const csvPath = path.join(
+      directory,
+      PROJECT_EXPORT_DATA_DIRECTORY,
+      PROJECT_EXPORT_CSV_FILE_NAME,
+    );
+
+    return shell.showItemInFolder(csvPath);
   }
 
   return void shell.openPath(path.join(directory, PROJECT_EXPORT_DIRECTORY));

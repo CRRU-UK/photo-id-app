@@ -6,6 +6,7 @@ import {
   DEFAULT_PHOTO_EDITS,
   IPC_EVENTS,
   PROJECT_EXPORT_CSV_FILE_NAME,
+  PROJECT_EXPORT_DATA_DIRECTORY,
   PROJECT_EXPORT_DIRECTORY,
   PROJECT_FILE_NAME,
 } from "@/constants";
@@ -844,7 +845,7 @@ describe(handleExportMatches, () => {
     expect(mockRenderFullImageWithEdits).not.toHaveBeenCalled();
     expect(mockWriteFile).toHaveBeenCalledTimes(1);
     expect(mockWriteFile).toHaveBeenCalledWith(
-      `/my/project/${PROJECT_EXPORT_CSV_FILE_NAME}`,
+      `/my/project/${PROJECT_EXPORT_DATA_DIRECTORY}/${PROJECT_EXPORT_CSV_FILE_NAME}`,
       expect.stringContaining("match_id,original_file_name"),
       "utf8",
     );
@@ -904,7 +905,7 @@ describe(handleExportMatches, () => {
     await handleExportMatches(mainWindow, JSON.stringify(project), "csv");
 
     expect(mockWriteFile).toHaveBeenCalledWith(
-      expect.stringContaining(PROJECT_EXPORT_CSV_FILE_NAME),
+      expect.stringContaining(`${PROJECT_EXPORT_DATA_DIRECTORY}/${PROJECT_EXPORT_CSV_FILE_NAME}`),
       "match_id,original_file_name\n",
       "utf8",
     );
