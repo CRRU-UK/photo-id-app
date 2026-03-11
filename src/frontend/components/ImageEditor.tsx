@@ -268,8 +268,10 @@ const ImageEditor = ({
         return;
       }
 
-      // Uniform scale (1/fitScale) gives isotropic keyboard panning in image-pixel space,
-      // matching the pointer-drag pan calculation in usePanInteraction.
+      /**
+       * Uniform scale (1/fitScale) gives isotropic keyboard panning in image-pixel space, matching
+       * the pointer-drag pan calculation in usePanInteraction
+       */
       const scale = Math.max(
         image.naturalWidth / canvas.clientWidth,
         image.naturalHeight / canvas.clientHeight,
