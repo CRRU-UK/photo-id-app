@@ -7,7 +7,7 @@ interface PanInteractionOptions {
   onDraw: () => void;
   onDrawThrottled: () => void;
   onCancelThrottle: () => void;
-  getTransform: () => { pan: { x: number; y: number } };
+  getTransform: () => { zoom: number; pan: { x: number; y: number } };
 }
 
 export const usePanInteraction = ({
@@ -45,24 +45,23 @@ export const usePanInteraction = ({
       const deltaX = event.clientX - lastPointerRef.current.x;
       const deltaY = event.clientY - lastPointerRef.current.y;
 
+      const transform = getTransform();
+
       /**
-       * Convert screen pixel deltas to image pixel deltas using a uniform scale (1/fitScale).
-       * Using the same factor for both axes gives isotropic panning regardless of whether the
-       * image is letterboxed horizontally or vertically.
+       * Convert screen pixel deltas to image pixel deltas. The rendered scale of the image is
+       * fitScale * zoom, so dividing by both gives 1:1 movement - the image follows the cursor
+       * at any zoom level. Using Math.max (= 1/fitScale) ensures a uniform scale for both axes
+       * regardless of whether the image is letterboxed horizontally or vertically.
        */
-      const scale = Math.max(
-        image.naturalWidth / canvas.clientWidth,
-        image.naturalHeight / canvas.clientHeight,
-      );
-
-      const scaledDeltaX = deltaX * scale;
-      const scaledDeltaY = deltaY * scale;
-
-      const currentPan = getTransform().pan;
+      const scale =
+        Math.max(
+          image.naturalWidth / canvas.clientWidth,
+          image.naturalHeight / canvas.clientHeight,
+        ) / transform.zoom;
 
       onPan({
-        x: currentPan.x + scaledDeltaX,
-        y: currentPan.y + scaledDeltaY,
+        x: transform.pan.x + deltaX * scale,
+        y: transform.pan.y + deltaY * scale,
       });
 
       lastPointerRef.current.x = event.clientX;
