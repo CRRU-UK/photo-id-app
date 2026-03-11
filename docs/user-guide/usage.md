@@ -78,15 +78,17 @@ Once photos have been sorted and matched, they can be exported by opening the ==
 
 - ==:octicons-file-diff-16: Export Matches (with edits)== exports all matched photos with any edits applied and renamed with the matched ID
 - ==:octicons-file-16: Export Matches (without edits)== is the same as above, but _without_ any edits applied
-- ==:octicons-database-16: Export CSV== generates a comma-separated CSV file, mapping matched IDs to the original file names
+- ==:octicons-database-16: Export CSV== generates a comma-separated CSV file (`matches.csv`) in the project root, with two columns: match ID and original file name.
+
+Exporting matches (with or without edits) writes photos into the `matched` folder and clears that folder before each export. Export CSV writes only the file `matches.csv` in the project root and does not clear or modify the `matched` folder.
 
 Exporting matches includes all photos that were placed in matched stacks. The stack letter (or custom ID) are _appended_ to the original file name. For example, if a photo with the name `photo_1.jpg` was added to the `AL` stack, it will be exported as `AL_photo_1.jpg`.
 
-Only photos in matched stacks are used in exports - photos in the unassigned or discarded stacks are not used. Once an export is finished, the exported folder will automatically open.
+Only photos in matched stacks are used in exports - photos in the unassigned or discarded stacks are not used. Once an export is finished, the exported folder (or project folder for CSV) will automatically open.
 
 !!! warning
 
-    Exporting matches will overwrite any previously exported photos or CSV files, so any previous exports may be lost.
+    Exporting matches (with or without edits) will clear and overwrite the contents of the `matched` folder. Export CSV will overwrite any existing `matches.csv` in the project root.
 
 ## Editing photos
 
