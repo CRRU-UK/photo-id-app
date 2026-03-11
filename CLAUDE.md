@@ -40,7 +40,7 @@
 - Prefer using longer functions that are easier to read over clever one-liners.
 - Prefer using async/await over raw Promises for async code.
 - Prefer using `try/catch` for error handling over `.catch()` on Promises.
-- Prefer using long math expressions broken over multiple lines for readability and shorthand assignments (e.g. `a = a + b` instead of `a += b`).
+- Prefer using long mathematical expressions broken over multiple lines for readability and shorthand assignments (e.g. `a = a + b` instead of `a += b`).
 - Prefer early returns instead of nested `else if` and `else` blocks.
 - Prefer adding comments only for workarounds, hacks, or non-obvious code paths. Never remove existing comments, only update them if necessary instead.
 - Prefer adding JSDocs where helpful, but avoid redundant types that are already covered by TypeScript.
