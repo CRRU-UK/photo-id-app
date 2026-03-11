@@ -21,9 +21,9 @@ const createPointerEvent = (clientX: number, clientY: number) =>
   ({ clientX, clientY }) as React.PointerEvent<HTMLCanvasElement>;
 
 describe(usePanInteraction, () => {
-  it("converts drag delta to image pixel delta at zoom=1", () => {
-    // fitScale = min(800/1600, 600/1200) = 0.5 → scale = (1/0.5) / 1 = 2
-    // drag 10px → pan delta = 10 * 2 = 20 image pixels
+  it("converts drag delta to image pixel delta", () => {
+    // fitScale = min(800/1600, 600/1200) = 0.5 → scale = Math.max(2, 2) = 2
+    // drag (10, 5)px → pan delta = (20, 10) image pixels
     const onPan = vi.fn<(pan: { x: number; y: number }) => void>();
 
     const { result } = renderHook(() =>
@@ -34,7 +34,7 @@ describe(usePanInteraction, () => {
         onDraw: vi.fn<() => void>(),
         onDrawThrottled: vi.fn<() => void>(),
         onCancelThrottle: vi.fn<() => void>(),
-        getTransform: () => ({ zoom: 1, pan: { x: 0, y: 0 } }),
+        getTransform: () => ({ pan: { x: 0, y: 0 } }),
       }),
     );
 
@@ -44,31 +44,51 @@ describe(usePanInteraction, () => {
     expect(onPan).toHaveBeenCalledWith({ x: 20, y: 10 });
   });
 
-  it("halves the pan delta at zoom=2 for 1:1 cursor tracking", () => {
-    // scale = (1/0.5) / 2 = 1 → drag 10px → pan delta = 10 image pixels (not 20)
-    const onPan = vi.fn<(pan: { x: number; y: number }) => void>();
+  it("produces the same pan delta regardless of zoom level", () => {
+    // Pan is multiplied by fitScale only in the renderer (not fitScale * zoom), so the image
+    // moves by Δpan * fitScale CSS pixels regardless of zoom. The scale formula is zoom-independent:
+    // Δpan = delta * Math.max(nw/cw, nh/ch) = delta * 1/fitScale.
+    // Dragging 10px at zoom=1 and at zoom=4 both produce a 20 image-pixel delta.
+    const onPanZoom1 = vi.fn<(pan: { x: number; y: number }) => void>();
+    const onPanZoom4 = vi.fn<(pan: { x: number; y: number }) => void>();
 
-    const { result } = renderHook(() =>
+    const { result: result1 } = renderHook(() =>
       usePanInteraction({
         canvasRef: createCanvasRef(),
         imageRef: createImageRef(),
-        onPan,
+        onPan: onPanZoom1,
         onDraw: vi.fn<() => void>(),
         onDrawThrottled: vi.fn<() => void>(),
         onCancelThrottle: vi.fn<() => void>(),
-        getTransform: () => ({ zoom: 2, pan: { x: 0, y: 0 } }),
+        getTransform: () => ({ pan: { x: 0, y: 0 } }),
       }),
     );
 
-    act(() => result.current.handlePointerDown(createPointerEvent(100, 100)));
-    act(() => result.current.handlePointerMove(createPointerEvent(110, 105)));
+    const { result: result4 } = renderHook(() =>
+      usePanInteraction({
+        canvasRef: createCanvasRef(),
+        imageRef: createImageRef(),
+        onPan: onPanZoom4,
+        onDraw: vi.fn<() => void>(),
+        onDrawThrottled: vi.fn<() => void>(),
+        onCancelThrottle: vi.fn<() => void>(),
+        getTransform: () => ({ pan: { x: 0, y: 0 } }),
+      }),
+    );
 
-    expect(onPan).toHaveBeenCalledWith({ x: 10, y: 5 });
+    act(() => result1.current.handlePointerDown(createPointerEvent(100, 100)));
+    act(() => result1.current.handlePointerMove(createPointerEvent(110, 105)));
+
+    act(() => result4.current.handlePointerDown(createPointerEvent(100, 100)));
+    act(() => result4.current.handlePointerMove(createPointerEvent(110, 105)));
+
+    expect(onPanZoom1).toHaveBeenCalledWith({ x: 20, y: 10 });
+    expect(onPanZoom4).toHaveBeenCalledWith({ x: 20, y: 10 });
   });
 
   it("uses a uniform scale for both axes when the image is letterboxed", () => {
-    // 1600×400 image (4:1) in 800×600 canvas — fitScale = min(0.5, 1.5) = 0.5
-    // Math.max(1600/800, 400/600) = Math.max(2, 0.667) = 2 → scale = 2 / 1 = 2
+    // 1600*400 image (4:1) in 800*600 canvas — fitScale = min(0.5, 1.5) = 0.5
+    // Math.max(1600/800, 400/600) = Math.max(2, 0.667) = 2
     // Both X and Y get the same factor so diagonal panning is isotropic
     const onPan = vi.fn<(pan: { x: number; y: number }) => void>();
 
@@ -80,7 +100,7 @@ describe(usePanInteraction, () => {
         onDraw: vi.fn<() => void>(),
         onDrawThrottled: vi.fn<() => void>(),
         onCancelThrottle: vi.fn<() => void>(),
-        getTransform: () => ({ zoom: 1, pan: { x: 0, y: 0 } }),
+        getTransform: () => ({ pan: { x: 0, y: 0 } }),
       }),
     );
 
@@ -102,14 +122,14 @@ describe(usePanInteraction, () => {
         onDraw: vi.fn<() => void>(),
         onDrawThrottled: vi.fn<() => void>(),
         onCancelThrottle: vi.fn<() => void>(),
-        getTransform: () => ({ zoom: 1, pan: { x: 100, y: 50 } }),
+        getTransform: () => ({ pan: { x: 100, y: 50 } }),
       }),
     );
 
     act(() => result.current.handlePointerDown(createPointerEvent(200, 200)));
     act(() => result.current.handlePointerMove(createPointerEvent(205, 202)));
 
-    // scale = 2 at zoom=1; delta = (5, 2) → scaled = (10, 4); added to existing (100, 50)
+    // scale = 2; delta = (5, 2) → scaled = (10, 4); added to existing (100, 50)
     expect(onPan).toHaveBeenCalledWith({ x: 110, y: 54 });
   });
 
@@ -124,7 +144,7 @@ describe(usePanInteraction, () => {
         onDraw: vi.fn<() => void>(),
         onDrawThrottled: vi.fn<() => void>(),
         onCancelThrottle: vi.fn<() => void>(),
-        getTransform: () => ({ zoom: 1, pan: { x: 0, y: 0 } }),
+        getTransform: () => ({ pan: { x: 0, y: 0 } }),
       }),
     );
 

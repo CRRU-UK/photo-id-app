@@ -7,7 +7,7 @@ interface PanInteractionOptions {
   onDraw: () => void;
   onDrawThrottled: () => void;
   onCancelThrottle: () => void;
-  getTransform: () => { zoom: number; pan: { x: number; y: number } };
+  getTransform: () => { pan: { x: number; y: number } };
 }
 
 export const usePanInteraction = ({
@@ -45,23 +45,23 @@ export const usePanInteraction = ({
       const deltaX = event.clientX - lastPointerRef.current.x;
       const deltaY = event.clientY - lastPointerRef.current.y;
 
-      const transform = getTransform();
-
       /**
-       * Convert screen pixel deltas to image pixel deltas. The rendered scale of the image is
-       * fitScale * zoom, so dividing by both gives 1:1 movement - the image follows the cursor
-       * at any zoom level. Using Math.max (= 1/fitScale) ensures a uniform scale for both axes
-       * regardless of whether the image is letterboxed horizontally or vertically.
+       * Convert screen pixel deltas to image pixel deltas. In the rendering transform, pan is
+       * multiplied by fitScale only (not fitScale × zoom), so a change of pan image pixels moves
+       * the image by pan × fitScale CSS pixels - independent of zoom. For 1:1 cursor tracking:
+       * pan = delta / fitScale = delta × Math.max(nw/cw, nh/ch). Using Math.max gives a uniform
+       * scale for both axes regardless of letterboxing.
        */
-      const scale =
-        Math.max(
-          image.naturalWidth / canvas.clientWidth,
-          image.naturalHeight / canvas.clientHeight,
-        ) / transform.zoom;
+      const scale = Math.max(
+        image.naturalWidth / canvas.clientWidth,
+        image.naturalHeight / canvas.clientHeight,
+      );
+
+      const currentPan = getTransform().pan;
 
       onPan({
-        x: transform.pan.x + deltaX * scale,
-        y: transform.pan.y + deltaY * scale,
+        x: currentPan.x + deltaX * scale,
+        y: currentPan.y + deltaY * scale,
       });
 
       lastPointerRef.current.x = event.clientX;
