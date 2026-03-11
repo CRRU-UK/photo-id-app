@@ -114,10 +114,10 @@ export const handleExportMatchesInvoke = async (
   const directory = await handleExportMatches(window, data, type);
 
   if (type === "csv") {
-    void shell.openPath(directory);
-  } else {
-    void shell.openPath(path.join(directory, PROJECT_EXPORT_DIRECTORY));
+    return void shell.openPath(directory);
   }
+
+  return void shell.openPath(path.join(directory, PROJECT_EXPORT_DIRECTORY));
 };
 
 export const registerProjectHandlers = (ipcMain: Electron.IpcMain): void => {
