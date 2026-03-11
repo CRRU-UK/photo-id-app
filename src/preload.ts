@@ -1,5 +1,6 @@
 import type {
   EditorNavigation,
+  ExportTypes,
   ExternalLinks,
   LoadingData,
   MLMatchResponse,
@@ -33,8 +34,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ipcRenderer.invoke(IPC_EVENTS.GET_RECENT_PROJECTS),
   removeRecentProject: (path: string): Promise<RecentProject[]> =>
     ipcRenderer.invoke(IPC_EVENTS.REMOVE_RECENT_PROJECT, path),
-  exportMatches: (data: string): Promise<void> =>
-    ipcRenderer.invoke(IPC_EVENTS.EXPORT_MATCHES, data),
+  exportMatches: (data: string, type: ExportTypes): Promise<void> =>
+    ipcRenderer.invoke(IPC_EVENTS.EXPORT_MATCHES, data, type),
   savePhotoFile: (data: PhotoBody): Promise<void> =>
     ipcRenderer.invoke(IPC_EVENTS.SAVE_PHOTO_FILE, data),
   revertPhotoFile: (data: PhotoBody): Promise<PhotoBody> =>

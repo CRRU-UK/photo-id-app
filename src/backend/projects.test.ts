@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   DEFAULT_PHOTO_EDITS,
   IPC_EVENTS,
+  PROJECT_EXPORT_CSV_FILE_NAME,
   PROJECT_EXPORT_DIRECTORY,
   PROJECT_FILE_NAME,
 } from "@/constants";
@@ -561,7 +562,7 @@ describe(handleExportMatches, () => {
     const project = createProject({ matched: [] });
     mockExistsSync.mockReturnValue(false);
 
-    await handleExportMatches(mainWindow, JSON.stringify(project));
+    await handleExportMatches(mainWindow, JSON.stringify(project), "edited");
 
     expect(mockMkdir).toHaveBeenCalledWith(expect.stringContaining("matched"));
   });
@@ -572,7 +573,7 @@ describe(handleExportMatches, () => {
     mockExistsSync.mockReturnValue(true);
     mockReaddir.mockResolvedValue(["old-export.jpg"]);
 
-    await handleExportMatches(mainWindow, JSON.stringify(project));
+    await handleExportMatches(mainWindow, JSON.stringify(project), "edited");
 
     expect(mockUnlink).toHaveBeenCalledWith(expect.stringContaining("old-export.jpg"));
   });
@@ -591,7 +592,7 @@ describe(handleExportMatches, () => {
     });
     mockExistsSync.mockReturnValue(false);
 
-    await handleExportMatches(mainWindow, JSON.stringify(project));
+    await handleExportMatches(mainWindow, JSON.stringify(project), "edited");
 
     expect(mockCopyFile).toHaveBeenCalledWith(expect.any(String), expect.any(String));
     expect(mockRenderFullImageWithEdits).not.toHaveBeenCalled();
@@ -611,7 +612,7 @@ describe(handleExportMatches, () => {
     });
     mockExistsSync.mockReturnValue(false);
 
-    await handleExportMatches(mainWindow, JSON.stringify(project));
+    await handleExportMatches(mainWindow, JSON.stringify(project), "edited");
 
     expect(mockRenderFullImageWithEdits).toHaveBeenCalledWith(
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -634,7 +635,7 @@ describe(handleExportMatches, () => {
     });
     mockExistsSync.mockReturnValue(false);
 
-    await handleExportMatches(mainWindow, JSON.stringify(project));
+    await handleExportMatches(mainWindow, JSON.stringify(project), "edited");
 
     const loadingCalls = vi.mocked(mainWindow.webContents.send).mock.calls;
     const progressCalls = loadingCalls.filter(
@@ -649,7 +650,7 @@ describe(handleExportMatches, () => {
     const project = createProject({ matched: [] });
     mockExistsSync.mockReturnValue(false);
 
-    await handleExportMatches(mainWindow, JSON.stringify(project));
+    await handleExportMatches(mainWindow, JSON.stringify(project), "edited");
 
     const lastCall = vi.mocked(mainWindow.webContents.send).mock.calls.at(-1);
 
@@ -661,7 +662,7 @@ describe(handleExportMatches, () => {
     const project = createProject({ matched: [] });
     mockExistsSync.mockReturnValue(false);
 
-    await handleExportMatches(mainWindow, JSON.stringify(project));
+    await handleExportMatches(mainWindow, JSON.stringify(project), "edited");
 
     expect(mockCopyFile).not.toHaveBeenCalled();
     expect(mockRenderFullImageWithEdits).not.toHaveBeenCalled();
@@ -681,7 +682,7 @@ describe(handleExportMatches, () => {
     });
     mockExistsSync.mockReturnValue(false);
 
-    await handleExportMatches(mainWindow, JSON.stringify(project));
+    await handleExportMatches(mainWindow, JSON.stringify(project), "edited");
 
     // Name "42" is padded to "042" and used as prefix
     expect(mockCopyFile).toHaveBeenCalledWith(expect.any(String), expect.stringContaining("042L_"));
@@ -701,7 +702,7 @@ describe(handleExportMatches, () => {
     });
     mockExistsSync.mockReturnValue(false);
 
-    await handleExportMatches(mainWindow, JSON.stringify(project));
+    await handleExportMatches(mainWindow, JSON.stringify(project), "edited");
 
     expect(mockCopyFile).toHaveBeenCalledWith(expect.any(String), expect.stringContaining("R_"));
   });
@@ -720,7 +721,7 @@ describe(handleExportMatches, () => {
     });
     mockExistsSync.mockReturnValue(false);
 
-    await handleExportMatches(mainWindow, JSON.stringify(project));
+    await handleExportMatches(mainWindow, JSON.stringify(project), "edited");
 
     // Edited JPEG should keep .jpg extension
     expect(mockWriteFile).toHaveBeenCalledWith(expect.stringMatching(/\.jpg$/), expect.any(Buffer));
@@ -740,7 +741,7 @@ describe(handleExportMatches, () => {
     });
     mockExistsSync.mockReturnValue(false);
 
-    await handleExportMatches(mainWindow, JSON.stringify(project));
+    await handleExportMatches(mainWindow, JSON.stringify(project), "edited");
 
     // Non-JPEG edited photo should be exported as .png
     expect(mockWriteFile).toHaveBeenCalledWith(expect.stringMatching(/\.png$/), expect.any(Buffer));
@@ -762,7 +763,7 @@ describe(handleExportMatches, () => {
     setCurrentProject(project.directory);
     mockExistsSync.mockReturnValue(false);
 
-    await handleExportMatches(mainWindow, JSON.stringify(project));
+    await handleExportMatches(mainWindow, JSON.stringify(project), "edited");
 
     expect(mockCopyFile).toHaveBeenCalledWith(
       expect.any(String),
@@ -776,7 +777,7 @@ describe(handleExportMatches, () => {
     setCurrentProject(project.directory);
     mockExistsSync.mockReturnValue(false);
 
-    const directory = await handleExportMatches(mainWindow, JSON.stringify(project));
+    const directory = await handleExportMatches(mainWindow, JSON.stringify(project), "edited");
 
     expect(directory).toBe("/my/project");
   });
@@ -784,7 +785,7 @@ describe(handleExportMatches, () => {
   it("throws when data is invalid JSON", async () => {
     const mainWindow = createMockMainWindow();
 
-    await expect(handleExportMatches(mainWindow, "not json")).rejects.toThrowError(
+    await expect(handleExportMatches(mainWindow, "not json", "edited")).rejects.toThrowError(
       /Unexpected token|JSON/,
     );
   });
@@ -793,8 +794,119 @@ describe(handleExportMatches, () => {
     const mainWindow = createMockMainWindow();
     const invalidPayload = JSON.stringify({ directory: "/path", version: "v1" });
 
-    await expect(handleExportMatches(mainWindow, invalidPayload)).rejects.toThrowError(
+    await expect(handleExportMatches(mainWindow, invalidPayload, "edited")).rejects.toThrowError(
       /invalid_type|required/,
+    );
+  });
+
+  it("unedited export copies all photos and never renders with edits", async () => {
+    const mainWindow = createMockMainWindow();
+    const editedPhoto = createPhoto("edited.jpg", { isEdited: true });
+    const uneditedPhoto = createPhoto("unedited.jpg", { isEdited: false });
+    const project = createProject({
+      matched: [
+        {
+          id: 1,
+          left: { photos: [editedPhoto, uneditedPhoto], index: 0, name: "" },
+          right: createEmptyCollection(),
+        },
+      ],
+    });
+    mockExistsSync.mockReturnValue(false);
+
+    await handleExportMatches(mainWindow, JSON.stringify(project), "unedited");
+
+    expect(mockCopyFile).toHaveBeenCalledTimes(2);
+    expect(mockRenderFullImageWithEdits).not.toHaveBeenCalled();
+    expect(mockWriteFile).not.toHaveBeenCalled();
+  });
+
+  it("csv export writes to project root and does not clear matched folder", async () => {
+    const mainWindow = createMockMainWindow();
+    const photo1 = createPhoto("left.jpg", { isEdited: false });
+    const photo2 = createPhoto("right.png", { isEdited: false });
+    const project = createProject({
+      directory: "/my/project",
+      matched: [
+        {
+          id: 1,
+          left: { photos: [photo1], index: 0, name: "" },
+          right: { photos: [photo2], index: 0, name: "" },
+        },
+      ],
+    });
+    setCurrentProject(project.directory);
+
+    await handleExportMatches(mainWindow, JSON.stringify(project), "csv");
+
+    expect(mockUnlink).not.toHaveBeenCalled();
+    expect(mockCopyFile).not.toHaveBeenCalled();
+    expect(mockRenderFullImageWithEdits).not.toHaveBeenCalled();
+    expect(mockWriteFile).toHaveBeenCalledTimes(1);
+    expect(mockWriteFile).toHaveBeenCalledWith(
+      `/my/project/${PROJECT_EXPORT_CSV_FILE_NAME}`,
+      expect.stringContaining("match_id,original_file_name"),
+      "utf8",
+    );
+  });
+
+  it("csv export content includes header and match rows", async () => {
+    const mainWindow = createMockMainWindow();
+    const photo1 = createPhoto("left.jpg", { isEdited: false });
+    const photo2 = createPhoto("right.png", { isEdited: false });
+    const project = createProject({
+      directory: "/my/project",
+      matched: [
+        {
+          id: 1,
+          left: { photos: [photo1], index: 0, name: "" },
+          right: { photos: [photo2], index: 0, name: "" },
+        },
+      ],
+    });
+    setCurrentProject(project.directory);
+
+    await handleExportMatches(mainWindow, JSON.stringify(project), "csv");
+
+    const [, csvContent] = vi.mocked(mockWriteFile).mock.calls[0];
+
+    expect(csvContent).toContain("A,left.jpg");
+    expect(csvContent).toContain("A,right.png");
+  });
+
+  it("csv export uses collection name when set", async () => {
+    const mainWindow = createMockMainWindow();
+    const photo = createPhoto("photo.jpg", { isEdited: false });
+    const project = createProject({
+      directory: "/project",
+      matched: [
+        {
+          id: 1,
+          left: { photos: [photo], index: 0, name: "42" },
+          right: createEmptyCollection(),
+        },
+      ],
+    });
+    setCurrentProject(project.directory);
+
+    await handleExportMatches(mainWindow, JSON.stringify(project), "csv");
+
+    const [, csvContent] = vi.mocked(mockWriteFile).mock.calls[0];
+
+    expect(csvContent).toContain("042,photo.jpg");
+  });
+
+  it("csv export with no matches writes header only", async () => {
+    const mainWindow = createMockMainWindow();
+    const project = createProject({ directory: "/project", matched: [] });
+    setCurrentProject(project.directory);
+
+    await handleExportMatches(mainWindow, JSON.stringify(project), "csv");
+
+    expect(mockWriteFile).toHaveBeenCalledWith(
+      expect.stringContaining(PROJECT_EXPORT_CSV_FILE_NAME),
+      "match_id,original_file_name\n",
+      "utf8",
     );
   });
 });

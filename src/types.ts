@@ -119,3 +119,5 @@ export type MLMatchResponse = {
 };
 
 export type SettingsData = z.infer<typeof settingsDataSchema>;
+
+export type ExportTypes = "edited" | "unedited" | "csv";

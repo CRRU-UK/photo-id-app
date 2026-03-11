@@ -41,6 +41,7 @@
     "@sentry/electron": "^7.9.0",
     "@sentry/vite-plugin": "^5.1.1",
     "@tanstack/react-router": "^1.166.3",
+    "csv-stringify": "^6.6.0",
     "dotenv": "^17.3.1",
     "electron-squirrel-startup": "^1.0.1",
     "mobx": "^6.15.0",

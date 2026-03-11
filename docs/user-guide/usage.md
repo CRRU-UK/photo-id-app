@@ -74,17 +74,21 @@ For more information, check out the [Machine Learning](./machine-learning.md) gu
 
 ### Exporting
 
-Once photos have been sorted and matched, they can be exported by opening the ==:octicons-three-bars-16: Actions== menu in the bottom-left and selecting ==:octicons-file-moved-16: Export matches==.
+Once photos have been sorted and matched, they can be exported by opening the ==:octicons-three-bars-16: Actions== menu in the bottom-left of the project screen. There are three ways to export a project:
 
-Exporting a project creates a new folder `matched/` in the project folder which contains all photos that were placed in matched stacks. The stack letter (or custom ID) are _appended_ to the original file name. For example, if a photo with the name `photo_1.jpg` was added to the `AL` stack, it will be exported as `AL_photo_1.jpg`.
+- ==:octicons-file-diff-16: Export Matches (with edits)== exports all matched photos with any edits applied and renamed with the matched ID
+- ==:octicons-file-16: Export Matches (without edits)== is the same as above, but _without_ any edits applied
+- ==:octicons-database-16: Export CSV== generates a comma-separated CSV file (`matches.csv`) in the project root, with two columns: match ID and original file name.
 
-Edits made to photos (see [edits](#editing-photos)) are applied to the exported photos. Edits can also be reverted by opening the drop-down menu and selecting ==:octicons-undo-16: Revert to original==.
+Exporting matches (with or without edits) writes photos into the `matched` folder and clears that folder before each export. Export CSV writes only the file `matches.csv` in the project root and does not clear or modify the `matched` folder.
 
-Only photos in matched stacks are exported - photos in the unassigned or discarded stack are not used in exports. Once an export is finished, the exported folder will automatically open.
+Exporting matches includes all photos that were placed in matched stacks. The stack letter (or custom ID) are _appended_ to the original file name. For example, if a photo with the name `photo_1.jpg` was added to the `AL` stack, it will be exported as `AL_photo_1.jpg`.
+
+Only photos in matched stacks are used in exports - photos in the unassigned or discarded stacks are not used. Once an export is finished, the exported folder (or project folder for CSV) will automatically open.
 
 !!! warning
 
-    Exporting photos will overwrite any previously exported photos, so any previous exported photos may be lost.
+    Exporting matches (with or without edits) will clear and overwrite the contents of the `matched` folder. Export CSV will overwrite any existing `matches.csv` in the project root.
 
 ## Editing photos
 
@@ -101,9 +105,11 @@ There are several options that can be used to edit photos in the toolbar on the 
 
 !!! note
 
-    Original photos in your project are NEVER edited or modified in any way. Edits made to photos are only visible in the app and are used when generating matched images when exporting a project.
+    Original photos in your project are NEVER edited or modified in any way. Edits made to photos are only visible in the app and are used when generating matched photos when exporting a project.
 
 Edits to a photo can be saved using the ==Save== button. Edits can be reset back to their defaults by using the ==Reset== button. Closing the editor window without saving changes will discard any unsaved edits. Opening a photo that has been previously edited will automatically apply the previous edits.
+
+Edits can also be reverted by opening the drop-down menu and selecting ==:octicons-undo-16: Revert to original== in the project screen.
 
 You can load the previous or next photo in the stack the current photo is in using the ==:octicons-chevron-left-16: :octicons-chevron-right-16: arrow buttons==. Moving the current photo to a different stack while it is open in an editor screen will load the previous and next photos in the new stack once clicked.
 
@@ -123,7 +129,7 @@ Edge detection can be enabled to more easily identify marks in photos.
 
 This can be toggled by selecting the ==:octicons-eye-16: Toggle Edge Detection== button on the bottom-left of the screen above the toolbar. When enabled, a slider will appear that can be used to adjust the intensity of the filter.
 
-Note that the edge detection filter is not used when saving or exporting images, and is purely used as a temporary filter.
+Note that the edge detection filter is not used when saving or exporting photos, and is purely used as a temporary filter.
 
 ## Saving
 

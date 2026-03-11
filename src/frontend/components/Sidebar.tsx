@@ -1,6 +1,8 @@
 import {
   AiModelIcon,
-  FileMovedIcon,
+  DatabaseIcon,
+  FileDiffIcon,
+  FileIcon,
   ReplyIcon,
   ThreeBarsIcon,
   TriangleDownIcon,
@@ -24,6 +26,7 @@ import { useProject } from "@/contexts/ProjectContext";
 import { useSettings } from "@/contexts/SettingsContext";
 import DiscardedSelection from "@/frontend/components/DiscardedSelection";
 import MainSelection from "@/frontend/components/MainSelection";
+import type { ExportTypes } from "@/types";
 
 const Sidebar = observer(() => {
   const { project, setProject } = useProject();
@@ -89,10 +92,10 @@ const Sidebar = observer(() => {
     }
   };
 
-  const handleExport = async () => {
+  const handleExport = async (type: ExportTypes) => {
     setExporting(true);
 
-    await project.exportMatches();
+    await project.exportMatches(type);
 
     setActionsOpen(false);
     setExporting(false);
@@ -182,16 +185,47 @@ const Sidebar = observer(() => {
             </ActionMenu.Button>
             <ActionMenu.Overlay>
               <ActionList>
-                <ActionList.Item
-                  disabled={exporting}
-                  loading={exporting}
-                  onClick={() => handleExport()}
-                >
-                  <ActionList.LeadingVisual>
-                    <FileMovedIcon />
-                  </ActionList.LeadingVisual>
-                  {exporting ? "Exporting..." : "Export matches"}
-                </ActionList.Item>
+                <ActionList.Group>
+                  <ActionList.GroupHeading>Photos</ActionList.GroupHeading>
+
+                  <ActionList.Item
+                    disabled={exporting}
+                    loading={exporting}
+                    onClick={() => handleExport("edited")}
+                  >
+                    <ActionList.LeadingVisual>
+                      <FileDiffIcon />
+                    </ActionList.LeadingVisual>
+                    Export matches
+                    <ActionList.Description variant="block">(with edits)</ActionList.Description>
+                  </ActionList.Item>
+                  <ActionList.Item
+                    disabled={exporting}
+                    loading={exporting}
+                    onClick={() => handleExport("unedited")}
+                  >
+                    <ActionList.LeadingVisual>
+                      <FileIcon />
+                    </ActionList.LeadingVisual>
+                    Export matches
+                    <ActionList.Description variant="block">(without edits)</ActionList.Description>
+                  </ActionList.Item>
+                </ActionList.Group>
+
+                <ActionList.Group>
+                  <ActionList.GroupHeading>Data</ActionList.GroupHeading>
+
+                  <ActionList.Item
+                    disabled={exporting}
+                    loading={exporting}
+                    onClick={() => handleExport("csv")}
+                  >
+                    <ActionList.LeadingVisual>
+                      <DatabaseIcon />
+                    </ActionList.LeadingVisual>
+                    Export CSV
+                  </ActionList.Item>
+                </ActionList.Group>
               </ActionList>
             </ActionMenu.Overlay>
           </ActionMenu>

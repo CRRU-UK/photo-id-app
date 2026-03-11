@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { DEFAULT_PHOTO_EDITS } from "@/constants";
-import type { PhotoBody, ProjectBody } from "@/types";
+import type { ExportTypes, PhotoBody, ProjectBody } from "@/types";
 
 import Collection from "./Collection";
 import Photo from "./Photo";
@@ -12,7 +12,7 @@ vi.stubGlobal("window", {
   electronAPI: {
     saveProject: vi.fn<(data: string) => void>(),
     duplicatePhotoFile: vi.fn<(data: PhotoBody) => Promise<PhotoBody>>(),
-    exportMatches: vi.fn<(data: string) => Promise<void>>(),
+    exportMatches: vi.fn<(data: string, type: ExportTypes) => Promise<void>>(),
   },
 });
 
@@ -410,20 +410,20 @@ describe(Project, () => {
   });
 
   describe("exportMatches", () => {
-    it("calls window.electronAPI.exportMatches with the project JSON", async () => {
+    it("calls window.electronAPI.exportMatches with the project JSON and type", async () => {
       const project = new Project(createProjectBody());
       vi.mocked(window.electronAPI.exportMatches).mockResolvedValue(undefined);
 
-      await project.exportMatches();
+      await project.exportMatches("edited");
 
-      expect(window.electronAPI.exportMatches).toHaveBeenCalledWith(expect.any(String));
+      expect(window.electronAPI.exportMatches).toHaveBeenCalledWith(expect.any(String), "edited");
     });
 
     it("passes valid JSON to exportMatches", async () => {
       const project = new Project(createProjectBody());
       vi.mocked(window.electronAPI.exportMatches).mockResolvedValue(undefined);
 
-      await project.exportMatches();
+      await project.exportMatches("edited");
 
       const data = vi.mocked(window.electronAPI.exportMatches).mock.calls[0][0];
       const parsed = JSON.parse(data) as ProjectBody;
@@ -436,7 +436,7 @@ describe(Project, () => {
       const project = new Project(createProjectBody());
       vi.mocked(window.electronAPI.exportMatches).mockResolvedValue(undefined);
 
-      const result = await project.exportMatches();
+      const result = await project.exportMatches("edited");
 
       expect(result).toBe(project);
     });

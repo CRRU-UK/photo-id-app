@@ -20,7 +20,8 @@ const mockHandleOpenFilePrompt = vi.fn<(window: BrowserWindow) => Promise<void>>
 const mockHandleOpenProjectFile =
   vi.fn<(window: BrowserWindow, filePath: string) => Promise<void>>();
 const mockHandleSaveProject = vi.fn<(data: string) => Promise<void>>();
-const mockHandleExportMatches = vi.fn<(window: BrowserWindow, data: string) => Promise<string>>();
+const mockHandleExportMatches =
+  vi.fn<(window: BrowserWindow, data: string, type: string) => Promise<string>>();
 const mockGetCurrentProjectDirectory = vi.fn<() => string | null>();
 const mockParseProjectFile = vi.fn<(filePath: string) => Promise<ProjectBody>>();
 
@@ -280,20 +281,31 @@ describe("project IPC handlers", () => {
     it("does nothing when the sender window is not found", async () => {
       mockGetWindowFromSender.mockReturnValue(null);
 
-      await handleExportMatchesInvoke(createMockInvokeEvent(null), "{}");
+      await handleExportMatchesInvoke(createMockInvokeEvent(null), "{}", "edited");
 
       expect(mockHandleExportMatches).not.toHaveBeenCalled();
     });
 
-    it("exports matches and opens the export folder", async () => {
+    it("exports matches and opens the matched folder for edited export", async () => {
       const mockWindow = createMockWindow();
       mockGetWindowFromSender.mockReturnValue(mockWindow);
       mockHandleExportMatches.mockResolvedValue("/project/dir");
 
-      await handleExportMatchesInvoke(createMockInvokeEvent(mockWindow), "{}");
+      await handleExportMatchesInvoke(createMockInvokeEvent(mockWindow), "{}", "edited");
 
-      expect(mockHandleExportMatches).toHaveBeenCalledWith(mockWindow, "{}");
+      expect(mockHandleExportMatches).toHaveBeenCalledWith(mockWindow, "{}", "edited");
       expect(mockOpenPath).toHaveBeenCalledWith("/project/dir/matched");
+    });
+
+    it("exports matches and opens the project root for csv export", async () => {
+      const mockWindow = createMockWindow();
+      mockGetWindowFromSender.mockReturnValue(mockWindow);
+      mockHandleExportMatches.mockResolvedValue("/project/dir");
+
+      await handleExportMatchesInvoke(createMockInvokeEvent(mockWindow), "{}", "csv");
+
+      expect(mockHandleExportMatches).toHaveBeenCalledWith(mockWindow, "{}", "csv");
+      expect(mockOpenPath).toHaveBeenCalledWith("/project/dir");
     });
   });
 });
