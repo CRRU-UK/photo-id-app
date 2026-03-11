@@ -40,7 +40,7 @@
 - Prefer using longer functions that are easier to read over clever one-liners.
 - Prefer using async/await over raw Promises for async code.
 - Prefer using `try/catch` for error handling over `.catch()` on Promises.
-- Prefer using long math expressions broken over multiple lines for readability and shorthand assignments (e.g. `a = a + b` instead of `a += b`).
+- Prefer using long mathematical expressions broken over multiple lines for readability and shorthand assignments (e.g. `a = a + b` instead of `a += b`).
 - Prefer early returns instead of nested `else if` and `else` blocks.
 - Prefer adding comments only for workarounds, hacks, or non-obvious code paths. Never remove existing comments, only update them if necessary instead.
 - Prefer adding JSDocs where helpful, but avoid redundant types that are already covered by TypeScript.
@@ -54,7 +54,7 @@
 - File operations and project persistence happen on the main side (`src/backend/*.ts`). Frontend should call preload helpers and assume I/O is async.
 - State management uses MobX: project data lives in observable models (`src/models/`). Any React component that reads from Project, Collection, or Photo (e.g. via ProjectContext) should be wrapped with `observer()` from `mobx-react-lite` so it re-renders when those observables change.
 - **subscribeIpc pattern**: IPC listeners (e.g. `onLoadProject`, `onSettingsUpdated`, `onOpenSettings`) are implemented in preload via `subscribeIpc`: they return an **unsubscribe function**. The renderer must call that unsubscribe in a `useEffect` cleanup so listeners are removed when the component unmounts; otherwise you get duplicate handlers and setState-on-unmounted warnings. Example: `useEffect(() => { const unsub = window.electronAPI.onLoadProject(callback); return unsub; }, [])`.
-- **Edit window data flow**: Edit windows receive photo data via the URL query. The main process encodes `PhotoBody` with `encodeEditPayload` (JSON stringify then **base64 encode**) and opens the window with `?data=<base64>`. The edit route reads the query, decodes with `decodeEditPayload` (base64 → JSON → Zod parse). Navigating between photos uses `navigateEditorPhoto`, which returns a new base64 payload that the route sets back into the query. The base64 step is required so the payload can live in the URL without breaking parsing.
+- **Edit window data flow**: Edit windows receive photo data via the URL query. The main process encodes `PhotoBody` with `encodeEditPayload` (JSON stringify then **base64 encode**) and opens the window with `?data=<base64>`. The edit route reads the query, decodes with `decodeEditPayload` (base64 > JSON > Zod parse). Navigating between photos uses `navigateEditorPhoto`, which returns a new base64 payload that the route sets back into the query. The base64 step is required so the payload can live in the URL without breaking parsing.
 - **photo:// protocol**: All image `src` attributes in the renderer must use the custom `photo://` protocol (`PHOTO_PROTOCOL_SCHEME` in `src/constants.ts`), not `file://`. The main process registers a protocol handler that serves files from the project directory and validates file extensions. Use helpers that build photo:// URLs (e.g. `thumbnailFullPath` on Photo) so paths are safe and consistent.
 - Thumbnails are stored next to the project: see `PROJECT_THUMBNAIL_DIRECTORY` in `src/constants.ts`.
 - Avoid editing generated files: `src/routeTree.gen.ts` and other generator outputs.
@@ -103,7 +103,7 @@ When unsure, look at these files first
 
 ## Reviewing code
 
-Evaluate in order: architecture → code quality → tests → performance. Before reviewing, sync to latest remote (`git fetch origin`).
+Evaluate in order: architecture > code quality > tests > performance. Before reviewing, sync to latest remote (`git fetch origin`).
 
 For each issue: describe concretely with file:line references, present options with trade-offs when the fix isn't obvious, recommend one, and ask before proceeding.
 

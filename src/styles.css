@@ -242,7 +242,6 @@ html[data-color-mode="light"] .project .photo-stack {
   top: 0;
   width: 100%;
   height: calc(100% - var(--toolbar-height));
-  object-fit: contain;
 }
 
 .edit > .canvas-photo,

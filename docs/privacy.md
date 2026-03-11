@@ -18,11 +18,11 @@ All project data, photos, and settings remain on your computer. The app does not
 
 Telemetry is **disabled by default**. If you enable it in Settings, the app may send the following to _Sentry_ (a third‑party error-reporting service) to help us fix bugs:
 
-- **Crash reports** – When the app crashes, diagnostic information (stack traces, system info) is sent.
-- **Error details** – When unexpected errors occur, we receive error messages and context.
-- **Performance data** – Timing and performance metrics to help identify slow operations.
-- **Session recordings on errors** – When an error occurs, a recording of the UI state at that moment may be captured. Recordings are **not** captured continuously; only when something goes wrong. Text, images, and canvas elements (used for displaying photos in the photo editor) are blocked and masked and are not included.
-- **Console logs** – Log messages (log, warn, error) may be attached to error reports for debugging.
+- **Crash reports** - When the app crashes, diagnostic information (stack traces, system info) is sent.
+- **Error details** - When unexpected errors occur, we receive error messages and context.
+- **Performance data** - Timing and performance metrics to help identify slow operations.
+- **Session recordings on errors** - When an error occurs, a recording of the UI state at that moment may be captured. Recordings are **not** captured continuously; only when something goes wrong. Text, images, and canvas elements (used for displaying photos in the photo editor) are blocked and masked and are not included.
+- **Console logs** - Log messages (log, warn, error) may be attached to error reports for debugging.
 
 All telemetry is sent only when you have enabled it in [settings](./user-guide/usage.md#settings). You can disable it at any time.
 

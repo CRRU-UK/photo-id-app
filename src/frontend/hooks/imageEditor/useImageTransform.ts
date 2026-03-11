@@ -3,7 +3,7 @@ import type { ImageTransformations } from "@/types";
 import { useCallback, useRef } from "react";
 
 import { IMAGE_EDITS } from "@/constants";
-import { clampPan, getImageCoordinates } from "@/helpers";
+import { getImageCoordinates } from "@/helpers";
 
 export const useImageTransform = (imageRef: React.RefObject<HTMLImageElement | null>) => {
   const zoomRef = useRef<number>(IMAGE_EDITS.ZOOM);
@@ -28,19 +28,21 @@ export const useImageTransform = (imageRef: React.RefObject<HTMLImageElement | n
     (canvas: HTMLCanvasElement | null): void => {
       const image = imageRef.current;
 
+      // Canvas checked for presence only — dimensions are not used in the boundary formula
       if (!canvas || !image) {
         return;
       }
 
       const zoom = zoomRef.current;
-      const scaledImageWidth = image.naturalWidth * zoom;
-      const scaledImageHeight = image.naturalHeight * zoom;
 
-      panRef.current = clampPan({
-        pan: panRef.current,
-        canvas: { width: canvas.width, height: canvas.height },
-        scaledImage: { width: scaledImageWidth, height: scaledImageHeight },
-      });
+      const maxPanX = (image.naturalWidth * (zoom - 1)) / 2;
+      const maxPanY = (image.naturalHeight * (zoom - 1)) / 2;
+
+      // Pan boundary = naturalDimension * (zoom - 1) / 2, independent of canvas size
+      panRef.current = {
+        x: Math.max(-maxPanX, Math.min(maxPanX, panRef.current.x)),
+        y: Math.max(-maxPanY, Math.min(maxPanY, panRef.current.y)),
+      };
     },
     [imageRef],
   );
@@ -57,6 +59,7 @@ export const useImageTransform = (imageRef: React.RefObject<HTMLImageElement | n
         return null;
       }
 
+      // Returns `fitScale`-only coordinates (zoom=1, pan=0).
       return getImageCoordinates({ clientX, clientY, canvas, image });
     },
     [imageRef],

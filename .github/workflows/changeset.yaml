@@ -32,4 +32,4 @@ jobs:
           cache: npm
 
       - name: Check for changeset
-        run: npx changeset status --since=origin/main
+        run: npx --yes @changesets/cli status --since=origin/main

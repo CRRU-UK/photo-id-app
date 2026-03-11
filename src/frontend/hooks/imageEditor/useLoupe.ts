@@ -13,33 +13,6 @@ interface UseLoupeOptions {
   getTransform: () => ImageTransformations;
 }
 
-/**
- * Converts canvas-space coordinates to original image-space coordinates by reversing the zoom/pan
- * transform applied during rendering.
- */
-const canvasToImageCoords = ({
-  canvasX,
-  canvasY,
-  centreX,
-  centreY,
-  zoom,
-  panX,
-  panY,
-}: {
-  canvasX: number;
-  canvasY: number;
-  centreX: number;
-  centreY: number;
-  zoom: number;
-  panX: number;
-  panY: number;
-}): { x: number; y: number } => {
-  const imageX = (canvasX - centreX - panX) / zoom + centreX;
-  const imageY = (canvasY - centreY - panY) / zoom + centreY;
-
-  return { x: imageX, y: imageY };
-};
-
 export const useLoupe = ({
   enabled,
   imageRef,
@@ -64,34 +37,27 @@ export const useLoupe = ({
         return;
       }
 
-      const canvasCoords = getImageCoordinates({
+      const transform = getTransform();
+
+      const imageCoords = getImageCoordinates({
         clientX,
         clientY,
         canvas,
         image,
+        zoom: transform.zoom,
+        pan: transform.pan,
       });
 
-      if (!canvasCoords) {
+      if (!imageCoords) {
         return;
       }
 
-      const transform = getTransform();
-      const centreX = image.naturalWidth / 2;
-      const centreY = image.naturalHeight / 2;
-
-      const imageCoords = canvasToImageCoords({
-        canvasX: canvasCoords.x,
-        canvasY: canvasCoords.y,
-        centreX,
-        centreY,
-        zoom: transform.zoom,
-        panX: transform.pan.x,
-        panY: transform.pan.y,
-      });
-
-      // Scale the loupe size relative to the canvas rendered dimensions so the loupe feels
-      // proportionate on small windows while capping at the original maximum on large ones.
       const canvasRect = canvas.getBoundingClientRect();
+
+      /**
+       * Scale the loupe size relative to the canvas rendered dimensions so the loupe feels
+       * proportionate on small windows while capping at the original maximum on large ones.
+       */
       const loupeSize = Math.max(
         LOUPE.MIN_SIZE,
         Math.min(Math.round(Math.min(canvasRect.width, canvasRect.height) * 0.4), LOUPE.SIZE),

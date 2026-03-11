@@ -135,7 +135,7 @@ describe(useImageTransform, () => {
       const imageRef = createNullImageRef();
       const { result } = renderHook(() => useImageTransform(imageRef));
 
-      const canvas = { width: 800, height: 600 } as HTMLCanvasElement;
+      const canvas = { clientWidth: 800, clientHeight: 600 } as HTMLCanvasElement;
 
       act(() => {
         result.current.setPan({ x: 9999, y: 9999 });
@@ -149,22 +149,81 @@ describe(useImageTransform, () => {
       const imageRef = createImageRef(1600, 1200);
       const { result } = renderHook(() => useImageTransform(imageRef));
 
-      const canvas = { width: 800, height: 600 } as HTMLCanvasElement;
+      // Boundary is the photo area edge (independent of canvas/window size).
+      // At zoom 2: maxPanX = 1600 * (2-1) / 2 = 800 image px
+      //            maxPanY = 1200 * (2-1) / 2 = 600 image px
+      const canvas = { clientWidth: 800, clientHeight: 600 } as HTMLCanvasElement;
 
       act(() => {
-        // At zoom 1, image matches canvas (no overflow), so pan clamps to 0
-        result.current.setZoom(1);
-        result.current.setPan({ x: 500, y: 500 });
+        result.current.setZoom(2);
+        result.current.setPan({ x: 9999, y: 9999 });
         result.current.clamp(canvas);
       });
 
       const transform = result.current.getTransform();
 
-      // With zoom 1, scaled image = 1600x1200, canvas = 800x600
-      // boundary X: (1600 - 800) / 2 = 400
-      // boundary Y: (1200 - 600) / 2 = 300
-      expect(transform.pan.x).toBe(400);
-      expect(transform.pan.y).toBe(300);
+      expect(transform.pan.x).toBe(800);
+      expect(transform.pan.y).toBe(600);
+    });
+
+    it("uses the same boundary regardless of canvas size (photo area is the constraint)", () => {
+      const imageRef = createImageRef(1600, 1200);
+      const { result } = renderHook(() => useImageTransform(imageRef));
+
+      // A wider canvas does not change the pan boundary — the photo area edge is always
+      // naturalDimension * (zoom-1) / 2 in image pixels, regardless of window size.
+      const canvas = { clientWidth: 1200, clientHeight: 600 } as HTMLCanvasElement;
+
+      act(() => {
+        result.current.setZoom(2);
+        result.current.setPan({ x: 9999, y: 9999 });
+        result.current.clamp(canvas);
+      });
+
+      const transform = result.current.getTransform();
+
+      // Same boundary as the 800*600 case above — window size has no effect.
+      expect(transform.pan.x).toBe(800);
+      expect(transform.pan.y).toBe(600);
+    });
+
+    it("locks pan to zero at zoom 1", () => {
+      const imageRef = createImageRef(1600, 1200);
+      const { result } = renderHook(() => useImageTransform(imageRef));
+
+      // At zoom 1: maxPanX = 1600 * (1-1) / 2 = 0 > pan locked to (0, 0).
+      const canvas = { clientWidth: 800, clientHeight: 600 } as HTMLCanvasElement;
+
+      act(() => {
+        result.current.setZoom(1);
+        result.current.setPan({ x: 9999, y: 9999 });
+        result.current.clamp(canvas);
+      });
+
+      const transform = result.current.getTransform();
+
+      expect(transform.pan.x).toBe(0);
+      expect(transform.pan.y).toBe(0);
+    });
+
+    it("locks pan to zero at zoom 1 regardless of letterbox space", () => {
+      const imageRef = createImageRef(1600, 1200);
+      const { result } = renderHook(() => useImageTransform(imageRef));
+
+      // Even with a canvas wider than the photo area (letterbox on sides), pan is locked
+      // to zero at zoom 1 because the boundary is the photo area, not the canvas edge.
+      const canvas = { clientWidth: 1200, clientHeight: 600 } as HTMLCanvasElement;
+
+      act(() => {
+        result.current.setZoom(1);
+        result.current.setPan({ x: 9999, y: 9999 });
+        result.current.clamp(canvas);
+      });
+
+      const transform = result.current.getTransform();
+
+      expect(transform.pan.x).toBe(0);
+      expect(transform.pan.y).toBe(0);
     });
   });
 

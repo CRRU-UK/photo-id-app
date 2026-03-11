@@ -4,4 +4,4 @@
 
 ## Pull Requests
 
-Run `npx changeset` before merging pull-requests.
+Run `npm run changesets:add` (or `npx @changesets/cli add`) before merging pull-requests.

@@ -47,8 +47,10 @@ export const useZoomInteraction = ({
       const transform = getTransform();
       const zoom = transform.zoom;
       const pan = transform.pan;
-      const centreX = canvas.width / 2;
-      const centreY = canvas.height / 2;
+
+      // Two-step inversion: `fitScale`-only coords > apply zoom/pan > true image pixel under cursor
+      const centreX = image.naturalWidth / 2;
+      const centreY = image.naturalHeight / 2;
 
       const imagePointX = (imageCoords.x - centreX - pan.x) / zoom + centreX;
       const imagePointY = (imageCoords.y - centreY - pan.y) / zoom + centreY;
@@ -86,9 +88,6 @@ export const useZoomInteraction = ({
       const updatedZoom = Math.max(newZoom, 1);
 
       if (updatedZoom === currentZoom) {
-        clamp(canvasRef.current);
-        onDraw();
-
         return;
       }
 

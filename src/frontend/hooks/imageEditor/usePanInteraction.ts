@@ -1,9 +1,12 @@
 import { useCallback, useRef } from "react";
 
+import { EditorPanDirection, PAN_AMOUNT } from "@/constants";
+
 interface PanInteractionOptions {
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
   imageRef: React.RefObject<HTMLImageElement | null>;
   onPan: (pan: { x: number; y: number }) => void;
+  onDirectionalPan: (delta: { x: number; y: number }) => void;
   onDraw: () => void;
   onDrawThrottled: () => void;
   onCancelThrottle: () => void;
@@ -14,6 +17,7 @@ export const usePanInteraction = ({
   canvasRef,
   imageRef,
   onPan,
+  onDirectionalPan,
   onDraw,
   onDrawThrottled,
   onCancelThrottle,
@@ -45,21 +49,17 @@ export const usePanInteraction = ({
       const deltaX = event.clientX - lastPointerRef.current.x;
       const deltaY = event.clientY - lastPointerRef.current.y;
 
-      /**
-       * Convert screen pixel deltas to image pixel deltas. Use clientWidth/clientHeight to match
-       * the coordinate conversion in getImageCoordinates.
-       */
-      const scaleX = image.naturalWidth / canvas.clientWidth;
-      const scaleY = image.naturalHeight / canvas.clientHeight;
-
-      const scaledDeltaX = deltaX * scaleX;
-      const scaledDeltaY = deltaY * scaleY;
+      // Convert screen-pixel delta to image-pixel delta (1/fitScale, uniform across axes)
+      const scale = Math.max(
+        image.naturalWidth / canvas.clientWidth,
+        image.naturalHeight / canvas.clientHeight,
+      );
 
       const currentPan = getTransform().pan;
 
       onPan({
-        x: currentPan.x + scaledDeltaX,
-        y: currentPan.y + scaledDeltaY,
+        x: currentPan.x + deltaX * scale,
+        y: currentPan.y + deltaY * scale,
       });
 
       lastPointerRef.current.x = event.clientX;
@@ -77,9 +77,42 @@ export const usePanInteraction = ({
     onDraw();
   }, [onCancelThrottle, onDraw]);
 
+  const handleDirectionalPan = useCallback(
+    (direction: EditorPanDirection) => {
+      const canvas = canvasRef.current;
+      const image = imageRef.current;
+
+      if (!canvas || !image) {
+        return;
+      }
+
+      const scale = Math.max(
+        image.naturalWidth / canvas.clientWidth,
+        image.naturalHeight / canvas.clientHeight,
+      );
+
+      let deltaX = 0;
+      let deltaY = 0;
+
+      if (direction === EditorPanDirection.LEFT) {
+        deltaX = PAN_AMOUNT * scale;
+      } else if (direction === EditorPanDirection.RIGHT) {
+        deltaX = -PAN_AMOUNT * scale;
+      } else if (direction === EditorPanDirection.UP) {
+        deltaY = PAN_AMOUNT * scale;
+      } else if (direction === EditorPanDirection.DOWN) {
+        deltaY = -PAN_AMOUNT * scale;
+      }
+
+      onDirectionalPan({ x: deltaX, y: deltaY });
+    },
+    [canvasRef, imageRef, onDirectionalPan],
+  );
+
   return {
     handlePointerDown,
     handlePointerMove,
     handlePointerUp,
+    handleDirectionalPan,
   };
 };
