@@ -120,9 +120,9 @@ export const useLoupe = ({
       const cursorX = clientX - editRect.left;
       const cursorY = clientY - editRect.top;
 
-      const offset = (loupeSize / 2) * (1 + 1 / Math.SQRT2) + LOUPE.CURSOR_PADDING;
-      const loupeX = cursorX - offset;
-      const loupeY = cursorY - offset;
+      // Cursor sits at the bottom-right corner of the loupe box
+      const loupeX = cursorX - loupeSize;
+      const loupeY = cursorY - loupeSize;
 
       loupeContainer.style.display = "block";
       loupeContainer.style.transform = `translate(${loupeX}px, ${loupeY}px)`;

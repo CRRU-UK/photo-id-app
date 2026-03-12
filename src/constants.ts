@@ -235,7 +235,6 @@ export const LOUPE = {
   SIZE: 450, // Maximum size in CSS pixels
   MIN_SIZE: 150, // Minimum size in CSS pixels
   ZOOM: 2,
-  CURSOR_PADDING: 12, // Gap in pixels from the circle edge to the cursor, along the 45° diagonal
 };
 
 export const EDGE_DETECTION = {

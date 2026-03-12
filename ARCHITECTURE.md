@@ -307,17 +307,14 @@ Inverts the rendering transform to map viewport (screen) coordinates to image pi
 
 ##### Loupe positioning
 
-The loupe is a circular magnifier. Its container is positioned using a `translate` transform relative to the parent edit element. The cursor must always sit at the 45° (bottom-right) point on the circle's edge and not inside it.
-
-For a circle of radius `r`, the 45° point is at `r / √2` from the centre along each axis. So to place the cursor at that point, the centre must be at `(cursorX - r/√2, cursorY - r/√2)`, and the top-left of the bounding box is `r` further back:
+The loupe is a circular magnifier rendered inside a square bounding box. Its container is positioned with a `translate` transform relative to the parent edit element so that the cursor tip sits at the bottom-right corner of that bounding box:
 
 ```plaintext
-offset = r * (1 + 1/√2)  =  (loupeSize / 2) * (1 + 1 / Math.SQRT2)
-loupeX = cursorX - offset - CURSOR_PADDING
-loupeY = cursorY - offset - CURSOR_PADDING
+loupeX = cursorX - loupeSize
+loupeY = cursorY - loupeSize
 ```
 
-`CURSOR_PADDING` is a small gap in pixels added along the 45° diagonal to keep the cursor tip visually clear of the circle edge. This offset is size-independent as the cursor always lands at the same relative position on the arc regardless of how large or small the loupe is scaled.
+Because the loupe is circular, the bottom-right corner of the bounding box is always outside the circle (the corner is at distance `r√2` from the centre, greater than the radius `r`). This guarantees the cursor never overlaps the magnified content at any loupe size.
 
 ##### Zoom towards cursor (`useZoomInteraction.handleWheel`)
 
