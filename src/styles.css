@@ -265,7 +265,6 @@ html[data-color-mode="light"] .project .photo-stack {
 .edit > .canvas-photo.loupe-active,
 .edit > .canvas-photo.loupe-active:hover,
 .edit > .canvas-photo.loupe-active:active {
-  /* Hotspot at centre (15 15) so the examined pixel is visible through the ring */
   cursor: url("./assets/loupe-cursor.svg") 15 15, crosshair;
 }
 
