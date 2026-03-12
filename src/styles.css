@@ -226,10 +226,10 @@ html[data-color-mode="light"] .project .photo-stack {
   top: 0;
   display: none;
   pointer-events: none;
-  border: 1.5px solid white;
+  border: 1.5px solid black;
   border-radius: 50%;
   overflow: hidden;
-  box-shadow: 0 0 0 3px black;
+  box-shadow: 0 0 0 2px white, inset 0 0 0 2px white;
 }
 
 .edit > .loupe canvas {
@@ -257,7 +257,8 @@ html[data-color-mode="light"] .project .photo-stack {
 .edit > .canvas-photo.loupe-active,
 .edit > .canvas-photo.loupe-active:hover,
 .edit > .canvas-photo.loupe-active:active {
-  cursor: url("./assets/loupe-cursor.svg") 20 20, crosshair;
+  /* Hotspot at centre (15 15) so the examined pixel is visible through the ring */
+  cursor: url("./assets/loupe-cursor.svg") 15 15, crosshair;
 }
 
 .loading {
