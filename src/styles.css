@@ -226,9 +226,10 @@ html[data-color-mode="light"] .project .photo-stack {
   top: 0;
   display: none;
   pointer-events: none;
-  border: 2px solid var(--borderColor-muted);
+  border: 1.5px solid white;
   border-radius: 50%;
   overflow: hidden;
+  box-shadow: 0 0 0 3px black;
 }
 
 .edit > .loupe canvas {
@@ -256,7 +257,7 @@ html[data-color-mode="light"] .project .photo-stack {
 .edit > .canvas-photo.loupe-active,
 .edit > .canvas-photo.loupe-active:hover,
 .edit > .canvas-photo.loupe-active:active {
-  cursor: crosshair;
+  cursor: url("./assets/loupe-cursor.svg") 20 20, crosshair;
 }
 
 .loading {
