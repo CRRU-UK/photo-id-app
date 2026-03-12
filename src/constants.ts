@@ -235,7 +235,6 @@ export const LOUPE = {
   SIZE: 450, // Maximum size in CSS pixels
   MIN_SIZE: 150, // Minimum size in CSS pixels
   ZOOM: 2,
-  CURSOR_PADDING: 30, // Offset from cursor to bottom-right corner of the loupe
 };
 
 export const EDGE_DETECTION = {

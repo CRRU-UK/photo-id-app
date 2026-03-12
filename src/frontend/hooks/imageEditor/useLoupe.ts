@@ -110,15 +110,19 @@ export const useLoupe = ({
 
       loupeContext.drawImage(image, sx, sy, regionSize, regionSize, 0, 0, loupeSize, loupeSize);
 
-      // Use the loupe container's parent (.edit) as the position reference so the transform is
-      // always relative to the element the loupe is absolutely positioned within, regardless of
-      // where the canvas element sits within that container.
+      /**
+       * Use the loupe container's parent as the position reference so the transform is always
+       * relative to the element the loupe is absolutely positioned within, regardless of where the
+       * canvas element sits within that container.
+       */
       const editRect = (loupeContainer.parentElement ?? canvas).getBoundingClientRect();
+
       const cursorX = clientX - editRect.left;
       const cursorY = clientY - editRect.top;
 
-      const loupeX = cursorX - loupeSize + LOUPE.CURSOR_PADDING;
-      const loupeY = cursorY - loupeSize + LOUPE.CURSOR_PADDING;
+      // Cursor sits at the bottom-right corner of the loupe box
+      const loupeX = cursorX - loupeSize;
+      const loupeY = cursorY - loupeSize;
 
       loupeContainer.style.display = "block";
       loupeContainer.style.transform = `translate(${loupeX}px, ${loupeY}px)`;
