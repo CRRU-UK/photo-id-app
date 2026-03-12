@@ -88,14 +88,18 @@ interface CanvasImageProps {
   handlePointerMove: (event: React.PointerEvent<HTMLCanvasElement>) => void;
   handlePointerUp: () => void;
   handlePointerLeave: () => void;
+  loupeEnabled: boolean;
 }
 
 const CanvasImage = forwardRef<HTMLCanvasElement, CanvasImageProps>(
-  ({ handlePointerDown, handlePointerMove, handlePointerUp, handlePointerLeave }, ref) => {
+  (
+    { handlePointerDown, handlePointerMove, handlePointerUp, handlePointerLeave, loupeEnabled },
+    ref,
+  ) => {
     return (
       <canvas
         ref={ref}
-        className="canvas-photo"
+        className={loupeEnabled ? "canvas-photo loupe-active" : "canvas-photo"}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
@@ -415,6 +419,7 @@ const ImageEditor = ({
           handlePointerMove={handleCanvasPointerMove}
           handlePointerUp={handlers.handlePointerUp}
           handlePointerLeave={handleCanvasPointerLeave}
+          loupeEnabled={loupeEnabled}
         />
 
         <div ref={refs.loupeContainerRef} className="loupe">

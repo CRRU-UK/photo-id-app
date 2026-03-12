@@ -253,6 +253,12 @@ html[data-color-mode="light"] .project .photo-stack {
   cursor: grabbing;
 }
 
+.edit > .canvas-photo.loupe-active,
+.edit > .canvas-photo.loupe-active:hover,
+.edit > .canvas-photo.loupe-active:active {
+  cursor: crosshair;
+}
+
 .loading {
   z-index: 100;
   position: absolute;
