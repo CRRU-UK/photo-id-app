@@ -27,7 +27,7 @@ const getMatchExportLabel = (matchId: number, sideName: string): string => {
   return getAlphabetLetter(matchId);
 };
 
-const exportMatchesAsCsv = async (
+const exportMatchesAsCSV = async (
   mainWindow: Electron.BrowserWindow,
   project: ProjectBody,
   directory: string,
@@ -174,7 +174,7 @@ export const handleExportMatches = async (
   }
 
   if (type === "csv") {
-    return exportMatchesAsCsv(mainWindow, project, directory);
+    return exportMatchesAsCSV(mainWindow, project, directory);
   }
 
   return exportMatchesAsPhotos(mainWindow, project, directory, type === "edited");
