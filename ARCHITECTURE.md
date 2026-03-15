@@ -24,6 +24,28 @@ Technical information, specifications, requirements, and user journeys.
 - Platform-specific file association: Opening a `.photoid` file from the OS uses **macOS**: the `open-file` app event (may fire before `whenReady`). **Windows/Linux**: `second-instance` and the process `argv` (the path is passed as an argument). The app handles both so that double-clicking a `.photoid` opens that project.
 - **Settings storage**: Settings are stored in the app user data directory (per user) as a JSON file, validated on read with `settingsDataSchema` in `src/schemas.ts`. Invalid or missing data causes a silent fallback to defaults. ML model API tokens are stored separately in `tokens.json` using Electron's `safeStorage` API for encryption at rest; on machines where secure storage is unavailable, tokens fall back to plaintext storage with a UI warning.
 
+## Error Handling
+
+- **User-facing errors**: Shown as modal dialogues via `dialog.showErrorBox` (main process) or inline error state (renderer). Never silently swallow errors that affect user data or workflow.
+- **Renderer diagnostics**: Use `console.error` for unexpected failures. These are captured by Sentry when telemetry is enabled and serve as production diagnostics — do not remove them.
+- **Graceful fallbacks**: Settings and token files fall back to safe defaults if missing or invalid. The app should never crash on startup due to corrupted settings.
+- **Error boundaries**: The `ErrorBoundary` component (`src/frontend/components/ErrorBoundary.tsx`) wraps heavy UI components (e.g. `ImageEditor`, `AnalysisOverlay`) so a render crash in those components doesn't take down the entire project view. Wrap any new component that does complex or error-prone rendering.
+
+## Save / Persistence Flow
+
+1. A user action mutates a MobX model (e.g. `collection.addPhoto(photo)`)
+2. The mutating method calls `project.save()` internally — **call sites do not need to call `save()` again**
+3. `project.save()` updates `lastModified` and sets a debounce timer (500 ms). Rapid mutations coalesce into a single write
+4. After the debounce timer fires, `project.returnAsJSONString()` serializes the entire project to compact JSON
+5. The JSON string is sent to the main process via `window.electronAPI.saveProject(data)` (IPC)
+6. The main process handler validates the payload and writes it to `project.photoid` in the current project directory
+
+## Thumbnail Cache Invalidation
+
+- `photo.thumbnailFullPath` appends a `?v=<n>` version query parameter to the `photo://` URL. This parameter is incremented each time `photo.updatePhoto()` is called (i.e. after saving edits in the edit window).
+- Because browsers/Electron cache images by URL, incrementing `?v=` forces a reload of the thumbnail after the new one is written to disk.
+- When adding logic that updates thumbnails, always call `photo.updatePhoto()` with the new `PhotoBody` data so the version counter increments and the renderer displays the fresh thumbnail.
+
 ## Security
 
 - **photo:// protocol**: The custom protocol serves only files whose extension is in `PHOTO_FILE_EXTENSIONS` (allowed image types). Other paths return 403. Files are served from the project directory; the renderer never receives raw filesystem paths for image `src` (use `photo://` URLs only, not `file://`).

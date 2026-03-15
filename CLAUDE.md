@@ -46,23 +46,31 @@
 - Prefer adding JSDocs where helpful, but avoid redundant types that are already covered by TypeScript.
 - For functions with more than two parameters, prefer using objects.
 - The UI uses GitHub Primer components/icons - prefer reusing Primer primitives and icons for consistency.
-- Do not remove console logs.
+- Do not remove console logs. Console logs are captured by Sentry when telemetry is enabled, so they serve as production diagnostics.
+- Never load full-resolution images into React state or hold `ArrayBuffer`/`Blob` references alive longer than necessary. Load `File`/`ArrayBuffer` only at the point of use, then release.
 
 ### Architecture-specific conventions
 
 - IPC naming is explicit. Prefer using the `IPC_EVENTS` enum from `src/constants.ts` instead of raw strings.
 - File operations and project persistence happen on the main side (`src/backend/*.ts`). Frontend should call preload helpers and assume I/O is async.
 - State management uses MobX: project data lives in observable models (`src/models/`). Any React component that reads from Project, Collection, or Photo (e.g. via ProjectContext) should be wrapped with `observer()` from `mobx-react-lite` so it re-renders when those observables change.
-- **subscribeIpc pattern**: IPC listeners (e.g. `onLoadProject`, `onSettingsUpdated`, `onOpenSettings`) are implemented in preload via `subscribeIpc`: they return an **unsubscribe function**. The renderer must call that unsubscribe in a `useEffect` cleanup so listeners are removed when the component unmounts; otherwise you get duplicate handlers and setState-on-unmounted warnings. Example: `useEffect(() => { const unsub = window.electronAPI.onLoadProject(callback); return unsub; }, [])`.
+- **subscribeIpc pattern**: IPC listeners (e.g. `onLoadProject`, `onSettingsUpdated`, `onOpenSettings`) are implemented in preload via `subscribeIpc`: they return an **unsubscribe function**. The renderer must call that unsubscribe in a `useEffect` cleanup so listeners are removed when the component unmounts; otherwise you get duplicate handlers and setState-on-unmounted warnings:
+  ```ts
+  useEffect(() => {
+    const unsub = window.electronAPI.onLoadProject(callback);
+    return unsub;
+  }, []);
+  ```
 - **Edit window data flow**: Edit windows receive photo data via the URL query. The main process encodes `PhotoBody` with `encodeEditPayload` (JSON stringify then **base64 encode**) and opens the window with `?data=<base64>`. The edit route reads the query, decodes with `decodeEditPayload` (base64 > JSON > Zod parse). Navigating between photos uses `navigateEditorPhoto`, which returns a new base64 payload that the route sets back into the query. The base64 step is required so the payload can live in the URL without breaking parsing.
 - **photo:// protocol**: All image `src` attributes in the renderer must use the custom `photo://` protocol (`PHOTO_PROTOCOL_SCHEME` in `src/constants.ts`), not `file://`. The main process registers a protocol handler that serves files from the project directory and validates file extensions. Use helpers that build photo:// URLs (e.g. `thumbnailFullPath` on Photo) so paths are safe and consistent.
+- **`Project.save()` is auto-triggered**: Many `Collection` and `Project` mutating methods (e.g. `addPhoto`, `setNextPhoto`, `setName`) call `Project.save()` internally after applying changes. When adding new mutating methods, do not call `save()` again from the call site — doing so causes a double-save. The save is debounced, so rapid mutations coalesce into a single write.
 - Thumbnails are stored next to the project: see `PROJECT_THUMBNAIL_DIRECTORY` in `src/constants.ts`.
 - Avoid editing generated files: `src/routeTree.gen.ts` and other generator outputs.
 
 ## Integration points / external deps
 
 - Electron + electron-forge + vite: packaging handled by `electron-forge` + forge Vite plugin (configs at project root: `vite.*.mts`, `forge.config.ts`).
-- MobX (`mobx`, `mobx-react-lite`): reactive state for the project UI. Models in `src/models/` (Project, Collection, Photo) use `makeObservable` with `observable`, `action`, and `computed`. Components that read from these models must be wrapped with `observer()` from `mobx-react-lite` so they re-render when observables change. Use `runInAction` for batch updates (e.g. `loadFromJSON` in Project) so observers re-run once per batch.
+- MobX (`mobx`, `mobx-react-lite`): reactive state for the project UI. Models in `src/models/` (Project, Collection, Photo) use `makeObservable` with `observable`, `action`, and `computed`. Components that read from these models must be wrapped with `observer()` from `mobx-react-lite` so they re-render when observables change. Use `runInAction` when performing multiple observable mutations in a single operation (e.g. `loadFromJSON` in Project) to batch re-renders so observers re-run once instead of on every property change.
 - Sentry: integrated in both main (`@sentry/electron`) and renderer (`@sentry/electron/renderer`). Opt-in via settings; when enabled, captures crashes, errors, session replay (error-only), tracing, profiling, and console logs. Initialised before app ready; user preference applied in `whenReady`. Privacy policy at `docs/privacy.md`. Environment variables: `VITE_SENTRY_DSN` (renderer) and `SENTRY_DSN` (main). See `.env.example`.
 - Native image processing: `@napi-rs/canvas` is used in backend image helpers.
 
