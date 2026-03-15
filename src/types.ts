@@ -21,15 +21,13 @@ export type Directory = string;
 
 export type FileName = string;
 
-export type PhotoSet = Set<Photo>;
-
 export type Match = {
   id: number;
   left: Collection;
   right: Collection;
 };
 
-export type Matches = Set<Match>;
+export type Matches = Match[];
 
 export type PhotoEdits = z.infer<typeof photoEditsSchema>;
 

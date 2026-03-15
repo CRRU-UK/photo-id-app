@@ -1,23 +1,21 @@
-import { PhotoSet } from "@/types";
-
 import { action, computed, makeObservable, observable } from "mobx";
 
 import type Photo from "@/models/Photo";
 import type Project from "@/models/Project";
 
-interface StackOptions {
+interface CollectionOptions {
   name?: string;
   index: number;
-  photos: PhotoSet;
+  photos: Photo[];
 }
 
-class Stack {
+class Collection {
   name?: string;
   index: number;
-  photos: PhotoSet;
+  photos: Photo[];
   private readonly project: Project;
 
-  constructor({ name = undefined, index = 0, photos }: StackOptions, project: Project) {
+  constructor({ name = undefined, index = 0, photos }: CollectionOptions, project: Project) {
     makeObservable(this, {
       index: observable,
       photos: observable,
@@ -36,19 +34,22 @@ class Stack {
   }
 
   addPhoto(photo: Photo): this {
-    this.photos.add(photo);
+    this.photos.push(photo);
 
     // Move stack to latest photo when adding
-    this.index = this.photos.size - 1;
+    this.index = this.photos.length - 1;
 
     this.project.save();
     return this;
   }
 
   removePhoto(photo: Photo): this {
-    this.photos.delete(photo);
+    const photoIndex = this.photos.indexOf(photo);
+    if (photoIndex !== -1) {
+      this.photos.splice(photoIndex, 1);
+    }
 
-    if (this.index + 1 > this.photos.size) {
+    if (this.index + 1 > this.photos.length) {
       this.index--;
     }
 
@@ -56,21 +57,21 @@ class Stack {
   }
 
   hasPhoto(photo: Photo): boolean {
-    return this.photos.has(photo);
+    return this.photos.includes(photo);
   }
 
   get currentPhoto(): Photo | null {
-    if (this.photos.size === 0) {
+    if (this.photos.length === 0) {
       return null;
     }
 
-    return Array.from(this.photos)[this.index];
+    return this.photos[this.index];
   }
 
   setPreviousPhoto(): this {
-    let newIndex = (this.index - 1) % this.photos.size;
+    let newIndex = (this.index - 1) % this.photos.length;
     if (newIndex < 0) {
-      newIndex = this.photos.size - 1;
+      newIndex = this.photos.length - 1;
     }
     this.index = newIndex;
 
@@ -79,7 +80,7 @@ class Stack {
   }
 
   setNextPhoto(): this {
-    this.index = (this.index + 1) % this.photos.size;
+    this.index = (this.index + 1) % this.photos.length;
 
     this.project.save();
     return this;
@@ -93,4 +94,4 @@ class Stack {
   }
 }
 
-export default Stack;
+export default Collection;

@@ -58,6 +58,8 @@ export const CSP_HEADERS = [
   `connect-src 'self'`,
 ].join("; ");
 
+export const THUMBNAIL_GENERATION_CONCURRENCY = 6;
+
 export const EXISTING_DATA_MESSAGE =
   "A data file already exists for this folder - choose whether to resume the existing data, replace/reset the existing data, or cancel.";
 

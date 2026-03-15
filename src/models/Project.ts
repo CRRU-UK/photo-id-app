@@ -16,12 +16,15 @@ class Project {
   version: ProjectBody["version"];
   id: ProjectBody["id"];
   directory: Directory;
-  allPhotos: Set<Photo>;
+  allPhotos: Map<string, Photo>;
   unassigned: Collection;
   discarded: Collection;
   matched: Matches;
   created: Date;
   lastModified: Date;
+
+  private saveDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+  private static readonly SAVE_DEBOUNCE_MS = 500;
 
   constructor(data?: ProjectBody) {
     makeObservable(this, {
@@ -34,10 +37,10 @@ class Project {
     this.version = "v1";
     this.id = "";
     this.directory = "";
-    this.allPhotos = new Set();
-    this.unassigned = new Collection({ photos: new Set(), index: 0 }, this);
-    this.discarded = new Collection({ photos: new Set(), index: 0 }, this);
-    this.matched = new Set();
+    this.allPhotos = new Map();
+    this.unassigned = new Collection({ photos: [], index: 0 }, this);
+    this.discarded = new Collection({ photos: [], index: 0 }, this);
+    this.matched = [];
     this.created = new Date();
     this.lastModified = new Date();
 
@@ -48,7 +51,7 @@ class Project {
   }
 
   updatePhoto(data: PhotoBody) {
-    const photo = Array.from(this.allPhotos).find((photo) => photo.fileName === data.name);
+    const photo = this.allPhotos.get(data.name);
 
     if (!photo) {
       return console.error("Unable to find photo with name:", data.name);
@@ -60,18 +63,15 @@ class Project {
   private mapPhotoBodyToCollection(directory: Directory, collection: CollectionBody): Collection {
     const photos = collection.photos.map(({ name, thumbnail, edits }) => {
       const photo = new Photo({ directory, name, thumbnail, edits }, this);
-      this.allPhotos.add(photo);
+      this.allPhotos.set(photo.fileName, photo);
       return photo;
     });
 
-    return new Collection(
-      { photos: new Set(photos), index: collection.index, name: collection.name },
-      this,
-    );
+    return new Collection({ photos, index: collection.index, name: collection.name }, this);
   }
 
   private mapCollectionToBody(collection: Collection): CollectionBody {
-    const photos: PhotoBody[] = Array.from(collection.photos).map((photo) => photo.toBody());
+    const photos: PhotoBody[] = collection.photos.map((photo) => photo.toBody());
 
     return { photos, index: collection.index, name: collection.name };
   }
@@ -97,13 +97,11 @@ class Project {
       this.unassigned = this.mapPhotoBodyToCollection(directory, unassigned);
       this.discarded = this.mapPhotoBodyToCollection(directory, discarded);
 
-      const matchedSets = matched.map(({ id, left, right }) => ({
+      this.matched = matched.map(({ id, left, right }) => ({
         id,
         left: this.mapPhotoBodyToCollection(directory, left),
         right: this.mapPhotoBodyToCollection(directory, right),
       }));
-
-      this.matched = new Set(matchedSets);
 
       this.created = new Date(created);
       this.lastModified = new Date(lastModified);
@@ -120,7 +118,7 @@ class Project {
       directory: this.directory,
       unassigned: this.mapCollectionToBody(this.unassigned),
       discarded: this.mapCollectionToBody(this.discarded),
-      matched: Array.from(this.matched).map((item) => ({
+      matched: this.matched.map((item) => ({
         id: item.id,
         left: this.mapCollectionToBody(item.left),
         right: this.mapCollectionToBody(item.right),
@@ -129,15 +127,22 @@ class Project {
       lastModified: this.lastModified.toISOString(),
     };
 
-    // Format JSON to make debugging easier
-    return JSON.stringify(data, null, 2);
+    return JSON.stringify(data);
   }
 
   public save() {
     this.lastModified = new Date();
 
-    const data = this.returnAsJSONString();
-    void window.electronAPI.saveProject(data);
+    if (this.saveDebounceTimer !== null) {
+      clearTimeout(this.saveDebounceTimer);
+    }
+
+    this.saveDebounceTimer = setTimeout(() => {
+      this.saveDebounceTimer = null;
+
+      const data = this.returnAsJSONString();
+      void window.electronAPI.saveProject(data);
+    }, Project.SAVE_DEBOUNCE_MS);
   }
 
   public addPhotoToStack(from: Collection, to: Collection, photo: Photo): this {
@@ -166,7 +171,7 @@ class Project {
     );
 
     to.addPhoto(newPhoto);
-    this.allPhotos.add(newPhoto);
+    this.allPhotos.set(newPhoto.fileName, newPhoto);
 
     this.save();
 

@@ -1,19 +1,10 @@
-import { stringify } from "csv-stringify/sync";
 import { app, dialog } from "electron";
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 
-import type {
-  CollectionBody,
-  EditorNavigation,
-  ExportTypes,
-  LoadingData,
-  PhotoBody,
-  ProjectBody,
-} from "@/types";
+import type { EditorNavigation, LoadingData, PhotoBody, ProjectBody } from "@/types";
 
-import { renderFullImageWithEdits } from "@/backend/imageRenderer";
 import { createPhotoThumbnail } from "@/backend/photos";
 import { addRecentProject } from "@/backend/recents";
 import {
@@ -26,14 +17,11 @@ import {
   IPC_EVENTS,
   MISSING_RECENT_PROJECT_MESSAGE,
   PHOTO_FILE_EXTENSIONS,
-  PROJECT_EXPORT_CSV_FILE_NAME,
-  PROJECT_EXPORT_DATA_DIRECTORY,
-  PROJECT_EXPORT_DIRECTORY,
   PROJECT_FILE_EXTENSION,
   PROJECT_FILE_NAME,
   PROJECT_THUMBNAIL_DIRECTORY,
+  THUMBNAIL_GENERATION_CONCURRENCY,
 } from "@/constants";
-import { getAlphabetLetter } from "@/helpers";
 import { projectBodySchema } from "@/schemas";
 
 let currentProjectDirectory: string | null = null;
@@ -148,30 +136,44 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
     await fs.promises.mkdir(thumbnailDirectory);
   }
 
-  const thumbnails: string[] = [];
+  const thumbnails: string[] = Array.from<string>({ length: photos.length }).fill("");
+  let processed = 0;
 
-  for (const [index, photoName] of photos.entries()) {
-    mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, {
-      show: true,
-      text: "Preparing project",
-      progressValue: (index / photos.length) * 100,
-      progressText: `Processing photo ${index + 1} of ${photos.length}`,
-    } as LoadingData);
+  // Process thumbnails in batches to parallelise I/O while limiting peak memory usage
+  for (
+    let batchStart = 0;
+    batchStart < photos.length;
+    batchStart += THUMBNAIL_GENERATION_CONCURRENCY
+  ) {
+    const batch = photos.slice(batchStart, batchStart + THUMBNAIL_GENERATION_CONCURRENCY);
 
-    const photo: PhotoBody = {
-      directory,
-      name: photoName,
-      thumbnail: "",
-      edits: DEFAULT_PHOTO_EDITS,
-      isEdited: false,
-    };
+    await Promise.all(
+      batch.map(async (photoName, batchIndex) => {
+        const photo: PhotoBody = {
+          directory,
+          name: photoName,
+          thumbnail: "",
+          edits: DEFAULT_PHOTO_EDITS,
+          isEdited: false,
+        };
 
-    const result = await createPhotoThumbnail(photo);
-    thumbnails.push(result);
+        thumbnails[batchStart + batchIndex] = await createPhotoThumbnail(photo);
+
+        processed = processed + 1;
+
+        mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, {
+          show: true,
+          text: "Preparing project",
+          progressValue: (processed / photos.length) * 100,
+          progressText: `Processing photo ${processed} of ${photos.length}`,
+        } as LoadingData);
+      }),
+    );
   }
 
   const now = new Date().toISOString();
 
+  // INITIAL_MATCHED_STACKS is 52 (26 alphabet letters × 2) to pre-fill the match grid
   const defaultMatches = [];
   for (let i = 0; i < INITIAL_MATCHED_STACKS; i += 1) {
     defaultMatches.push({
@@ -206,7 +208,7 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
 
   await fs.promises.writeFile(
     path.join(directory, PROJECT_FILE_NAME),
-    JSON.stringify(data, null, 2),
+    JSON.stringify(data),
     "utf8",
   );
 
@@ -244,9 +246,16 @@ const handleOpenFilePrompt = async (mainWindow: Electron.BrowserWindow) => {
 };
 
 /**
- * Handles opening a recent project file.
+ * Handles opening a recent project file. Validates the path has a .photoid extension before
+ * attempting to open, to guard the IPC boundary.
  */
 const handleOpenProjectFile = async (mainWindow: Electron.BrowserWindow, file: string) => {
+  if (path.extname(file).toLowerCase() !== `.${PROJECT_FILE_EXTENSION}`) {
+    console.error("Refused to open non-.photoid file path:", file);
+    dialog.showErrorBox("Invalid file", "Only .photoid project files can be opened.");
+    return;
+  }
+
   mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, { show: true, text: "Opening project" });
 
   if (!fs.existsSync(file)) {
@@ -282,170 +291,6 @@ const handleSaveProject = async (data: string) => {
   projectBodySchema.parse(json);
 
   await fs.promises.writeFile(path.join(directory, PROJECT_FILE_NAME), data, "utf8");
-};
-
-/**
- * Returns the label used for a match in exports (CSV and photo filenames): letter from match id,
- * or padded collection name when set.
- */
-const getMatchExportLabel = (matchId: number, sideName: string): string => {
-  if (sideName && sideName !== "") {
-    return sideName.padStart(3, "0");
-  }
-  return getAlphabetLetter(matchId);
-};
-
-const exportMatchesAsCsv = async (
-  mainWindow: Electron.BrowserWindow,
-  project: ProjectBody,
-  directory: string,
-): Promise<string> => {
-  mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, {
-    show: true,
-    text: "Exporting CSV",
-    progressValue: 0,
-  } as LoadingData);
-
-  const records: string[][] = [["match_id", "original_file_name"]];
-
-  for (const match of project.matched) {
-    const addSide = (side: CollectionBody) => {
-      const photoName = getMatchExportLabel(match.id, side.name ?? "");
-      for (const photo of side.photos) {
-        records.push([photoName, photo.name]);
-      }
-    };
-
-    addSide(match.left);
-    addSide(match.right);
-  }
-
-  const dataDirectory = path.join(directory, PROJECT_EXPORT_DATA_DIRECTORY);
-
-  if (!fs.existsSync(dataDirectory)) {
-    await fs.promises.mkdir(dataDirectory);
-  }
-
-  const csvPath = path.join(dataDirectory, PROJECT_EXPORT_CSV_FILE_NAME);
-  const csvContent = stringify(records);
-  await fs.promises.writeFile(csvPath, csvContent, "utf8");
-
-  mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, { show: false });
-
-  return directory;
-};
-
-const exportMatchesAsPhotos = async (
-  mainWindow: Electron.BrowserWindow,
-  project: ProjectBody,
-  directory: string,
-  useEdits: boolean,
-): Promise<string> => {
-  mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, {
-    show: true,
-    text: "Exporting matches",
-    progressValue: 0,
-  } as LoadingData);
-
-  const exportsDirectory = path.join(directory, PROJECT_EXPORT_DIRECTORY);
-
-  if (fs.existsSync(exportsDirectory)) {
-    // Empty exports folder; per-file try/catch so one locked or permission-denied file does not abort export
-    for (const file of await fs.promises.readdir(exportsDirectory)) {
-      const filePath = path.join(exportsDirectory, file);
-
-      try {
-        await fs.promises.unlink(filePath);
-      } catch (error) {
-        console.warn("Could not remove existing export file during cleanup:", filePath, error);
-      }
-    }
-  } else {
-    await fs.promises.mkdir(exportsDirectory);
-  }
-
-  let progress = 0;
-  const totalPhotos = project.matched.reduce(
-    (acc, match) => acc + match.left.photos.length + match.right.photos.length,
-    0,
-  );
-
-  const handleSide = async (matchId: number, side: CollectionBody, label: "L" | "R") => {
-    const photoName = getMatchExportLabel(matchId, side.name ?? "");
-
-    for (const photo of side.photos) {
-      progress = progress + 1;
-
-      mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, {
-        show: true,
-        text: "Exporting matches",
-        progressValue: (progress / totalPhotos) * 100,
-        progressText: `Exporting match ${progress} of ${totalPhotos}`,
-      } as LoadingData);
-
-      const originalExtension = path.extname(photo.name);
-      const baseExportName = `${photoName}${label}_${path.basename(photo.name, originalExtension)}`;
-
-      const sourcePath = path.join(directory, photo.name);
-
-      const exportedName = `${baseExportName}${originalExtension}`;
-      const exportedPath = path.join(exportsDirectory, exportedName);
-
-      if (!useEdits || !photo.isEdited) {
-        await fs.promises.copyFile(sourcePath, exportedPath);
-        continue;
-      }
-
-      const renderedBuffer = await renderFullImageWithEdits({
-        sourcePath,
-        edits: photo.edits,
-      });
-
-      const useJPEG =
-        originalExtension.toLowerCase() === ".jpg" || originalExtension.toLowerCase() === ".jpeg";
-      const exportExtension = useJPEG ? originalExtension : ".png";
-
-      const finalExportedName = `${baseExportName}${exportExtension}`;
-      const finalExportedPath = path.join(exportsDirectory, finalExportedName);
-
-      await fs.promises.writeFile(finalExportedPath, renderedBuffer);
-    }
-  };
-
-  for (const match of project.matched) {
-    await Promise.all([
-      handleSide(match.id, match.left, "L"),
-      handleSide(match.id, match.right, "R"),
-    ]);
-  }
-
-  mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, { show: false });
-
-  return directory;
-};
-
-/**
- * Handles exporting matches.
- */
-const handleExportMatches = async (
-  mainWindow: Electron.BrowserWindow,
-  data: string,
-  type: ExportTypes,
-): Promise<string> => {
-  const json: unknown = JSON.parse(data);
-  const project = projectBodySchema.parse(json);
-
-  const directory = getCurrentProjectDirectory();
-
-  if (directory === null) {
-    throw new Error("No project open");
-  }
-
-  if (type === "csv") {
-    return exportMatchesAsCsv(mainWindow, project, directory);
-  }
-
-  return exportMatchesAsPhotos(mainWindow, project, directory, type === "edited");
 };
 
 /**
@@ -485,7 +330,10 @@ const handleDuplicatePhotoFile = async (data: PhotoBody): Promise<PhotoBody> => 
 /**
  * Finds a photo in a project and returns its collection (if any).
  */
-const findPhotoInProject = (project: ProjectBody, photo: PhotoBody): CollectionBody | null => {
+const findPhotoInProject = (
+  project: ProjectBody,
+  photo: PhotoBody,
+): import("@/types").CollectionBody | null => {
   const { name } = photo;
 
   const inUnassigned = project.unassigned.photos.some(
@@ -559,7 +407,6 @@ export {
   findPhotoInProject,
   handleDuplicatePhotoFile,
   handleEditorNavigate,
-  handleExportMatches,
   handleOpenDirectoryPrompt,
   handleOpenFilePrompt,
   handleOpenProjectFile,
