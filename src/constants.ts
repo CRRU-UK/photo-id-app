@@ -54,8 +54,8 @@ export const CSP_HEADERS = [
   `default-src 'self'`,
   `script-src 'self'`,
   `style-src 'self' 'unsafe-inline'`,
-  `img-src 'self' ${PHOTO_PROTOCOL_SCHEME}:`,
-  `connect-src 'self'`,
+  `img-src 'self' ${PHOTO_PROTOCOL_SCHEME}: data: blob:`,
+  `connect-src 'self' ${PHOTO_PROTOCOL_SCHEME}:`,
 ].join("; ");
 
 export const THUMBNAIL_GENERATION_CONCURRENCY = 6;

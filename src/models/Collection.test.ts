@@ -103,7 +103,7 @@ describe(Collection, () => {
 
       collection.removePhoto(photo);
 
-      expect(collection.photos).toContain(photo);
+      expect(collection.photos).not.toContain(photo);
       expect(collection.photos).toHaveLength(0);
     });
 
