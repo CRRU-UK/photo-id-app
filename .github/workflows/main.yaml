@@ -6,14 +6,14 @@ on:
     branches:
       - main
 
-permissions:
-  contents: read
-
 jobs:
   test-app:
     runs-on: ubuntu-latest
 
     name: Test app
+
+    permissions:
+      contents: read
 
     steps:
       - uses: actions/checkout@v6.0.2
@@ -42,3 +42,31 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  test-terraform:
+    runs-on: ubuntu-latest
+
+    name: Test Terraform
+
+    permissions:
+      contents: read
+
+    defaults:
+      run:
+        working-directory: terraform
+
+    steps:
+      - uses: actions/checkout@v6.0.2
+        with:
+          fetch-depth: 0
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v4.0.0
+        with:
+          terraform_version: "~> 1.14.5"
+
+      - name: Test formatting
+        run: terraform fmt -list=true -check -recursive -diff
+
+      - name: Test validation
+        run: terraform validate

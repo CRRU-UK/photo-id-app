@@ -8,6 +8,7 @@ Technical information, specifications, requirements, and user journeys.
 - Preload bridge: `src/preload.ts` - exposes `window.electronAPI` to renderer (use these methods from frontend).
 - Renderer (UI): `src/index.tsx` and `src/frontend/**` - React + TanStack Router routes are generated into `src/routeTree.gen.ts` (do not edit).
 - Backend helpers (file I/O, thumbnails, project logic): `src/backend/*.ts` called by the main process.
+- Terraform: `terraform/` contains the Terraform code for certificate management, code signing, and DNS records.
 
 ## Key files and patterns
 
