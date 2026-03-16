@@ -50,6 +50,18 @@ export const PHOTO_FILE_EXTENSIONS = [".jpg", ".jpeg", ".png"];
 
 export const PHOTO_PROTOCOL_SCHEME = "photo";
 
+export const CSP_HEADERS = [
+  `default-src 'self'`,
+  `script-src 'self'`,
+  `style-src 'self' 'unsafe-inline'`,
+  `img-src 'self' ${PHOTO_PROTOCOL_SCHEME}: data: blob:`,
+  `connect-src 'self' ${PHOTO_PROTOCOL_SCHEME}:`,
+].join("; ");
+
+export const THUMBNAIL_GENERATION_CONCURRENCY = 3;
+
+export const SAVE_PROJECT_DEBOUNCE_MS = 1000;
+
 export const EXISTING_DATA_MESSAGE =
   "A data file already exists for this folder - choose whether to resume the existing data, replace/reset the existing data, or cancel.";
 

@@ -58,12 +58,12 @@ const Stack = observer(({ collection, showAnalysisButton = true, stackLabel }: S
   const selectedModel = settings?.mlModels?.find(({ id }) => id === settings?.selectedModelId);
 
   const handleAnalyseClick = () => {
-    if (collection.photos.size === 0) {
+    if (collection.photos.length === 0) {
       return;
     }
 
     void handleAnalyse(
-      Array.from(collection.photos).map((photo) => photo.toBody()),
+      collection.photos.map((photo) => photo.toBody()),
       stackLabel ?? "",
     );
   };
@@ -77,7 +77,7 @@ const Stack = observer(({ collection, showAnalysisButton = true, stackLabel }: S
   } = useDraggable({
     id: currentPhoto?.fileName ?? "",
     data: { collection, currentPhoto: currentPhoto },
-    disabled: collection.photos.size <= 0,
+    disabled: collection.photos.length <= 0,
   });
 
   const handleOpenEdit = () => {
@@ -126,9 +126,9 @@ const Stack = observer(({ collection, showAnalysisButton = true, stackLabel }: S
           justify="space-between"
           style={{ marginRight: "auto" }}
         >
-          {collection.photos.size > 0 && (
+          {collection.photos.length > 0 && (
             <CounterLabel variant="secondary">
-              {collection.index + 1} / {collection.photos.size}
+              {collection.index + 1} / {collection.photos.length}
             </CounterLabel>
           )}
         </PrimerStack>
@@ -138,7 +138,7 @@ const Stack = observer(({ collection, showAnalysisButton = true, stackLabel }: S
             icon={AiModelIcon}
             size="small"
             aria-label={PROJECT_TOOLTIPS.ANALYSE_PHOTOS}
-            disabled={collection.photos.size === 0 || isAnalysing}
+            disabled={collection.photos.length === 0 || isAnalysing}
             onClick={handleAnalyseClick}
           />
         )}
@@ -152,7 +152,7 @@ const Stack = observer(({ collection, showAnalysisButton = true, stackLabel }: S
               event.preventDefault();
               return handleOpenEdit();
             }}
-            disabled={collection.photos.size <= 0 || revertingPhoto}
+            disabled={collection.photos.length <= 0 || revertingPhoto}
           >
             Edit
           </IconButton>
@@ -161,14 +161,14 @@ const Stack = observer(({ collection, showAnalysisButton = true, stackLabel }: S
               aria-label={PROJECT_TOOLTIPS.MORE_OPTIONS}
               icon={TriangleDownIcon}
               size="small"
-              disabled={collection.photos.size <= 0}
+              disabled={collection.photos.length <= 0}
             />
             <ActionMenu.Overlay>
               <ActionList>
                 <ActionList.Item
                   variant="danger"
                   disabled={
-                    collection.photos.size <= 0 || revertingPhoto || !currentPhoto?.isEdited
+                    collection.photos.length <= 0 || revertingPhoto || !currentPhoto?.isEdited
                   }
                   loading={revertingPhoto}
                   onSelect={handleRevertPhoto}
@@ -191,14 +191,14 @@ const Stack = observer(({ collection, showAnalysisButton = true, stackLabel }: S
             size="small"
             aria-label={PROJECT_TOOLTIPS.PREVIOUS_PHOTO}
             onClick={handlePrev}
-            disabled={collection.photos.size <= 1}
+            disabled={collection.photos.length <= 1}
           />
           <IconButton
             icon={ChevronRightIcon}
             size="small"
             aria-label={PROJECT_TOOLTIPS.NEXT_PHOTO}
             onClick={handleNext}
-            disabled={collection.photos.size <= 1}
+            disabled={collection.photos.length <= 1}
           />
         </ButtonGroup>
       </PrimerStack>

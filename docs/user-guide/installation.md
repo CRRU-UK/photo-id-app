@@ -31,6 +31,18 @@ Then, depending on your platform, download the appropriate file from the release
 
     The app is currently not signed and will throw an error on opening - this will be fixed soon.
 
+### Linux
+
+1. Download the `Photo.ID-{version}.deb` file (Debian/Ubuntu) or the `Photo.ID-{version}.rpm` file (Fedora/RHEL)
+2. Install using your package manager:
+    - **Debian/Ubuntu**: `sudo dpkg -i Photo.ID-{version}.deb`
+    - **Fedora/RHEL**: `sudo rpm -i Photo.ID-{version}.rpm`
+3. Launch the app from your application menu or by running `photo-id` in the terminal
+
+!!! note
+
+    Auto-updates are not currently supported on Linux. To upgrade, download and install the new package manually from the [releases page](https://github.com/CRRU-UK/photo-id-app/releases).
+
 ## Auto updates
 
 The app will auto-update when there are new releases, so there is no need to download and install newer versions.

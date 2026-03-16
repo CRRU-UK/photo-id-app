@@ -1,6 +1,6 @@
 import "dotenv/config";
 
-import { app, BrowserWindow, dialog, ipcMain, Menu, net, protocol } from "electron";
+import { app, BrowserWindow, dialog, ipcMain, Menu, net, protocol, session } from "electron";
 import {
   installExtension,
   MOBX_DEVTOOLS,
@@ -20,7 +20,7 @@ import { findPhotoidArg, openProjectFromPath } from "@/backend/ipc/shared";
 import { getMenu } from "@/backend/menu";
 import { getSettings, initSentry, setSentryEnabled } from "@/backend/settings";
 import { windowManager } from "@/backend/WindowManager";
-import { PHOTO_FILE_EXTENSIONS, PHOTO_PROTOCOL_SCHEME } from "@/constants";
+import { CSP_HEADERS, PHOTO_FILE_EXTENSIONS, PHOTO_PROTOCOL_SCHEME } from "@/constants";
 
 initSentry();
 
@@ -155,6 +155,16 @@ app.on("activate", async () => {
 void app.whenReady().then(async () => {
   const settings = await getSettings();
   setSentryEnabled(settings.telemetry);
+
+  // Set a Content Security Policy on all renderer responses to reduce XSS risk
+  session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+    callback({
+      responseHeaders: {
+        ...details.responseHeaders,
+        "Content-Security-Policy": [CSP_HEADERS],
+      },
+    });
+  });
 
   protocol.handle(PHOTO_PROTOCOL_SCHEME, (request) => {
     try {

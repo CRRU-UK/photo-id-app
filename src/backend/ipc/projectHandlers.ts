@@ -1,10 +1,10 @@
 import { type IpcMainEvent, type IpcMainInvokeEvent, dialog, shell } from "electron";
 import path from "node:path";
 
+import { handleExportMatches } from "@/backend/exports";
 import { closeCurrentProject, getWindowFromSender } from "@/backend/ipc/shared";
 import {
   getCurrentProjectDirectory,
-  handleExportMatches,
   handleOpenDirectoryPrompt,
   handleOpenFilePrompt,
   handleOpenProjectFile,

@@ -18,6 +18,12 @@
       "options": {
         "parser": "json"
       }
+    },
+    {
+      "files": "docs/**/*.md",
+      "options": {
+        "tabWidth": 4
+      }
     }
   ],
   "importOrderSeparation": true,

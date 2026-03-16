@@ -29,6 +29,11 @@ const mockHandleExportMatches =
 const mockGetCurrentProjectDirectory = vi.fn<() => string | null>();
 const mockParseProjectFile = vi.fn<(filePath: string) => Promise<ProjectBody>>();
 
+vi.mock("@/backend/exports", () => ({
+  handleExportMatches: (...args: Parameters<typeof mockHandleExportMatches>) =>
+    mockHandleExportMatches(...args),
+}));
+
 vi.mock("@/backend/projects", () => ({
   handleOpenDirectoryPrompt: (...args: Parameters<typeof mockHandleOpenDirectoryPrompt>) =>
     mockHandleOpenDirectoryPrompt(...args),
@@ -38,8 +43,6 @@ vi.mock("@/backend/projects", () => ({
     mockHandleOpenProjectFile(...args),
   handleSaveProject: (...args: Parameters<typeof mockHandleSaveProject>) =>
     mockHandleSaveProject(...args),
-  handleExportMatches: (...args: Parameters<typeof mockHandleExportMatches>) =>
-    mockHandleExportMatches(...args),
   getCurrentProjectDirectory: () => mockGetCurrentProjectDirectory(),
   parseProjectFile: (...args: Parameters<typeof mockParseProjectFile>) =>
     mockParseProjectFile(...args),

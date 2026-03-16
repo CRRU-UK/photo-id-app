@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { DEFAULT_PHOTO_EDITS } from "@/constants";
 import type { ExportTypes, PhotoBody, ProjectBody } from "@/types";
@@ -60,6 +60,11 @@ const createProjectBody = (overrides?: Partial<ProjectBody>): ProjectBody => ({
 describe(Project, () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   describe("constructor", () => {
@@ -75,9 +80,9 @@ describe(Project, () => {
       const project = new Project();
 
       expect(project.allPhotos.size).toBe(0);
-      expect(project.unassigned.photos.size).toBe(0);
-      expect(project.discarded.photos.size).toBe(0);
-      expect(project.matched.size).toBe(0);
+      expect(project.unassigned.photos).toHaveLength(0);
+      expect(project.discarded.photos).toHaveLength(0);
+      expect(project.matched).toHaveLength(0);
     });
 
     it("loads from data when provided to constructor", () => {
@@ -99,9 +104,9 @@ describe(Project, () => {
 
       expect(project.id).toBe(projectId);
       expect(project.directory).toBe(projectDirectory);
-      expect(project.unassigned.photos.size).toBe(2);
-      expect(project.discarded.photos.size).toBe(0);
-      expect(project.matched.size).toBe(1);
+      expect(project.unassigned.photos).toHaveLength(2);
+      expect(project.discarded.photos).toHaveLength(0);
+      expect(project.matched).toHaveLength(1);
     });
 
     it("loads project state from a JSON string", () => {
@@ -146,17 +151,15 @@ describe(Project, () => {
       const project = new Project();
       project.loadFromJSON(createProjectBody());
 
-      const matched = Array.from(project.matched);
-
-      expect(matched[0].left).toBeInstanceOf(Collection);
-      expect(matched[0].right).toBeInstanceOf(Collection);
+      expect(project.matched[0].left).toBeInstanceOf(Collection);
+      expect(project.matched[0].right).toBeInstanceOf(Collection);
     });
 
     it("populates photos as Photo instances", () => {
       const project = new Project();
       project.loadFromJSON(createProjectBody());
 
-      const firstPhoto = Array.from(project.allPhotos)[0];
+      const firstPhoto = [...project.allPhotos.values()][0];
 
       expect(firstPhoto).toBeInstanceOf(Photo);
     });
@@ -180,10 +183,8 @@ describe(Project, () => {
 
       project.loadFromJSON(data);
 
-      const matched = Array.from(project.matched);
-
-      expect(matched[0].id).toBe(5);
-      expect(matched[1].id).toBe(10);
+      expect(project.matched[0].id).toBe(5);
+      expect(project.matched[1].id).toBe(10);
     });
 
     it("handles empty project data", () => {
@@ -197,9 +198,9 @@ describe(Project, () => {
       project.loadFromJSON(data);
 
       expect(project.allPhotos.size).toBe(0);
-      expect(project.unassigned.photos.size).toBe(0);
-      expect(project.discarded.photos.size).toBe(0);
-      expect(project.matched.size).toBe(0);
+      expect(project.unassigned.photos).toHaveLength(0);
+      expect(project.discarded.photos).toHaveLength(0);
+      expect(project.matched).toHaveLength(0);
     });
 
     it("returns the project for chaining", () => {
@@ -223,10 +224,8 @@ describe(Project, () => {
 
       project.loadFromJSON(data);
 
-      const matched = Array.from(project.matched);
-
-      expect(matched[0].left.name).toBe("001");
-      expect(matched[0].right.name).toBe("002");
+      expect(project.matched[0].left.name).toBe("001");
+      expect(project.matched[0].right.name).toBe("002");
     });
   });
 
@@ -250,7 +249,9 @@ describe(Project, () => {
 
       project.updatePhoto(updatedData);
 
-      const photo = Array.from(project.allPhotos).find((p) => p.fileName === "photo1.jpg");
+      vi.runAllTimers();
+
+      const photo = project.allPhotos.get("photo1.jpg");
 
       expect(photo?.edits.brightness).toBe(150);
       expect(photo?.thumbnail).toBe(".thumbnails/photo1_edited.jpg");
@@ -292,19 +293,20 @@ describe(Project, () => {
       const result = project.addPhotoToStack(from, from, photo);
 
       expect(result).toBe(project);
-      expect(from.photos.size).toBe(2); // unchanged
+      expect(from.photos).toHaveLength(2); // unchanged
     });
 
     it("calls save after moving", () => {
       const project = new Project(createProjectBody());
       const from = project.unassigned;
-      const matched = Array.from(project.matched);
-      const to = matched[0].left;
+      const to = project.matched[0].left;
       const photo = from.currentPhoto!;
 
       vi.mocked(window.electronAPI.saveProject).mockClear();
 
       project.addPhotoToStack(from, to, photo);
+
+      vi.runAllTimers();
 
       expect(window.electronAPI.saveProject).toHaveBeenCalledWith(expect.any(String));
     });
@@ -324,10 +326,9 @@ describe(Project, () => {
   describe("duplicatePhotoToStack", () => {
     it("creates a new photo from the duplicated file and adds it to the target collection", async () => {
       const project = new Project(createProjectBody());
-      const matched = Array.from(project.matched);
-      const to = matched[0].left;
+      const to = project.matched[0].left;
       const photo = to.currentPhoto!;
-      const sizeBefore = to.photos.size;
+      const sizeBefore = to.photos.length;
 
       vi.mocked(window.electronAPI.duplicatePhotoFile).mockResolvedValue({
         ...photo.toBody(),
@@ -337,7 +338,7 @@ describe(Project, () => {
 
       await project.duplicatePhotoToStack(to, photo);
 
-      expect(to.photos.size).toBe(sizeBefore + 1);
+      expect(to.photos).toHaveLength(sizeBefore + 1);
     });
 
     it("adds the new photo to allPhotos", async () => {
@@ -388,6 +389,8 @@ describe(Project, () => {
       vi.mocked(window.electronAPI.saveProject).mockClear();
 
       await project.duplicatePhotoToStack(to, photo);
+
+      vi.runAllTimers();
 
       expect(window.electronAPI.saveProject).toHaveBeenCalledWith(expect.any(String));
     });
@@ -443,18 +446,34 @@ describe(Project, () => {
   });
 
   describe("save", () => {
-    it("calls window.electronAPI.saveProject with JSON string", () => {
+    it("calls window.electronAPI.saveProject with JSON string after debounce", () => {
       const project = new Project(createProjectBody());
 
       project.save();
 
+      vi.runAllTimers();
+
       expect(window.electronAPI.saveProject).toHaveBeenCalledWith(expect.any(String));
+    });
+
+    it("debounces rapid save calls into a single write", () => {
+      const project = new Project(createProjectBody());
+
+      project.save();
+      project.save();
+      project.save();
+
+      vi.runAllTimers();
+
+      expect(window.electronAPI.saveProject).toHaveBeenCalledTimes(1);
     });
 
     it("produces valid JSON when saving", () => {
       const project = new Project(createProjectBody());
 
       project.save();
+
+      vi.runAllTimers();
 
       const savedData = vi.mocked(window.electronAPI.saveProject).mock.calls[0][0];
       const parsed = JSON.parse(savedData) as ProjectBody;
@@ -468,16 +487,17 @@ describe(Project, () => {
       const project = new Project(createProjectBody());
       const originalLastModified = project.lastModified;
 
-      // Small delay to ensure different timestamp
       project.save();
 
       expect(project.lastModified.getTime()).toBeGreaterThanOrEqual(originalLastModified.getTime());
     });
 
-    it("serialises matched sets correctly", () => {
+    it("serialises matched arrays correctly", () => {
       const project = new Project(createProjectBody());
 
       project.save();
+
+      vi.runAllTimers();
 
       const savedData = vi.mocked(window.electronAPI.saveProject).mock.calls[0][0];
       const parsed = JSON.parse(savedData) as ProjectBody;
@@ -495,6 +515,8 @@ describe(Project, () => {
       const project = new Project(originalData);
 
       project.save();
+
+      vi.runAllTimers();
 
       const savedJSON = vi.mocked(window.electronAPI.saveProject).mock.calls[0][0];
       const restored = JSON.parse(savedJSON) as ProjectBody;
@@ -530,6 +552,8 @@ describe(Project, () => {
 
       const project = new Project(originalData);
       project.save();
+
+      vi.runAllTimers();
 
       const savedJSON = vi.mocked(window.electronAPI.saveProject).mock.calls[0][0];
       const restored = JSON.parse(savedJSON) as ProjectBody;
