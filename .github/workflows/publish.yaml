@@ -89,7 +89,7 @@ jobs:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
       - name: Publish app
-        if: matrix.os == 'macos-latest'
+        if: matrix.os == 'macos-latest' || matrix.os == 'ubuntu-latest'
         run: npm run publish
         env:
           CI: true
