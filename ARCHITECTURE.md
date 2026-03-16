@@ -8,6 +8,7 @@ Technical information, specifications, requirements, and user journeys.
 - Preload bridge: `src/preload.ts` - exposes `window.electronAPI` to renderer (use these methods from frontend).
 - Renderer (UI): `src/index.tsx` and `src/frontend/**` - React + TanStack Router routes are generated into `src/routeTree.gen.ts` (do not edit).
 - Backend helpers (file I/O, thumbnails, project logic): `src/backend/*.ts` called by the main process.
+- Image worker pool: CPU-intensive image operations (thumbnail generation, exports with edits, ML image preparation) run in a pool of worker threads (`src/backend/workerPool.ts`, `src/backend/imageWorker.ts`) so the main process stays responsive.
 
 ## Key files and patterns
 
@@ -46,6 +47,35 @@ Technical information, specifications, requirements, and user journeys.
 - Because browsers/Electron cache images by URL, incrementing `?v=` forces a reload of the thumbnail after the new one is written to disk.
 - When adding logic that updates thumbnails, always call `photo.updatePhoto()` with the new `PhotoBody` data so the version counter increments and the renderer displays the fresh thumbnail.
 
+## Image Worker Pool
+
+CPU-intensive image operations use `@napi-rs/canvas` (a native NAPI addon) which blocks the thread during canvas rendering and encoding. To keep the main Electron process responsive during heavy operations, these are offloaded to a fixed-size pool of `node:worker_threads`.
+
+### Architecture
+
+- **`src/backend/imageWorker.ts`** - Worker thread entry point. Receives task messages (source path, edits, render type), performs canvas operations, and transfers the resulting `ArrayBuffer` back to the main thread (zero-copy via `postMessage` transfer).
+- **`src/backend/workerPool.ts`** - Manages the worker pool. Tasks are queued and dispatched to the first available worker. The pool is lazily initialised on the first task and persists for the app lifetime. Workers that crash are automatically replaced.
+- Pool size is `Math.min(os.cpus().length, IMAGE_WORKER_POOL_SIZE)` - capped at 6 by default (`IMAGE_WORKER_POOL_SIZE` in `src/constants.ts`).
+- The pool is terminated on `will-quit` via `terminateWorkerPool()` in `src/main.ts`.
+
+### Operations offloaded to workers
+
+| Operation                         | Caller                                              | Worker function           |
+| --------------------------------- | --------------------------------------------------- | ------------------------- |
+| Thumbnail generation              | `createPhotoThumbnail` in `src/backend/photos.ts`   | `renderThumbnailInWorker` |
+| Full-resolution export with edits | `exportMatchesAsPhotos` in `src/backend/exports.ts` | `renderFullImageInWorker` |
+| ML API image preparation          | `generateImageBlob` in `src/backend/model.ts`       | `renderApiImageInWorker`  |
+
+### Build configuration
+
+The image worker is a separate Vite build entry (`src/backend/imageWorker.ts` in `forge.config.ts`) with its own config (`vite.worker.config.mts`). It externalises `@napi-rs/canvas` (same as main/preload) and is output alongside the main process bundle. `workerPool.ts` resolves the worker path via `__dirname` so it works in both dev and production.
+
+### Why worker threads (not child processes or `utilityProcess`)
+
+- `child_process.fork()` is blocked by `FuseV1Options.RunAsNode: false` in `forge.config.ts`.
+- `utilityProcess` has higher overhead (~50-100ms startup, ~30-50MB per process) and cannot do zero-copy `ArrayBuffer` transfer.
+- Worker threads are lightweight (~5-10ms startup), share process memory, and `@napi-rs/canvas` is NAPI-based so each worker gets independent, thread-safe canvas instances.
+
 ## Security
 
 - **photo:// protocol**: The custom protocol serves only files whose extension is in `PHOTO_FILE_EXTENSIONS` (allowed image types). Other paths return 403. Files are served from the project directory; the renderer never receives raw filesystem paths for image `src` (use `photo://` URLs only, not `file://`).
@@ -62,7 +92,10 @@ Technical information, specifications, requirements, and user journeys.
 - `src/types.ts` - Central types for consistent data shapes between main and renderer
 - `src/schemas.ts` - Zod schemas for project-file data, some types in `src/types.ts` are derived from these
 - `src/helpers.ts` - Utility helpers for common operations
-- `src/backend/` - Backend data I/O and image processing
+- `src/backend/` - Backend data I/O and image processing:
+  - `imageWorker.ts` - Worker thread entry point for canvas operations (thumbnail, export, ML rendering)
+  - `workerPool.ts` - Fixed-size worker pool with task queue, dispatches image tasks to worker threads
+  - `imageRenderer.ts` - Canvas rendering functions (used by `imageWorker.ts`; not imported directly by callers)
 - `src/frontend/` - React UI components and hooks:
   - `components/` - React components for UI elements
     - `ImageEditor.tsx` - Main photo editing layout and controls
@@ -86,7 +119,7 @@ Technical information, specifications, requirements, and user journeys.
   - **AnalysisContext** - ML analysis state (selected model, analysis in progress, results, errors). Shared between Sidebar (model selection), Stack (Analyse button), and AnalysisOverlay (loading state, results table). Wraps only the project route.
 - `docs/` - User and technical documentation
 - Tests: `*.test.ts` files co-located with source files
-- Configuration: `tsconfig.json`, `vite.*.mts`, `forge.config.ts`, `vitest.config.ts`
+- Configuration: `tsconfig.json`, `vite.main.config.mts`, `vite.preload.config.mts`, `vite.renderer.config.mts`, `vite.worker.config.mts`, `forge.config.ts`, `vitest.config.ts`
 
 ## Specifications
 

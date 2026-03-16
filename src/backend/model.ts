@@ -1,6 +1,6 @@
 import path from "node:path";
 
-import { renderApiImage } from "@/backend/imageRenderer";
+import { renderApiImageInWorker } from "@/backend/workerPool";
 import { ANALYSIS_API_REQUEST_TIMEOUT_MS } from "@/constants";
 import type { MLMatchResponse, PhotoBody } from "@/types";
 
@@ -21,7 +21,7 @@ let currentAbortController: AbortController | null = null;
  */
 const generateImageBlob = async (photo: PhotoBody): Promise<Blob> => {
   const sourcePath = path.join(photo.directory, photo.name);
-  const imageBuffer = await renderApiImage({ sourcePath, edits: photo.edits });
+  const imageBuffer = await renderApiImageInWorker(sourcePath, photo.edits);
   const blob = new Blob([new Uint8Array(imageBuffer)], { type: "image/jpeg" });
 
   return blob;

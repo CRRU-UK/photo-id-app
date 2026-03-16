@@ -4,7 +4,7 @@ import path from "node:path";
 
 import type { CollectionBody, ExportTypes, ProjectBody } from "@/types";
 
-import { renderFullImageWithEdits } from "@/backend/imageRenderer";
+import { renderFullImageInWorker } from "@/backend/workerPool";
 import {
   IPC_EVENTS,
   PROJECT_EXPORT_CSV_FILE_NAME,
@@ -133,10 +133,7 @@ const exportMatchesAsPhotos = async (
         continue;
       }
 
-      const renderedBuffer = await renderFullImageWithEdits({
-        sourcePath,
-        edits: photo.edits,
-      });
+      const renderedBuffer = await renderFullImageInWorker(sourcePath, photo.edits);
 
       const useJPEG =
         originalExtension.toLowerCase() === ".jpg" || originalExtension.toLowerCase() === ".jpeg";

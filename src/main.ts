@@ -20,6 +20,7 @@ import { findPhotoidArg, openProjectFromPath } from "@/backend/ipc/shared";
 import { getMenu } from "@/backend/menu";
 import { getSettings, initSentry, setSentryEnabled } from "@/backend/settings";
 import { windowManager } from "@/backend/WindowManager";
+import { terminateWorkerPool } from "@/backend/workerPool";
 import { CSP_HEADERS, PHOTO_FILE_EXTENSIONS, PHOTO_PROTOCOL_SCHEME } from "@/constants";
 
 initSentry();
@@ -144,6 +145,10 @@ app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
     app.quit();
   }
+});
+
+app.on("will-quit", () => {
+  void terminateWorkerPool();
 });
 
 app.on("activate", async () => {

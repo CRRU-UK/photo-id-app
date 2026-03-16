@@ -60,6 +60,11 @@ export const CSP_HEADERS = [
 
 export const THUMBNAIL_GENERATION_CONCURRENCY = 3;
 
+/**
+ * Maximum number of image worker threads. Capped by `os.cpus().length` at runtime.
+ */
+export const IMAGE_WORKER_POOL_SIZE = 6;
+
 export const SAVE_PROJECT_DEBOUNCE_MS = 1000;
 
 export const EXISTING_DATA_MESSAGE =

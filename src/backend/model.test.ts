@@ -2,12 +2,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { MLMatchResponse, PhotoBody, PhotoEdits } from "@/types";
 
-type RenderApiImageOptions = { sourcePath: string; edits: PhotoEdits };
+const mockRenderApiImageInWorker =
+  vi.fn<(sourcePath: string, edits: PhotoEdits) => Promise<Buffer>>();
 
-const mockRenderApiImage = vi.fn<(options: RenderApiImageOptions) => Promise<Buffer>>();
-
-vi.mock("@/backend/imageRenderer", () => ({
-  renderApiImage: (options: RenderApiImageOptions) => mockRenderApiImage(options),
+vi.mock("@/backend/workerPool", () => ({
+  renderApiImageInWorker: (...args: Parameters<typeof mockRenderApiImageInWorker>) =>
+    mockRenderApiImageInWorker(...args),
 }));
 
 const mockFetch = vi.fn<typeof fetch>();
@@ -38,7 +38,7 @@ const successResponse: MLMatchResponse = {
 describe(analyseStack, () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockRenderApiImage.mockResolvedValue(Buffer.from("image-data"));
+    mockRenderApiImageInWorker.mockResolvedValue(Buffer.from("image-data"));
   });
 
   it("returns ranked matches on a successful response", async () => {
@@ -107,10 +107,10 @@ describe(analyseStack, () => {
 
     await analyseStack({ photos: [editedPhoto], settings: defaultSettings });
 
-    expect(mockRenderApiImage).toHaveBeenCalledWith({
-      sourcePath: "/project/photo.jpg",
-      edits: editedPhoto.edits,
-    });
+    expect(mockRenderApiImageInWorker).toHaveBeenCalledWith(
+      "/project/photo.jpg",
+      editedPhoto.edits,
+    );
   });
 
   it("sends one rendered image per photo in the stack", async () => {
@@ -119,7 +119,7 @@ describe(analyseStack, () => {
     const secondPhoto: PhotoBody = { ...defaultPhoto, name: "photo2.jpg" };
     await analyseStack({ photos: [defaultPhoto, secondPhoto], settings: defaultSettings });
 
-    expect(mockRenderApiImage).toHaveBeenCalledTimes(2);
+    expect(mockRenderApiImageInWorker).toHaveBeenCalledTimes(2);
   });
 
   it("throws the API error detail on a 401 response", async () => {
@@ -189,7 +189,7 @@ describe(analyseStack, () => {
   });
 
   it("throws when renderApiImage fails", async () => {
-    mockRenderApiImage.mockRejectedValue(new Error("Could not load image: file not found"));
+    mockRenderApiImageInWorker.mockRejectedValue(new Error("Could not load image: file not found"));
 
     await expect(
       analyseStack({ photos: [defaultPhoto], settings: defaultSettings }),
@@ -208,7 +208,7 @@ describe(analyseStack, () => {
 
   it("returns null without sending the request when cancelled during image rendering", async () => {
     let renderCount = 0;
-    mockRenderApiImage.mockImplementation(() => {
+    mockRenderApiImageInWorker.mockImplementation(() => {
       renderCount = renderCount + 1;
       if (renderCount === 1) {
         cancelAnalyseStack();
@@ -260,7 +260,7 @@ describe(analyseStack, () => {
 describe(cancelAnalyseStack, () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockRenderApiImage.mockResolvedValue(Buffer.from("image-data"));
+    mockRenderApiImageInWorker.mockResolvedValue(Buffer.from("image-data"));
   });
 
   it("does not throw when there is no in-flight request", () => {

@@ -3,7 +3,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { DEFAULT_PHOTO_EDITS, IPC_EVENTS, PROJECT_FILE_NAME } from "@/constants";
-import type { CollectionBody, PhotoBody, PhotoEdits, ProjectBody } from "@/types";
+import type { CollectionBody, PhotoBody, ProjectBody } from "@/types";
 
 const mockExistsSync = vi.fn<(path: string) => boolean>();
 const mockLstatSync = vi.fn<(path: string) => { isFile: () => boolean }>();
@@ -40,13 +40,10 @@ vi.mock("node:fs", () => ({
   },
 }));
 
-const mockRenderFullImageWithEdits =
-  vi.fn<(options: { sourcePath: string; edits: PhotoEdits }) => Promise<Buffer>>();
-
-vi.mock("@/backend/imageRenderer", () => ({
-  renderFullImageWithEdits: (...args: Parameters<typeof mockRenderFullImageWithEdits>) =>
-    mockRenderFullImageWithEdits(...args),
-  renderThumbnailWithEdits: vi.fn<() => void>(),
+vi.mock("@/backend/workerPool", () => ({
+  renderThumbnailInWorker: vi.fn<() => void>(),
+  renderFullImageInWorker: vi.fn<() => void>(),
+  renderApiImageInWorker: vi.fn<() => void>(),
 }));
 
 vi.mock("@/backend/photos", () => ({

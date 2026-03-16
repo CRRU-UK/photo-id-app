@@ -26,7 +26,6 @@ import {
   PROJECT_FILE_EXTENSION,
   PROJECT_FILE_NAME,
   PROJECT_THUMBNAIL_DIRECTORY,
-  THUMBNAIL_GENERATION_CONCURRENCY,
 } from "@/constants";
 import { projectBodySchema } from "@/schemas";
 
@@ -142,39 +141,40 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
     await fs.promises.mkdir(thumbnailDirectory);
   }
 
-  const thumbnails: string[] = Array.from<string>({ length: photos.length }).fill("");
   let processed = 0;
 
-  // Process thumbnails in batches to parallelise I/O while limiting peak memory usage
-  for (
-    let batchStart = 0;
-    batchStart < photos.length;
-    batchStart += THUMBNAIL_GENERATION_CONCURRENCY
-  ) {
-    const batch = photos.slice(batchStart, batchStart + THUMBNAIL_GENERATION_CONCURRENCY);
+  /**
+   * Dispatch all thumbnails to the worker pool - it handles concurrency internally via a fixed pool
+   * of worker threads, keeping the main thread free for IPC and UI updates.
+   */
+  const thumbnailPromises = photos.map(async (photoName, index) => {
+    const photo: PhotoBody = {
+      directory,
+      name: photoName,
+      thumbnail: "",
+      edits: DEFAULT_PHOTO_EDITS,
+      isEdited: false,
+    };
 
-    await Promise.all(
-      batch.map(async (photoName, batchIndex) => {
-        const photo: PhotoBody = {
-          directory,
-          name: photoName,
-          thumbnail: "",
-          edits: DEFAULT_PHOTO_EDITS,
-          isEdited: false,
-        };
+    const thumbnail = await createPhotoThumbnail(photo);
 
-        thumbnails[batchStart + batchIndex] = await createPhotoThumbnail(photo);
+    processed = processed + 1;
 
-        processed = processed + 1;
+    mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, {
+      show: true,
+      text: "Preparing project",
+      progressValue: (processed / photos.length) * 100,
+      progressText: `Processing photo ${processed} of ${photos.length}`,
+    } as LoadingData);
 
-        mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, {
-          show: true,
-          text: "Preparing project",
-          progressValue: (processed / photos.length) * 100,
-          progressText: `Processing photo ${processed} of ${photos.length}`,
-        } as LoadingData);
-      }),
-    );
+    return { index, thumbnail };
+  });
+
+  const results = await Promise.all(thumbnailPromises);
+
+  const thumbnails: string[] = Array.from<string>({ length: photos.length }).fill("");
+  for (const result of results) {
+    thumbnails[result.index] = result.thumbnail;
   }
 
   const now = new Date().toISOString();

@@ -14,12 +14,12 @@ vi.mock("node:fs", () => ({
   },
 }));
 
-const mockRenderThumbnailWithEdits =
-  vi.fn<(options: { sourcePath: string; edits: PhotoEdits }) => Promise<Buffer>>();
+const mockRenderThumbnailInWorker =
+  vi.fn<(sourcePath: string, edits: PhotoEdits) => Promise<Buffer>>();
 
-vi.mock("@/backend/imageRenderer", () => ({
-  renderThumbnailWithEdits: (...args: Parameters<typeof mockRenderThumbnailWithEdits>) =>
-    mockRenderThumbnailWithEdits(...args),
+vi.mock("@/backend/workerPool", () => ({
+  renderThumbnailInWorker: (...args: Parameters<typeof mockRenderThumbnailInWorker>) =>
+    mockRenderThumbnailInWorker(...args),
 }));
 
 const { createPhotoThumbnail, revertPhotoToOriginal } = await import("./photos");
@@ -36,19 +36,16 @@ const createPhoto = (overrides?: Partial<PhotoBody>): PhotoBody => ({
 describe(createPhotoThumbnail, () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockRenderThumbnailWithEdits.mockResolvedValue(Buffer.from("thumbnail-data"));
+    mockRenderThumbnailInWorker.mockResolvedValue(Buffer.from("thumbnail-data"));
     mockWriteFile.mockResolvedValue(undefined);
   });
 
-  it("calls renderThumbnailWithEdits with the correct source path and edits", async () => {
+  it("calls renderThumbnailInWorker with the correct source path and edits", async () => {
     const photo = createPhoto({ directory: "/my/project", name: "image.jpg" });
 
     await createPhotoThumbnail(photo);
 
-    expect(mockRenderThumbnailWithEdits).toHaveBeenCalledWith({
-      sourcePath: "/my/project/image.jpg",
-      edits: photo.edits,
-    });
+    expect(mockRenderThumbnailInWorker).toHaveBeenCalledWith("/my/project/image.jpg", photo.edits);
   });
 
   it("writes the thumbnail data to the correct path", async () => {
@@ -82,7 +79,7 @@ describe(createPhotoThumbnail, () => {
 describe(revertPhotoToOriginal, () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockRenderThumbnailWithEdits.mockResolvedValue(Buffer.from("reverted-thumbnail"));
+    mockRenderThumbnailInWorker.mockResolvedValue(Buffer.from("reverted-thumbnail"));
     mockWriteFile.mockResolvedValue(undefined);
   });
 
@@ -121,10 +118,9 @@ describe(revertPhotoToOriginal, () => {
 
     await revertPhotoToOriginal(photo);
 
-    expect(mockRenderThumbnailWithEdits).toHaveBeenCalledWith(
-      expect.objectContaining({
-        edits: DEFAULT_PHOTO_EDITS,
-      }),
+    expect(mockRenderThumbnailInWorker).toHaveBeenCalledWith(
+      expect.any(String),
+      DEFAULT_PHOTO_EDITS,
     );
   });
 

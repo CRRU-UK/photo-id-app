@@ -32,12 +32,12 @@ vi.mock("node:fs", () => ({
   },
 }));
 
-const mockRenderFullImageWithEdits =
-  vi.fn<(options: { sourcePath: string; edits: PhotoEdits }) => Promise<Buffer>>();
+const mockRenderFullImageInWorker =
+  vi.fn<(sourcePath: string, edits: PhotoEdits) => Promise<Buffer>>();
 
-vi.mock("@/backend/imageRenderer", () => ({
-  renderFullImageWithEdits: (...args: Parameters<typeof mockRenderFullImageWithEdits>) =>
-    mockRenderFullImageWithEdits(...args),
+vi.mock("@/backend/workerPool", () => ({
+  renderFullImageInWorker: (...args: Parameters<typeof mockRenderFullImageInWorker>) =>
+    mockRenderFullImageInWorker(...args),
 }));
 
 const mockGetCurrentProjectDirectory = vi.fn<() => string | null>();
@@ -90,7 +90,7 @@ describe(handleExportMatches, () => {
     mockUnlink.mockResolvedValue(undefined);
     mockMkdir.mockResolvedValue(undefined);
     mockReaddir.mockResolvedValue([]);
-    mockRenderFullImageWithEdits.mockResolvedValue(Buffer.from("rendered-image"));
+    mockRenderFullImageInWorker.mockResolvedValue(Buffer.from("rendered-image"));
   });
 
   it("creates the exports directory if it does not exist", async () => {
@@ -131,7 +131,7 @@ describe(handleExportMatches, () => {
     await handleExportMatches(mainWindow, JSON.stringify(project), "edited");
 
     expect(mockCopyFile).toHaveBeenCalledWith(expect.any(String), expect.any(String));
-    expect(mockRenderFullImageWithEdits).not.toHaveBeenCalled();
+    expect(mockRenderFullImageInWorker).not.toHaveBeenCalled();
   });
 
   it("renders edited photos with edits before exporting", async () => {
@@ -150,9 +150,9 @@ describe(handleExportMatches, () => {
 
     await handleExportMatches(mainWindow, JSON.stringify(project), "edited");
 
-    expect(mockRenderFullImageWithEdits).toHaveBeenCalledWith(
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      expect.objectContaining({ sourcePath: expect.any(String) }),
+    expect(mockRenderFullImageInWorker).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.any(Object),
     );
     expect(mockWriteFile).toHaveBeenCalledWith(expect.any(String), expect.any(Buffer));
   });
@@ -201,7 +201,7 @@ describe(handleExportMatches, () => {
     await handleExportMatches(mainWindow, JSON.stringify(project), "edited");
 
     expect(mockCopyFile).not.toHaveBeenCalled();
-    expect(mockRenderFullImageWithEdits).not.toHaveBeenCalled();
+    expect(mockRenderFullImageInWorker).not.toHaveBeenCalled();
   });
 
   it("uses collection name as export prefix when name is set", async () => {
@@ -364,7 +364,7 @@ describe(handleExportMatches, () => {
     await handleExportMatches(mainWindow, JSON.stringify(project), "unedited");
 
     expect(mockCopyFile).toHaveBeenCalledTimes(2);
-    expect(mockRenderFullImageWithEdits).not.toHaveBeenCalled();
+    expect(mockRenderFullImageInWorker).not.toHaveBeenCalled();
     expect(mockWriteFile).not.toHaveBeenCalled();
   });
 
@@ -388,7 +388,7 @@ describe(handleExportMatches, () => {
 
     expect(mockUnlink).not.toHaveBeenCalled();
     expect(mockCopyFile).not.toHaveBeenCalled();
-    expect(mockRenderFullImageWithEdits).not.toHaveBeenCalled();
+    expect(mockRenderFullImageInWorker).not.toHaveBeenCalled();
     expect(mockWriteFile).toHaveBeenCalledTimes(1);
     expect(mockWriteFile).toHaveBeenCalledWith(
       `/my/project/${PROJECT_EXPORT_DATA_DIRECTORY}/${PROJECT_EXPORT_CSV_FILE_NAME}`,
