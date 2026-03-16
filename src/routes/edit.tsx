@@ -7,6 +7,7 @@ import type { LoadingData, PhotoBody } from "@/types";
 import { DEFAULT_WINDOW_TITLE, ROUTES } from "@/constants";
 import { buildPhotoUrl, decodeEditPayload } from "@/helpers";
 
+import ErrorBoundary from "@/frontend/components/ErrorBoundary";
 import ImageEditor from "@/frontend/components/ImageEditor";
 import LoadingOverlay from "@/frontend/components/LoadingOverlay";
 
@@ -104,13 +105,15 @@ const EditPage = () => {
     <>
       <LoadingOverlay data={loading} />
       {data && file && (
-        <ImageEditor
-          data={data}
-          image={file}
-          setQueryCallback={setQueryCallback}
-          onImageLoaded={handleImageLoaded}
-          onError={handleImageError}
-        />
+        <ErrorBoundary recovery={{ label: "Reload photo", onClick: () => setError(null) }}>
+          <ImageEditor
+            data={data}
+            image={file}
+            setQueryCallback={setQueryCallback}
+            onImageLoaded={handleImageLoaded}
+            onError={handleImageError}
+          />
+        </ErrorBoundary>
       )}
     </>
   );

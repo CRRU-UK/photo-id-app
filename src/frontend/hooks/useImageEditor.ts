@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { useCanvasRenderer } from "./imageEditor/useCanvasRenderer";
 import { useImageFilters } from "./imageEditor/useImageFilters";
@@ -211,58 +211,29 @@ const useImageEditor = ({ file, loupeEnabled, onError }: UseImageEditorProps) =>
     ],
   );
 
-  return useMemo(
-    () => ({
-      refs: {
-        canvasRef,
-        imageRef,
-        loupeCanvasRef,
-        loupeContainerRef,
-      },
-      state: {
-        imageLoaded,
-        resetKey,
-      },
-      getters: {
-        getFilters,
-        getTransform,
-      },
-      filters: {
-        setBrightness,
-        setContrast,
-        setSaturate,
-        setEdgeDetection,
-      },
-      handlers: {
-        handleZoomIn,
-        handleZoomOut,
-        handlePointerDown,
-        handlePointerUp,
-        handlePointerMove,
-        handleWheel,
-        handleDirectionalPan,
-        handleLoupeMove,
-        handleLoupeLeave,
-      },
-      actions: {
-        draw,
-        resetAll,
-        applyEdits,
-      },
-    }),
-    [
+  // All values below are already stable (useCallback/useRef), so no useMemo wrapper needed
+  return {
+    refs: {
       canvasRef,
       imageRef,
       loupeCanvasRef,
       loupeContainerRef,
+    },
+    state: {
       imageLoaded,
       resetKey,
+    },
+    getters: {
       getFilters,
       getTransform,
+    },
+    filters: {
       setBrightness,
       setContrast,
       setSaturate,
       setEdgeDetection,
+    },
+    handlers: {
       handleZoomIn,
       handleZoomOut,
       handlePointerDown,
@@ -272,11 +243,13 @@ const useImageEditor = ({ file, loupeEnabled, onError }: UseImageEditorProps) =>
       handleDirectionalPan,
       handleLoupeMove,
       handleLoupeLeave,
+    },
+    actions: {
       draw,
       resetAll,
       applyEdits,
-    ],
-  );
+    },
+  };
 };
 
 export default useImageEditor;

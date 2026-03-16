@@ -15,13 +15,13 @@ export const telemetrySchema = z.enum(["enabled", "disabled"]);
 export const mlModelSchema = z.object({
   id: z.uuid(),
   name: z.string().nonempty("Name is required"),
-  endpoint: z.string().nonempty("Endpoint is required"),
+  endpoint: z.url("Must be a valid URL (e.g. http://localhost:8080)"),
 });
 
 export const mlModelDraftSchema = z.object({
   id: z.uuid().optional(),
   name: z.string().nonempty("Name is required"),
-  endpoint: z.string().nonempty("Endpoint is required"),
+  endpoint: z.url("Must be a valid URL (e.g. http://localhost:8080)"),
   token: z.string().optional(),
 });
 

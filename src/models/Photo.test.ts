@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { DEFAULT_PHOTO_EDITS } from "@/constants";
 import type { PhotoBody, PhotoEdits } from "@/types";
@@ -36,6 +36,11 @@ const createPhoto = (overrides?: Partial<{ name: string; edits: PhotoEdits }>): 
 describe(Photo, () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   describe("constructor", () => {
@@ -231,6 +236,8 @@ describe(Photo, () => {
         edits: { ...defaultEdits, pan: { x: 0, y: 0 } },
         isEdited: false,
       });
+
+      vi.runAllTimers();
 
       expect(window.electronAPI.saveProject).toHaveBeenCalledWith(expect.any(String));
     });

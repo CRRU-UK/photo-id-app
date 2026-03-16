@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { DEFAULT_PHOTO_EDITS } from "@/constants";
 
@@ -28,48 +28,50 @@ const createPhoto = (name: string): Photo =>
 describe(Collection, () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   describe("constructor", () => {
     it("initialises with default values", () => {
-      const collection = new Collection({ index: 0, photos: new Set() }, project);
+      const collection = new Collection({ index: 0, photos: [] }, project);
 
       expect(collection.name).toBeUndefined();
       expect(collection.index).toBe(0);
-      expect(collection.photos.size).toBe(0);
+      expect(collection.photos).toHaveLength(0);
     });
 
     it("initialises with provided name", () => {
-      const collection = new Collection(
-        { name: "Test Collection", index: 0, photos: new Set() },
-        project,
-      );
+      const collection = new Collection({ name: "Test Collection", index: 0, photos: [] }, project);
 
       expect(collection.name).toBe("Test Collection");
     });
 
     it("initialises with existing photos", () => {
       const photo = createPhoto("photo.jpg");
-      const collection = new Collection({ index: 0, photos: new Set([photo]) }, project);
+      const collection = new Collection({ index: 0, photos: [photo] }, project);
 
-      expect(collection.photos.size).toBe(1);
+      expect(collection.photos).toHaveLength(1);
     });
   });
 
   describe("addPhoto", () => {
     it("adds a photo to the collection", () => {
-      const collection = new Collection({ index: 0, photos: new Set() }, project);
+      const collection = new Collection({ index: 0, photos: [] }, project);
       const photo = createPhoto("new.jpg");
 
       collection.addPhoto(photo);
 
-      expect(collection.photos.has(photo)).toBe(true);
-      expect(collection.photos.size).toBe(1);
+      expect(collection.photos).toContain(photo);
+      expect(collection.photos).toHaveLength(1);
     });
 
     it("moves index to the newly added photo", () => {
       const existing = createPhoto("existing.jpg");
-      const collection = new Collection({ index: 0, photos: new Set([existing]) }, project);
+      const collection = new Collection({ index: 0, photos: [existing] }, project);
 
       const newPhoto = createPhoto("new.jpg");
       collection.addPhoto(newPhoto);
@@ -78,14 +80,16 @@ describe(Collection, () => {
     });
 
     it("calls project save", () => {
-      const collection = new Collection({ index: 0, photos: new Set() }, project);
+      const collection = new Collection({ index: 0, photos: [] }, project);
       collection.addPhoto(createPhoto("photo.jpg"));
+
+      vi.runAllTimers();
 
       expect(window.electronAPI.saveProject).toHaveBeenCalledWith(expect.any(String));
     });
 
     it("returns the collection for chaining", () => {
-      const collection = new Collection({ index: 0, photos: new Set() }, project);
+      const collection = new Collection({ index: 0, photos: [] }, project);
       const result = collection.addPhoto(createPhoto("photo.jpg"));
 
       expect(result).toBe(collection);
@@ -95,18 +99,18 @@ describe(Collection, () => {
   describe("removePhoto", () => {
     it("removes a photo from the collection", () => {
       const photo = createPhoto("remove.jpg");
-      const collection = new Collection({ index: 0, photos: new Set([photo]) }, project);
+      const collection = new Collection({ index: 0, photos: [photo] }, project);
 
       collection.removePhoto(photo);
 
-      expect(collection.photos.has(photo)).toBe(false);
-      expect(collection.photos.size).toBe(0);
+      expect(collection.photos).not.toContain(photo);
+      expect(collection.photos).toHaveLength(0);
     });
 
     it("decrements index when removing photo at or beyond current index", () => {
       const photo1 = createPhoto("a.jpg");
       const photo2 = createPhoto("b.jpg");
-      const collection = new Collection({ index: 1, photos: new Set([photo1, photo2]) }, project);
+      const collection = new Collection({ index: 1, photos: [photo1, photo2] }, project);
 
       collection.removePhoto(photo2);
 
@@ -117,10 +121,7 @@ describe(Collection, () => {
       const photo1 = createPhoto("a.jpg");
       const photo2 = createPhoto("b.jpg");
       const photo3 = createPhoto("c.jpg");
-      const collection = new Collection(
-        { index: 0, photos: new Set([photo1, photo2, photo3]) },
-        project,
-      );
+      const collection = new Collection({ index: 0, photos: [photo1, photo2, photo3] }, project);
 
       collection.removePhoto(photo3);
 
@@ -129,7 +130,7 @@ describe(Collection, () => {
 
     it("returns the collection for chaining", () => {
       const photo = createPhoto("photo.jpg");
-      const collection = new Collection({ index: 0, photos: new Set([photo]) }, project);
+      const collection = new Collection({ index: 0, photos: [photo] }, project);
       const result = collection.removePhoto(photo);
 
       expect(result).toBe(collection);
@@ -139,14 +140,14 @@ describe(Collection, () => {
   describe("hasPhoto", () => {
     it("returns true when photo exists in collection", () => {
       const photo = createPhoto("photo.jpg");
-      const collection = new Collection({ index: 0, photos: new Set([photo]) }, project);
+      const collection = new Collection({ index: 0, photos: [photo] }, project);
 
       expect(collection.hasPhoto(photo)).toBe(true);
     });
 
     it("returns false when photo does not exist in collection", () => {
       const photo = createPhoto("photo.jpg");
-      const collection = new Collection({ index: 0, photos: new Set() }, project);
+      const collection = new Collection({ index: 0, photos: [] }, project);
 
       expect(collection.hasPhoto(photo)).toBe(false);
     });
@@ -154,7 +155,21 @@ describe(Collection, () => {
 
   describe("currentPhoto", () => {
     it("returns null when collection is empty", () => {
-      const collection = new Collection({ index: 0, photos: new Set() }, project);
+      const collection = new Collection({ index: 0, photos: [] }, project);
+
+      expect(collection.currentPhoto).toBeNull();
+    });
+
+    it("returns null when index is negative", () => {
+      const photo = createPhoto("a.jpg");
+      const collection = new Collection({ index: -1, photos: [photo] }, project);
+
+      expect(collection.currentPhoto).toBeNull();
+    });
+
+    it("returns null when index is out of bounds", () => {
+      const photo = createPhoto("a.jpg");
+      const collection = new Collection({ index: 5, photos: [photo] }, project);
 
       expect(collection.currentPhoto).toBeNull();
     });
@@ -162,14 +177,14 @@ describe(Collection, () => {
     it("returns the photo at the current index", () => {
       const photo1 = createPhoto("a.jpg");
       const photo2 = createPhoto("b.jpg");
-      const collection = new Collection({ index: 1, photos: new Set([photo1, photo2]) }, project);
+      const collection = new Collection({ index: 1, photos: [photo1, photo2] }, project);
 
       expect(collection.currentPhoto).toBe(photo2);
     });
 
     it("returns the first photo when index is 0", () => {
       const photo = createPhoto("only.jpg");
-      const collection = new Collection({ index: 0, photos: new Set([photo]) }, project);
+      const collection = new Collection({ index: 0, photos: [photo] }, project);
 
       expect(collection.currentPhoto).toBe(photo);
     });
@@ -179,7 +194,7 @@ describe(Collection, () => {
     it("moves to the previous photo", () => {
       const photo1 = createPhoto("a.jpg");
       const photo2 = createPhoto("b.jpg");
-      const collection = new Collection({ index: 1, photos: new Set([photo1, photo2]) }, project);
+      const collection = new Collection({ index: 1, photos: [photo1, photo2] }, project);
 
       collection.setPreviousPhoto();
 
@@ -190,10 +205,7 @@ describe(Collection, () => {
       const photo1 = createPhoto("a.jpg");
       const photo2 = createPhoto("b.jpg");
       const photo3 = createPhoto("c.jpg");
-      const collection = new Collection(
-        { index: 0, photos: new Set([photo1, photo2, photo3]) },
-        project,
-      );
+      const collection = new Collection({ index: 0, photos: [photo1, photo2, photo3] }, project);
 
       collection.setPreviousPhoto();
 
@@ -202,16 +214,18 @@ describe(Collection, () => {
 
     it("calls project save", () => {
       const photo = createPhoto("a.jpg");
-      const collection = new Collection({ index: 0, photos: new Set([photo]) }, project);
+      const collection = new Collection({ index: 0, photos: [photo] }, project);
 
       collection.setPreviousPhoto();
+
+      vi.runAllTimers();
 
       expect(window.electronAPI.saveProject).toHaveBeenCalledWith(expect.any(String));
     });
 
     it("returns the collection for chaining", () => {
       const photo = createPhoto("a.jpg");
-      const collection = new Collection({ index: 0, photos: new Set([photo]) }, project);
+      const collection = new Collection({ index: 0, photos: [photo] }, project);
       const result = collection.setPreviousPhoto();
 
       expect(result).toBe(collection);
@@ -222,7 +236,7 @@ describe(Collection, () => {
     it("moves to the next photo", () => {
       const photo1 = createPhoto("a.jpg");
       const photo2 = createPhoto("b.jpg");
-      const collection = new Collection({ index: 0, photos: new Set([photo1, photo2]) }, project);
+      const collection = new Collection({ index: 0, photos: [photo1, photo2] }, project);
 
       collection.setNextPhoto();
 
@@ -232,7 +246,7 @@ describe(Collection, () => {
     it("wraps around to the first photo from the last", () => {
       const photo1 = createPhoto("a.jpg");
       const photo2 = createPhoto("b.jpg");
-      const collection = new Collection({ index: 1, photos: new Set([photo1, photo2]) }, project);
+      const collection = new Collection({ index: 1, photos: [photo1, photo2] }, project);
 
       collection.setNextPhoto();
 
@@ -241,16 +255,18 @@ describe(Collection, () => {
 
     it("calls project save", () => {
       const photo = createPhoto("a.jpg");
-      const collection = new Collection({ index: 0, photos: new Set([photo]) }, project);
+      const collection = new Collection({ index: 0, photos: [photo] }, project);
 
       collection.setNextPhoto();
+
+      vi.runAllTimers();
 
       expect(window.electronAPI.saveProject).toHaveBeenCalledWith(expect.any(String));
     });
 
     it("returns the collection for chaining", () => {
       const photo = createPhoto("a.jpg");
-      const collection = new Collection({ index: 0, photos: new Set([photo]) }, project);
+      const collection = new Collection({ index: 0, photos: [photo] }, project);
       const result = collection.setNextPhoto();
 
       expect(result).toBe(collection);
@@ -259,7 +275,7 @@ describe(Collection, () => {
 
   describe("setName", () => {
     it("sets the name of the collection", () => {
-      const collection = new Collection({ index: 0, photos: new Set() }, project);
+      const collection = new Collection({ index: 0, photos: [] }, project);
 
       collection.setName("New Name");
 
@@ -267,15 +283,17 @@ describe(Collection, () => {
     });
 
     it("calls project save", () => {
-      const collection = new Collection({ index: 0, photos: new Set() }, project);
+      const collection = new Collection({ index: 0, photos: [] }, project);
 
       collection.setName("Test");
+
+      vi.runAllTimers();
 
       expect(window.electronAPI.saveProject).toHaveBeenCalledWith(expect.any(String));
     });
 
     it("returns the collection for chaining", () => {
-      const collection = new Collection({ index: 0, photos: new Set() }, project);
+      const collection = new Collection({ index: 0, photos: [] }, project);
       const result = collection.setName("Test");
 
       expect(result).toBe(collection);

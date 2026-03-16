@@ -1,6 +1,6 @@
 import type Collection from "@/models/Collection";
 import type Photo from "@/models/Photo";
-import type { DraggableEndData, DraggableStartData, LoadingData } from "@/types";
+import type { DraggableEndData, DraggableStartData, LoadingData, Match } from "@/types";
 
 import {
   DndContext,
@@ -17,13 +17,14 @@ import { SegmentedControl, Stack, UnderlineNav } from "@primer/react";
 import { KeybindingHint } from "@primer/react/experimental";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { observer } from "mobx-react-lite";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { MATCHED_STACKS_PER_PAGE, ROUTES } from "@/constants";
 import { AnalysisProvider } from "@/contexts/AnalysisContext";
 import { useProject } from "@/contexts/ProjectContext";
 
 import AnalysisOverlay from "@/frontend/components/AnalysisOverlay";
+import ErrorBoundary from "@/frontend/components/ErrorBoundary";
 import LoadingOverlay from "@/frontend/components/LoadingOverlay";
 import Selections from "@/frontend/components/Selections";
 import SettingsOverlay from "@/frontend/components/SettingsOverlay";
@@ -31,20 +32,54 @@ import Sidebar from "@/frontend/components/Sidebar";
 
 import { chunkArray, getAlphabetLetter } from "@/helpers";
 
-const DraggableImage = ({ photo }: { photo: Photo }) => (
-  <img
-    src={photo.thumbnailFullPath}
-    style={{
-      opacity: 0.7,
-      display: "block",
-      width: "100%",
-      height: "100%",
-      aspectRatio: "4/3",
-      objectFit: "cover",
-    }}
-    alt=""
-  />
-);
+// Defined outside ProjectPage to prevent unnecessary unmount/remount on parent re-render
+const DraggableImageComponent = ({ photo }: { photo: Photo }) => {
+  return (
+    <img
+      src={photo.thumbnailFullPath}
+      style={{
+        opacity: 0.7,
+        display: "block",
+        width: "100%",
+        height: "100%",
+        aspectRatio: "4/3",
+        objectFit: "cover",
+      }}
+      alt=""
+    />
+  );
+};
+
+const DraggableImage = memo(DraggableImageComponent);
+
+interface MatchedPagesProps {
+  matchedArray: Match[];
+  currentPage: number;
+  onPageChange: (index: number) => void;
+}
+
+// Extracted to its own memo component so switching pages doesn't recreate all tab elements
+function MatchedPagesComponent({ matchedArray, currentPage, onPageChange }: MatchedPagesProps) {
+  return chunkArray(matchedArray, MATCHED_STACKS_PER_PAGE).map((item, index) => {
+    const first = item.at(0)!.id;
+    const last = item.at(-1)!.id;
+
+    return (
+      <UnderlineNav.Item
+        aria-current={index === currentPage ? "page" : undefined}
+        onClick={(event) => {
+          event.preventDefault();
+          onPageChange(index);
+        }}
+        key={`${first}-${last}`}
+        leadingVisual={<KeybindingHint keys={String(index + 1)} />}
+      >
+        {getAlphabetLetter(first)}-{getAlphabetLetter(last)}
+      </UnderlineNav.Item>
+    );
+  });
+}
+const MatchedPages = memo(MatchedPagesComponent);
 
 const ProjectPage = observer(() => {
   const [draggingPhoto, setDraggingPhoto] = useState<Photo | null>(null);
@@ -54,6 +89,8 @@ const ProjectPage = observer(() => {
   const [settingsOpen, setSettingsOpen] = useState<boolean>(false);
   const [isCopying, setIsCopying] = useState<boolean>(false);
   const [columns, setColumns] = useState<number>(2);
+  // Guards against concurrent drag-end executions (e.g. keyboard + pointer firing simultaneously)
+  const isDraggingRef = useRef<boolean>(false);
 
   const navigate = useNavigate();
   const { project } = useProject();
@@ -68,19 +105,12 @@ const ProjectPage = observer(() => {
     if (draggingPhoto && isCopying) {
       return document.body.classList.add("copying");
     }
+
     return document.body.classList.remove("copying");
   }, [draggingPhoto, isCopying]);
 
-  const matchedSize = project === null ? 0 : project.matched.size;
-  const matchedArray = useMemo(
-    () => (project === null ? [] : Array.from(project.matched)),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [project, matchedSize],
-  );
-  const matchedPageCount = useMemo(
-    () => (project === null ? 0 : Math.ceil(matchedArray.length / MATCHED_STACKS_PER_PAGE)),
-    [project, matchedArray.length],
-  );
+  const matchedArray = useMemo<Match[]>(() => (project === null ? [] : project.matched), [project]);
+  const matchedPageCount = Math.ceil(matchedArray.length / MATCHED_STACKS_PER_PAGE);
 
   const handleKeyUp = useCallback(() => setIsCopying(false), []);
 
@@ -136,6 +166,7 @@ const ProjectPage = observer(() => {
     return () => {
       unsubscribeUpdatePhoto();
       unsubscribeLoading();
+
       document.removeEventListener("keyup", handleKeyUp);
       document.removeEventListener("keydown", handleKeyDown);
     };
@@ -153,61 +184,46 @@ const ProjectPage = observer(() => {
     [matchedArray, currentPage],
   );
 
-  const matchedPages = useMemo(
-    () =>
-      chunkArray(matchedArray, MATCHED_STACKS_PER_PAGE).map((item, index) => {
-        const first = item.at(0)!.id;
-        const last = item.at(-1)!.id;
-
-        return (
-          <UnderlineNav.Item
-            aria-current={index === currentPage ? "page" : undefined}
-            onClick={(event) => {
-              event.preventDefault();
-              return setCurrentPage(index);
-            }}
-            key={`${first}-${last}`}
-            leadingVisual={<KeybindingHint keys={String(index + 1)} />}
-          >
-            {getAlphabetLetter(first)}-{getAlphabetLetter(last)}
-          </UnderlineNav.Item>
-        );
-      }),
-    [matchedArray, currentPage],
-  );
-
   if (project === null) {
     return null;
   }
 
   const handleDragStart = (event: DragStartEvent) => {
     const { collection, currentPhoto } = event.active.data.current as unknown as DraggableStartData;
+
+    isDraggingRef.current = true;
+
     setDraggingCollectionFrom(collection);
     setDraggingPhoto(currentPhoto);
   };
 
   const handleDragEnd = async (event: DragEndEvent) => {
+    // Prevent concurrent execution if drag-end fires multiple times simultaneously
+    if (!isDraggingRef.current) {
+      return;
+    }
+
+    isDraggingRef.current = false;
+
     const target = event.over ?? null;
 
-    if (target) {
+    if (target && draggingPhoto !== null && draggingCollectionFrom !== null) {
       const draggingCollectionTo = (target.data.current as DraggableEndData).collection;
 
       if (isCopying) {
         setLoading({ show: true, text: "Duplicating photo" });
+
         try {
-          await project.duplicatePhotoToStack(draggingCollectionTo, draggingPhoto as Photo);
+          await project.duplicatePhotoToStack(draggingCollectionTo, draggingPhoto);
         } finally {
           setLoading({ show: false });
         }
 
+        setDraggingPhoto(null);
         return;
       }
 
-      project.addPhotoToStack(
-        draggingCollectionFrom as Collection,
-        draggingCollectionTo,
-        draggingPhoto as Photo,
-      );
+      project.addPhotoToStack(draggingCollectionFrom, draggingCollectionTo, draggingPhoto);
     }
 
     setDraggingPhoto(null);
@@ -225,7 +241,9 @@ const ProjectPage = observer(() => {
         onOpenRequest={() => setSettingsOpen(true)}
       />
 
-      <AnalysisOverlay />
+      <ErrorBoundary recovery={{ label: "Dismiss", onClick: () => {} }}>
+        <AnalysisOverlay />
+      </ErrorBoundary>
 
       <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
         <DragOverlay dropAnimation={null}>
@@ -236,7 +254,13 @@ const ProjectPage = observer(() => {
           <Sidebar />
 
           <Stack className="pages" direction="horizontal" align="center" gap="none">
-            <UnderlineNav aria-label="Pages">{matchedPages}</UnderlineNav>
+            <UnderlineNav aria-label="Pages">
+              <MatchedPages
+                matchedArray={matchedArray}
+                currentPage={currentPage}
+                onPageChange={setCurrentPage}
+              />
+            </UnderlineNav>
 
             <Stack className="columns" direction="horizontal" align="center" gap="normal">
               <ColumnsIcon size={16} />
