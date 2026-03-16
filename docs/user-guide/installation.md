@@ -35,8 +35,8 @@ Then, depending on your platform, download the appropriate file from the release
 
 1. Download the `Photo.ID-{version}.deb` file (Debian/Ubuntu) or the `Photo.ID-{version}.rpm` file (Fedora/RHEL)
 2. Install using your package manager:
-     - **Debian/Ubuntu**: `sudo dpkg -i Photo.ID-{version}.deb`
-     - **Fedora/RHEL**: `sudo rpm -i Photo.ID-{version}.rpm`
+    - **Debian/Ubuntu**: `sudo dpkg -i Photo.ID-{version}.deb`
+    - **Fedora/RHEL**: `sudo rpm -i Photo.ID-{version}.rpm`
 3. Launch the app from your application menu or by running `photo-id` in the terminal
 
 !!! note
