@@ -160,6 +160,20 @@ describe(Collection, () => {
       expect(collection.currentPhoto).toBeNull();
     });
 
+    it("returns null when index is negative", () => {
+      const photo = createPhoto("a.jpg");
+      const collection = new Collection({ index: -1, photos: [photo] }, project);
+
+      expect(collection.currentPhoto).toBeNull();
+    });
+
+    it("returns null when index is out of bounds", () => {
+      const photo = createPhoto("a.jpg");
+      const collection = new Collection({ index: 5, photos: [photo] }, project);
+
+      expect(collection.currentPhoto).toBeNull();
+    });
+
     it("returns the photo at the current index", () => {
       const photo1 = createPhoto("a.jpg");
       const photo2 = createPhoto("b.jpg");

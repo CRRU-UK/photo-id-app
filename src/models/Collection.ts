@@ -61,7 +61,7 @@ class Collection {
   }
 
   get currentPhoto(): Photo | null {
-    if (this.photos.length === 0) {
+    if (this.photos.length === 0 || this.index < 0 || this.index >= this.photos.length) {
       return null;
     }
 
