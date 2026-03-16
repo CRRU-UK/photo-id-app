@@ -3,7 +3,13 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 
-import type { EditorNavigation, LoadingData, PhotoBody, ProjectBody } from "@/types";
+import type {
+  CollectionBody,
+  EditorNavigation,
+  LoadingData,
+  PhotoBody,
+  ProjectBody,
+} from "@/types";
 
 import { createPhotoThumbnail } from "@/backend/photos";
 import { addRecentProject } from "@/backend/recents";
@@ -173,7 +179,6 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
 
   const now = new Date().toISOString();
 
-  // INITIAL_MATCHED_STACKS is 52 (26 alphabet letters × 2) to pre-fill the match grid
   const defaultMatches = [];
   for (let i = 0; i < INITIAL_MATCHED_STACKS; i += 1) {
     defaultMatches.push({
@@ -253,6 +258,7 @@ const handleOpenProjectFile = async (mainWindow: Electron.BrowserWindow, file: s
   if (path.extname(file).toLowerCase() !== `.${PROJECT_FILE_EXTENSION}`) {
     console.error("Refused to open non-.photoid file path:", file);
     dialog.showErrorBox("Invalid file", "Only .photoid project files can be opened.");
+
     return;
   }
 
@@ -261,6 +267,7 @@ const handleOpenProjectFile = async (mainWindow: Electron.BrowserWindow, file: s
   if (!fs.existsSync(file)) {
     dialog.showErrorBox(MISSING_RECENT_PROJECT_MESSAGE, file);
     mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, { show: false } as LoadingData);
+
     return;
   }
 
@@ -330,10 +337,7 @@ const handleDuplicatePhotoFile = async (data: PhotoBody): Promise<PhotoBody> => 
 /**
  * Finds a photo in a project and returns its collection (if any).
  */
-const findPhotoInProject = (
-  project: ProjectBody,
-  photo: PhotoBody,
-): import("@/types").CollectionBody | null => {
+const findPhotoInProject = (project: ProjectBody, photo: PhotoBody): CollectionBody | null => {
   const { name } = photo;
 
   const inUnassigned = project.unassigned.photos.some(

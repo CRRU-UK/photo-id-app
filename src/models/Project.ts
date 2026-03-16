@@ -1,3 +1,8 @@
+import { makeObservable, observable, runInAction } from "mobx";
+
+import { SAVE_PROJECT_DEBOUNCE_MS } from "@/constants";
+import Collection from "@/models/Collection";
+import Photo from "@/models/Photo";
 import type {
   CollectionBody,
   Directory,
@@ -6,11 +11,6 @@ import type {
   PhotoBody,
   ProjectBody,
 } from "@/types";
-
-import { makeObservable, observable, runInAction } from "mobx";
-
-import Collection from "./Collection";
-import Photo from "./Photo";
 
 class Project {
   version: ProjectBody["version"];
@@ -24,7 +24,7 @@ class Project {
   lastModified: Date;
 
   private saveDebounceTimer: ReturnType<typeof setTimeout> | null = null;
-  private static readonly SAVE_DEBOUNCE_MS = 500;
+  private static readonly SAVE_DEBOUNCE_MS = SAVE_PROJECT_DEBOUNCE_MS;
 
   constructor(data?: ProjectBody) {
     makeObservable(this, {

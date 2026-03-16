@@ -24,6 +24,7 @@ const getMatchExportLabel = (matchId: number, sideName: string): string => {
   if (sideName && sideName !== "") {
     return sideName.padStart(3, "0");
   }
+
   return getAlphabetLetter(matchId);
 };
 
@@ -43,6 +44,7 @@ const exportMatchesAsCSV = async (
   for (const match of project.matched) {
     const addSide = (side: CollectionBody) => {
       const photoName = getMatchExportLabel(match.id, side.name ?? "");
+
       for (const photo of side.photos) {
         records.push([photoName, photo.name]);
       }
@@ -82,7 +84,10 @@ const exportMatchesAsPhotos = async (
   const exportsDirectory = path.join(directory, PROJECT_EXPORT_DIRECTORY);
 
   if (fs.existsSync(exportsDirectory)) {
-    // Empty exports folder; per-file try/catch so one locked or permission-denied file does not abort export
+    /**
+     * Empty exports folder with per-file try/catch so one locked or permission-denied file does not
+     * abort export.
+     */
     for (const file of await fs.promises.readdir(exportsDirectory)) {
       const filePath = path.join(exportsDirectory, file);
 

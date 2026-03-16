@@ -105,6 +105,7 @@ const ProjectPage = observer(() => {
     if (draggingPhoto && isCopying) {
       return document.body.classList.add("copying");
     }
+
     return document.body.classList.remove("copying");
   }, [draggingPhoto, isCopying]);
 
@@ -165,6 +166,7 @@ const ProjectPage = observer(() => {
     return () => {
       unsubscribeUpdatePhoto();
       unsubscribeLoading();
+
       document.removeEventListener("keyup", handleKeyUp);
       document.removeEventListener("keydown", handleKeyDown);
     };
@@ -188,7 +190,9 @@ const ProjectPage = observer(() => {
 
   const handleDragStart = (event: DragStartEvent) => {
     const { collection, currentPhoto } = event.active.data.current as unknown as DraggableStartData;
+
     isDraggingRef.current = true;
+
     setDraggingCollectionFrom(collection);
     setDraggingPhoto(currentPhoto);
   };
@@ -198,6 +202,7 @@ const ProjectPage = observer(() => {
     if (!isDraggingRef.current) {
       return;
     }
+
     isDraggingRef.current = false;
 
     const target = event.over ?? null;
@@ -207,6 +212,7 @@ const ProjectPage = observer(() => {
 
       if (isCopying) {
         setLoading({ show: true, text: "Duplicating photo" });
+
         try {
           await project.duplicatePhotoToStack(draggingCollectionTo, draggingPhoto);
         } finally {

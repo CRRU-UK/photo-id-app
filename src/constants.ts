@@ -60,6 +60,8 @@ export const CSP_HEADERS = [
 
 export const THUMBNAIL_GENERATION_CONCURRENCY = 3;
 
+export const SAVE_PROJECT_DEBOUNCE_MS = 1000;
+
 export const EXISTING_DATA_MESSAGE =
   "A data file already exists for this folder - choose whether to resume the existing data, replace/reset the existing data, or cancel.";
 
