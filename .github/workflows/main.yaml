@@ -68,5 +68,8 @@ jobs:
       - name: Test formatting
         run: terraform fmt -list=true -check -recursive -diff
 
+      - name: Terraform init
+        run: terraform init
+
       - name: Test validation
         run: terraform validate
