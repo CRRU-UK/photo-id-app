@@ -13,6 +13,8 @@
 - [Introduction](#introduction)
 - [Development](#development)
   - [Debugging](#debugging)
+- [Releases](#releases)
+  - [Code Signing](#code-signing)
 
 ## Introduction
 
@@ -53,3 +55,47 @@ Below are the NPM commands that can be used for development:
 ### Debugging
 
 Using VSCode, a debugger can be attached to the main process in Electron by running "Debug main process" in the _Run and Debug_ view.
+
+## Releases
+
+Releases are managed with [changesets](https://github.com/changesets/changesets) and published automatically via GitHub Actions.
+
+1. **Add a changeset** - run `npm run changesets:add` on a feature branch and commit the generated `.changeset/*.md` file alongside the PR
+2. **Release PR** - each push to `main` triggers the `version` action in `release.yaml`, which creates or updates the Release PR that accumulates pending changesets (which determine the next semantic version and changelog)
+3. **Publishing** - merging the Release PR into `main` triggers the the `publish` action in `release.yaml`, which creates a new git tag (`v*`) and triggers `publish.yaml`, which builds and _appends_ to the new GitHub Release across all three platforms (Windows, macOS, Linux) in parallel
+
+Note that the `prerelease.yaml` workflow can be triggered manually via GitHub Actions to build a single-platform production-like artifact (1-day retention) without publishing, useful for smoke-testing before a release.
+
+### Code Signing
+
+#### Windows
+
+Signed via [Azure Artifact Signing](https://azure.microsoft.com/en-us/products/artifact-signing). Signing is invoked in the Windows variation of `publish.yaml` via `azure/artifact-signing-action` and configured in `forge.config.ts` via environment variables.
+
+Required Azure resources (provisioned via Terraform):
+
+- `azurerm_code_signing_account`
+- Certificate profile (Public Trust)
+- Service principal with `Artifact Signing Certificate Profile Signer` role, using OIDC federated identity (no client secret required)
+
+Required GitHub Actions secrets:
+
+| Secret | Description |
+| --- | --- |
+| `AZURE_CLIENT_ID` | Service principal client ID |
+| `AZURE_TENANT_ID` | Azure tenant ID |
+| `AZURE_SUBSCRIPTION_ID` | Azure subscription ID |
+| `AZURE_CODE_SIGNING_ACCOUNT_NAME` | Artifact Signing account name |
+| `AZURE_CODE_SIGNING_CERTIFICATE_PROFILE_NAME` | Certificate profile name |
+| `AZURE_CODE_SIGNING_ENDPOINT` | Regional endpoint URL |
+
+#### macOS
+
+Certificates are managed in the Apple Developer Program. Signing and notarisation is configured with the `osxSign` and `osxNotarize` options in `forge.config.ts`.
+
+| Secret | Description |
+| --- | --- |
+| `APPLE_ID` | TBA |
+| `APPLE_TEAM_ID` | TBA |
+| `APPLE_APP_SPECIFIC_PASSWORD` | TBA |
+| `APPLE_CERTIFICATE` | TBA |
