@@ -68,27 +68,6 @@ Note that the `prerelease.yaml` workflow can be triggered manually via GitHub Ac
 
 ### Code Signing
 
-#### Windows
-
-Signed via [Azure Artifact Signing](https://azure.microsoft.com/en-us/products/artifact-signing). Signing is invoked in the Windows variation of `publish.yaml` via `azure/artifact-signing-action` and configured in `forge.config.ts` via environment variables.
-
-Required Azure resources (provisioned via Terraform):
-
-- `azurerm_code_signing_account`
-- Certificate profile (Public Trust)
-- Service principal with `Artifact Signing Certificate Profile Signer` role, using OIDC federated identity (no client secret required)
-
-Required GitHub Actions secrets:
-
-| Secret | Description |
-| --- | --- |
-| `AZURE_CLIENT_ID` | Service principal client ID |
-| `AZURE_TENANT_ID` | Azure tenant ID |
-| `AZURE_SUBSCRIPTION_ID` | Azure subscription ID |
-| `AZURE_CODE_SIGNING_ACCOUNT_NAME` | Artifact Signing account name |
-| `AZURE_CODE_SIGNING_CERTIFICATE_PROFILE_NAME` | Certificate profile name |
-| `AZURE_CODE_SIGNING_ENDPOINT` | Regional endpoint URL |
-
 #### macOS
 
 Certificates are managed in the Apple Developer Program. Signing and notarisation is configured with the `osxSign` and `osxNotarize` options in `forge.config.ts`.
@@ -99,3 +78,21 @@ Certificates are managed in the Apple Developer Program. Signing and notarisatio
 | `APPLE_TEAM_ID` | TBA |
 | `APPLE_APP_SPECIFIC_PASSWORD` | TBA |
 | `APPLE_CERTIFICATE` | TBA |
+
+#### Windows
+
+> [!NOTE]
+> This is currently being worked on.
+
+Signed via [Azure Artifact Signing](https://azure.microsoft.com/en-us/products/artifact-signing). Signing is invoked in the Windows variation of `publish.yaml` via `azure/artifact-signing-action` and configured in `forge.config.ts` via environment variables.
+
+Certificates are provisioned and managed by Terraform (`terraform/`)[terraform/].
+
+| Secret | Description |
+| --- | --- |
+| `AZURE_CLIENT_ID` | Service principal client ID. |
+| `AZURE_TENANT_ID` | Azure tenant ID. |
+| `AZURE_SUBSCRIPTION_ID` | Azure subscription ID. |
+| `AZURE_CODE_SIGNING_ACCOUNT_NAME` | Artifact Signing account name. |
+| `AZURE_CODE_SIGNING_CERTIFICATE_PROFILE_NAME` | Certificate profile name. |
+| `AZURE_CODE_SIGNING_ENDPOINT` | Regional endpoint URL. |
