@@ -103,3 +103,13 @@ site/
 
 # Agents
 CLAUDE.local.md
+
+# Terraform
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+*tfplan*
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json

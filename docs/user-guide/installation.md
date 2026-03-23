@@ -27,10 +27,6 @@ Then, depending on your platform, download the appropriate file from the release
 2. Extract the archive
 3. Move the `Photo ID.app` file into your Applications folder and open it
 
-!!! warning
-
-    The app is currently not signed and will throw an error on opening - this will be fixed soon.
-
 ### Linux
 
 1. Download the `Photo.ID-{version}.deb` file (Debian/Ubuntu) or the `Photo.ID-{version}.rpm` file (Fedora/RHEL)
