@@ -91,9 +91,9 @@ describe("settings IPC handlers", () => {
     it("throws when settings fail validation", async () => {
       const invalidSettings = { invalid: true } as unknown as SettingsData;
 
-      await expect(
-        handleUpdateSettings({} as IpcMainInvokeEvent, invalidSettings),
-      ).rejects.toThrow(/invalid/i);
+      await expect(handleUpdateSettings({} as IpcMainInvokeEvent, invalidSettings)).rejects.toThrow(
+        /invalid/i,
+      );
     });
   });
 
