@@ -35,11 +35,24 @@ jobs:
 
       # macOS: import signing certificate into keychain before build
       - name: Import macOS signing certificate
+        id: import-cert
         if: matrix.os == 'macos-latest'
         uses: apple-actions/import-codesign-certs@v6
         with:
           p12-file-base64: ${{ secrets.APPLE_CERTIFICATE }}
           p12-password: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+
+      # macOS 15 requires codesign: to be explicitly included in the key partition list,
+      # otherwise codesign blocks waiting for a GUI confirmation that never appears in CI
+      - name: Allow codesign keychain access
+        if: matrix.os == 'macos-latest'
+        run: >
+          security set-key-partition-list
+          -S apple-tool:,apple:,codesign:
+          -s -k "$KEYCHAIN_PASSWORD"
+          ~/Library/Keychains/signing_temp.keychain-db
+        env:
+          KEYCHAIN_PASSWORD: ${{ steps.import-cert.outputs.keychain-password }}
 
       # Windows: publish without signing
       - name: Publish app (Windows)
