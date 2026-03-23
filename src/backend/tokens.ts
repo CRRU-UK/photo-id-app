@@ -43,7 +43,7 @@ const writeTokenStore = async (store: TokenStore): Promise<void> => {
 };
 
 /**
- * Returns whether safeStorage encryption is currently available on this machine.
+ * Returns whether safeStorage encryption is currently available on the system.
  *
  * Unsigned dev builds prompt for keychain access on every launch on macOS. Skip safeStorage in dev
  * in dev mode and fall back to plaintext storage.

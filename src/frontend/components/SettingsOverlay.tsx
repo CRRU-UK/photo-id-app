@@ -220,7 +220,7 @@ const SettingsOverlay = ({ open, onClose, onOpenRequest, returnFocusRef }: Setti
                 {contextSettings.isTokenEncryptionAvailable === false && (
                   <Banner
                     title="Warning"
-                    description="Secure storage is not available on this machine."
+                    description="Secure storage is not available on this system."
                     leadingVisual={<AlertIcon size="small" />}
                     primaryAction={
                       <Banner.PrimaryAction
