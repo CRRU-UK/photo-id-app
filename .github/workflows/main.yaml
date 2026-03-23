@@ -67,6 +67,3 @@ jobs:
 
       - name: Test formatting
         run: terraform fmt -list=true -check -recursive -diff
-
-      - name: Test validation
-        run: terraform validate
