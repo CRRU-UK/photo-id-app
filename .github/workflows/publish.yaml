@@ -69,6 +69,12 @@ jobs:
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
 
+      # Windows Defender scans files mid-rename during the Vite build, causing EPERM errors
+      - name: Disable Windows Defender real-time monitoring
+        if: matrix.os == 'windows-latest'
+        run: Set-MpPreference -DisableRealtimeMonitoring $true
+        shell: pwsh
+
       # Windows: publish without signing
       - name: Publish app (Windows)
         if: matrix.os == 'windows-latest'
@@ -95,7 +101,6 @@ jobs:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
           APPLE_KEYCHAIN_PROFILE: notarytool-profile
-          APPLE_KEYCHAIN_PATH: ${{ env.HOME }}/Library/Keychains/signing_temp.keychain-db
           DEBUG: electron-osx-sign,electron-notarize
 
   finalize:
