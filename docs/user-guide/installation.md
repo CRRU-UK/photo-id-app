@@ -23,9 +23,10 @@ Then, depending on your platform, download the appropriate file from the release
 
 ### macOS
 
-1. Download the `Photo.ID-darwin-arm64-{version}.zip` file
-2. Extract the archive
-3. Move the `Photo ID.app` file into your Applications folder and open it
+1. Download the `Photo ID.dmg` file
+2. Open the DMG file
+3. In the window that opens, move the `Photo ID.app` file into your Applications folder
+4. Open the Photo ID App from your Applications folder
 
 ### Linux
 

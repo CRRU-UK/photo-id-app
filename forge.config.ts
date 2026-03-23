@@ -1,7 +1,7 @@
 import { MakerDeb } from "@electron-forge/maker-deb";
+import { MakerDMG, type MakerDMGConfig } from "@electron-forge/maker-dmg";
 import { MakerRpm } from "@electron-forge/maker-rpm";
 import { MakerSquirrel } from "@electron-forge/maker-squirrel";
-import { MakerZIP } from "@electron-forge/maker-zip";
 import { FusesPlugin } from "@electron-forge/plugin-fuses";
 import { VitePlugin } from "@electron-forge/plugin-vite";
 import type { ForgeConfig } from "@electron-forge/shared-types";
@@ -26,12 +26,34 @@ if (process.env.APPLE_CERTIFICATE) {
   };
 }
 
+const dmgOptions: MakerDMGConfig = {
+  name: "Photo ID",
+  format: "ULFO",
+  icon: "resources/icon.icns",
+  background: "resources/dmg-background.png",
+  iconSize: 100,
+  contents: (options) => [
+    {
+      x: 140,
+      y: 125,
+      type: "file",
+      path: options.appPath,
+    },
+    {
+      x: 520,
+      y: 125,
+      type: "link",
+      path: "/Applications",
+    },
+  ],
+};
+
 const config: ForgeConfig = {
   packagerConfig: {
     asar: {
       unpack: "**/@napi-rs/canvas*/**",
     },
-    icon: path.join(__dirname, "src", "assets", "icon"),
+    icon: path.join(__dirname, "resources", "icon"),
     executableName: "photo-id",
     extraResource: process.env.CI === "true" ? [path.resolve(__dirname, "./.env")] : [],
     extendInfo: {
@@ -48,7 +70,7 @@ const config: ForgeConfig = {
   rebuildConfig: {},
   makers: [
     new MakerSquirrel({}),
-    new MakerZIP({}, ["darwin"]),
+    new MakerDMG(dmgOptions),
     new MakerRpm({ options: { mimeType: ["application/x-photoid"] } }),
     new MakerDeb({ options: { mimeType: ["application/x-photoid"] } }),
   ],
