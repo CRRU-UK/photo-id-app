@@ -68,13 +68,11 @@ Note that the `prerelease.yaml` workflow can be triggered manually via GitHub Ac
 
 ### Code Signing
 
-Secrets and variables used for code singing are managed via Terraform ([`terraform/`](terraform/)) and populated into GitHub Actions automatically on `terraform apply`. Terraform Cloud also requires a `GITHUB_TOKEN` environment variable (a GitHub PAT with `repo` scope) set in the workspace to allow the GitHub provider to manage repository secrets and variables.
+Secrets and variables used for code singing are managed via Terraform ([`terraform/`](terraform/)) and populated into GitHub Actions automatically via Terraform Cloud. The `GITHUB_TOKEN` environment variable (a GitHub PAT with `repo` scope) is required to allow the GitHub provider to manage repository secrets and variables.
 
 #### macOS
 
 Certificates are managed in the Apple Developer Program. Signing and notarisation is configured with the `osxSign` and `osxNotarize` options in `forge.config.ts`.
-
-All secrets are managed via Terraform ([`terraform/`](terraform/)) and populated into GitHub Actions automatically on `terraform apply`.
 
 | Secret | Description |
 | --- | --- |
@@ -89,7 +87,7 @@ All secrets are managed via Terraform ([`terraform/`](terraform/)) and populated
 > [!NOTE]
 > This is currently being worked on and is temporarily disabled.
 
-Will be signed via [Azure Artifact Signing](https://azure.microsoft.com/en-us/products/artifact-signing). Signing is invoked in the Windows variation of `publish.yaml` via `azure/artifact-signing-action`.
+Signed is done with [Azure Artifact Signing](https://azure.microsoft.com/en-us/products/artifact-signing) and invoked in the Windows variation of `publish.yaml` via `azure/artifact-signing-action`.
 
 | Secret / Variable | Description |
 | --- | --- |
