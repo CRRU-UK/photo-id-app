@@ -22,7 +22,6 @@ if (process.env.APPLE_CERTIFICATE) {
     },
     osxNotarize: {
       keychainProfile: process.env.APPLE_KEYCHAIN_PROFILE,
-      keychain: process.env.APPLE_KEYCHAIN_PATH,
     },
   };
 }
