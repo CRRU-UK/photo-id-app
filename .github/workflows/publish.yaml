@@ -103,7 +103,7 @@ jobs:
           APPLE_KEYCHAIN_PROFILE: notarytool-profile
 
       # Always runs so submission status is visible even if the publish step times out
-      - name: Check notarytool submission history
+      - name: Check macOS submission history
         if: matrix.os == 'macos-latest' && always()
         run: >
           xcrun notarytool history
