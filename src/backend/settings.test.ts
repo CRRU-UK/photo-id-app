@@ -418,7 +418,7 @@ describe("settings", () => {
     it("does not throw when there is no Sentry client", () => {
       mockSentryGetClient.mockReturnValueOnce(undefined as never);
 
-      expect(() => setSentryEnabled("enabled")).not.toThrowError();
+      expect(() => setSentryEnabled("enabled")).not.toThrow();
     });
   });
 });

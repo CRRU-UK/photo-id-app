@@ -166,7 +166,7 @@ describe("model IPC handlers", () => {
       const settings = { ...DEFAULT_SETTINGS, selectedModelId: null } as SettingsData;
       mockGetSettings.mockResolvedValue(settings);
 
-      await expect(handleAnalyseStack(mockEvent, [createMockPhotoBody()])).rejects.toThrowError(
+      await expect(handleAnalyseStack(mockEvent, [createMockPhotoBody()])).rejects.toThrow(
         "Machine Learning integration is not configured.",
       );
     });
@@ -179,7 +179,7 @@ describe("model IPC handlers", () => {
       } as SettingsData;
       mockGetSettings.mockResolvedValue(settings);
 
-      await expect(handleAnalyseStack(mockEvent, [createMockPhotoBody()])).rejects.toThrowError(
+      await expect(handleAnalyseStack(mockEvent, [createMockPhotoBody()])).rejects.toThrow(
         "Machine Learning integration is not configured.",
       );
     });
@@ -193,7 +193,7 @@ describe("model IPC handlers", () => {
       mockGetSettings.mockResolvedValue(settings);
       mockGetToken.mockResolvedValue(null);
 
-      await expect(handleAnalyseStack(mockEvent, [createMockPhotoBody()])).rejects.toThrowError(
+      await expect(handleAnalyseStack(mockEvent, [createMockPhotoBody()])).rejects.toThrow(
         "Machine Learning API token is not configured or could not be decrypted.",
       );
     });

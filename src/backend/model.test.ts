@@ -129,7 +129,7 @@ describe(analyseStack, () => {
 
     await expect(
       analyseStack({ photos: [defaultPhoto], settings: defaultSettings }),
-    ).rejects.toThrowError("Invalid or missing token");
+    ).rejects.toThrow("Invalid or missing token");
   });
 
   it("throws the API error detail on a 422 response", async () => {
@@ -141,7 +141,7 @@ describe(analyseStack, () => {
 
     await expect(
       analyseStack({ photos: [defaultPhoto], settings: defaultSettings }),
-    ).rejects.toThrowError("could not be decoded as an image");
+    ).rejects.toThrow("could not be decoded as an image");
   });
 
   it("throws a generic HTTP error when the response body has no detail field", async () => {
@@ -149,7 +149,7 @@ describe(analyseStack, () => {
 
     await expect(
       analyseStack({ photos: [defaultPhoto], settings: defaultSettings }),
-    ).rejects.toThrowError("HTTP 503");
+    ).rejects.toThrow("HTTP 503");
   });
 
   it("returns null when the request is cancelled", async () => {
@@ -185,7 +185,7 @@ describe(analyseStack, () => {
 
     await expect(
       analyseStack({ photos: [defaultPhoto], settings: defaultSettings }),
-    ).rejects.toThrowError("Network connection failed");
+    ).rejects.toThrow("Network connection failed");
   });
 
   it("throws when renderApiImage fails", async () => {
@@ -193,13 +193,13 @@ describe(analyseStack, () => {
 
     await expect(
       analyseStack({ photos: [defaultPhoto], settings: defaultSettings }),
-    ).rejects.toThrowError("Could not load image: file not found");
+    ).rejects.toThrow("Could not load image: file not found");
 
     expect(mockFetch).not.toHaveBeenCalled();
   });
 
   it("throws when called with an empty photos array", async () => {
-    await expect(analyseStack({ photos: [], settings: defaultSettings })).rejects.toThrowError(
+    await expect(analyseStack({ photos: [], settings: defaultSettings })).rejects.toThrow(
       "No photos to analyse",
     );
 
@@ -239,7 +239,7 @@ describe(analyseStack, () => {
 
     await expect(
       analyseStack({ photos: [defaultPhoto], settings: defaultSettings }),
-    ).rejects.toThrowError("The request timed out. The API took too long to respond.");
+    ).rejects.toThrow("The request timed out. The API took too long to respond.");
   });
 
   it("does not log the token", async () => {
@@ -264,6 +264,6 @@ describe(cancelAnalyseStack, () => {
   });
 
   it("does not throw when there is no in-flight request", () => {
-    expect(() => cancelAnalyseStack()).not.toThrowError();
+    expect(() => cancelAnalyseStack()).not.toThrow();
   });
 });

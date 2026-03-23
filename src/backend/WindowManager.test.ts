@@ -120,7 +120,7 @@ describe("windowManager", () => {
     });
 
     it("handles closeAllEditWindows when no edit windows exist", () => {
-      expect(() => windowManager.closeAllEditWindows()).not.toThrowError();
+      expect(() => windowManager.closeAllEditWindows()).not.toThrow();
     });
   });
 });

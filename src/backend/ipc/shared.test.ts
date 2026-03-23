@@ -115,7 +115,7 @@ describe("shared IPC utilities", () => {
     it("does not throw when there is no main window", () => {
       mockGetMainWindow.mockReturnValue(null);
 
-      expect(() => closeCurrentProject()).not.toThrowError();
+      expect(() => closeCurrentProject()).not.toThrow();
     });
   });
 
@@ -134,7 +134,7 @@ describe("shared IPC utilities", () => {
     it("does nothing when there are no open windows", () => {
       mockGetAllWindows.mockReturnValue([]);
 
-      expect(() => broadcastToAllWindows("test:event", null)).not.toThrowError();
+      expect(() => broadcastToAllWindows("test:event", null)).not.toThrow();
     });
   });
 

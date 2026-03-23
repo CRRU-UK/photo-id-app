@@ -93,7 +93,7 @@ describe("settings IPC handlers", () => {
 
       await expect(
         handleUpdateSettings({} as IpcMainInvokeEvent, invalidSettings),
-      ).rejects.toThrowError(/invalid/i);
+      ).rejects.toThrow(/invalid/i);
     });
   });
 
@@ -111,7 +111,7 @@ describe("settings IPC handlers", () => {
     it("does nothing when there is no main window", () => {
       mockGetMainWindow.mockReturnValue(null);
 
-      expect(() => handleOpenSettings()).not.toThrowError();
+      expect(() => handleOpenSettings()).not.toThrow();
     });
   });
 

@@ -268,13 +268,13 @@ describe(handleSaveProject, () => {
 
     const data = JSON.stringify(createProject());
 
-    await expect(handleSaveProject(data)).rejects.toThrowError("No project open");
+    await expect(handleSaveProject(data)).rejects.toThrow("No project open");
   });
 
   it("throws when data is invalid JSON", async () => {
     setCurrentProject("/my/project");
 
-    await expect(handleSaveProject("not json")).rejects.toThrowError(/Unexpected token|JSON/);
+    await expect(handleSaveProject("not json")).rejects.toThrow(/Unexpected token|JSON/);
   });
 
   it("throws when data does not match project schema", async () => {
@@ -282,7 +282,7 @@ describe(handleSaveProject, () => {
 
     const invalidPayload = JSON.stringify({ directory: "/path", version: "v1" });
 
-    await expect(handleSaveProject(invalidPayload)).rejects.toThrowError(/invalid_type|required/);
+    await expect(handleSaveProject(invalidPayload)).rejects.toThrow(/invalid_type|required/);
   });
 });
 
@@ -421,7 +421,7 @@ describe(handleEditorNavigate, () => {
     });
     mockReadFile.mockResolvedValue(JSON.stringify(project));
 
-    await expect(handleEditorNavigate(createPhoto("missing.jpg"), "next")).rejects.toThrowError(
+    await expect(handleEditorNavigate(createPhoto("missing.jpg"), "next")).rejects.toThrow(
       "Photo not found in project",
     );
   });
@@ -782,7 +782,7 @@ describe(parseProjectFile, () => {
   it("throws when the file contains invalid JSON", async () => {
     mockReadFile.mockResolvedValue("not valid json {{{");
 
-    await expect(parseProjectFile("/bad/project.photoid")).rejects.toThrowError("Unexpected token");
+    await expect(parseProjectFile("/bad/project.photoid")).rejects.toThrow("Unexpected token");
   });
 
   it("throws when a required field is missing", async () => {
@@ -790,7 +790,7 @@ describe(parseProjectFile, () => {
 
     mockReadFile.mockResolvedValue(JSON.stringify(incomplete));
 
-    await expect(parseProjectFile("/bad/project.photoid")).rejects.toThrowError("invalid_type");
+    await expect(parseProjectFile("/bad/project.photoid")).rejects.toThrow("invalid_type");
   });
 
   it("throws when a field has the wrong type", async () => {
@@ -799,7 +799,7 @@ describe(parseProjectFile, () => {
 
     mockReadFile.mockResolvedValue(JSON.stringify(invalid));
 
-    await expect(parseProjectFile("/bad/project.photoid")).rejects.toThrowError("invalid_type");
+    await expect(parseProjectFile("/bad/project.photoid")).rejects.toThrow("invalid_type");
   });
 
   it("throws when nested photo data is invalid", async () => {
@@ -812,6 +812,6 @@ describe(parseProjectFile, () => {
 
     mockReadFile.mockResolvedValue(JSON.stringify(project));
 
-    await expect(parseProjectFile("/bad/project.photoid")).rejects.toThrowError("invalid_type");
+    await expect(parseProjectFile("/bad/project.photoid")).rejects.toThrow("invalid_type");
   });
 });
