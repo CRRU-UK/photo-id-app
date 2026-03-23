@@ -15,6 +15,7 @@
   - [Debugging](#debugging)
 - [Releases](#releases)
   - [Code Signing](#code-signing)
+- [Notes](#notes)
 
 ## Introduction
 
@@ -97,3 +98,7 @@ Signing is done with [Azure Artifact Signing](https://azure.microsoft.com/en-us/
 | `AZURE_CODE_SIGNING_ACCOUNT_NAME`             | Artifact Signing account name. |
 | `AZURE_CODE_SIGNING_CERTIFICATE_PROFILE_NAME` | Certificate profile name.      |
 | `AZURE_CODE_SIGNING_ENDPOINT`                 | Regional endpoint URL.         |
+
+## Notes
+
+The macOS build includes a synchronous notarisation step that normally completes in 2–5 minutes, but Apple's notarisation service occasionally experiences delays. If the `build` job times out, the macOS artifact will not be uploaded and the draft release will remain unpublished. Check the **Check macOS submission history** step logs to see the status of recent submissions - once the latest shows `Accepted`, use **Re-run failed jobs** on the workflow run in GitHub Actions to re-run only the macOS leg. This will re-build, notarise, and upload the artifact, after which the `publish` job will run automatically and finalise the release. If a submission shows `Invalid`, run `xcrun notarytool log <submission-id>` locally for the rejection reason.
