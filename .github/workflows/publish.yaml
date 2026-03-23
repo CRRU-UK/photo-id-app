@@ -13,7 +13,7 @@ permissions:
   contents: write
 
 jobs:
-  release:
+  build:
     timeout-minutes: 30
 
     strategy:
@@ -55,7 +55,7 @@ jobs:
           KEYCHAIN_PASSWORD: ${{ steps.import-cert.outputs.keychain-password }}
 
       # Windows: publish without signing
-      - name: Publish app (Windows)
+      - name: Build app and add to release (Windows)
         if: matrix.os == 'windows-latest'
         run: npm run publish
         env:
@@ -67,7 +67,7 @@ jobs:
           SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
-      - name: Publish app
+      - name: Build app and add to release (macOS / Linux)
         if: matrix.os == 'macos-latest' || matrix.os == 'ubuntu-latest'
         run: npm run publish
         env:
@@ -82,4 +82,14 @@ jobs:
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          DEBUG: electron-osx-sign
+
+  publish:
+    needs: build
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Publish release
+        run: gh release edit ${{ github.ref_name }} --draft=false --repo CRRU-UK/photo-id-app
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

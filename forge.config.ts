@@ -105,6 +105,7 @@ const config: ForgeConfig = {
           owner: "CRRU-UK",
           name: "photo-id-app",
         },
+        draft: true,
         force: true,
         generateReleaseNotes: true,
       },
