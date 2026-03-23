@@ -17,6 +17,11 @@ vi.mock("node:fs", () => ({
   },
 }));
 
+const mockApp = {
+  getPath: vi.fn<() => string>(() => "/mock/userData"),
+  isPackaged: true as boolean,
+};
+
 const mockIsEncryptionAvailable = vi.fn<() => boolean>(() => true);
 const mockEncryptString = vi.fn<(text: string) => Buffer>((text: string) =>
   Buffer.from(`encrypted:${text}`),
@@ -32,9 +37,7 @@ const mockDecryptString = vi.fn<(buffer: Buffer) => string>((buffer: Buffer) => 
 });
 
 vi.mock("electron", () => ({
-  app: {
-    getPath: vi.fn<() => string>(() => "/mock/userData"),
-  },
+  app: mockApp,
   safeStorage: {
     isEncryptionAvailable: () => mockIsEncryptionAvailable(),
     encryptString: (text: string) => mockEncryptString(text),
@@ -47,6 +50,7 @@ const { deleteToken, getToken, isEncryptionAvailable, saveToken } = await import
 describe("tokens", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockApp.isPackaged = true;
     mockWriteFile.mockResolvedValue(undefined);
     mockIsEncryptionAvailable.mockReturnValue(true);
   });
@@ -62,6 +66,13 @@ describe("tokens", () => {
       mockIsEncryptionAvailable.mockReturnValue(false);
 
       expect(isEncryptionAvailable()).toBe(false);
+    });
+
+    it("returns false in dev mode without accessing safeStorage", () => {
+      mockApp.isPackaged = false;
+
+      expect(isEncryptionAvailable()).toBe(false);
+      expect(mockIsEncryptionAvailable).not.toHaveBeenCalled();
     });
   });
 
