@@ -1,5 +1,11 @@
 # photo-id
 
+## 0.6.0
+
+### Minor Changes
+
+- d3a2e0c: Add macOS code signing
+
 ## 0.5.1
 
 ### Patch Changes
