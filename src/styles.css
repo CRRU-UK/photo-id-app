@@ -266,7 +266,7 @@ html[data-color-mode="light"] .project .photo-stack {
 .edit > .canvas-photo.loupe-active:hover,
 .edit > .canvas-photo.loupe-active:active {
   cursor:
-    url("./assets/loupe-cursor.svg") 15 15,
+    url("./frontend/img/loupe-cursor.svg") 15 15,
     crosshair;
 }
 
