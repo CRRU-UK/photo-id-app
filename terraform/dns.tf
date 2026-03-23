@@ -5,5 +5,6 @@ resource "cloudflare_dns_record" "dns_cname" {
   type    = "CNAME"
   content = "crru-uk.github.io"
   ttl     = "1"
+  proxied = true
   comment = "Photo ID App docs (GitHub Pages)"
 }
