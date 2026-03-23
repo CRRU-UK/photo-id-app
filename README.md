@@ -74,13 +74,13 @@ Secrets and variables used for code singing are managed via Terraform ([`terrafo
 
 Certificates are managed in the Apple Developer Program. Signing and notarisation is configured with the `osxSign` and `osxNotarize` options in `forge.config.ts`.
 
-| Secret | Description |
-| --- | --- |
-| `APPLE_ID` | Apple ID email associated with the Developer account. |
-| `APPLE_TEAM_ID` | Team ID from Apple Developer Program membership. |
+| Secret                        | Description                                                                  |
+| ----------------------------- | ---------------------------------------------------------------------------- |
+| `APPLE_ID`                    | Apple ID email associated with the Developer account.                        |
+| `APPLE_TEAM_ID`               | Team ID from Apple Developer Program membership.                             |
 | `APPLE_APP_SPECIFIC_PASSWORD` | App-specific password generated at appleid.apple.com, used for notarisation. |
-| `APPLE_CERTIFICATE` | Base64-encoded `.p12` certificate exported from Keychain. |
-| `APPLE_CERTIFICATE_PASSWORD` | Password set during `.p12` export. |
+| `APPLE_CERTIFICATE`           | Base64-encoded `.p12` certificate exported from Keychain.                    |
+| `APPLE_CERTIFICATE_PASSWORD`  | Password set during `.p12` export.                                           |
 
 #### Windows
 
@@ -89,11 +89,11 @@ Certificates are managed in the Apple Developer Program. Signing and notarisatio
 
 Signing is done with [Azure Artifact Signing](https://azure.microsoft.com/en-us/products/artifact-signing) and invoked in the Windows variation of `publish.yaml` via `azure/artifact-signing-action`.
 
-| Secret / Variable | Description |
-| --- | --- |
-| `AZURE_CLIENT_ID` | Service principal client ID. |
-| `AZURE_TENANT_ID` | Azure tenant ID. |
-| `AZURE_SUBSCRIPTION_ID` | Azure subscription ID. |
-| `AZURE_CODE_SIGNING_ACCOUNT_NAME` | Artifact Signing account name. |
-| `AZURE_CODE_SIGNING_CERTIFICATE_PROFILE_NAME` | Certificate profile name. |
-| `AZURE_CODE_SIGNING_ENDPOINT` | Regional endpoint URL. |
+| Secret / Variable                             | Description                    |
+| --------------------------------------------- | ------------------------------ |
+| `AZURE_CLIENT_ID`                             | Service principal client ID.   |
+| `AZURE_TENANT_ID`                             | Azure tenant ID.               |
+| `AZURE_SUBSCRIPTION_ID`                       | Azure subscription ID.         |
+| `AZURE_CODE_SIGNING_ACCOUNT_NAME`             | Artifact Signing account name. |
+| `AZURE_CODE_SIGNING_CERTIFICATE_PROFILE_NAME` | Certificate profile name.      |
+| `AZURE_CODE_SIGNING_ENDPOINT`                 | Regional endpoint URL.         |
