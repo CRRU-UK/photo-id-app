@@ -50,7 +50,9 @@ const { deleteToken, getToken, isEncryptionAvailable, saveToken } = await import
 describe("tokens", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+
     mockApp.isPackaged = true;
+
     mockWriteFile.mockResolvedValue(undefined);
     mockIsEncryptionAvailable.mockReturnValue(true);
   });
