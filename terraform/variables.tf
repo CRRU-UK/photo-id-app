@@ -8,16 +8,6 @@ variable "github_repository" {
   type        = string
 }
 
-variable "resource_group_name" {
-  description = "Name of the existing Azure resource group"
-  type        = string
-}
-
-variable "signing_account_name" {
-  description = "Name of the Azure Artifact Signing account"
-  type        = string
-}
-
 variable "certificate_profile_name" {
   description = "Name of the Azure Artifact Signing certificate profile"
   type        = string
@@ -51,3 +41,13 @@ variable "apple_team_id" {
   description = "Apple Developer Team ID"
   type        = string
 }
+
+# variable "resource_group_name" {
+#   description = "Name of the existing Azure resource group"
+#   type        = string
+# }
+
+# variable "signing_account_name" {
+#   description = "Name of the Azure Artifact Signing account"
+#   type        = string
+# }
