@@ -265,21 +265,44 @@ const ImageEditor = ({
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
       const modifierKey = event.ctrlKey || event.metaKey;
+      const key = event.key.toLowerCase();
+
+      if (modifierKey) {
+        if (key === EDITOR_KEYBOARD_CODES.RESET) {
+          event.preventDefault();
+          return handleReset();
+        }
+
+        if (key === EDITOR_KEYBOARD_CODES.SAVE) {
+          event.preventDefault();
+          return handleSave();
+        }
+
+        if (key === EDITOR_KEYBOARD_CODES.ZOOM_OUT) {
+          event.preventDefault();
+          return handlers.handleZoomOut();
+        }
+
+        if (key === EDITOR_KEYBOARD_CODES.ZOOM_IN) {
+          event.preventDefault();
+          return handlers.handleZoomIn();
+        }
+
+        return;
+      }
 
       const panDirection = KEYBOARD_CODE_TO_PAN_DIRECTION?.[event.code];
-      if (!modifierKey && panDirection) {
+      if (panDirection) {
         event.preventDefault();
         return handlers.handleDirectionalPan(panDirection);
       }
 
-      const key = event.key.toLowerCase();
-
-      if (!modifierKey && key === EDITOR_KEYBOARD_CODES.PREVIOUS_PHOTO) {
+      if (key === EDITOR_KEYBOARD_CODES.PREVIOUS_PHOTO) {
         event.preventDefault();
         return handleEditorNavigation("prev");
       }
 
-      if (!modifierKey && key === EDITOR_KEYBOARD_CODES.NEXT_PHOTO) {
+      if (key === EDITOR_KEYBOARD_CODES.NEXT_PHOTO) {
         event.preventDefault();
         return handleEditorNavigation("next");
       }
@@ -290,38 +313,14 @@ const ImageEditor = ({
         event.target instanceof HTMLTextAreaElement ||
         event.target instanceof HTMLSelectElement;
 
-      if (
-        !modifierKey &&
-        !isInteractiveTarget &&
-        event.code === EDITOR_KEYBOARD_CODES.TOGGLE_LOUPE
-      ) {
+      if (!isInteractiveTarget && event.code === EDITOR_KEYBOARD_CODES.TOGGLE_LOUPE) {
         event.preventDefault();
         return handleToggleLoupe();
       }
 
-      if (!modifierKey && key === EDITOR_KEYBOARD_CODES.TOGGLE_EDGE_DETECTION) {
+      if (key === EDITOR_KEYBOARD_CODES.TOGGLE_EDGE_DETECTION) {
         event.preventDefault();
         return handleToggleEdgeDetection();
-      }
-
-      if (modifierKey && key === EDITOR_KEYBOARD_CODES.RESET) {
-        event.preventDefault();
-        return handleReset();
-      }
-
-      if (modifierKey && key === EDITOR_KEYBOARD_CODES.SAVE) {
-        event.preventDefault();
-        return handleSave();
-      }
-
-      if (modifierKey && key === EDITOR_KEYBOARD_CODES.ZOOM_OUT) {
-        event.preventDefault();
-        return handlers.handleZoomOut();
-      }
-
-      if (modifierKey && key === EDITOR_KEYBOARD_CODES.ZOOM_IN) {
-        event.preventDefault();
-        return handlers.handleZoomIn();
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps -- specific handler refs for tighter deps

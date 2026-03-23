@@ -215,7 +215,7 @@ describe("tokens", () => {
     it("does not throw when deleting a non-existent model ID", async () => {
       mockExistsSync.mockReturnValue(false);
 
-      await expect(deleteToken("non-existent")).resolves.not.toThrowError();
+      await expect(deleteToken("non-existent")).resolves.not.toThrow();
     });
   });
 

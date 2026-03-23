@@ -177,7 +177,7 @@ describe("project IPC handlers", () => {
 
       await expect(
         handleOpenProjectFileInvoke(createMockInvokeEvent(null), "/path/to/project.photoid"),
-      ).rejects.toThrowError("Main window not available");
+      ).rejects.toThrow("Main window not available");
     });
 
     it("opens the project file in the main window", async () => {
@@ -203,7 +203,7 @@ describe("project IPC handlers", () => {
 
       await expect(
         handleOpenProjectFileInvoke(createMockInvokeEvent(mockWindow), "/path/to/project.photoid"),
-      ).rejects.toThrowError("parse error");
+      ).rejects.toThrow("parse error");
     });
   });
 
@@ -278,7 +278,7 @@ describe("project IPC handlers", () => {
     it("re-throws when save fails", async () => {
       mockHandleSaveProject.mockRejectedValue(new Error("write error"));
 
-      await expect(handleSaveProjectInvoke(createMockInvokeEvent(null), "{}")).rejects.toThrowError(
+      await expect(handleSaveProjectInvoke(createMockInvokeEvent(null), "{}")).rejects.toThrow(
         "write error",
       );
     });

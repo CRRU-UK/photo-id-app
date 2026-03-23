@@ -17,9 +17,9 @@ import type {
   tokenStoreSchema,
 } from "@/schemas";
 
-export type Directory = string;
+export type Directory = string; // NOSONAR
 
-export type FileName = string;
+export type FileName = string; // NOSONAR
 
 export type Match = {
   id: number;

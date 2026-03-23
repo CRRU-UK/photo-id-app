@@ -326,13 +326,13 @@ describe(handleExportMatches, () => {
 
     await expect(
       handleExportMatches(mainWindow, JSON.stringify(project), "edited"),
-    ).rejects.toThrowError("No project open");
+    ).rejects.toThrow("No project open");
   });
 
   it("throws when data is invalid JSON", async () => {
     const mainWindow = createMockMainWindow();
 
-    await expect(handleExportMatches(mainWindow, "not json", "edited")).rejects.toThrowError(
+    await expect(handleExportMatches(mainWindow, "not json", "edited")).rejects.toThrow(
       /Unexpected token|JSON/,
     );
   });
@@ -341,7 +341,7 @@ describe(handleExportMatches, () => {
     const mainWindow = createMockMainWindow();
     const invalidPayload = JSON.stringify({ directory: "/path", version: "v1" });
 
-    await expect(handleExportMatches(mainWindow, invalidPayload, "edited")).rejects.toThrowError(
+    await expect(handleExportMatches(mainWindow, invalidPayload, "edited")).rejects.toThrow(
       /invalid_type|required/,
     );
   });

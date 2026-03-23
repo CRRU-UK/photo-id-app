@@ -91,9 +91,9 @@ describe("settings IPC handlers", () => {
     it("throws when settings fail validation", async () => {
       const invalidSettings = { invalid: true } as unknown as SettingsData;
 
-      await expect(
-        handleUpdateSettings({} as IpcMainInvokeEvent, invalidSettings),
-      ).rejects.toThrowError(/invalid/i);
+      await expect(handleUpdateSettings({} as IpcMainInvokeEvent, invalidSettings)).rejects.toThrow(
+        /invalid/i,
+      );
     });
   });
 
@@ -111,7 +111,7 @@ describe("settings IPC handlers", () => {
     it("does nothing when there is no main window", () => {
       mockGetMainWindow.mockReturnValue(null);
 
-      expect(() => handleOpenSettings()).not.toThrowError();
+      expect(() => handleOpenSettings()).not.toThrow();
     });
   });
 
