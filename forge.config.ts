@@ -11,6 +11,22 @@ import path from "node:path";
 
 import { PROJECT_FILE_EXTENSION } from "./src/constants";
 
+let signingConfig = {};
+
+if (process.env.APPLE_CERTIFICATE) {
+  signingConfig = {
+    osxSign: {
+      "hardened-runtime": true,
+      "gatekeeper-assess": false,
+      "signature-flags": "library",
+    },
+    osxNotarize: {
+      keychainProfile: process.env.APPLE_KEYCHAIN_PROFILE,
+      keychain: process.env.APPLE_KEYCHAIN_PATH,
+    },
+  };
+}
+
 const config: ForgeConfig = {
   packagerConfig: {
     asar: {
@@ -28,14 +44,7 @@ const config: ForgeConfig = {
         },
       ],
     },
-    osxSign: process.env.APPLE_CERTIFICATE ? {} : undefined,
-    osxNotarize: process.env.APPLE_ID
-      ? {
-          appleId: process.env.APPLE_ID,
-          appleIdPassword: process.env.APPLE_APP_SPECIFIC_PASSWORD!,
-          teamId: process.env.APPLE_TEAM_ID!,
-        }
-      : undefined,
+    ...signingConfig,
   },
   rebuildConfig: {},
   makers: [
@@ -105,6 +114,7 @@ const config: ForgeConfig = {
           owner: "CRRU-UK",
           name: "photo-id-app",
         },
+        draft: true,
         force: true,
         generateReleaseNotes: true,
       },
