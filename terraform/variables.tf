@@ -1,11 +1,11 @@
 variable "cloudflare_account_id" {
-  type      = string
-  sensitive = true
+  description = "Cloudflare account ID"
+  type        = string
 }
 
 variable "cloudflare_zone_id" {
-  type      = string
-  sensitive = true
+  description = "Cloudflare zone ID"
+  type        = string
 }
 
 variable "github_owner" {
