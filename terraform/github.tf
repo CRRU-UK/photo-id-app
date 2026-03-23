@@ -1,6 +1,3 @@
-# Windows signing secrets/variables are disabled pending Azure non-profit grant setup.
-# To re-enable: uncomment all resources below and restore the signing steps in publish.yaml.
-
 # resource "github_actions_secret" "azure_client_id" {
 #   repository      = var.github_repository
 #   secret_name     = "AZURE_CLIENT_ID"

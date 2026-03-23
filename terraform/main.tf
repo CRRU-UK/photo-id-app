@@ -1,6 +1,3 @@
-# Windows signing resources are disabled pending Azure non-profit grant setup.
-# To re-enable: uncomment all resources below and restore the signing steps in publish.yaml.
-
 # data "azurerm_resource_group" "main" {
 #   name = var.resource_group_name
 # }
