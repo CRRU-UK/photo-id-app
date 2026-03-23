@@ -43,9 +43,18 @@ const writeTokenStore = async (store: TokenStore): Promise<void> => {
 };
 
 /**
- * Returns whether safeStorage encryption is currently available on this machine.
+ * Returns whether safeStorage encryption is currently available on the system.
+ *
+ * Unsigned dev builds prompt for keychain access on every launch on macOS. Skip safeStorage in dev
+ * in dev mode and fall back to plaintext storage.
  */
-const isEncryptionAvailable = (): boolean => safeStorage.isEncryptionAvailable();
+const isEncryptionAvailable = (): boolean => {
+  if (!app.isPackaged) {
+    return false;
+  }
+
+  return safeStorage.isEncryptionAvailable();
+};
 
 /**
  * Saves a token for a model ID. Encrypts with safeStorage if available, otherwise stores as
