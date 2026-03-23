@@ -52,8 +52,9 @@ const getMenu = (mainWindow: BrowserWindow) => {
             void handleOpenFilePrompt(mainWindow);
           },
         },
-        ...(!isMac
-          ? [
+        ...(isMac
+          ? []
+          : [
               {
                 label: "Settings",
                 accelerator: "CmdOrCtrl+,",
@@ -62,8 +63,7 @@ const getMenu = (mainWindow: BrowserWindow) => {
                   mainWindow.webContents.send(IPC_EVENTS.OPEN_SETTINGS);
                 },
               },
-            ]
-          : []),
+            ]),
         isMac ? { role: "close" } : { role: "quit" },
       ],
     },

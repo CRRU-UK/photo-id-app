@@ -80,6 +80,8 @@ const Stack = observer(({ collection, showAnalysisButton = true, stackLabel }: S
     disabled: collection.photos.length <= 0,
   });
 
+  const { onKeyDown: draggableOnKeyDown, ...draggableListeners } = listeners ?? {};
+
   const handleOpenEdit = () => {
     window.electronAPI.openEditWindow(currentPhoto!.toBody());
   };
@@ -106,9 +108,18 @@ const Stack = observer(({ collection, showAnalysisButton = true, stackLabel }: S
       <div className="photo-stack">
         <div
           ref={setDraggableNodeRef}
-          {...listeners}
+          {...draggableListeners}
           {...attributes}
           onDoubleClick={handleOpenEdit}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") {
+              handleOpenEdit();
+            }
+
+            // dnd-kit types SyntheticListenerMap handlers as Function
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+            draggableOnKeyDown?.(event);
+          }}
         >
           {collection?.currentPhoto && <StackImage photo={currentPhoto!} />}
         </div>

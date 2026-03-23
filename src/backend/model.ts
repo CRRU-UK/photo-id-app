@@ -28,6 +28,32 @@ const generateImageBlob = async (photo: PhotoBody): Promise<Blob> => {
 };
 
 /**
+ * Builds a FormData object containing JPEG blobs for each photo. Returns null if the abort
+ * controller is signalled during processing.
+ *
+ * All photo blobs are held in memory in FormData until the request body is sent. This is a
+ * deliberate trade-off for simplicity. For large stacks memory usage can be high. A pipeline
+ * (streaming multipart) would require API support and a more complex implementation.
+ */
+const buildFormData = async (
+  photos: PhotoBody[],
+  abortController: AbortController,
+): Promise<FormData | null> => {
+  const formData = new FormData();
+
+  for (const photo of photos) {
+    if (abortController.signal.aborted) {
+      return null;
+    }
+
+    const blob = await generateImageBlob(photo);
+    formData.append("images", blob, `${path.basename(photo.name, path.extname(photo.name))}.jpg`);
+  }
+
+  return formData;
+};
+
+/**
  * Sends all photos in a stack to the API /match endpoint. Returns null if the request is cancelled
  * via cancelAnalyseStack.
  */
@@ -47,18 +73,10 @@ const analyseStack = async ({
   currentAbortController = abortController;
 
   try {
-    const formData = new FormData();
+    const formData = await buildFormData(photos, abortController);
 
-    // All photo blobs are held in memory in FormData until the request body is sent. This is a
-    // deliberate trade-off for simplicity; for large stacks memory usage can be high. A pipeline
-    // (streaming multipart) would require API support and a more complex implementation.
-    for (const photo of photos) {
-      if (abortController.signal.aborted) {
-        return null;
-      }
-
-      const blob = await generateImageBlob(photo);
-      formData.append("images", blob, `${path.basename(photo.name, path.extname(photo.name))}.jpg`);
+    if (!formData) {
+      return null;
     }
 
     const endpoint = settings.endpoint.replace(/\/+$/, "");
