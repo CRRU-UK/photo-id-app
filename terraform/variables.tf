@@ -8,11 +8,6 @@ variable "github_repository" {
   type        = string
 }
 
-variable "certificate_profile_name" {
-  description = "Name of the Azure Artifact Signing certificate profile"
-  type        = string
-}
-
 variable "apple_certificate" {
   description = "Base64-encoded Apple .p12 signing certificate"
   type        = string
@@ -49,5 +44,10 @@ variable "apple_team_id" {
 
 # variable "signing_account_name" {
 #   description = "Name of the Azure Artifact Signing account"
+#   type        = string
+# }
+
+# variable "certificate_profile_name" {
+#   description = "Name of the Azure Artifact Signing certificate profile"
 #   type        = string
 # }
