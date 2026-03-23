@@ -68,27 +68,30 @@ Note that the `prerelease.yaml` workflow can be triggered manually via GitHub Ac
 
 ### Code Signing
 
+Secrets and variables used for code singing are managed via Terraform ([`terraform/`](terraform/)) and populated into GitHub Actions automatically on `terraform apply`. Terraform Cloud also requires a `GITHUB_TOKEN` environment variable (a GitHub PAT with `repo` scope) set in the workspace to allow the GitHub provider to manage repository secrets and variables.
+
 #### macOS
 
 Certificates are managed in the Apple Developer Program. Signing and notarisation is configured with the `osxSign` and `osxNotarize` options in `forge.config.ts`.
 
+All secrets are managed via Terraform ([`terraform/`](terraform/)) and populated into GitHub Actions automatically on `terraform apply`.
+
 | Secret | Description |
 | --- | --- |
-| `APPLE_ID` | TBA |
-| `APPLE_TEAM_ID` | TBA |
-| `APPLE_APP_SPECIFIC_PASSWORD` | TBA |
-| `APPLE_CERTIFICATE` | TBA |
+| `APPLE_ID` | Apple ID email associated with the Developer account. |
+| `APPLE_TEAM_ID` | Team ID from Apple Developer Program membership. |
+| `APPLE_APP_SPECIFIC_PASSWORD` | App-specific password generated at appleid.apple.com, used for notarisation. |
+| `APPLE_CERTIFICATE` | Base64-encoded `.p12` certificate exported from Keychain. |
+| `APPLE_CERTIFICATE_PASSWORD` | Password set during `.p12` export. |
 
 #### Windows
 
 > [!NOTE]
-> This is currently being worked on.
+> This is currently being worked on and is temporarily disabled.
 
-Signed via [Azure Artifact Signing](https://azure.microsoft.com/en-us/products/artifact-signing). Signing is invoked in the Windows variation of `publish.yaml` via `azure/artifact-signing-action` and configured in `forge.config.ts` via environment variables.
+Will be signed via [Azure Artifact Signing](https://azure.microsoft.com/en-us/products/artifact-signing). Signing is invoked in the Windows variation of `publish.yaml` via `azure/artifact-signing-action`.
 
-Certificates are provisioned and managed by Terraform (`terraform/`)[terraform/].
-
-| Secret | Description |
+| Secret / Variable | Description |
 | --- | --- |
 | `AZURE_CLIENT_ID` | Service principal client ID. |
 | `AZURE_TENANT_ID` | Azure tenant ID. |
