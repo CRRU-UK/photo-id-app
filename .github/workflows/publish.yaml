@@ -54,6 +54,21 @@ jobs:
         env:
           KEYCHAIN_PASSWORD: ${{ steps.import-cert.outputs.keychain-password }}
 
+      # Pre-store notarytool credentials in the signing keychain to avoid the keychain prompt that
+      # blocks notarytool indefinitely in CI
+      - name: Store notarytool credentials
+        if: matrix.os == 'macos-latest'
+        run: |
+          xcrun notarytool store-credentials "notarytool-profile" \
+            --apple-id "$APPLE_ID" \
+            --password "$APPLE_APP_SPECIFIC_PASSWORD" \
+            --team-id "$APPLE_TEAM_ID" \
+            --keychain "$HOME/Library/Keychains/signing_temp.keychain-db"
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+
       # Windows: publish without signing
       - name: Build app and add to release (Windows)
         if: matrix.os == 'windows-latest'
@@ -79,9 +94,8 @@ jobs:
           SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_KEYCHAIN_PROFILE: notarytool-profile
+          APPLE_KEYCHAIN_PATH: ${{ env.HOME }}/Library/Keychains/signing_temp.keychain-db
           DEBUG: electron-osx-sign,electron-notarize
 
   publish:
