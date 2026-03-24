@@ -1,7 +1,5 @@
 import { sentryVitePlugin } from "@sentry/vite-plugin";
-import { tanstackRouter } from "@tanstack/router-plugin/vite";
 import { defineConfig } from "vite";
-import tsconfigPaths from "vite-tsconfig-paths";
 
 // https://vitejs.dev/config
 export default defineConfig({
@@ -10,12 +8,10 @@ export default defineConfig({
       ignored: ["**/coverage/**"],
     },
   },
+  resolve: {
+    tsconfigPaths: true,
+  },
   plugins: [
-    tsconfigPaths(),
-    tanstackRouter({
-      target: "react",
-      autoCodeSplitting: true,
-    }),
     sentryVitePlugin({
       org: process.env.SENTRY_ORG,
       project: process.env.SENTRY_PROJECT,
