@@ -63,9 +63,13 @@ Releases are managed with [changesets](https://github.com/changesets/changesets)
 
 1. **Add a changeset** - run `npm run changesets:add` on a feature branch and commit the generated `.changeset/*.md` file alongside the PR
 2. **Release PR** - each push to `main` triggers the `version` action in `release.yaml`, which creates or updates the Release PR that accumulates pending changesets (which determine the next semantic version and changelog)
-3. **Publishing** - merging the Release PR into `main` triggers the the `publish` action in `release.yaml`, which creates a new git tag (`v*`) and triggers `publish.yaml`, which builds and _appends_ to the new GitHub Release across all three platforms (Windows, macOS, Linux) in parallel
+3. **Publishing** - merging the Release PR into `main` triggers the `publish` action in `release.yaml`, which builds the app for each platform and attaches the binaries to a release on GitHub (used by the auto-updater)
 
 Note that the `prerelease.yaml` workflow can be triggered manually via GitHub Actions to build a single-platform production-like artifact (1-day retention) without publishing, useful for smoke-testing before a release.
+
+### Publishing Flow
+
+The draft release is pre-created in `release.yaml` _before_ the tag is pushed. This is done as the auto-update checker in distributed app sessions caches release metadata, so a release that is briefly live without binaries will be permanently skipped by those sessions. `publish.yaml` appends platform artifacts to the draft, and the final job marks the release as published once all three builds complete.
 
 ### Code Signing
 
