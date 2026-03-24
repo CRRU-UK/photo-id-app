@@ -25,6 +25,28 @@ vi.mock("@napi-rs/canvas", () => ({
   loadImage: (...args: Parameters<typeof mockLoadImage>) => mockLoadImage(...args),
 }));
 
+const mockReadFile = vi.fn<(path: string) => Promise<Buffer>>();
+
+vi.mock("node:fs", () => ({
+  default: {
+    promises: {
+      readFile: (...args: Parameters<typeof mockReadFile>) => mockReadFile(...args),
+    },
+  },
+}));
+
+const mockPiexifLoad = vi.fn<(binary: string) => object>();
+const mockPiexifDump = vi.fn<(exif: object) => string>();
+const mockPiexifInsert = vi.fn<(exifBytes: string, binary: string) => string>();
+
+vi.mock("piexifjs", () => ({
+  default: {
+    load: (...args: Parameters<typeof mockPiexifLoad>) => mockPiexifLoad(...args),
+    dump: (...args: Parameters<typeof mockPiexifDump>) => mockPiexifDump(...args),
+    insert: (...args: Parameters<typeof mockPiexifInsert>) => mockPiexifInsert(...args),
+  },
+}));
+
 const { renderApiImage, renderFullImageWithEdits, renderThumbnailWithEdits } =
   await import("./imageRenderer");
 
@@ -264,6 +286,10 @@ describe(renderFullImageWithEdits, () => {
     });
 
     mockEncode.mockResolvedValue(Buffer.from("full-image-data"));
+    mockReadFile.mockResolvedValue(Buffer.from("source-jpeg-data"));
+    mockPiexifLoad.mockReturnValue({ "0th": {}, Exif: {}, GPS: {} });
+    mockPiexifDump.mockReturnValue("exif-bytes");
+    mockPiexifInsert.mockReturnValue("exif-injected-data");
   });
 
   it("returns a buffer", async () => {
@@ -333,5 +359,30 @@ describe(renderFullImageWithEdits, () => {
 
     expect(result).toBeInstanceOf(Buffer);
     expect(mockEncode).toHaveBeenCalledWith("png");
+  });
+
+  it("injects EXIF from source into rendered JPEG buffer", async () => {
+    const result = await renderFullImageWithEdits({
+      sourcePath: "/project/photo.jpg",
+      edits: defaultEdits,
+    });
+
+    expect(mockPiexifLoad).toHaveBeenCalledTimes(1);
+    expect(mockPiexifDump).toHaveBeenCalledTimes(1);
+    expect(mockPiexifInsert).toHaveBeenCalledTimes(1);
+
+    // Result should be the EXIF-injected buffer derived from piexif.insert return value
+    expect(result).toStrictEqual(Buffer.from("exif-injected-data", "binary"));
+  });
+
+  it("does not read source file or inject EXIF for PNG", async () => {
+    await renderFullImageWithEdits({
+      sourcePath: "/project/photo.png",
+      edits: defaultEdits,
+    });
+
+    expect(mockReadFile).not.toHaveBeenCalled();
+    expect(mockPiexifLoad).not.toHaveBeenCalled();
+    expect(mockPiexifInsert).not.toHaveBeenCalled();
   });
 });
