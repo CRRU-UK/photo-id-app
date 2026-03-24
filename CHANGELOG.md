@@ -1,5 +1,16 @@
 # photo-id
 
+## 0.6.1
+
+### Patch Changes
+
+- 454efbc: EXIF data is now preserved when exporting edited photos
+- 890ffdb: Prevent launching app from mounted DMG
+- fc62d24: Use DMG for macOS distribution
+- 71cd89d: Update release handling
+- cad3337: Fix telemetry toggle
+- 7169fce: Restrict loading photos only within project folder
+
 ## 0.6.0
 
 ### Minor Changes
