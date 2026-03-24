@@ -153,6 +153,20 @@ app.on("activate", async () => {
 });
 
 void app.whenReady().then(async () => {
+  // Prevent running outside of the Applications folder on macOS
+  if (process.platform === "darwin" && production) {
+    if (!app.isInApplicationsFolder()) {
+      dialog.showMessageBoxSync({
+        type: "warning",
+        buttons: ["Quit"],
+        title: "Move Photo ID to Applications",
+        message: "Please move the Photo ID app to your Applications folder before opening it.",
+      });
+
+      return app.exit();
+    }
+  }
+
   const settings = await getSettings();
   setSentryEnabled(settings.telemetry);
 
