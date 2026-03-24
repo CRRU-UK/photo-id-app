@@ -174,6 +174,7 @@ void app.whenReady().then(async () => {
       responseHeaders: {
         ...details.responseHeaders,
         "Content-Security-Policy": [CSP_HEADERS],
+        "Document-Policy": ["js-profiling"],
       },
     });
   });

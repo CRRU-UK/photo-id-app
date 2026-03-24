@@ -55,7 +55,8 @@ export const CSP_HEADERS = [
   `script-src 'self'`,
   `style-src 'self' 'unsafe-inline'`,
   `img-src 'self' ${PHOTO_PROTOCOL_SCHEME}: data: blob:`,
-  `connect-src 'self' ${PHOTO_PROTOCOL_SCHEME}:`,
+  `connect-src 'self' ${PHOTO_PROTOCOL_SCHEME}: https://*.sentry.io https://*.ingest.sentry.io`,
+  `worker-src 'self' blob:`,
 ].join("; ");
 
 export const THUMBNAIL_GENERATION_CONCURRENCY = 3;
