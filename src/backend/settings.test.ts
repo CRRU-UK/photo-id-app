@@ -13,12 +13,14 @@ vi.mock("electron", () => ({
 }));
 
 const mockExistsSync = vi.fn<(path: string) => boolean>();
+const mockReadFileSync = vi.fn<(path: string, encoding: string) => string>();
 const mockReadFile = vi.fn<(path: string, encoding: string) => Promise<string>>();
 const mockWriteFile = vi.fn<(path: string, data: string, encoding: string) => Promise<void>>();
 
 vi.mock("node:fs", () => ({
   default: {
     existsSync: (...args: Parameters<typeof mockExistsSync>) => mockExistsSync(...args),
+    readFileSync: (...args: Parameters<typeof mockReadFileSync>) => mockReadFileSync(...args),
     promises: {
       readFile: (...args: Parameters<typeof mockReadFile>) => mockReadFile(...args),
       writeFile: (...args: Parameters<typeof mockWriteFile>) => mockWriteFile(...args),
@@ -36,24 +38,19 @@ const mockSentryInit = vi.fn<(options: Record<string, unknown>) => void>();
 const mockConsoleLoggingIntegration = vi.fn<(options: Record<string, unknown>) => string>(
   () => "mockIntegration",
 );
-const mockClientOptions = { enabled: true };
-const mockSentryGetClient = vi.fn<() => { getOptions: () => typeof mockClientOptions } | undefined>(
-  () => ({ getOptions: () => mockClientOptions }),
-);
 
 vi.mock("@sentry/electron/main", () => ({
   init: (options: Record<string, unknown>) => mockSentryInit(options),
   consoleLoggingIntegration: (options: Record<string, unknown>) =>
     mockConsoleLoggingIntegration(options),
-  getClient: () => mockSentryGetClient(),
 }));
 
 const {
   getSettings,
   getSettingsForRenderer,
+  getTelemetrySync,
   initSentry,
   removeModel,
-  setSentryEnabled,
   updateSettings,
   upsertModel,
 } = await import("./settings");
@@ -61,6 +58,8 @@ const {
 describe("settings", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.unstubAllEnvs();
+
     mockWriteFile.mockResolvedValue(undefined);
   });
 
@@ -365,10 +364,81 @@ describe("settings", () => {
     });
   });
 
+  describe(getTelemetrySync, () => {
+    it("returns disabled when the settings file does not exist", () => {
+      mockExistsSync.mockReturnValue(false);
+
+      expect(getTelemetrySync()).toBe("disabled");
+    });
+
+    it("returns the telemetry value from the settings file", () => {
+      const savedSettings: SettingsData = {
+        version: "v1",
+        themeMode: "dark",
+        telemetry: "enabled",
+        mlModels: [],
+        selectedModelId: null,
+        isTokenEncryptionAvailable: true,
+      };
+
+      mockExistsSync.mockReturnValue(true);
+      mockReadFileSync.mockReturnValue(JSON.stringify(savedSettings));
+
+      expect(getTelemetrySync()).toBe("enabled");
+    });
+
+    it("returns disabled when the settings file contains invalid JSON", () => {
+      mockExistsSync.mockReturnValue(true);
+      mockReadFileSync.mockReturnValue("not valid json {{{");
+
+      expect(getTelemetrySync()).toBe("disabled");
+    });
+
+    it("returns disabled when readFileSync throws an error", () => {
+      mockExistsSync.mockReturnValue(true);
+      mockReadFileSync.mockImplementation(() => {
+        throw new Error("Permission denied");
+      });
+
+      expect(getTelemetrySync()).toBe("disabled");
+    });
+  });
+
   describe(initSentry, () => {
-    it("initialises Sentry with enabled false when DSN is set", () => {
-      const originalEnv = process.env.SENTRY_DSN;
-      process.env.SENTRY_DSN = "https://test@sentry.io/123";
+    it("initialises Sentry with enabled true when telemetry setting is enabled", () => {
+      vi.stubEnv("SENTRY_DSN", "https://test@sentry.io/123");
+
+      const savedSettings: SettingsData = {
+        version: "v1",
+        themeMode: "dark",
+        telemetry: "enabled",
+        mlModels: [],
+        selectedModelId: null,
+        isTokenEncryptionAvailable: true,
+      };
+
+      mockExistsSync.mockReturnValue(true);
+      mockReadFileSync.mockReturnValue(JSON.stringify(savedSettings));
+
+      initSentry();
+
+      expect(mockSentryInit).toHaveBeenCalledWith(
+        expect.objectContaining({
+          dsn: "https://test@sentry.io/123",
+          enabled: true,
+          enableRendererProfiling: true,
+        }),
+      );
+
+      expect(mockConsoleLoggingIntegration).toHaveBeenCalledWith({
+        levels: ["log", "warn", "error"],
+      });
+    });
+
+    it("initialises Sentry with enabled false when settings file is missing", () => {
+      vi.stubEnv("SENTRY_DSN", "https://test@sentry.io/123");
+
+      mockExistsSync.mockReturnValue(false);
 
       initSentry();
 
@@ -376,49 +446,16 @@ describe("settings", () => {
         expect.objectContaining({
           dsn: "https://test@sentry.io/123",
           enabled: false,
-          enableRendererProfiling: true,
         }),
       );
-      expect(mockConsoleLoggingIntegration).toHaveBeenCalledWith({
-        levels: ["log", "warn", "error"],
-      });
-
-      process.env.SENTRY_DSN = originalEnv;
     });
 
     it("does not initialise Sentry when DSN is not set", () => {
-      const originalEnv = process.env.SENTRY_DSN;
       delete process.env.SENTRY_DSN;
 
       initSentry();
 
       expect(mockSentryInit).not.toHaveBeenCalled();
-
-      process.env.SENTRY_DSN = originalEnv;
-    });
-  });
-
-  describe(setSentryEnabled, () => {
-    it("enables Sentry on the live client", () => {
-      mockClientOptions.enabled = false;
-
-      setSentryEnabled("enabled");
-
-      expect(mockClientOptions.enabled).toBe(true);
-    });
-
-    it("disables Sentry on the live client", () => {
-      mockClientOptions.enabled = true;
-
-      setSentryEnabled("disabled");
-
-      expect(mockClientOptions.enabled).toBe(false);
-    });
-
-    it("does not throw when there is no Sentry client", () => {
-      mockSentryGetClient.mockReturnValueOnce(undefined as never);
-
-      expect(() => setSentryEnabled("enabled")).not.toThrow();
     });
   });
 });
