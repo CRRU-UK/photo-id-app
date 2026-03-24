@@ -1,6 +1,8 @@
+import fs from "node:fs";
 import path from "node:path";
 
 import { type Canvas, createCanvas, loadImage } from "@napi-rs/canvas";
+import piexif from "piexifjs";
 
 import {
   ANALYSIS_API_IMAGE_JPEG_QUALITY,
@@ -87,6 +89,22 @@ export const renderApiImage = async ({
   return scaled.encode("jpeg", ANALYSIS_API_IMAGE_JPEG_QUALITY);
 };
 
+/**
+ * Injects EXIF metadata from a source JPEG buffer into a rendered JPEG buffer. If the source has no
+ * EXIF, returns the rendered buffer unchanged.
+ */
+const injectEXIF = (sourceBuffer: Buffer, renderedBuffer: Buffer): Buffer => {
+  const sourceBinary = sourceBuffer.toString("binary");
+
+  const exifData = piexif.load(sourceBinary);
+  const exifBytes = piexif.dump(exifData);
+
+  const renderedBinary = renderedBuffer.toString("binary");
+  const withExif = piexif.insert(exifBytes, renderedBinary);
+
+  return Buffer.from(withExif, "binary");
+};
+
 export const renderFullImageWithEdits = async ({
   sourcePath,
   edits,
@@ -96,7 +114,10 @@ export const renderFullImageWithEdits = async ({
   const extension = path.extname(sourcePath).toLowerCase();
 
   if (extension === ".jpg" || extension === ".jpeg") {
-    return canvasWithEdits.encode("jpeg");
+    const renderedBuffer = await canvasWithEdits.encode("jpeg");
+    const sourceBuffer = await fs.promises.readFile(sourcePath);
+
+    return injectEXIF(sourceBuffer, renderedBuffer);
   }
 
   return canvasWithEdits.encode("png");
