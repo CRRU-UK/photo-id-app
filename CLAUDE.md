@@ -86,6 +86,7 @@ When unsure, look at these files first
 - `src/index.tsx`
 - `src/constants.ts`
 - `src/types.ts`
+- `src/schemas.ts`
 - `src/backend/*`
 - `src/frontend/components/*`
 - `src/routes/*`
@@ -96,6 +97,16 @@ When unsure, look at these files first
 - Favour streaming, thumbnails (`src/backend/photos.ts`), and on-disk edits over keeping large buffers in renderer memory. Use the backend helpers for file I/O and image processing (`@napi-rs/canvas`).
 - In React, avoid retaining large binary blobs in state across long sessions; prefer references to on-disk filenames and load File/ArrayBuffer only when needed (see `src/routes/edit.tsx` and `src/frontend/hooks/usePhotoEditor.ts`).
 - **Settings schema**: `getSettings()` validates the file with `settingsDataSchema`; invalid or missing data falls back to defaults.
+
+## Common Pitfalls
+
+- **Don't call `save()` from call sites** — mutating methods on `Collection` and `Project` call `Project.save()` internally. Calling `save()` again from the call site causes a double-save. The one exception is `Collection.removePhoto()`, which intentionally does not save because it is always used as part of a move operation.
+- **Don't forget `observer()`** — any React component that reads from MobX observable models (`Project`, `Collection`, `Photo`) must be wrapped with `observer()` from `mobx-react-lite`, or it won't re-render when observables change.
+- **Use `photo://` not `file://`** — all image `src` attributes in the renderer must use the custom `photo://` protocol. Use helpers like `buildPhotoUrl()` and `Photo.thumbnailFullPath` to build safe URLs.
+- **Don't add `useEffect` for syncing MobX state** — call MobX actions directly from event handlers instead of syncing via `useEffect`, which causes unnecessary side effects on mount.
+- **All hooks must be called before conditional returns** — React's Rules of Hooks require hooks to be called in the same order every render. Early returns (`if (!x) return null`) must come after all hook calls.
+- **Validate external data with Zod** — all data crossing process boundaries (IPC payloads, API responses, file reads) should be validated with Zod schemas from `src/schemas.ts`, not just type-asserted.
+- **Backend file paths need traversal protection** — when constructing file paths from user/project data, use `resolvePhotoPath()` from `src/backend/projects.ts` to ensure paths don't escape the project directory.
 
 ## Key Guidelines
 

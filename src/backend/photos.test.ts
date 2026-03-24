@@ -22,6 +22,10 @@ vi.mock("@/backend/imageRenderer", () => ({
     mockRenderThumbnailWithEdits(...args),
 }));
 
+vi.mock("@/backend/projects", () => ({
+  resolvePhotoPath: (directory: string, fileName: string) => `${directory}/${fileName}`,
+}));
+
 const { createPhotoThumbnail, revertPhotoToOriginal } = await import("./photos");
 
 const createPhoto = (overrides?: Partial<PhotoBody>): PhotoBody => ({

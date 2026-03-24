@@ -2,11 +2,12 @@ import fs from "node:fs";
 import path from "node:path";
 
 import { renderThumbnailWithEdits } from "@/backend/imageRenderer";
+import { resolvePhotoPath } from "@/backend/projects";
 import { DEFAULT_PHOTO_EDITS, PROJECT_THUMBNAIL_DIRECTORY } from "@/constants";
 import type { PhotoBody } from "@/types";
 
 const createPhotoThumbnail = async (photo: PhotoBody): Promise<string> => {
-  const sourcePath = path.join(photo.directory, photo.name);
+  const sourcePath = resolvePhotoPath(photo.directory, photo.name);
   const thumbnailData = await renderThumbnailWithEdits({
     sourcePath,
     edits: photo.edits,

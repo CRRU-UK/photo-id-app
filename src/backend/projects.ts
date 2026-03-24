@@ -30,7 +30,25 @@ import {
 } from "@/constants";
 import { projectBodySchema } from "@/schemas";
 
+/**
+ * Validates that a filename does not escape the given directory via path traversal sequences.
+ * Returns the resolved absolute path if valid, otherwise throws.
+ */
+export const resolvePhotoPath = (directory: string, fileName: string): string => {
+  const resolved = path.resolve(directory, fileName);
+  const resolvedDirectory = path.resolve(directory);
+
+  if (!resolved.startsWith(resolvedDirectory + path.sep)) {
+    throw new Error("Invalid photo path: escapes project directory");
+  }
+
+  return resolved;
+};
+
 let currentProjectDirectory: string | null = null;
+
+// Cache for editor navigation to avoid re-reading the project file from disk on every arrow press
+let cachedProjectData: { path: string; mtimeMs: number; data: ProjectBody } | null = null;
 
 /**
  * Returns the directory of the currently open project, or null if none. Used by `getCurrentProject`
@@ -43,6 +61,7 @@ export const getCurrentProjectDirectory = (): string | null => currentProjectDir
  */
 export const setCurrentProject = (directory: string | null): void => {
   currentProjectDirectory = directory;
+  cachedProjectData = null;
 };
 
 export const parseProjectFile = async (filePath: string): Promise<ProjectBody> => {
@@ -104,7 +123,13 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
         return sendData(mainWindow, data);
       } catch (error) {
         console.error("Failed to load existing project file:", error);
-        dialog.showErrorBox("Invalid project file", String(error));
+
+        const message =
+          error instanceof Error && (error.name === "ZodError" || error instanceof SyntaxError)
+            ? "The project file contains invalid or corrupted data."
+            : String(error);
+
+        dialog.showErrorBox("Invalid project file", message);
 
         return;
       }
@@ -119,23 +144,24 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
     progressValue: 0,
   } as LoadingData);
 
-  const photos = files.filter((fileName) => {
-    // Filter directories
-    if (!fs.lstatSync(path.join(directory, fileName)).isFile()) {
-      return false;
-    }
+  const photoChecks = await Promise.all(
+    files.map(async (fileName) => {
+      // Filter non-images based on file extension
+      if (
+        !PHOTO_FILE_EXTENSIONS.some(
+          (extension) => extension.toLowerCase() === path.extname(fileName.toLowerCase()),
+        )
+      ) {
+        return false;
+      }
 
-    // Filter non-images based on file extension
-    if (
-      !PHOTO_FILE_EXTENSIONS.some(
-        (extension) => extension.toLowerCase() === path.extname(fileName.toLowerCase()),
-      )
-    ) {
-      return false;
-    }
+      // Filter directories
+      const stat = await fs.promises.lstat(path.join(directory, fileName));
+      return stat.isFile();
+    }),
+  );
 
-    return true;
-  });
+  const photos = files.filter((_, index) => photoChecks[index]);
 
   const thumbnailDirectory = path.join(directory, PROJECT_THUMBNAIL_DIRECTORY);
   if (!fs.existsSync(thumbnailDirectory)) {
@@ -179,6 +205,10 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
 
   const now = new Date().toISOString();
 
+  /**
+   * Creates `INITIAL_MATCHED_STACKS` empty match pairs. Each pair becomes two MobX Collection
+   * instances (104 total). This is a one-time cost at project creation as observables are cheap.
+   */
   const defaultMatches = [];
   for (let i = 0; i < INITIAL_MATCHED_STACKS; i += 1) {
     defaultMatches.push({
@@ -284,8 +314,8 @@ const handleOpenProjectFile = async (mainWindow: Electron.BrowserWindow, file: s
 
 /**
  * Handles saving a project file. Uses the currently open project directory (tracked when the
- * project is loaded) so the write path is authoritative; the payload is only validated, not
- * used for the file path.
+ * project is loaded) so the write path is authoritative; the payload is only validated, not used
+ * for the file path.
  */
 const handleSaveProject = async (data: string) => {
   const directory = getCurrentProjectDirectory();
@@ -295,32 +325,45 @@ const handleSaveProject = async (data: string) => {
   }
 
   const json: unknown = JSON.parse(data);
-  projectBodySchema.parse(json);
+  const result = projectBodySchema.safeParse(json);
 
-  await fs.promises.writeFile(path.join(directory, PROJECT_FILE_NAME), data, "utf8");
+  if (!result.success) {
+    throw new Error(`Invalid project data: ${result.error.message}`);
+  }
+
+  // Atomic save: write to a temp file then rename so a crash mid-write cannot corrupt the project
+  const projectPath = path.join(directory, PROJECT_FILE_NAME);
+  const tempPath = `${projectPath}.tmp`;
+
+  await fs.promises.writeFile(tempPath, data, "utf8");
+  await fs.promises.rename(tempPath, projectPath);
 };
 
 /**
  * Duplicates the original, edited, and thumbnail versions of a photo a returns the new filenames.
  */
 const handleDuplicatePhotoFile = async (data: PhotoBody): Promise<PhotoBody> => {
-  const originalPath = path.join(data.directory, data.name);
-  const thumbnailPath = path.join(data.directory, data.thumbnail);
+  const originalPath = resolvePhotoPath(data.directory, data.name);
+  const thumbnailPath = resolvePhotoPath(data.directory, data.thumbnail);
 
   const time = Date.now();
 
   const originalExtension = path.extname(data.name);
-  const newOriginalPath = data.name.replace(
-    originalExtension,
-    `_duplicate_${time}${originalExtension}`,
+  const originalBaseName = path.basename(data.name, originalExtension);
+  const originalDir = path.dirname(data.name);
+  const newOriginalPath = path.join(
+    originalDir,
+    `${originalBaseName}_duplicate_${time}${originalExtension}`,
   );
 
   await fs.promises.copyFile(originalPath, path.join(data.directory, newOriginalPath));
 
   const thumbnailExtension = path.extname(data.thumbnail);
-  const newThumbnailPath = data.thumbnail.replace(
-    thumbnailExtension,
-    `_duplicate_${time}${thumbnailExtension}`,
+  const thumbnailBaseName = path.basename(data.thumbnail, thumbnailExtension);
+  const thumbnailDir = path.dirname(data.thumbnail);
+  const newThumbnailPath = path.join(
+    thumbnailDir,
+    `${thumbnailBaseName}_duplicate_${time}${thumbnailExtension}`,
   );
 
   await fs.promises.copyFile(thumbnailPath, path.join(data.directory, newThumbnailPath));
@@ -369,6 +412,19 @@ const findPhotoInProject = (project: ProjectBody, photo: PhotoBody): CollectionB
   return null;
 };
 
+const getCachedProjectData = async (projectPath: string): Promise<ProjectBody> => {
+  const stat = await fs.promises.stat(projectPath);
+
+  if (cachedProjectData?.path === projectPath && cachedProjectData.mtimeMs === stat.mtimeMs) {
+    return cachedProjectData.data;
+  }
+
+  const data = await parseProjectFile(projectPath);
+  cachedProjectData = { path: projectPath, mtimeMs: stat.mtimeMs, data };
+
+  return data;
+};
+
 /**
  * Returns photo to show in the editor on navigation based on direction.
  */
@@ -377,7 +433,7 @@ const handleEditorNavigate = async (
   direction: EditorNavigation,
 ): Promise<PhotoBody | null> => {
   const projectPath = path.join(data.directory, PROJECT_FILE_NAME);
-  const projectData = await parseProjectFile(projectPath);
+  const projectData = await getCachedProjectData(projectPath);
 
   const collection = findPhotoInProject(projectData, data);
   if (!collection) {

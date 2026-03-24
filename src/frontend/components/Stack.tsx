@@ -31,6 +31,7 @@ interface StackImageProps {
 const StackImage = observer(({ photo }: StackImageProps) => (
   <img
     src={photo.thumbnailFullPath}
+    loading="lazy"
     style={{
       cursor: "pointer",
       display: "block",
@@ -83,18 +84,22 @@ const Stack = observer(({ collection, showAnalysisButton = true, stackLabel }: S
   const { onKeyDown: draggableOnKeyDown, ...draggableListeners } = listeners ?? {};
 
   const handleOpenEdit = () => {
-    window.electronAPI.openEditWindow(currentPhoto!.toBody());
+    if (!currentPhoto) {
+      return;
+    }
+
+    window.electronAPI.openEditWindow(currentPhoto.toBody());
   };
 
   const handleRevertPhoto = async () => {
-    if (revertingPhoto) {
+    if (revertingPhoto || !currentPhoto) {
       return;
     }
 
     setRevertingPhoto(true);
 
-    const newData = await window.electronAPI.revertPhotoFile(currentPhoto!.toBody());
-    currentPhoto!.updatePhoto(newData);
+    const newData = await window.electronAPI.revertPhotoFile(currentPhoto.toBody());
+    currentPhoto.updatePhoto(newData);
 
     setActionsOpen(false);
     setRevertingPhoto(false);
@@ -121,7 +126,7 @@ const Stack = observer(({ collection, showAnalysisButton = true, stackLabel }: S
             draggableOnKeyDown?.(event);
           }}
         >
-          {collection?.currentPhoto && <StackImage photo={currentPhoto!} />}
+          {currentPhoto && <StackImage photo={currentPhoto} />}
         </div>
       </div>
 

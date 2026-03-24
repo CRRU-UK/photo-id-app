@@ -14,7 +14,7 @@ import {
 import { getAlphabetLetter } from "@/helpers";
 import { projectBodySchema } from "@/schemas";
 
-import { getCurrentProjectDirectory } from "@/backend/projects";
+import { getCurrentProjectDirectory, resolvePhotoPath } from "@/backend/projects";
 
 /**
  * Returns the label used for a match in exports (CSV and photo filenames): letter from match id,
@@ -123,7 +123,7 @@ const exportMatchesAsPhotos = async (
       const originalExtension = path.extname(photo.name);
       const baseExportName = `${photoName}${label}_${path.basename(photo.name, originalExtension)}`;
 
-      const sourcePath = path.join(directory, photo.name);
+      const sourcePath = resolvePhotoPath(directory, photo.name);
 
       const exportedName = `${baseExportName}${originalExtension}`;
       const exportedPath = path.join(exportsDirectory, exportedName);

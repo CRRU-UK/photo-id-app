@@ -262,10 +262,7 @@ describe("shared IPC utilities", () => {
 
       await wrapped();
 
-      expect(mockShowErrorBox).toHaveBeenCalledWith(
-        "Failed to test action",
-        "Error: something broke",
-      );
+      expect(mockShowErrorBox).toHaveBeenCalledWith("Failed to test action", "something broke");
     });
 
     it("does not show an error dialog when the handler succeeds", async () => {

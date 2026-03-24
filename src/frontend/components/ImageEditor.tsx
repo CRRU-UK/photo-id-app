@@ -407,6 +407,37 @@ const ImageEditor = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [handlers.handleWheel, handleKeyDown]);
 
+  // Warn the user before closing the edit window when there are unsaved changes. The ref ensures
+  // the beforeunload handler always reads the latest getter without re-subscribing on every change.
+  const gettersRef = useRef(getters);
+  gettersRef.current = getters;
+
+  useEffect(() => {
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      const currentGetters = gettersRef.current;
+      const currentFilters = currentGetters.getFilters();
+      const currentTransform = currentGetters.getTransform();
+
+      const hasUnsavedEdits =
+        currentFilters.brightness !== edits.brightness ||
+        currentFilters.contrast !== edits.contrast ||
+        currentFilters.saturate !== edits.saturate ||
+        currentTransform.zoom !== edits.zoom ||
+        currentTransform.pan.x !== edits.pan.x ||
+        currentTransform.pan.y !== edits.pan.y;
+
+      if (hasUnsavedEdits) {
+        event.preventDefault();
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [edits]);
+
   return (
     <>
       <LoadingOverlay data={{ show: navigating }} />

@@ -7,9 +7,12 @@ import type { CollectionBody, PhotoBody, PhotoEdits, ProjectBody } from "@/types
 
 const mockExistsSync = vi.fn<(path: string) => boolean>();
 const mockLstatSync = vi.fn<(path: string) => { isFile: () => boolean }>();
+const mockLstat = vi.fn<(path: string) => Promise<{ isFile: () => boolean }>>();
 const mockReadFile = vi.fn<(path: string, encoding: string) => Promise<string>>();
 const mockWriteFile = vi.fn<(path: string, data: string, encoding: string) => Promise<void>>();
 const mockCopyFile = vi.fn<(src: string, dest: string) => Promise<void>>();
+const mockRename = vi.fn<(oldPath: string, newPath: string) => Promise<void>>();
+const mockStat = vi.fn<(path: string) => Promise<{ mtimeMs: number }>>();
 const mockReaddir = vi.fn<(path: string) => Promise<string[]>>();
 const mockUnlink = vi.fn<(path: string) => Promise<void>>();
 const mockMkdir = vi.fn<(path: string) => Promise<void>>();
@@ -36,6 +39,9 @@ vi.mock("node:fs", () => ({
       readdir: (...args: Parameters<typeof mockReaddir>) => mockReaddir(...args),
       unlink: (...args: Parameters<typeof mockUnlink>) => mockUnlink(...args),
       mkdir: (...args: Parameters<typeof mockMkdir>) => mockMkdir(...args),
+      lstat: (...args: Parameters<typeof mockLstat>) => mockLstat(...args),
+      rename: (...args: Parameters<typeof mockRename>) => mockRename(...args),
+      stat: (...args: Parameters<typeof mockStat>) => mockStat(...args),
     },
   },
 }));
@@ -238,9 +244,10 @@ describe(handleSaveProject, () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockWriteFile.mockResolvedValue(undefined);
+    mockRename.mockResolvedValue(undefined);
   });
 
-  it("writes the project data to the correct file path", async () => {
+  it("writes the project data to a temp file then renames atomically", async () => {
     setCurrentProject("/my/project");
 
     const project = createProject({ directory: "/my/project" });
@@ -248,7 +255,15 @@ describe(handleSaveProject, () => {
 
     await handleSaveProject(data);
 
-    expect(mockWriteFile).toHaveBeenCalledWith(`/my/project/${PROJECT_FILE_NAME}`, data, "utf8");
+    expect(mockWriteFile).toHaveBeenCalledWith(
+      `/my/project/${PROJECT_FILE_NAME}.tmp`,
+      data,
+      "utf8",
+    );
+    expect(mockRename).toHaveBeenCalledWith(
+      `/my/project/${PROJECT_FILE_NAME}.tmp`,
+      `/my/project/${PROJECT_FILE_NAME}`,
+    );
   });
 
   it("writes the raw JSON string, not re-serialised data", async () => {
@@ -353,6 +368,12 @@ describe(handleDuplicatePhotoFile, () => {
 describe(handleEditorNavigate, () => {
   beforeEach(() => {
     vi.clearAllMocks();
+
+    // Clear the project cache between tests so each test gets fresh data
+    setCurrentProject(null);
+
+    // Each test reads the project file; stat returns a unique mtime to bypass the cache
+    mockStat.mockResolvedValue({ mtimeMs: Date.now() });
   });
 
   it("returns null when the collection has only one photo", async () => {
@@ -542,7 +563,7 @@ describe(handleOpenDirectoryPrompt, () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockWriteFile.mockResolvedValue(undefined);
-    mockLstatSync.mockReturnValue({ isFile: () => true });
+    mockLstat.mockResolvedValue({ isFile: () => true });
   });
 
   it("does nothing when the dialog is cancelled", async () => {
@@ -670,9 +691,9 @@ describe(handleOpenDirectoryPrompt, () => {
     mockExistsSync.mockReturnValue(false);
 
     // "subfolder" is not a file
-    mockLstatSync.mockImplementation((filePath: string) => ({
-      isFile: () => !filePath.includes("subfolder"),
-    }));
+    mockLstat.mockImplementation((filePath: string) =>
+      Promise.resolve({ isFile: () => !filePath.includes("subfolder") }),
+    );
 
     const mainWindow = createMockMainWindow();
 

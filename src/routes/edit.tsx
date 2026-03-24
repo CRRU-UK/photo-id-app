@@ -64,6 +64,7 @@ const EditPage = () => {
     async function fetchData(encoded: string) {
       setLoading({ show: true });
       setError(null);
+      setFile(null);
 
       try {
         const parsedData = decodeEditPayload(encoded);

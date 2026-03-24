@@ -44,6 +44,7 @@ const mockGetCurrentProjectDirectory = vi.fn<() => string | null>();
 
 vi.mock("@/backend/projects", () => ({
   getCurrentProjectDirectory: () => mockGetCurrentProjectDirectory(),
+  resolvePhotoPath: (directory: string, fileName: string) => `${directory}/${fileName}`,
 }));
 
 const { handleExportMatches } = await import("./exports");

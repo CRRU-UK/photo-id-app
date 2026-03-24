@@ -1,4 +1,4 @@
-import { BrowserWindow, type IpcMainEvent, type IpcMainInvokeEvent } from "electron";
+import { BrowserWindow, dialog, type IpcMainEvent, type IpcMainInvokeEvent } from "electron";
 import url from "node:url";
 
 import { handleEditorNavigate } from "@/backend/projects";
@@ -50,6 +50,22 @@ export const handleOpenEditWindow = (config: EditorConfig) => {
         }),
       );
     }
+
+    // Show a confirmation dialog when the renderer prevents unload due to unsaved edits
+    editWindow.webContents.on("will-prevent-unload", (event) => {
+      const response = dialog.showMessageBoxSync(editWindow, {
+        type: "question",
+        buttons: ["Discard Changes", "Cancel"],
+        defaultId: 1,
+        cancelId: 1,
+        title: "Unsaved Changes",
+        message: "This photo has unsaved edits. Are you sure you want to close?",
+      });
+
+      if (response === 0) {
+        event.preventDefault();
+      }
+    });
 
     editWindow.once("ready-to-show", () => editWindow.show());
   };
