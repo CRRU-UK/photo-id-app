@@ -1,5 +1,6 @@
 import { BrowserWindow, dialog } from "electron";
 import path from "node:path";
+import { ZodError } from "zod";
 
 import {
   getCurrentProjectDirectory,
@@ -7,7 +8,12 @@ import {
   setCurrentProject,
 } from "@/backend/projects";
 import { windowManager } from "@/backend/WindowManager";
-import { DEFAULT_WINDOW_TITLE, EXTERNAL_LINKS, PROJECT_FILE_EXTENSION } from "@/constants";
+import {
+  CORRUPTED_DATA_MESSAGE,
+  DEFAULT_WINDOW_TITLE,
+  EXTERNAL_LINKS,
+  PROJECT_FILE_EXTENSION,
+} from "@/constants";
 import type { ExternalLinks } from "@/types";
 
 import { version } from "../../../package.json";
@@ -99,12 +105,8 @@ export const resolveExternalLinkUrl = (link: ExternalLinks): string | undefined 
  * showing raw schema details to users.
  */
 export const getUserErrorMessage = (error: unknown): string => {
-  if (error instanceof Error && error.name === "ZodError") {
-    return "The file contains invalid or corrupted data. It may have been modified outside the app.";
-  }
-
-  if (error instanceof SyntaxError) {
-    return "The file contains invalid data and could not be read.";
+  if (error instanceof ZodError || error instanceof SyntaxError) {
+    return CORRUPTED_DATA_MESSAGE;
   }
 
   if (error instanceof Error) {

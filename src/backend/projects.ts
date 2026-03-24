@@ -2,6 +2,7 @@ import { app, dialog } from "electron";
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
+import { ZodError } from "zod";
 
 import type {
   CollectionBody,
@@ -14,6 +15,7 @@ import type {
 import { createPhotoThumbnail } from "@/backend/photos";
 import { addRecentProject } from "@/backend/recents";
 import {
+  CORRUPTED_DATA_MESSAGE,
   DEFAULT_PHOTO_EDITS,
   DEFAULT_WINDOW_TITLE,
   EXISTING_DATA_BUTTONS,
@@ -121,8 +123,8 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
         console.error("Failed to load existing project file:", error);
 
         const message =
-          error instanceof Error && (error.name === "ZodError" || error instanceof SyntaxError)
-            ? "The project file contains invalid or corrupted data."
+          error instanceof ZodError || error instanceof SyntaxError
+            ? CORRUPTED_DATA_MESSAGE
             : String(error);
 
         dialog.showErrorBox("Invalid project file", message);
@@ -327,12 +329,7 @@ const handleSaveProject = async (data: string) => {
     throw new Error(`Invalid project data: ${result.error.message}`);
   }
 
-  // Atomic save: write to a temp file then rename so a crash mid-write cannot corrupt the project
-  const projectPath = path.join(directory, PROJECT_FILE_NAME);
-  const tempPath = `${projectPath}.tmp`;
-
-  await fs.promises.writeFile(tempPath, data, "utf8");
-  await fs.promises.rename(tempPath, projectPath);
+  await fs.promises.writeFile(path.join(directory, PROJECT_FILE_NAME), data, "utf8");
 };
 
 /**

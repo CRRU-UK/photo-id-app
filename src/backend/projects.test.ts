@@ -11,7 +11,6 @@ const mockLstat = vi.fn<(path: string) => Promise<{ isFile: () => boolean }>>();
 const mockReadFile = vi.fn<(path: string, encoding: string) => Promise<string>>();
 const mockWriteFile = vi.fn<(path: string, data: string, encoding: string) => Promise<void>>();
 const mockCopyFile = vi.fn<(src: string, dest: string) => Promise<void>>();
-const mockRename = vi.fn<(oldPath: string, newPath: string) => Promise<void>>();
 const mockReaddir = vi.fn<(path: string) => Promise<string[]>>();
 const mockUnlink = vi.fn<(path: string) => Promise<void>>();
 const mockMkdir = vi.fn<(path: string) => Promise<void>>();
@@ -39,7 +38,6 @@ vi.mock("node:fs", () => ({
       unlink: (...args: Parameters<typeof mockUnlink>) => mockUnlink(...args),
       mkdir: (...args: Parameters<typeof mockMkdir>) => mockMkdir(...args),
       lstat: (...args: Parameters<typeof mockLstat>) => mockLstat(...args),
-      rename: (...args: Parameters<typeof mockRename>) => mockRename(...args),
     },
   },
 }));
@@ -242,10 +240,9 @@ describe(handleSaveProject, () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockWriteFile.mockResolvedValue(undefined);
-    mockRename.mockResolvedValue(undefined);
   });
 
-  it("writes the project data to a temp file then renames atomically", async () => {
+  it("writes the project data to the correct file path", async () => {
     setCurrentProject("/my/project");
 
     const project = createProject({ directory: "/my/project" });
@@ -253,15 +250,7 @@ describe(handleSaveProject, () => {
 
     await handleSaveProject(data);
 
-    expect(mockWriteFile).toHaveBeenCalledWith(
-      `/my/project/${PROJECT_FILE_NAME}.tmp`,
-      data,
-      "utf8",
-    );
-    expect(mockRename).toHaveBeenCalledWith(
-      `/my/project/${PROJECT_FILE_NAME}.tmp`,
-      `/my/project/${PROJECT_FILE_NAME}`,
-    );
+    expect(mockWriteFile).toHaveBeenCalledWith(`/my/project/${PROJECT_FILE_NAME}`, data, "utf8");
   });
 
   it("writes the raw JSON string, not re-serialised data", async () => {

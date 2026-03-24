@@ -66,6 +66,9 @@ export const SAVE_PROJECT_DEBOUNCE_MS = 1000;
 export const UNSAVED_EDITS_MESSAGE =
   "This photo has unsaved edits. Are you sure you want to discard your changes?";
 
+export const CORRUPTED_DATA_MESSAGE =
+  "The file contains corrupted data. It may have been modified outside the app.";
+
 export const EXISTING_DATA_MESSAGE =
   "A data file already exists for this folder - choose whether to resume the existing data, replace/reset the existing data, or cancel.";
 
