@@ -153,6 +153,23 @@ app.on("activate", async () => {
 });
 
 void app.whenReady().then(async () => {
+  // Prevent running directly from a mounted DMG on macOS
+  if (process.platform === "darwin" && production) {
+    const executablePath = app.getPath("exe");
+
+    if (executablePath.startsWith("/Volumes/")) {
+      dialog.showMessageBoxSync({
+        type: "warning",
+        buttons: ["Quit"],
+        title: "Move Photo ID to Applications",
+        message: "Please move the Photo ID app to your Applications folder before opening it.",
+      });
+
+      app.exit();
+      return;
+    }
+  }
+
   const settings = await getSettings();
   setSentryEnabled(settings.telemetry);
 
