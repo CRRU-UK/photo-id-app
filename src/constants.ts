@@ -200,13 +200,15 @@ export const MATCHED_STACKS_PER_PAGE = 8;
 
 export const INITIAL_MATCHED_STACKS = 52;
 
+export const VERSION_TEXT = "$VERSION";
+
 export enum EXTERNAL_LINKS {
   WEBSITE = "https://crru.org.uk",
   USER_GUIDE = "https://photoidapp.crru.org.uk/user-guide/usage/",
   USER_GUIDE_ML = "https://photoidapp.crru.org.uk/user-guide/machine-learning/",
   USER_GUIDE_ML_TOKENS = "https://photoidapp.crru.org.uk/user-guide/machine-learning/#api-tokens",
   KEYBOARD_SHORTCUTS = "https://photoidapp.crru.org.uk/user-guide/keyboard-shortcuts/",
-  CHANGELOG = "https://github.com/CRRU-UK/photo-id-app/releases/$VERSION",
+  CHANGELOG = `https://github.com/CRRU-UK/photo-id-app/releases/${VERSION_TEXT}`,
   PRIVACY = "https://photoidapp.crru.org.uk/privacy/",
 }
 

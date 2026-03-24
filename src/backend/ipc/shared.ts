@@ -13,6 +13,7 @@ import {
   DEFAULT_WINDOW_TITLE,
   EXTERNAL_LINKS,
   PROJECT_FILE_EXTENSION,
+  VERSION_TEXT,
 } from "@/constants";
 import type { ExternalLinks } from "@/types";
 
@@ -87,8 +88,8 @@ const EXTERNAL_LINK_MAP: Record<string, string> = {
 };
 
 /**
- * Maps an ExternalLinks value to its URL and opens it in the default browser.
- * Returns the URL string for shell.openExternal, or undefined if the link is not recognised.
+ * Maps an {@link EXTERNAL_LINK_MAP} value to its URL and opens it in the default browser. Returns
+ * the URL string for `shell.openExternal`, or undefined if the link is not recognised.
  */
 export const resolveExternalLinkUrl = (link: ExternalLinks): string | undefined => {
   const url = EXTERNAL_LINK_MAP[link];
@@ -97,7 +98,7 @@ export const resolveExternalLinkUrl = (link: ExternalLinks): string | undefined 
     return undefined;
   }
 
-  return url.replace("$VERSION", `v${version}`);
+  return url.replace(VERSION_TEXT, `v${version}`);
 };
 
 /**
