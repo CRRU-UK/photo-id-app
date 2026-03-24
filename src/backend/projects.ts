@@ -86,6 +86,46 @@ const homePath = app.getPath("home");
 const desktopPath = path.resolve(homePath, "Desktop");
 
 /**
+ * Prompts the user when a project file already exists in the chosen directory. Returns `true` if
+ * the caller should proceed to create a new project (user chose to overwrite), or `false` if the
+ * existing project was opened or the user cancelled.
+ */
+const handleExistingProjectFile = async (
+  mainWindow: Electron.BrowserWindow,
+  directory: string,
+): Promise<boolean> => {
+  const { response } = await dialog.showMessageBox({
+    message: EXISTING_DATA_MESSAGE,
+    type: "question",
+    buttons: EXISTING_DATA_BUTTONS,
+  });
+
+  if (response === EXISTING_DATA_RESPONSE.CANCEL) {
+    return false;
+  }
+
+  if (response === EXISTING_DATA_RESPONSE.OPEN_EXISTING) {
+    try {
+      const data = await parseProjectFile(path.join(directory, PROJECT_FILE_NAME));
+      sendData(mainWindow, data);
+    } catch (error) {
+      console.error("Failed to load existing project file:", error);
+
+      const message =
+        error instanceof ZodError || error instanceof SyntaxError
+          ? CORRUPTED_DATA_MESSAGE
+          : String(error);
+
+      dialog.showErrorBox("Invalid project file", message);
+    }
+
+    return false;
+  }
+
+  return true;
+};
+
+/**
  * Handles opening, filtering, and processing a project folder.
  */
 const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => {
@@ -104,36 +144,10 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
   const files = await fs.promises.readdir(directory);
 
   if (files.includes(PROJECT_FILE_NAME)) {
-    const { response } = await dialog.showMessageBox({
-      message: EXISTING_DATA_MESSAGE,
-      type: "question",
-      buttons: EXISTING_DATA_BUTTONS,
-    });
-
-    if (response === EXISTING_DATA_RESPONSE.CANCEL) {
+    const shouldCreateNew = await handleExistingProjectFile(mainWindow, directory);
+    if (!shouldCreateNew) {
       return;
     }
-
-    if (response === EXISTING_DATA_RESPONSE.OPEN_EXISTING) {
-      try {
-        const data = await parseProjectFile(path.join(directory, PROJECT_FILE_NAME));
-
-        return sendData(mainWindow, data);
-      } catch (error) {
-        console.error("Failed to load existing project file:", error);
-
-        const message =
-          error instanceof ZodError || error instanceof SyntaxError
-            ? CORRUPTED_DATA_MESSAGE
-            : String(error);
-
-        dialog.showErrorBox("Invalid project file", message);
-
-        return;
-      }
-    }
-
-    // Otherwise, create and open new project...
   }
 
   mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, {
