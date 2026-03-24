@@ -3,7 +3,7 @@ import url from "node:url";
 
 import { handleEditorNavigate } from "@/backend/projects";
 import { windowManager } from "@/backend/WindowManager";
-import { IPC_EVENTS, ROUTES } from "@/constants";
+import { IPC_EVENTS, ROUTES, UNSAVED_EDITS_MESSAGE } from "@/constants";
 import { encodeEditPayload } from "@/helpers";
 import type { EditorNavigation, PhotoBody } from "@/types";
 
@@ -59,7 +59,7 @@ export const handleOpenEditWindow = (config: EditorConfig) => {
         defaultId: 1,
         cancelId: 1,
         title: "Unsaved Changes",
-        message: "This photo has unsaved edits. Are you sure you want to close?",
+        message: UNSAVED_EDITS_MESSAGE,
       });
 
       if (response === 0) {

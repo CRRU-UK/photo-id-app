@@ -26,6 +26,7 @@ import {
   IMAGE_FILTERS,
   KEYBOARD_CODE_TO_PAN_DIRECTION,
   LOUPE,
+  UNSAVED_EDITS_MESSAGE,
 } from "@/constants";
 import LoadingOverlay from "@/frontend/components/LoadingOverlay";
 import useImageEditor from "@/frontend/hooks/useImageEditor";
@@ -243,10 +244,38 @@ const ImageEditor = ({
     }
   }, [data, getters]);
 
+  /**
+   * Ref ensures the dirty check always reads the latest getters without re-subscribing on every
+   * change. Used by `beforeunload` and navigation confirmation.
+   */
+  const gettersRef = useRef(getters);
+  gettersRef.current = getters;
+
+  const hasUnsavedEdits = useCallback((): boolean => {
+    const currentFilters = gettersRef.current.getFilters();
+    const currentTransform = gettersRef.current.getTransform();
+
+    return (
+      currentFilters.brightness !== edits.brightness ||
+      currentFilters.contrast !== edits.contrast ||
+      currentFilters.saturate !== edits.saturate ||
+      currentTransform.zoom !== edits.zoom ||
+      currentTransform.pan.x !== edits.pan.x ||
+      currentTransform.pan.y !== edits.pan.y
+    );
+  }, [edits]);
+
   const handleEditorNavigation = useCallback(
     async (direction: EditorNavigation) => {
       if (navigating) {
         return;
+      }
+
+      if (hasUnsavedEdits()) {
+        const discard = window.confirm(UNSAVED_EDITS_MESSAGE);
+        if (!discard) {
+          return;
+        }
       }
 
       setNavigating(true);
@@ -259,7 +288,7 @@ const ImageEditor = ({
 
       setNavigating(false);
     },
-    [data, navigating, setQueryCallback],
+    [data, navigating, setQueryCallback, hasUnsavedEdits],
   );
 
   const handleKeyDown = useCallback(
@@ -407,26 +436,10 @@ const ImageEditor = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [handlers.handleWheel, handleKeyDown]);
 
-  // Warn the user before closing the edit window when there are unsaved changes. The ref ensures
-  // the beforeunload handler always reads the latest getter without re-subscribing on every change.
-  const gettersRef = useRef(getters);
-  gettersRef.current = getters;
-
+  // Warn the user before closing the edit window when there are unsaved changes
   useEffect(() => {
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-      const currentGetters = gettersRef.current;
-      const currentFilters = currentGetters.getFilters();
-      const currentTransform = currentGetters.getTransform();
-
-      const hasUnsavedEdits =
-        currentFilters.brightness !== edits.brightness ||
-        currentFilters.contrast !== edits.contrast ||
-        currentFilters.saturate !== edits.saturate ||
-        currentTransform.zoom !== edits.zoom ||
-        currentTransform.pan.x !== edits.pan.x ||
-        currentTransform.pan.y !== edits.pan.y;
-
-      if (hasUnsavedEdits) {
+      if (hasUnsavedEdits()) {
         event.preventDefault();
       }
     };
@@ -436,7 +449,7 @@ const ImageEditor = ({
     return () => {
       window.removeEventListener("beforeunload", handleBeforeUnload);
     };
-  }, [edits]);
+  }, [hasUnsavedEdits]);
 
   return (
     <>
