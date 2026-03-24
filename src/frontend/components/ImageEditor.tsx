@@ -137,10 +137,18 @@ const ImageEditor = ({
 
   /**
    * Tracks the last saved edits so hasUnsavedEdits can compare against them. Updated on save
-   * because the edit window does not receive UPDATE_PHOTO (only the main window does).
+   * because the edit window does not receive UPDATE_PHOTO (only the main window does). Only reset
+   * from props when the photo changes (navigation), not on every render.
    */
   const savedEditsRef = useRef(edits);
-  savedEditsRef.current = edits;
+
+  const photoId = `${data.directory}/${data.name}`;
+  const previousPhotoIdForEditsRef = useRef(photoId);
+
+  if (previousPhotoIdForEditsRef.current !== photoId) {
+    previousPhotoIdForEditsRef.current = photoId;
+    savedEditsRef.current = edits;
+  }
 
   const [sliderInitials, setSliderInitials] = useState({
     brightness: edits.brightness,
