@@ -45,7 +45,31 @@ const updateSettings = async (settings: SettingsData): Promise<void> => {
 };
 
 /**
- * Initialises Sentry. Must be called before the Electron app `ready` event.
+ * Reads the telemetry setting synchronously from the settings file. Used before app ready for
+ * Sentry initialisation, where async I/O is not available. Returns the default telemetry value
+ * ("disabled") if the file is missing, unreadable, or fails validation.
+ */
+const getTelemetrySync = (): Telemetry => {
+  try {
+    const settingsFile = path.join(app.getPath("userData"), SETTINGS_FILE_NAME);
+
+    if (!fs.existsSync(settingsFile)) {
+      return DEFAULT_SETTINGS.telemetry;
+    }
+
+    const data = fs.readFileSync(settingsFile, "utf8");
+    const parsed = settingsDataSchema.parse(JSON.parse(data));
+
+    return parsed.telemetry;
+  } catch {
+    return DEFAULT_SETTINGS.telemetry;
+  }
+};
+
+/**
+ * Initialises Sentry. Must be called before the Electron app `ready` event. Reads the telemetry
+ * setting synchronously to determine whether Sentry should be enabled. The SDK only sets up
+ * integrations when `enabled` is true at init time, so this cannot be deferred/toggled.
  */
 const initSentry = (): void => {
   if (!process.env.SENTRY_DSN) {
@@ -53,25 +77,15 @@ const initSentry = (): void => {
     return;
   }
 
+  const telemetry = getTelemetrySync();
+
   Sentry.init({
     dsn: process.env.SENTRY_DSN,
-    enabled: false,
+    enabled: telemetry === "enabled",
     integrations: [Sentry.consoleLoggingIntegration({ levels: ["log", "warn", "error"] })],
     enableRendererProfiling: true,
     enableLogs: true,
   });
-};
-
-/**
- * Enables or disables Sentry event sending on the live client.
- */
-const setSentryEnabled = (telemetry: Telemetry): void => {
-  const client = Sentry.getClient();
-
-  if (client) {
-    client.getOptions().enabled = telemetry === "enabled";
-    console.debug(`Sentry has been ${telemetry} at runtime`);
-  }
 };
 
 /**
@@ -115,9 +129,9 @@ const getSettingsForRenderer = async (): Promise<SettingsData> => {
 export {
   getSettings,
   getSettingsForRenderer,
+  getTelemetrySync,
   initSentry,
   removeModel,
-  setSentryEnabled,
   updateSettings,
   upsertModel,
 };

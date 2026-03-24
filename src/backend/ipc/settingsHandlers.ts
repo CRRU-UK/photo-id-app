@@ -1,7 +1,7 @@
 import { type IpcMainEvent, type IpcMainInvokeEvent, shell } from "electron";
 
 import { broadcastToAllWindows, resolveExternalLinkUrl } from "@/backend/ipc/shared";
-import { getSettingsForRenderer, setSentryEnabled, updateSettings } from "@/backend/settings";
+import { getSettingsForRenderer, updateSettings } from "@/backend/settings";
 import { windowManager } from "@/backend/WindowManager";
 import { IPC_EVENTS } from "@/constants";
 import { settingsDataSchema } from "@/schemas";
@@ -19,7 +19,6 @@ export const handleUpdateSettings = async (
   const validatedSettings = settingsDataSchema.parse(settings);
 
   await updateSettings(validatedSettings);
-  setSentryEnabled(validatedSettings.telemetry);
 
   // Notify all windows with enriched settings
   const enrichedSettings = await getSettingsForRenderer();

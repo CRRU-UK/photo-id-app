@@ -51,17 +51,6 @@ const initializeSentry = () => {
 };
 
 /**
- * Applies the telemetry preference to the renderer's Sentry client.
- */
-const setRendererSentryEnabled = (enabled: boolean) => {
-  const client = Sentry.getClient();
-
-  if (client) {
-    client.getOptions().enabled = enabled;
-  }
-};
-
-/**
  * Gets the effective color mode based on theme mode setting and system preference.
  */
 const getEffectiveColorMode = (themeMode: ThemeMode): "light" | "dark" => {
@@ -104,15 +93,6 @@ export const SettingsProvider = ({ children }: SettingsProviderProps) => {
     applyTheme(effectiveMode);
   }, []);
 
-  const applyTelemetryPreference = useCallback((telemetry: "enabled" | "disabled") => {
-    if (telemetry === "enabled") {
-      initializeSentry();
-      setRendererSentryEnabled(true);
-    } else {
-      setRendererSentryEnabled(false);
-    }
-  }, []);
-
   useEffect(() => {
     const loadSettings = async () => {
       try {
@@ -120,13 +100,16 @@ export const SettingsProvider = ({ children }: SettingsProviderProps) => {
 
         setSettings(loadedSettings);
         applySettingsToTheme(loadedSettings);
-        applyTelemetryPreference(loadedSettings.telemetry);
+
+        // Telemetry is applied once on startup (requires a restart to change)
+        if (loadedSettings.telemetry === "enabled") {
+          initializeSentry();
+        }
       } catch (error) {
         console.error("Error loading settings:", error);
 
         setSettings(DEFAULT_SETTINGS);
         applySettingsToTheme(DEFAULT_SETTINGS);
-        applyTelemetryPreference(DEFAULT_SETTINGS.telemetry);
       }
     };
 
@@ -135,13 +118,12 @@ export const SettingsProvider = ({ children }: SettingsProviderProps) => {
     const unsubscribe = window.electronAPI.onSettingsUpdated((updatedSettings: SettingsData) => {
       setSettings(updatedSettings);
       applySettingsToTheme(updatedSettings);
-      applyTelemetryPreference(updatedSettings.telemetry);
     });
 
     return () => {
       unsubscribe();
     };
-  }, [applySettingsToTheme, applyTelemetryPreference]);
+  }, [applySettingsToTheme]);
 
   useEffect(() => {
     if (settings?.themeMode !== "auto") {

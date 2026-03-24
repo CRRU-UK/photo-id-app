@@ -19,7 +19,7 @@ import { registerSettingsHandlers } from "@/backend/ipc/settingsHandlers";
 import { findPhotoidArg, openProjectFromPath } from "@/backend/ipc/shared";
 import { getMenu } from "@/backend/menu";
 import { getCurrentProjectDirectory } from "@/backend/projects";
-import { getSettings, initSentry, setSentryEnabled } from "@/backend/settings";
+import { initSentry } from "@/backend/settings";
 import { windowManager } from "@/backend/WindowManager";
 import { CSP_HEADERS, PHOTO_FILE_EXTENSIONS, PHOTO_PROTOCOL_SCHEME } from "@/constants";
 
@@ -168,15 +168,13 @@ void app.whenReady().then(async () => {
     }
   }
 
-  const settings = await getSettings();
-  setSentryEnabled(settings.telemetry);
-
   // Set a Content Security Policy on all renderer responses to reduce XSS risk
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
     callback({
       responseHeaders: {
         ...details.responseHeaders,
         "Content-Security-Policy": [CSP_HEADERS],
+        "Document-Policy": ["js-profiling"],
       },
     });
   });

@@ -16,13 +16,10 @@ vi.mock("electron", () => ({
 
 const mockGetSettingsForRenderer = vi.fn<() => Promise<SettingsData>>();
 const mockUpdateSettings = vi.fn<(settings: SettingsData) => Promise<void>>();
-const mockSetSentryEnabled = vi.fn<(enabled: string) => void>();
 
 vi.mock("@/backend/settings", () => ({
   getSettingsForRenderer: () => mockGetSettingsForRenderer(),
   updateSettings: (...args: Parameters<typeof mockUpdateSettings>) => mockUpdateSettings(...args),
-  setSentryEnabled: (...args: Parameters<typeof mockSetSentryEnabled>) =>
-    mockSetSentryEnabled(...args),
 }));
 
 const mockGetMainWindow = vi.fn<() => BrowserWindow | null>();
@@ -81,7 +78,6 @@ describe("settings IPC handlers", () => {
       await handleUpdateSettings({} as IpcMainInvokeEvent, settings);
 
       expect(mockUpdateSettings).toHaveBeenCalledWith(settings);
-      expect(mockSetSentryEnabled).toHaveBeenCalledWith(settings.telemetry);
       expect(mockBroadcastToAllWindows).toHaveBeenCalledWith(
         "ui:settingsUpdated",
         enrichedSettings,
