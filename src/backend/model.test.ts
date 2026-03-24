@@ -10,6 +10,10 @@ vi.mock("@/backend/imageRenderer", () => ({
   renderApiImage: (options: RenderApiImageOptions) => mockRenderApiImage(options),
 }));
 
+vi.mock("@/backend/projects", () => ({
+  resolvePhotoPath: (_directory: string, fileName: string) => `/project/${fileName}`,
+}));
+
 const mockFetch = vi.fn<typeof fetch>();
 vi.stubGlobal("fetch", mockFetch);
 

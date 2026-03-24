@@ -1,7 +1,9 @@
 import path from "node:path";
 
 import { renderApiImage } from "@/backend/imageRenderer";
+import { resolvePhotoPath } from "@/backend/projects";
 import { ANALYSIS_API_REQUEST_TIMEOUT_MS } from "@/constants";
+import { mlMatchResponseSchema } from "@/schemas";
 import type { MLMatchResponse, PhotoBody } from "@/types";
 
 type AnalyseStackSettings = {
@@ -20,8 +22,9 @@ let currentAbortController: AbortController | null = null;
  * Generates a blob from a photo.
  */
 const generateImageBlob = async (photo: PhotoBody): Promise<Blob> => {
-  const sourcePath = path.join(photo.directory, photo.name);
+  const sourcePath = resolvePhotoPath(photo.directory, photo.name);
   const imageBuffer = await renderApiImage({ sourcePath, edits: photo.edits });
+
   const blob = new Blob([new Uint8Array(imageBuffer)], { type: "image/jpeg" });
 
   return blob;
@@ -109,7 +112,7 @@ const analyseStack = async ({
       throw new Error(body?.detail ?? `HTTP ${response.status}`);
     }
 
-    const result = (await response.json()) as MLMatchResponse;
+    const result = mlMatchResponseSchema.parse(await response.json());
 
     // Ensure data is sorted by rank ascending
     result.matches = result.matches.toSorted((a, b) => a.rank - b.rank);

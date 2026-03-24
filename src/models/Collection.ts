@@ -43,6 +43,11 @@ class Collection {
     return this;
   }
 
+  /**
+   * Removes a photo from this collection. Does NOT call `project.save()` because it is always
+   * called as part of a move operation (e.g. `addPhotoToStack`) that handles saving after both the
+   * remove and add are complete.
+   */
   removePhoto(photo: Photo): this {
     const photoIndex = this.photos.indexOf(photo);
     if (photoIndex !== -1) {

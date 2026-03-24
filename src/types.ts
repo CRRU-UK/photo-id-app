@@ -5,6 +5,8 @@ import type Photo from "@/models/Photo";
 import type {
   collectionBodySchema,
   matchedBodySchema,
+  mlMatchResponseSchema,
+  mlMatchSchema,
   mlModelDraftSchema,
   mlModelSchema,
   photoBodySchema,
@@ -97,24 +99,9 @@ export type TokenEntry = z.infer<typeof tokenEntrySchema>;
 
 export type TokenStore = z.infer<typeof tokenStoreSchema>;
 
-/**
- * Always ensure this stays in sync with the OpenAPI specs.
- * @see [analysis-api-spec.yaml](../docs/assets/analysis-api-spec.yaml)
- */
-export type MLMatch = {
-  rank: number;
-  id: string;
-  rating: number;
-  details: string;
-};
+export type MLMatch = z.infer<typeof mlMatchSchema>;
 
-/**
- * Always ensure this stays in sync with the OpenAPI specs.
- * @see [analysis-api-spec.yaml](../docs/assets/analysis-api-spec.yaml)
- */
-export type MLMatchResponse = {
-  matches: MLMatch[];
-};
+export type MLMatchResponse = z.infer<typeof mlMatchResponseSchema>;
 
 export type SettingsData = z.infer<typeof settingsDataSchema>;
 

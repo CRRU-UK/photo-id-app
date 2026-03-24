@@ -25,6 +25,15 @@ import { CSP_HEADERS, PHOTO_FILE_EXTENSIONS, PHOTO_PROTOCOL_SCHEME } from "@/con
 
 initSentry();
 
+process.on("uncaughtException", (error) => {
+  console.error("Uncaught exception:", error);
+  dialog.showErrorBox("Unexpected Error", String(error));
+});
+
+process.on("unhandledRejection", (reason) => {
+  console.error("Unhandled promise rejection:", reason);
+});
+
 updateElectronApp();
 
 protocol.registerSchemesAsPrivileged([
@@ -48,8 +57,8 @@ if (!gotTheLock) {
   app.quit();
 }
 
-// Stores a .photoid file path received before the main window is ready (macOS open-file or argv)
-let pendingFilePath: string | null = null;
+// Stores .photoid file paths received before the main window is ready (macOS open-file or argv)
+const pendingFilePaths: string[] = [];
 
 const defaultWebPreferences = {
   preload: path.join(__dirname, "preload.js"),
@@ -96,6 +105,20 @@ const createMainWindow = async () => {
 
   mainWindow.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
 
+  // Block navigation to arbitrary URLs so a compromised renderer cannot leave the app origin
+  mainWindow.webContents.on("will-navigate", (event, navigationUrl) => {
+    if (
+      MAIN_WINDOW_VITE_DEV_SERVER_URL &&
+      navigationUrl.startsWith(MAIN_WINDOW_VITE_DEV_SERVER_URL)
+    ) {
+      return;
+    }
+
+    if (!navigationUrl.startsWith("file:")) {
+      event.preventDefault();
+    }
+  });
+
   const menu = Menu.buildFromTemplate(getMenu(mainWindow));
   Menu.setApplicationMenu(menu);
 
@@ -122,7 +145,7 @@ app.on("open-file", async (event, filePath) => {
     return;
   }
 
-  pendingFilePath = filePath;
+  pendingFilePaths.push(filePath);
 });
 
 /**
@@ -154,15 +177,21 @@ app.on("activate", async () => {
 });
 
 void app.whenReady().then(async () => {
-  // Prevent running outside of the Applications folder on macOS
+  // Offer to move to the Applications folder on macOS if not already there
   if (process.platform === "darwin" && production) {
     if (!app.isInApplicationsFolder()) {
-      dialog.showMessageBoxSync({
-        type: "warning",
-        buttons: ["Quit"],
+      const response = dialog.showMessageBoxSync({
+        type: "question",
+        buttons: ["Move to Applications", "Quit"],
+        defaultId: 0,
+        cancelId: 1,
         title: "Move Photo ID to Applications",
-        message: "Please move the Photo ID app to your Applications folder before opening it.",
+        message: "Photo ID needs to be in your Applications folder to run correctly.",
       });
+
+      if (response === 0) {
+        return app.moveToApplicationsFolder();
+      }
 
       return app.exit();
     }
@@ -218,11 +247,15 @@ void app.whenReady().then(async () => {
 
   await createMainWindow();
 
-  // Handle file path from macOS open-file event that fired before the window was ready
+  /**
+   * Handle file path from macOS open-file event that fired before the window was ready (only the
+   * last path is opened if multiple events fired before the window was ready)
+   */
+  const pendingFilePath = pendingFilePaths.pop();
+  pendingFilePaths.length = 0;
+
   if (pendingFilePath) {
-    const filePath = pendingFilePath;
-    pendingFilePath = null;
-    await openProjectFromPath(filePath);
+    await openProjectFromPath(pendingFilePath);
   }
 
   // Handle file path from argv (Windows/Linux: app launched via file association)

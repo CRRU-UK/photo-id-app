@@ -7,6 +7,7 @@ import type { CollectionBody, PhotoBody, PhotoEdits, ProjectBody } from "@/types
 
 const mockExistsSync = vi.fn<(path: string) => boolean>();
 const mockLstatSync = vi.fn<(path: string) => { isFile: () => boolean }>();
+const mockLstat = vi.fn<(path: string) => Promise<{ isFile: () => boolean }>>();
 const mockReadFile = vi.fn<(path: string, encoding: string) => Promise<string>>();
 const mockWriteFile = vi.fn<(path: string, data: string, encoding: string) => Promise<void>>();
 const mockCopyFile = vi.fn<(src: string, dest: string) => Promise<void>>();
@@ -36,6 +37,7 @@ vi.mock("node:fs", () => ({
       readdir: (...args: Parameters<typeof mockReaddir>) => mockReaddir(...args),
       unlink: (...args: Parameters<typeof mockUnlink>) => mockUnlink(...args),
       mkdir: (...args: Parameters<typeof mockMkdir>) => mockMkdir(...args),
+      lstat: (...args: Parameters<typeof mockLstat>) => mockLstat(...args),
     },
   },
 }));
@@ -542,7 +544,7 @@ describe(handleOpenDirectoryPrompt, () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockWriteFile.mockResolvedValue(undefined);
-    mockLstatSync.mockReturnValue({ isFile: () => true });
+    mockLstat.mockResolvedValue({ isFile: () => true });
   });
 
   it("does nothing when the dialog is cancelled", async () => {
@@ -670,9 +672,9 @@ describe(handleOpenDirectoryPrompt, () => {
     mockExistsSync.mockReturnValue(false);
 
     // "subfolder" is not a file
-    mockLstatSync.mockImplementation((filePath: string) => ({
-      isFile: () => !filePath.includes("subfolder"),
-    }));
+    mockLstat.mockImplementation((filePath: string) =>
+      Promise.resolve({ isFile: () => !filePath.includes("subfolder") }),
+    );
 
     const mainWindow = createMockMainWindow();
 

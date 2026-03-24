@@ -1,4 +1,4 @@
-import { makeObservable, observable, runInAction } from "mobx";
+import { action, makeObservable, observable, runInAction } from "mobx";
 
 import { SAVE_PROJECT_DEBOUNCE_MS } from "@/constants";
 import Collection from "@/models/Collection";
@@ -32,6 +32,7 @@ class Project {
       unassigned: observable,
       discarded: observable,
       matched: observable,
+      loadFromJSON: action,
     });
 
     this.version = "v1";
@@ -80,17 +81,12 @@ class Project {
    * Loads project state from JSON. runInAction batches all observable updates into a single
    * transaction so observers re-run once instead of on every property change.
    */
-  public loadFromJSON(json: ProjectBody | string): this {
-    let data = json;
-
-    if (typeof json === "string") {
-      data = JSON.parse(json) as ProjectBody;
-    }
-
-    const { id, version, directory, unassigned, matched, discarded, created, lastModified } =
-      data as ProjectBody;
+  public loadFromJSON(data: ProjectBody): this {
+    const { id, version, directory, unassigned, matched, discarded, created, lastModified } = data;
 
     runInAction(() => {
+      this.allPhotos.clear();
+
       this.id = id;
       this.version = version;
       this.directory = directory;

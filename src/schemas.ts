@@ -77,6 +77,25 @@ export const matchedBodySchema = z.object({
   right: collectionBodySchema,
 });
 
+/**
+ * Always ensure this stays in sync with the OpenAPI specs.
+ * @see [analysis-api-spec.yaml](../docs/assets/analysis-api-spec.yaml)
+ */
+export const mlMatchSchema = z.object({
+  rank: z.number(),
+  id: z.string(),
+  rating: z.number(),
+  details: z.string(),
+});
+
+/**
+ * Always ensure this stays in sync with the OpenAPI specs.
+ * @see [analysis-api-spec.yaml](../docs/assets/analysis-api-spec.yaml)
+ */
+export const mlMatchResponseSchema = z.object({
+  matches: z.array(mlMatchSchema),
+});
+
 export const projectBodySchema = z.object({
   version: z.enum(["v1"]),
   id: z.uuid(),

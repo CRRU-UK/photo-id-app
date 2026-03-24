@@ -11,11 +11,14 @@ const mockShow = vi.fn<() => void>();
 const mockOnce = vi.fn<(event: string, callback: () => void) => void>();
 const mockWebContentsSend = vi.fn<(channel: string, ...args: unknown[]) => void>();
 
+const mockWebContentsOn = vi.fn<(event: string, callback: (...args: unknown[]) => void) => void>();
+
 vi.mock("electron", () => ({
   BrowserWindow: class MockBrowserWindow {
     webContents = {
       openDevTools: mockOpenDevTools,
       send: mockWebContentsSend,
+      on: mockWebContentsOn,
     };
 
     constructor(options: Record<string, unknown>) {
@@ -26,6 +29,9 @@ vi.mock("electron", () => ({
     loadURL = mockLoadURL;
     show = mockShow;
     once = mockOnce;
+  },
+  dialog: {
+    showMessageBoxSync: vi.fn<() => number>(() => 0),
   },
 }));
 

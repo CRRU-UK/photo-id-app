@@ -45,15 +45,11 @@ const Sidebar = observer(() => {
     void navigate({ to: ROUTES.INDEX });
   }, [navigate, setProject]);
 
-  if (project === null) {
-    return null;
-  }
+  type ModelItem = ItemInput & { id: string; text: string };
 
   const mlModels = useMemo(() => contextSettings?.mlModels ?? [], [contextSettings?.mlModels]);
   const selectedModelId = contextSettings?.selectedModelId ?? null;
   const selectedModel = mlModels.find(({ id }) => id === selectedModelId) ?? null;
-
-  type ModelItem = ItemInput & { id: string; text: string };
 
   const modelItems = useMemo<ModelItem[]>(
     () =>
@@ -78,6 +74,26 @@ const Sidebar = observer(() => {
 
   const selectedItem = modelItems.find(({ id }) => id === selectedModelId) ?? undefined;
 
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const modifierKey = event.ctrlKey || event.metaKey;
+      if (modifierKey && event.key === "w") {
+        event.preventDefault();
+        handleCloseProject();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [handleCloseProject]);
+
+  if (project === null) {
+    return null;
+  }
+
   const handleModelChange = async (item: ItemInput | undefined) => {
     if (!contextSettings) {
       return;
@@ -95,27 +111,15 @@ const Sidebar = observer(() => {
   const handleExport = async (type: ExportTypes) => {
     setExporting(true);
 
-    await project.exportMatches(type);
-
-    setActionsOpen(false);
-    setExporting(false);
+    try {
+      await project.exportMatches(type);
+    } catch (error) {
+      console.error("Failed to export matches:", error);
+    } finally {
+      setActionsOpen(false);
+      setExporting(false);
+    }
   };
-
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      const modifierKey = event.ctrlKey || event.metaKey;
-      if (modifierKey && event.key === "w") {
-        event.preventDefault();
-        handleCloseProject();
-      }
-    };
-
-    document.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [handleCloseProject]);
 
   return (
     <div className="sidebar">

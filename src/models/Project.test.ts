@@ -109,16 +109,6 @@ describe(Project, () => {
       expect(project.matched).toHaveLength(1);
     });
 
-    it("loads project state from a JSON string", () => {
-      const project = new Project();
-      const data = createProjectBody();
-
-      project.loadFromJSON(JSON.stringify(data));
-
-      expect(project.id).toBe(projectId);
-      expect(project.directory).toBe(projectDirectory);
-    });
-
     it("populates allPhotos with all photos from all collections", () => {
       const project = new Project();
       const data = createProjectBody();

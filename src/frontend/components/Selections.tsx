@@ -1,7 +1,6 @@
 import { useDroppable } from "@dnd-kit/core";
 import { Label, Stack as PrimerStack, Text, TextInput } from "@primer/react";
 import { observer } from "mobx-react-lite";
-import { useEffect, useState } from "react";
 
 import type Collection from "@/models/Collection";
 import type { Match } from "@/types";
@@ -17,19 +16,13 @@ interface SelectionStackProps {
 }
 
 const SelectionStack = observer(({ id, side, collection }: SelectionStackProps) => {
-  const [selectionName, setSelectionName] = useState<string>(collection.name || "");
-
-  useEffect(() => {
-    collection.setName(selectionName);
-  }, [collection, selectionName]);
-
   const { isOver, setNodeRef: setDroppableNodeRef } = useDroppable({
     id: `${id}-${side}`,
     data: { collection },
   });
 
-  const stackLabel = selectionName
-    ? `${selectionName} (${side})`
+  const stackLabel = collection.name
+    ? `${collection.name} (${side})`
     : `${getAlphabetLetter(id)} (${side})`;
 
   return (
@@ -64,8 +57,8 @@ const SelectionStack = observer(({ id, side, collection }: SelectionStackProps) 
           {getAlphabetLetter(id)} <Label>{side}</Label>
         </Text>
         <TextInput
-          defaultValue={selectionName}
-          onBlur={(event) => setSelectionName(event.target.value)}
+          defaultValue={collection.name || ""}
+          onBlur={(event) => collection.setName(event.target.value)}
           size="small"
           style={{ maxWidth: "160px" }}
         />

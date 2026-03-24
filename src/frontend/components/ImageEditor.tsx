@@ -26,6 +26,7 @@ import {
   IMAGE_FILTERS,
   KEYBOARD_CODE_TO_PAN_DIRECTION,
   LOUPE,
+  UNSAVED_EDITS_MESSAGE,
 } from "@/constants";
 import LoadingOverlay from "@/frontend/components/LoadingOverlay";
 import useImageEditor from "@/frontend/hooks/useImageEditor";
@@ -134,6 +135,21 @@ const ImageEditor = ({
 
   const edits = data.edits;
 
+  /**
+   * Tracks the last saved edits so hasUnsavedEdits can compare against them. Updated on save
+   * because the edit window does not receive UPDATE_PHOTO (only the main window does). Only reset
+   * from props when the photo changes (navigation), not on every render.
+   */
+  const savedEditsRef = useRef(edits);
+
+  const photoId = `${data.directory}/${data.name}`;
+  const previousPhotoIdForEditsRef = useRef(photoId);
+
+  if (previousPhotoIdForEditsRef.current !== photoId) {
+    previousPhotoIdForEditsRef.current = photoId;
+    savedEditsRef.current = edits;
+  }
+
   const [sliderInitials, setSliderInitials] = useState({
     brightness: edits.brightness,
     contrast: edits.contrast,
@@ -236,6 +252,8 @@ const ImageEditor = ({
         edits,
         isEdited: computeIsEdited(edits),
       });
+
+      savedEditsRef.current = edits;
     } catch (error) {
       console.error("Failed to save edited photo file:", error);
     } finally {
@@ -243,10 +261,39 @@ const ImageEditor = ({
     }
   }, [data, getters]);
 
+  /**
+   * Ref ensures the dirty check always reads the latest getters without re-subscribing on every
+   * change. Used by `beforeunload` and navigation confirmation.
+   */
+  const gettersRef = useRef(getters);
+  gettersRef.current = getters;
+
+  const hasUnsavedEdits = useCallback((): boolean => {
+    const saved = savedEditsRef.current;
+    const currentFilters = gettersRef.current.getFilters();
+    const currentTransform = gettersRef.current.getTransform();
+
+    return (
+      currentFilters.brightness !== saved.brightness ||
+      currentFilters.contrast !== saved.contrast ||
+      currentFilters.saturate !== saved.saturate ||
+      currentTransform.zoom !== saved.zoom ||
+      currentTransform.pan.x !== saved.pan.x ||
+      currentTransform.pan.y !== saved.pan.y
+    );
+  }, []);
+
   const handleEditorNavigation = useCallback(
     async (direction: EditorNavigation) => {
       if (navigating) {
         return;
+      }
+
+      if (hasUnsavedEdits()) {
+        const discard = window.confirm(UNSAVED_EDITS_MESSAGE);
+        if (!discard) {
+          return;
+        }
       }
 
       setNavigating(true);
@@ -259,7 +306,7 @@ const ImageEditor = ({
 
       setNavigating(false);
     },
-    [data, navigating, setQueryCallback],
+    [data, navigating, setQueryCallback, hasUnsavedEdits],
   );
 
   const handleKeyDown = useCallback(
@@ -406,6 +453,21 @@ const ImageEditor = ({
     // handleWheel or handleKeyDown change, not when canvasRef.current changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [handlers.handleWheel, handleKeyDown]);
+
+  // Warn the user before closing the edit window when there are unsaved changes
+  useEffect(() => {
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (hasUnsavedEdits()) {
+        event.preventDefault();
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [hasUnsavedEdits]);
 
   return (
     <>
