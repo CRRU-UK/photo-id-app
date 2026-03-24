@@ -1,4 +1,4 @@
-import { makeObservable, observable, runInAction } from "mobx";
+import { action, makeObservable, observable, runInAction } from "mobx";
 
 import { SAVE_PROJECT_DEBOUNCE_MS } from "@/constants";
 import Collection from "@/models/Collection";
@@ -32,6 +32,7 @@ class Project {
       unassigned: observable,
       discarded: observable,
       matched: observable,
+      loadFromJSON: action,
     });
 
     this.version = "v1";
