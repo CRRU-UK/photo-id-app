@@ -18,6 +18,7 @@ import { registerProjectHandlers } from "@/backend/ipc/projectHandlers";
 import { registerSettingsHandlers } from "@/backend/ipc/settingsHandlers";
 import { findPhotoidArg, openProjectFromPath } from "@/backend/ipc/shared";
 import { getMenu } from "@/backend/menu";
+import { getCurrentProjectDirectory } from "@/backend/projects";
 import { getSettings, initSentry, setSentryEnabled } from "@/backend/settings";
 import { windowManager } from "@/backend/WindowManager";
 import { CSP_HEADERS, PHOTO_FILE_EXTENSIONS, PHOTO_PROTOCOL_SCHEME } from "@/constants";
@@ -182,11 +183,21 @@ void app.whenReady().then(async () => {
 
   protocol.handle(PHOTO_PROTOCOL_SCHEME, (request) => {
     try {
+      const projectDirectory = getCurrentProjectDirectory();
+      if (!projectDirectory) {
+        return new Response(null, { status: 403 });
+      }
+
       const fileUrl = request.url.replace(/^photo:/, "file:");
-      const filePath = url.fileURLToPath(fileUrl);
+      const filePath = path.resolve(url.fileURLToPath(fileUrl));
 
       const extension = path.extname(filePath).toLowerCase();
       if (!PHOTO_FILE_EXTENSIONS.includes(extension)) {
+        return new Response(null, { status: 403 });
+      }
+
+      const resolvedProjectDirectory = path.resolve(projectDirectory);
+      if (!filePath.startsWith(resolvedProjectDirectory + path.sep)) {
         return new Response(null, { status: 403 });
       }
 
