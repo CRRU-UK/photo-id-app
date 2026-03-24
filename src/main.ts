@@ -153,11 +153,9 @@ app.on("activate", async () => {
 });
 
 void app.whenReady().then(async () => {
-  // Prevent running directly from a mounted DMG on macOS
+  // Prevent running outside of the Applications folder on macOS
   if (process.platform === "darwin" && production) {
-    const executablePath = app.getPath("exe");
-
-    if (executablePath.startsWith("/Volumes/")) {
+    if (!app.isInApplicationsFolder()) {
       dialog.showMessageBoxSync({
         type: "warning",
         buttons: ["Quit"],
@@ -165,8 +163,7 @@ void app.whenReady().then(async () => {
         message: "Please move the Photo ID app to your Applications folder before opening it.",
       });
 
-      app.exit();
-      return;
+      return app.exit();
     }
   }
 
