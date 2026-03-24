@@ -3,8 +3,6 @@
 import type { BrowserWindow } from "electron";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { VERSION_TEXT } from "@/constants";
-
 const mockFromWebContents = vi.fn<(webContents: Electron.WebContents) => BrowserWindow | null>();
 const mockGetAllWindows = vi.fn<() => BrowserWindow[]>();
 const mockShowErrorBox = vi.fn<(title: string, content: string) => void>();
@@ -238,7 +236,7 @@ describe("shared IPC utilities", () => {
       const result = resolveExternalLinkUrl("changelog");
 
       expect(result).toContain("releases/v");
-      expect(result).not.toContain(VERSION_TEXT);
+      expect(result).not.toContain("$VERSION");
     });
 
     it("returns undefined for an unrecognised link", () => {

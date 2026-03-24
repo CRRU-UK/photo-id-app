@@ -13,7 +13,6 @@ import {
   DEFAULT_WINDOW_TITLE,
   EXTERNAL_LINKS,
   PROJECT_FILE_EXTENSION,
-  VERSION_TEXT,
 } from "@/constants";
 import type { ExternalLinks } from "@/types";
 
@@ -98,7 +97,7 @@ export const resolveExternalLinkUrl = (link: ExternalLinks): string | undefined 
     return undefined;
   }
 
-  return url.replace(VERSION_TEXT, `v${version}`);
+  return url.replace("$VERSION", `v${version}`);
 };
 
 /**
