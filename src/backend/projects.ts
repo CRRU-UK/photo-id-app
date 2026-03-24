@@ -47,9 +47,6 @@ export const resolvePhotoPath = (directory: string, fileName: string): string =>
 
 let currentProjectDirectory: string | null = null;
 
-// Cache for editor navigation to avoid re-reading the project file from disk on every arrow press
-let cachedProjectData: { path: string; mtimeMs: number; data: ProjectBody } | null = null;
-
 /**
  * Returns the directory of the currently open project, or null if none. Used by `getCurrentProject`
  * to restore the project view after hot-reload (development).
@@ -61,7 +58,6 @@ export const getCurrentProjectDirectory = (): string | null => currentProjectDir
  */
 export const setCurrentProject = (directory: string | null): void => {
   currentProjectDirectory = directory;
-  cachedProjectData = null;
 };
 
 export const parseProjectFile = async (filePath: string): Promise<ProjectBody> => {
@@ -412,19 +408,6 @@ const findPhotoInProject = (project: ProjectBody, photo: PhotoBody): CollectionB
   return null;
 };
 
-const getCachedProjectData = async (projectPath: string): Promise<ProjectBody> => {
-  const stat = await fs.promises.stat(projectPath);
-
-  if (cachedProjectData?.path === projectPath && cachedProjectData.mtimeMs === stat.mtimeMs) {
-    return cachedProjectData.data;
-  }
-
-  const data = await parseProjectFile(projectPath);
-  cachedProjectData = { path: projectPath, mtimeMs: stat.mtimeMs, data };
-
-  return data;
-};
-
 /**
  * Returns photo to show in the editor on navigation based on direction.
  */
@@ -433,7 +416,7 @@ const handleEditorNavigate = async (
   direction: EditorNavigation,
 ): Promise<PhotoBody | null> => {
   const projectPath = path.join(data.directory, PROJECT_FILE_NAME);
-  const projectData = await getCachedProjectData(projectPath);
+  const projectData = await parseProjectFile(projectPath);
 
   const collection = findPhotoInProject(projectData, data);
   if (!collection) {

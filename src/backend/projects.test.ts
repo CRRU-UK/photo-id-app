@@ -12,7 +12,6 @@ const mockReadFile = vi.fn<(path: string, encoding: string) => Promise<string>>(
 const mockWriteFile = vi.fn<(path: string, data: string, encoding: string) => Promise<void>>();
 const mockCopyFile = vi.fn<(src: string, dest: string) => Promise<void>>();
 const mockRename = vi.fn<(oldPath: string, newPath: string) => Promise<void>>();
-const mockStat = vi.fn<(path: string) => Promise<{ mtimeMs: number }>>();
 const mockReaddir = vi.fn<(path: string) => Promise<string[]>>();
 const mockUnlink = vi.fn<(path: string) => Promise<void>>();
 const mockMkdir = vi.fn<(path: string) => Promise<void>>();
@@ -41,7 +40,6 @@ vi.mock("node:fs", () => ({
       mkdir: (...args: Parameters<typeof mockMkdir>) => mockMkdir(...args),
       lstat: (...args: Parameters<typeof mockLstat>) => mockLstat(...args),
       rename: (...args: Parameters<typeof mockRename>) => mockRename(...args),
-      stat: (...args: Parameters<typeof mockStat>) => mockStat(...args),
     },
   },
 }));
@@ -368,12 +366,6 @@ describe(handleDuplicatePhotoFile, () => {
 describe(handleEditorNavigate, () => {
   beforeEach(() => {
     vi.clearAllMocks();
-
-    // Clear the project cache between tests so each test gets fresh data
-    setCurrentProject(null);
-
-    // Each test reads the project file; stat returns a unique mtime to bypass the cache
-    mockStat.mockResolvedValue({ mtimeMs: Date.now() });
   });
 
   it("returns null when the collection has only one photo", async () => {
