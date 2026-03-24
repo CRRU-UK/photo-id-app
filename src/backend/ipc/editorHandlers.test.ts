@@ -31,7 +31,7 @@ vi.mock("electron", () => ({
     once = mockOnce;
   },
   dialog: {
-    showMessageBoxSync: vi.fn(() => 0),
+    showMessageBoxSync: vi.fn<() => number>(() => 0),
   },
 }));
 

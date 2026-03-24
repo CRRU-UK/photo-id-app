@@ -174,7 +174,7 @@ describe(handleExportMatches, () => {
 
     await handleExportMatches(mainWindow, JSON.stringify(project), "edited");
 
-    const loadingCalls = vi.mocked(mainWindow.webContents.send).mock.calls;
+    const { calls: loadingCalls } = vi.mocked(mainWindow.webContents).send.mock;
     const progressCalls = loadingCalls.filter(
       (call: unknown[]) => call[0] === IPC_EVENTS.SET_LOADING,
     );
