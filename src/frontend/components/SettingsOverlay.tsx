@@ -168,13 +168,12 @@ const SettingsOverlay = ({ open, onClose, onOpenRequest, returnFocusRef }: Setti
 
             <UnderlinePanels.Panel>
               <Stack direction="vertical" gap="spacious" padding="spacious">
-                <FormControl>
+                <FormControl disabled={isLoading}>
                   <FormControl.Label>Theme Mode</FormControl.Label>
                   <Select
                     size="large"
                     value={contextSettings.themeMode}
                     onChange={(event) => void handleThemeModeChange(event.target.value)}
-                    disabled={isLoading}
                   >
                     <Select.Option value="light">Light</Select.Option>
                     <Select.Option value="dark">Dark (Default)</Select.Option>
@@ -186,13 +185,12 @@ const SettingsOverlay = ({ open, onClose, onOpenRequest, returnFocusRef }: Setti
                   </FormControl.Caption>
                 </FormControl>
 
-                <FormControl>
+                <FormControl disabled={isLoading}>
                   <FormControl.Label>Telemetry</FormControl.Label>
                   <Select
                     size="large"
                     value={contextSettings.telemetry}
                     onChange={(event) => void handleTelemetryChange(event.target.value)}
-                    disabled={isLoading}
                   >
                     <Select.Option value="disabled">Disabled (Default)</Select.Option>
                     <Select.Option value="enabled">Enabled</Select.Option>
