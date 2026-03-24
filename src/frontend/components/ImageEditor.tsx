@@ -135,6 +135,13 @@ const ImageEditor = ({
 
   const edits = data.edits;
 
+  /**
+   * Tracks the last saved edits so hasUnsavedEdits can compare against them. Updated on save
+   * because the edit window does not receive UPDATE_PHOTO (only the main window does).
+   */
+  const savedEditsRef = useRef(edits);
+  savedEditsRef.current = edits;
+
   const [sliderInitials, setSliderInitials] = useState({
     brightness: edits.brightness,
     contrast: edits.contrast,
@@ -237,6 +244,8 @@ const ImageEditor = ({
         edits,
         isEdited: computeIsEdited(edits),
       });
+
+      savedEditsRef.current = edits;
     } catch (error) {
       console.error("Failed to save edited photo file:", error);
     } finally {
@@ -252,18 +261,19 @@ const ImageEditor = ({
   gettersRef.current = getters;
 
   const hasUnsavedEdits = useCallback((): boolean => {
+    const saved = savedEditsRef.current;
     const currentFilters = gettersRef.current.getFilters();
     const currentTransform = gettersRef.current.getTransform();
 
     return (
-      currentFilters.brightness !== edits.brightness ||
-      currentFilters.contrast !== edits.contrast ||
-      currentFilters.saturate !== edits.saturate ||
-      currentTransform.zoom !== edits.zoom ||
-      currentTransform.pan.x !== edits.pan.x ||
-      currentTransform.pan.y !== edits.pan.y
+      currentFilters.brightness !== saved.brightness ||
+      currentFilters.contrast !== saved.contrast ||
+      currentFilters.saturate !== saved.saturate ||
+      currentTransform.zoom !== saved.zoom ||
+      currentTransform.pan.x !== saved.pan.x ||
+      currentTransform.pan.y !== saved.pan.y
     );
-  }, [edits]);
+  }, []);
 
   const handleEditorNavigation = useCallback(
     async (direction: EditorNavigation) => {
