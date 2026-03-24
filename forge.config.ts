@@ -2,6 +2,7 @@ import { MakerDeb } from "@electron-forge/maker-deb";
 import { MakerDMG, type MakerDMGConfig } from "@electron-forge/maker-dmg";
 import { MakerRpm } from "@electron-forge/maker-rpm";
 import { MakerSquirrel } from "@electron-forge/maker-squirrel";
+import { MakerZIP } from "@electron-forge/maker-zip";
 import { FusesPlugin } from "@electron-forge/plugin-fuses";
 import { VitePlugin } from "@electron-forge/plugin-vite";
 import type { ForgeConfig } from "@electron-forge/shared-types";
@@ -9,6 +10,7 @@ import { FuseV1Options, FuseVersion } from "@electron/fuses";
 import fs from "node:fs";
 import path from "node:path";
 
+import { version } from "./package.json";
 import { PROJECT_FILE_EXTENSION } from "./src/constants";
 
 let signingConfig = {};
@@ -27,7 +29,7 @@ if (process.env.APPLE_CERTIFICATE) {
 }
 
 const dmgOptions: MakerDMGConfig = {
-  name: "Photo ID",
+  name: `Photo.ID-${version}`,
   format: "ULFO",
   icon: "resources/icon.icns",
   background: "resources/dmg-background.png",
@@ -71,6 +73,7 @@ const config: ForgeConfig = {
   makers: [
     new MakerSquirrel({}),
     new MakerDMG(dmgOptions),
+    new MakerZIP({}, ["darwin"]),
     new MakerRpm({ options: { mimeType: ["application/x-photoid"] } }),
     new MakerDeb({ options: { mimeType: ["application/x-photoid"] } }),
   ],
