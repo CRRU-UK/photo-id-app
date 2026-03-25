@@ -18,6 +18,8 @@ The renderer process has no direct access to Node.js APIs. All system access is 
 
 A Content Security Policy (CSP) is applied to all renderer responses via `session.defaultSession.webRequest.onHeadersReceived`. The policy restricts script sources to `'self'`, image sources to the app origin and the custom `photo://` protocol, and connections to the app origin and Sentry (when telemetry is enabled).
 
+The `style-src` directive includes `'unsafe-inline'` because the Primer React component library applies runtime inline styles for layout and theming. This is a known trade-off as removing `'unsafe-inline'` would require a nonce-based approach that Primer does not currently support. The risk is mitigated by the strict `script-src 'self'` policy, which prevents injected inline styles from executing code.
+
 ## Custom Protocol (`photo://`)
 
 All image rendering in the renderer uses the custom `photo://` protocol instead of `file://`. The protocol handler in the main process:

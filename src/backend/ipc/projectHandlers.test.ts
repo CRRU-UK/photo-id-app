@@ -24,6 +24,7 @@ const mockHandleOpenFilePrompt = vi.fn<(window: BrowserWindow) => Promise<void>>
 const mockHandleOpenProjectFile =
   vi.fn<(window: BrowserWindow, filePath: string) => Promise<void>>();
 const mockHandleSaveProject = vi.fn<(data: string) => Promise<void>>();
+const mockHandleFlushSaveProject = vi.fn<(data: string) => void>();
 const mockHandleExportMatches =
   vi.fn<(window: BrowserWindow, data: string, type: string) => Promise<string>>();
 const mockGetCurrentProjectDirectory = vi.fn<() => string | null>();
@@ -43,6 +44,8 @@ vi.mock("@/backend/projects", () => ({
     mockHandleOpenProjectFile(...args),
   handleSaveProject: (...args: Parameters<typeof mockHandleSaveProject>) =>
     mockHandleSaveProject(...args),
+  handleFlushSaveProject: (...args: Parameters<typeof mockHandleFlushSaveProject>) =>
+    mockHandleFlushSaveProject(...args),
   getCurrentProjectDirectory: () => mockGetCurrentProjectDirectory(),
   parseProjectFile: (...args: Parameters<typeof mockParseProjectFile>) =>
     mockParseProjectFile(...args),
@@ -87,6 +90,7 @@ const {
   handleGetCurrentProject,
   handleSaveProjectInvoke,
   handleExportMatchesInvoke,
+  handleFlushSaveProjectSync,
 } = await import("./projectHandlers");
 
 const createMockWindow = (): BrowserWindow =>
@@ -281,6 +285,29 @@ describe("project IPC handlers", () => {
       await expect(handleSaveProjectInvoke(createMockInvokeEvent(null), "{}")).rejects.toThrow(
         "write error",
       );
+    });
+  });
+
+  describe(handleFlushSaveProjectSync, () => {
+    it("calls handleFlushSaveProject and sets returnValue to true on success", () => {
+      const event = createMockEvent(null);
+      const data = JSON.stringify({ version: "v1" });
+
+      handleFlushSaveProjectSync(event, data);
+
+      expect(mockHandleFlushSaveProject).toHaveBeenCalledWith(data);
+      expect(event.returnValue).toBe(true);
+    });
+
+    it("sets returnValue to false when handleFlushSaveProject throws", () => {
+      const event = createMockEvent(null);
+      mockHandleFlushSaveProject.mockImplementation(() => {
+        throw new Error("write error");
+      });
+
+      handleFlushSaveProjectSync(event, "{}");
+
+      expect(event.returnValue).toBe(false);
     });
   });
 

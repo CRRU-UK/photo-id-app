@@ -1,5 +1,6 @@
 import "dotenv/config";
 
+import * as Sentry from "@sentry/electron/main";
 import { app, BrowserWindow, dialog, ipcMain, Menu, net, protocol, session } from "electron";
 import {
   installExtension,
@@ -27,11 +28,14 @@ initSentry();
 
 process.on("uncaughtException", (error) => {
   console.error("Uncaught exception:", error);
+  Sentry.captureException(error);
   dialog.showErrorBox("Unexpected Error", String(error));
 });
 
 process.on("unhandledRejection", (reason) => {
   console.error("Unhandled promise rejection:", reason);
+  Sentry.captureException(reason);
+  dialog.showErrorBox("Unexpected Error", String(reason));
 });
 
 updateElectronApp();
@@ -190,7 +194,12 @@ void app.whenReady().then(async () => {
       });
 
       if (response === 0) {
-        return app.moveToApplicationsFolder();
+        try {
+          return app.moveToApplicationsFolder();
+        } catch (error) {
+          console.error("Failed to move to Applications folder:", error);
+          dialog.showErrorBox("Failed to move to Applications", String(error));
+        }
       }
 
       return app.exit();

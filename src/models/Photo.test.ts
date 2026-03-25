@@ -34,9 +34,11 @@ const createPhoto = (overrides?: Partial<{ name: string; edits: PhotoEdits }>): 
   );
 
 describe(Photo, () => {
+  const fakeNow = new Date("2025-01-01T00:00:00.000Z");
+
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.useFakeTimers();
+    vi.useFakeTimers({ now: fakeNow });
   });
 
   afterEach(() => {
@@ -50,7 +52,7 @@ describe(Photo, () => {
       expect(photo.directory).toBe("/project");
       expect(photo.fileName).toBe("photo.jpg");
       expect(photo.thumbnail).toBe(".thumbnails/photo.jpg");
-      expect(photo.version).toBe(1);
+      expect(photo.version).toBe(fakeNow.getTime());
     });
 
     it("creates a deep copy of edits to avoid shared references", () => {
@@ -102,30 +104,32 @@ describe(Photo, () => {
   });
 
   describe("thumbnailFullPath", () => {
-    it("builds a photo URL with version cache buster", () => {
+    it("builds a photo URL with timestamp cache buster", () => {
       const photo = createPhoto();
 
-      const result = photo.thumbnailFullPath;
-
-      expect(result).toContain("photo://");
-      expect(result).toContain(".thumbnails");
-      expect(result).toMatch(/\?1$/);
+      expect(photo.thumbnailFullPath).toBe(
+        `photo:///project/.thumbnails/photo.jpg?${fakeNow.getTime()}`,
+      );
     });
 
-    it("increments version cache buster after update", () => {
+    it("updates cache buster to current time after update", () => {
       const photo = createPhoto();
 
-      const bodyForUpdate: PhotoBody = {
+      const updatedTimestamp = new Date("2025-06-15T12:00:00.000Z");
+      vi.setSystemTime(updatedTimestamp);
+
+      photo.updatePhoto({
         directory: "/project",
         name: "photo.jpg",
         thumbnail: ".thumbnails/photo_edited.jpg",
         edits: { ...defaultEdits, brightness: 120, pan: { x: 0, y: 0 } },
         isEdited: true,
-      };
+      });
 
-      photo.updatePhoto(bodyForUpdate);
-
-      expect(photo.thumbnailFullPath).toMatch(/\?2$/);
+      expect(photo.version).toBe(updatedTimestamp.getTime());
+      expect(photo.thumbnailFullPath).toBe(
+        `photo:///project/.thumbnails/photo_edited.jpg?${updatedTimestamp.getTime()}`,
+      );
     });
   });
 
@@ -208,22 +212,6 @@ describe(Photo, () => {
       });
 
       expect(photo.thumbnail).toBe(".thumbnails/new_thumbnail.jpg");
-    });
-
-    it("increments version", () => {
-      const photo = createPhoto();
-
-      expect(photo.version).toBe(1);
-
-      photo.updatePhoto({
-        directory: "/project",
-        name: "photo.jpg",
-        thumbnail: ".thumbnails/photo.jpg",
-        edits: { ...defaultEdits, pan: { x: 0, y: 0 } },
-        isEdited: false,
-      });
-
-      expect(photo.version).toBe(2);
     });
 
     it("calls project save", () => {

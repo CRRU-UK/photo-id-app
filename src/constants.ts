@@ -31,6 +31,9 @@ export enum IPC_EVENTS {
   OPEN_EDIT_WINDOW = "edit:openEditWindow",
   NAVIGATE_EDITOR_PHOTO = "edit:navigateEditorPhoto",
 
+  // Save
+  FLUSH_SAVE_PROJECT = "project:flushSaveProject",
+
   // Machine Learning
   SAVE_MODEL = "ml:saveModel",
   DELETE_MODEL = "ml:deleteModel",
@@ -120,35 +123,29 @@ export const EDITOR_TOOLTIPS = {
   SAVE: "Save",
 };
 
-export const EDITOR_KEYBOARD_HINTS = {
-  TOGGLE_EDGE_DETECTION: "E",
-  TOGGLE_LOUPE: "Space",
-  PAN_LEFT: "ArrowLeft",
-  PAN_UP: "ArrowUp",
-  PAN_DOWN: "ArrowDown",
-  PAN_RIGHT: "ArrowRight",
-  ZOOM_OUT: "Mod+-",
-  ZOOM_IN: "Mod+=",
-  PREVIOUS_PHOTO: "p",
-  NEXT_PHOTO: "n",
-  RESET: "Mod+R",
-  SAVE: "Mod+S",
-};
-
-export const EDITOR_KEYBOARD_CODES = {
-  PREVIOUS_PHOTO: "p",
-  NEXT_PHOTO: "n",
-  PAN_LEFT: "ArrowLeft",
-  PAN_UP: "ArrowUp",
-  PAN_DOWN: "ArrowDown",
-  PAN_RIGHT: "ArrowRight",
-  TOGGLE_EDGE_DETECTION: "e",
-  TOGGLE_LOUPE: "Space",
-  RESET: "r",
-  SAVE: "s",
-  ZOOM_OUT: "-",
-  ZOOM_IN: "=",
-};
+/**
+ * Editor keyboard bindings. Each entry has a `hint` (display string for `KeybindingHint`) and a
+ * `code` (lowercase key value used in the keydown handler).
+ */
+export const EDITOR_KEYS: {
+  [key: string]: {
+    hint: string;
+    code: string;
+  };
+} = {
+  TOGGLE_EDGE_DETECTION: { hint: "E", code: "e" },
+  TOGGLE_LOUPE: { hint: "Space", code: "Space" },
+  PAN_LEFT: { hint: "ArrowLeft", code: "ArrowLeft" },
+  PAN_UP: { hint: "ArrowUp", code: "ArrowUp" },
+  PAN_DOWN: { hint: "ArrowDown", code: "ArrowDown" },
+  PAN_RIGHT: { hint: "ArrowRight", code: "ArrowRight" },
+  ZOOM_OUT: { hint: "Mod+-", code: "-" },
+  ZOOM_IN: { hint: "Mod+=", code: "=" },
+  PREVIOUS_PHOTO: { hint: "p", code: "p" },
+  NEXT_PHOTO: { hint: "n", code: "n" },
+  RESET: { hint: "Mod+R", code: "r" },
+  SAVE: { hint: "Mod+S", code: "s" },
+} as const;
 
 export enum EditorPanDirection {
   LEFT = "left",
@@ -158,10 +155,10 @@ export enum EditorPanDirection {
 }
 
 export const KEYBOARD_CODE_TO_PAN_DIRECTION: Record<string, EditorPanDirection> = {
-  [EDITOR_KEYBOARD_CODES.PAN_LEFT]: EditorPanDirection.LEFT,
-  [EDITOR_KEYBOARD_CODES.PAN_RIGHT]: EditorPanDirection.RIGHT,
-  [EDITOR_KEYBOARD_CODES.PAN_UP]: EditorPanDirection.UP,
-  [EDITOR_KEYBOARD_CODES.PAN_DOWN]: EditorPanDirection.DOWN,
+  [EDITOR_KEYS.PAN_LEFT.code]: EditorPanDirection.LEFT,
+  [EDITOR_KEYS.PAN_RIGHT.code]: EditorPanDirection.RIGHT,
+  [EDITOR_KEYS.PAN_UP.code]: EditorPanDirection.UP,
+  [EDITOR_KEYS.PAN_DOWN.code]: EditorPanDirection.DOWN,
 };
 
 export enum DragAreas {

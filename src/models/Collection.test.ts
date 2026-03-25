@@ -191,6 +191,15 @@ describe(Collection, () => {
   });
 
   describe("setPreviousPhoto", () => {
+    it("returns without changing index on empty collection", () => {
+      const collection = new Collection({ index: 0, photos: [] }, project);
+
+      const result = collection.setPreviousPhoto();
+
+      expect(collection.index).toBe(0);
+      expect(result).toBe(collection);
+    });
+
     it("moves to the previous photo", () => {
       const photo1 = createPhoto("a.jpg");
       const photo2 = createPhoto("b.jpg");
@@ -233,6 +242,15 @@ describe(Collection, () => {
   });
 
   describe("setNextPhoto", () => {
+    it("returns without changing index on empty collection", () => {
+      const collection = new Collection({ index: 0, photos: [] }, project);
+
+      const result = collection.setNextPhoto();
+
+      expect(collection.index).toBe(0);
+      expect(result).toBe(collection);
+    });
+
     it("moves to the next photo", () => {
       const photo1 = createPhoto("a.jpg");
       const photo2 = createPhoto("b.jpg");

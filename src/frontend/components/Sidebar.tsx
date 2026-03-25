@@ -40,10 +40,13 @@ const Sidebar = observer(() => {
   const navigate = useNavigate();
 
   const handleCloseProject = useCallback(() => {
+    project?.flushSave();
     setProject(null);
+
     window.electronAPI.closeProject();
+
     void navigate({ to: ROUTES.INDEX });
-  }, [navigate, setProject]);
+  }, [project, navigate, setProject]);
 
   type ModelItem = ItemInput & { id: string; text: string };
 

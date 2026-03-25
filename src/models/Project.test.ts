@@ -11,6 +11,7 @@ import Project from "./Project";
 vi.stubGlobal("window", {
   electronAPI: {
     saveProject: vi.fn<(data: string) => void>(),
+    flushSaveProject: vi.fn<(data: string) => boolean>(),
     duplicatePhotoFile: vi.fn<(data: PhotoBody) => Promise<PhotoBody>>(),
     exportMatches: vi.fn<(data: string, type: ExportTypes) => Promise<void>>(),
   },
@@ -496,6 +497,51 @@ describe(Project, () => {
       expect(parsed.matched[0].id).toBe(1);
       expect(parsed.matched[0].left.photos).toHaveLength(1);
       expect(parsed.matched[0].left.photos[0].name).toBe("left1.jpg");
+    });
+  });
+
+  describe("flushSave", () => {
+    it("does nothing when there is no pending debounced save", () => {
+      const project = new Project(createProjectBody());
+
+      project.flushSave();
+
+      expect(window.electronAPI.flushSaveProject).not.toHaveBeenCalled();
+    });
+
+    it("immediately calls flushSaveProject when a save is pending", () => {
+      const project = new Project(createProjectBody());
+
+      project.save();
+      project.flushSave();
+
+      expect(window.electronAPI.flushSaveProject).toHaveBeenCalledWith(expect.any(String));
+    });
+
+    it("cancels the debounced save so it does not fire again", () => {
+      const project = new Project(createProjectBody());
+
+      project.save();
+      project.flushSave();
+
+      vi.runAllTimers();
+
+      // `flushSaveProject` should be called once, and the debounced `saveProject` should not fire
+      expect(window.electronAPI.flushSaveProject).toHaveBeenCalledTimes(1);
+      expect(window.electronAPI.saveProject).not.toHaveBeenCalled();
+    });
+
+    it("produces valid JSON when flushing", () => {
+      const project = new Project(createProjectBody());
+
+      project.save();
+      project.flushSave();
+
+      const savedData = vi.mocked(window.electronAPI.flushSaveProject).mock.calls[0][0];
+      const parsed = JSON.parse(savedData) as ProjectBody;
+
+      expect(parsed.version).toBe("v1");
+      expect(parsed.directory).toBe(projectDirectory);
     });
   });
 

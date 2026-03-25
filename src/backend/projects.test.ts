@@ -26,10 +26,13 @@ vi.mock("electron", () => ({
   },
 }));
 
+const mockWriteFileSync = vi.fn<(path: string, data: string, encoding: string) => void>();
+
 vi.mock("node:fs", () => ({
   default: {
     existsSync: (...args: Parameters<typeof mockExistsSync>) => mockExistsSync(...args),
     lstatSync: (...args: Parameters<typeof mockLstatSync>) => mockLstatSync(...args),
+    writeFileSync: (...args: Parameters<typeof mockWriteFileSync>) => mockWriteFileSync(...args),
     promises: {
       readFile: (...args: Parameters<typeof mockReadFile>) => mockReadFile(...args),
       writeFile: (...args: Parameters<typeof mockWriteFile>) => mockWriteFile(...args),
@@ -66,6 +69,7 @@ const {
   findPhotoInProject,
   handleDuplicatePhotoFile,
   handleEditorNavigate,
+  handleFlushSaveProject,
   handleOpenDirectoryPrompt,
   handleOpenFilePrompt,
   handleOpenProjectFile,
@@ -285,6 +289,62 @@ describe(handleSaveProject, () => {
     const invalidPayload = JSON.stringify({ directory: "/path", version: "v1" });
 
     await expect(handleSaveProject(invalidPayload)).rejects.toThrow(/invalid_type|required/);
+  });
+});
+
+describe(handleFlushSaveProject, () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("writes synchronously to the correct file path", () => {
+    setCurrentProject("/my/project");
+
+    const project = createProject({ directory: "/my/project" });
+    const data = JSON.stringify(project);
+
+    handleFlushSaveProject(data);
+
+    expect(mockWriteFileSync).toHaveBeenCalledWith(
+      `/my/project/${PROJECT_FILE_NAME}`,
+      data,
+      "utf8",
+    );
+  });
+
+  it("does nothing when no project is open", () => {
+    setCurrentProject(null);
+
+    const data = JSON.stringify(createProject());
+
+    handleFlushSaveProject(data);
+
+    expect(mockWriteFileSync).not.toHaveBeenCalled();
+  });
+
+  it("does not write when data is invalid JSON", () => {
+    setCurrentProject("/my/project");
+
+    expect(() => handleFlushSaveProject("not json")).toThrow(/Unexpected token|JSON/);
+    expect(mockWriteFileSync).not.toHaveBeenCalled();
+  });
+
+  it("does not write when data does not match project schema", () => {
+    setCurrentProject("/my/project");
+
+    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+
+    const invalidPayload = JSON.stringify({ directory: "/path", version: "v1" });
+
+    handleFlushSaveProject(invalidPayload);
+
+    expect(mockWriteFileSync).not.toHaveBeenCalled();
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      expect.stringContaining("Flush save failed"),
+      expect.any(String),
+    );
+
+    consoleErrorSpy.mockRestore();
   });
 });
 

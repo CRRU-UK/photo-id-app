@@ -78,7 +78,7 @@ class Project {
   }
 
   /**
-   * Loads project state from JSON. runInAction batches all observable updates into a single
+   * Loads project state from JSON. `runInAction` batches all observable updates into a single
    * transaction so observers re-run once instead of on every property change.
    */
   public loadFromJSON(data: ProjectBody): this {
@@ -107,7 +107,7 @@ class Project {
     return this;
   }
 
-  private returnAsJSONString(): string {
+  private serialize(): string {
     const data: ProjectBody = {
       version: this.version,
       id: this.id,
@@ -136,9 +136,25 @@ class Project {
     this.saveDebounceTimer = setTimeout(() => {
       this.saveDebounceTimer = null;
 
-      const data = this.returnAsJSONString();
+      const data = this.serialize();
       void window.electronAPI.saveProject(data);
     }, Project.SAVE_DEBOUNCE_MS);
+  }
+
+  /**
+   * Flushes any pending debounced save immediately using synchronous IPC. Called from
+   * `beforeunload` to guarantee the write completes before the window/process exits.
+   */
+  public flushSave() {
+    if (this.saveDebounceTimer === null) {
+      return;
+    }
+
+    clearTimeout(this.saveDebounceTimer);
+    this.saveDebounceTimer = null;
+
+    const data = this.serialize();
+    window.electronAPI.flushSaveProject(data);
   }
 
   public addPhotoToStack(from: Collection, to: Collection, photo: Photo): this {
@@ -175,7 +191,7 @@ class Project {
   }
 
   public async exportMatches(type: ExportTypes): Promise<this> {
-    const data = this.returnAsJSONString();
+    const data = this.serialize();
     await window.electronAPI.exportMatches(data, type);
 
     return this;

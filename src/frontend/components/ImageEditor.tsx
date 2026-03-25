@@ -19,8 +19,7 @@ import { forwardRef, memo, useCallback, useEffect, useRef, useState } from "reac
 
 import {
   EDGE_DETECTION,
-  EDITOR_KEYBOARD_CODES,
-  EDITOR_KEYBOARD_HINTS,
+  EDITOR_KEYS,
   EDITOR_TOOLTIPS,
   EditorPanDirection,
   IMAGE_FILTERS,
@@ -132,6 +131,8 @@ const ImageEditor = ({
   const [saving, setSaving] = useState<boolean>(false);
   const [navigating, setNavigating] = useState<boolean>(false);
   const [loupeEnabled, setLoupeEnabled] = useState<boolean>(false);
+
+  const navigatingRef = useRef<boolean>(false);
 
   const edits = data.edits;
 
@@ -285,7 +286,7 @@ const ImageEditor = ({
 
   const handleEditorNavigation = useCallback(
     async (direction: EditorNavigation) => {
-      if (navigating) {
+      if (navigatingRef.current) {
         return;
       }
 
@@ -296,17 +297,19 @@ const ImageEditor = ({
         }
       }
 
+      navigatingRef.current = true;
       setNavigating(true);
 
       const result = await window.electronAPI.navigateEditorPhoto(data, direction);
-      if (result) {
-        setNavigating(false);
-        return setQueryCallback(result);
-      }
 
+      navigatingRef.current = false;
       setNavigating(false);
+
+      if (result) {
+        setQueryCallback(result);
+      }
     },
-    [data, navigating, setQueryCallback, hasUnsavedEdits],
+    [data, setQueryCallback, hasUnsavedEdits],
   );
 
   const handleKeyDown = useCallback(
@@ -315,22 +318,22 @@ const ImageEditor = ({
       const key = event.key.toLowerCase();
 
       if (modifierKey) {
-        if (key === EDITOR_KEYBOARD_CODES.RESET) {
+        if (key === EDITOR_KEYS.RESET.code) {
           event.preventDefault();
           return handleReset();
         }
 
-        if (key === EDITOR_KEYBOARD_CODES.SAVE) {
+        if (key === EDITOR_KEYS.SAVE.code) {
           event.preventDefault();
           return handleSave();
         }
 
-        if (key === EDITOR_KEYBOARD_CODES.ZOOM_OUT) {
+        if (key === EDITOR_KEYS.ZOOM_OUT.code) {
           event.preventDefault();
           return handlers.handleZoomOut();
         }
 
-        if (key === EDITOR_KEYBOARD_CODES.ZOOM_IN) {
+        if (key === EDITOR_KEYS.ZOOM_IN.code) {
           event.preventDefault();
           return handlers.handleZoomIn();
         }
@@ -344,12 +347,12 @@ const ImageEditor = ({
         return handlers.handleDirectionalPan(panDirection);
       }
 
-      if (key === EDITOR_KEYBOARD_CODES.PREVIOUS_PHOTO) {
+      if (key === EDITOR_KEYS.PREVIOUS_PHOTO.code) {
         event.preventDefault();
         return handleEditorNavigation("prev");
       }
 
-      if (key === EDITOR_KEYBOARD_CODES.NEXT_PHOTO) {
+      if (key === EDITOR_KEYS.NEXT_PHOTO.code) {
         event.preventDefault();
         return handleEditorNavigation("next");
       }
@@ -360,12 +363,12 @@ const ImageEditor = ({
         event.target instanceof HTMLTextAreaElement ||
         event.target instanceof HTMLSelectElement;
 
-      if (!isInteractiveTarget && event.code === EDITOR_KEYBOARD_CODES.TOGGLE_LOUPE) {
+      if (!isInteractiveTarget && event.code === EDITOR_KEYS.TOGGLE_LOUPE.code) {
         event.preventDefault();
         return handleToggleLoupe();
       }
 
-      if (key === EDITOR_KEYBOARD_CODES.TOGGLE_EDGE_DETECTION) {
+      if (key === EDITOR_KEYS.TOGGLE_EDGE_DETECTION.code) {
         event.preventDefault();
         return handleToggleEdgeDetection();
       }
@@ -502,7 +505,7 @@ const ImageEditor = ({
                 ? EDITOR_TOOLTIPS.DISABLE_EDGE_DETECTION
                 : EDITOR_TOOLTIPS.ENABLE_EDGE_DETECTION
             }
-            keybindingHint={EDITOR_KEYBOARD_HINTS.TOGGLE_EDGE_DETECTION}
+            keybindingHint={EDITOR_KEYS.TOGGLE_EDGE_DETECTION.hint}
             onClick={handleToggleEdgeDetection}
           />
 
@@ -555,28 +558,28 @@ const ImageEditor = ({
               icon={ArrowLeftIcon}
               size="large"
               aria-label={EDITOR_TOOLTIPS.PAN_LEFT}
-              keybindingHint={EDITOR_KEYBOARD_HINTS.PAN_LEFT}
+              keybindingHint={EDITOR_KEYS.PAN_LEFT.hint}
               onClick={() => handlers.handleDirectionalPan(EditorPanDirection.LEFT)}
             />
             <IconButton
               icon={ArrowUpIcon}
               size="large"
               aria-label={EDITOR_TOOLTIPS.PAN_UP}
-              keybindingHint={EDITOR_KEYBOARD_HINTS.PAN_UP}
+              keybindingHint={EDITOR_KEYS.PAN_UP.hint}
               onClick={() => handlers.handleDirectionalPan(EditorPanDirection.UP)}
             />
             <IconButton
               icon={ArrowDownIcon}
               size="large"
               aria-label={EDITOR_TOOLTIPS.PAN_DOWN}
-              keybindingHint={EDITOR_KEYBOARD_HINTS.PAN_DOWN}
+              keybindingHint={EDITOR_KEYS.PAN_DOWN.hint}
               onClick={() => handlers.handleDirectionalPan(EditorPanDirection.DOWN)}
             />
             <IconButton
               icon={ArrowRightIcon}
               size="large"
               aria-label={EDITOR_TOOLTIPS.PAN_RIGHT}
-              keybindingHint={EDITOR_KEYBOARD_HINTS.PAN_RIGHT}
+              keybindingHint={EDITOR_KEYS.PAN_RIGHT.hint}
               onClick={() => handlers.handleDirectionalPan(EditorPanDirection.RIGHT)}
             />
           </ButtonGroup>
@@ -586,14 +589,14 @@ const ImageEditor = ({
               icon={ZoomOutIcon}
               size="large"
               aria-label={EDITOR_TOOLTIPS.ZOOM_OUT}
-              keybindingHint={EDITOR_KEYBOARD_HINTS.ZOOM_OUT}
+              keybindingHint={EDITOR_KEYS.ZOOM_OUT.hint}
               onClick={handlers.handleZoomOut}
             />
             <IconButton
               icon={ZoomInIcon}
               size="large"
               aria-label={EDITOR_TOOLTIPS.ZOOM_IN}
-              keybindingHint={EDITOR_KEYBOARD_HINTS.ZOOM_IN}
+              keybindingHint={EDITOR_KEYS.ZOOM_IN.hint}
               onClick={handlers.handleZoomIn}
             />
           </ButtonGroup>
@@ -606,7 +609,7 @@ const ImageEditor = ({
               aria-label={
                 loupeEnabled ? EDITOR_TOOLTIPS.DISABLE_LOUPE : EDITOR_TOOLTIPS.ENABLE_LOUPE
               }
-              keybindingHint={EDITOR_KEYBOARD_HINTS.TOGGLE_LOUPE}
+              keybindingHint={EDITOR_KEYS.TOGGLE_LOUPE.hint}
               onClick={handleToggleLoupe}
             />
           </ButtonGroup>
@@ -617,7 +620,7 @@ const ImageEditor = ({
               size="large"
               variant="invisible"
               aria-label={EDITOR_TOOLTIPS.PREVIOUS_PHOTO}
-              keybindingHint={EDITOR_KEYBOARD_HINTS.PREVIOUS_PHOTO}
+              keybindingHint={EDITOR_KEYS.PREVIOUS_PHOTO.hint}
               onClick={() => handleEditorNavigation("prev")}
             />
             <IconButton
@@ -625,7 +628,7 @@ const ImageEditor = ({
               size="large"
               variant="invisible"
               aria-label={EDITOR_TOOLTIPS.NEXT_PHOTO}
-              keybindingHint={EDITOR_KEYBOARD_HINTS.NEXT_PHOTO}
+              keybindingHint={EDITOR_KEYS.NEXT_PHOTO.hint}
               onClick={() => handleEditorNavigation("next")}
             />
           </ButtonGroup>
@@ -634,7 +637,7 @@ const ImageEditor = ({
             size="large"
             variant="danger"
             style={{ marginRight: "var(--stack-gap-normal)" }}
-            trailingVisual={<KeybindingHint keys={EDITOR_KEYBOARD_HINTS.RESET} />}
+            trailingVisual={<KeybindingHint keys={EDITOR_KEYS.RESET.hint} />}
             onClick={handleReset}
           >
             {EDITOR_TOOLTIPS.RESET}
@@ -645,7 +648,7 @@ const ImageEditor = ({
             variant="primary"
             loading={saving}
             disabled={saving}
-            trailingVisual={<KeybindingHint keys={EDITOR_KEYBOARD_HINTS.SAVE} />}
+            trailingVisual={<KeybindingHint keys={EDITOR_KEYS.SAVE.hint} />}
             onClick={handleSave}
           >
             {EDITOR_TOOLTIPS.SAVE}
