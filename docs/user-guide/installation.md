@@ -3,6 +3,22 @@ title: Installation
 description: How to download and install the app.
 ---
 
+## System requirements
+
+|                | Minimum                                                                                                                                            |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Windows**    | Windows 10 or later                                                                                                                                |
+| **macOS**      | macOS 11 (Big Sur) or later                                                                                                                        |
+| **Linux**      | Ubuntu 20.04+, Fedora 32+, Debian 10+, or equivalent                                                                                               |
+| **RAM**        | 4 GB (8 GB recommended for large photo sets)                                                                                                       |
+| **Disk space** | Depends on project size; thumbnails are generated alongside original photos and require additional disk space proportional to the number of photos |
+
+!!! tip
+
+    For best performance with large photo sets (500+ photos), 8 GB or more of RAM is recommended. The app stores thumbnails on disk rather than in memory to keep memory usage low.
+
+## Download
+
 To download and install the app, go to the latest release on the app's GitHub page:
 
 [github.com/CRRU-UK/photo-id-app/releases/latest](https://github.com/CRRU-UK/photo-id-app/releases/latest)

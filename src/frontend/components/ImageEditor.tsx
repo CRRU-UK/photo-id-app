@@ -1,87 +1,23 @@
 import type { EditorNavigation, PhotoBody } from "@/types";
 
-import {
-  ArrowDownIcon,
-  ArrowLeftIcon,
-  ArrowRightIcon,
-  ArrowUpIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  CodescanIcon,
-  EyeClosedIcon,
-  EyeIcon,
-  ZoomInIcon,
-  ZoomOutIcon,
-} from "@primer/octicons-react";
-import { Button, ButtonGroup, FormControl, IconButton, Label, Stack } from "@primer/react";
-import { KeybindingHint } from "@primer/react/experimental";
+import { EyeClosedIcon, EyeIcon } from "@primer/octicons-react";
+import { IconButton, Stack } from "@primer/react";
 import { forwardRef, memo, useCallback, useEffect, useRef, useState } from "react";
 
 import {
   EDGE_DETECTION,
   EDITOR_KEYS,
   EDITOR_TOOLTIPS,
-  EditorPanDirection,
   IMAGE_FILTERS,
   KEYBOARD_CODE_TO_PAN_DIRECTION,
   LOUPE,
   UNSAVED_EDITS_MESSAGE,
 } from "@/constants";
 import LoadingOverlay from "@/frontend/components/LoadingOverlay";
+import Slider from "@/frontend/components/Slider";
+import Toolbar from "@/frontend/components/Toolbar";
 import useImageEditor from "@/frontend/hooks/useImageEditor";
 import { computeIsEdited } from "@/helpers";
-
-interface SliderProps {
-  name: string;
-  min: number;
-  max: number;
-  initial: number;
-  disabled?: boolean;
-  simple?: boolean;
-  callback: (value: number) => void;
-}
-
-const Slider = ({
-  name,
-  min,
-  max,
-  initial,
-  disabled = false,
-  simple = false,
-  callback,
-}: SliderProps) => {
-  const [value, setValue] = useState<number>(initial);
-
-  useEffect(() => {
-    setValue(initial);
-  }, [initial]);
-
-  return (
-    <FormControl disabled={disabled}>
-      <FormControl.Label visuallyHidden={simple} style={{ width: "100%" }}>
-        <Stack direction="horizontal" align="center" justify="space-between">
-          {name}
-          <Label variant="secondary">
-            <pre>{value}</pre>
-          </Label>
-        </Stack>
-      </FormControl.Label>
-
-      <input
-        type="range"
-        min={min}
-        max={max}
-        value={value}
-        disabled={disabled}
-        onChange={(event) => {
-          const newValue = Number(event.target.value);
-          setValue(newValue);
-          callback(newValue);
-        }}
-      />
-    </FormControl>
-  );
-};
 
 interface CanvasImageProps {
   handlePointerDown: (event: React.PointerEvent<HTMLCanvasElement>) => void;
@@ -522,138 +458,23 @@ const ImageEditor = ({
           )}
         </Stack>
 
-        <div className="toolbar">
-          <Stack direction="horizontal" align="center" gap="condensed">
-            <Slider
-              key={`brightness-${state.resetKey}`}
-              name="Brightness"
-              initial={sliderInitials.brightness}
-              min={IMAGE_FILTERS.BRIGHTNESS.MIN}
-              max={IMAGE_FILTERS.BRIGHTNESS.MAX}
-              disabled={edgeDetectionEnabled}
-              callback={filters.setBrightness}
-            />
-            <Slider
-              key={`contrast-${state.resetKey}`}
-              name="Contrast"
-              initial={sliderInitials.contrast}
-              min={IMAGE_FILTERS.CONTRAST.MIN}
-              max={IMAGE_FILTERS.CONTRAST.MAX}
-              disabled={edgeDetectionEnabled}
-              callback={filters.setContrast}
-            />
-            <Slider
-              key={`saturation-${state.resetKey}`}
-              name="Saturation"
-              initial={sliderInitials.saturate}
-              min={IMAGE_FILTERS.SATURATE.MIN}
-              max={IMAGE_FILTERS.SATURATE.MAX}
-              disabled={edgeDetectionEnabled}
-              callback={filters.setSaturate}
-            />
-          </Stack>
-
-          <ButtonGroup style={{ marginLeft: "auto", marginRight: "var(--stack-gap-spacious)" }}>
-            <IconButton
-              icon={ArrowLeftIcon}
-              size="large"
-              aria-label={EDITOR_TOOLTIPS.PAN_LEFT}
-              keybindingHint={EDITOR_KEYS.PAN_LEFT.hint}
-              onClick={() => handlers.handleDirectionalPan(EditorPanDirection.LEFT)}
-            />
-            <IconButton
-              icon={ArrowUpIcon}
-              size="large"
-              aria-label={EDITOR_TOOLTIPS.PAN_UP}
-              keybindingHint={EDITOR_KEYS.PAN_UP.hint}
-              onClick={() => handlers.handleDirectionalPan(EditorPanDirection.UP)}
-            />
-            <IconButton
-              icon={ArrowDownIcon}
-              size="large"
-              aria-label={EDITOR_TOOLTIPS.PAN_DOWN}
-              keybindingHint={EDITOR_KEYS.PAN_DOWN.hint}
-              onClick={() => handlers.handleDirectionalPan(EditorPanDirection.DOWN)}
-            />
-            <IconButton
-              icon={ArrowRightIcon}
-              size="large"
-              aria-label={EDITOR_TOOLTIPS.PAN_RIGHT}
-              keybindingHint={EDITOR_KEYS.PAN_RIGHT.hint}
-              onClick={() => handlers.handleDirectionalPan(EditorPanDirection.RIGHT)}
-            />
-          </ButtonGroup>
-
-          <ButtonGroup style={{ marginRight: "var(--stack-gap-spacious)" }}>
-            <IconButton
-              icon={ZoomOutIcon}
-              size="large"
-              aria-label={EDITOR_TOOLTIPS.ZOOM_OUT}
-              keybindingHint={EDITOR_KEYS.ZOOM_OUT.hint}
-              onClick={handlers.handleZoomOut}
-            />
-            <IconButton
-              icon={ZoomInIcon}
-              size="large"
-              aria-label={EDITOR_TOOLTIPS.ZOOM_IN}
-              keybindingHint={EDITOR_KEYS.ZOOM_IN.hint}
-              onClick={handlers.handleZoomIn}
-            />
-          </ButtonGroup>
-
-          <ButtonGroup style={{ marginRight: "auto" }}>
-            <IconButton
-              icon={CodescanIcon}
-              size="large"
-              variant={loupeEnabled ? "primary" : "default"}
-              aria-label={
-                loupeEnabled ? EDITOR_TOOLTIPS.DISABLE_LOUPE : EDITOR_TOOLTIPS.ENABLE_LOUPE
-              }
-              keybindingHint={EDITOR_KEYS.TOGGLE_LOUPE.hint}
-              onClick={handleToggleLoupe}
-            />
-          </ButtonGroup>
-
-          <ButtonGroup style={{ marginRight: "var(--stack-gap-spacious)" }}>
-            <IconButton
-              icon={ChevronLeftIcon}
-              size="large"
-              variant="invisible"
-              aria-label={EDITOR_TOOLTIPS.PREVIOUS_PHOTO}
-              keybindingHint={EDITOR_KEYS.PREVIOUS_PHOTO.hint}
-              onClick={() => handleEditorNavigation("prev")}
-            />
-            <IconButton
-              icon={ChevronRightIcon}
-              size="large"
-              variant="invisible"
-              aria-label={EDITOR_TOOLTIPS.NEXT_PHOTO}
-              keybindingHint={EDITOR_KEYS.NEXT_PHOTO.hint}
-              onClick={() => handleEditorNavigation("next")}
-            />
-          </ButtonGroup>
-
-          <Button
-            size="large"
-            variant="danger"
-            style={{ marginRight: "var(--stack-gap-normal)" }}
-            trailingVisual={<KeybindingHint keys={EDITOR_KEYS.RESET.hint} />}
-            onClick={handleReset}
-          >
-            {EDITOR_TOOLTIPS.RESET}
-          </Button>
-
-          <Button
-            size="large"
-            variant="primary"
-            loading={saving}
-            disabled={saving}
-            trailingVisual={<KeybindingHint keys={EDITOR_KEYS.SAVE.hint} />}
-            onClick={handleSave}
-          >
-            {EDITOR_TOOLTIPS.SAVE}
-          </Button>
-        </div>
+        <Toolbar
+          sliderInitials={sliderInitials}
+          resetKey={state.resetKey}
+          edgeDetectionEnabled={edgeDetectionEnabled}
+          loupeEnabled={loupeEnabled}
+          saving={saving}
+          onSetBrightness={filters.setBrightness}
+          onSetContrast={filters.setContrast}
+          onSetSaturate={filters.setSaturate}
+          onDirectionalPan={handlers.handleDirectionalPan}
+          onZoomOut={handlers.handleZoomOut}
+          onZoomIn={handlers.handleZoomIn}
+          onToggleLoupe={handleToggleLoupe}
+          onNavigate={handleEditorNavigation}
+          onReset={handleReset}
+          onSave={handleSave}
+        />
       </div>
     </>
   );

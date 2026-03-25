@@ -180,6 +180,13 @@ app.on("activate", async () => {
   }
 });
 
+// Prevent webview injection in any window
+app.on("web-contents-created", (_, contents) => {
+  contents.on("will-attach-webview", (event) => {
+    event.preventDefault();
+  });
+});
+
 void app.whenReady().then(async () => {
   // Offer to move to the Applications folder on macOS if not already there
   if (process.platform === "darwin" && production) {

@@ -84,22 +84,10 @@ const exportMatchesAsPhotos = async (
   const exportsDirectory = path.join(directory, PROJECT_EXPORT_DIRECTORY);
 
   if (fs.existsSync(exportsDirectory)) {
-    /**
-     * Empty exports folder with per-file try/catch so one locked or permission-denied file does not
-     * abort export.
-     */
-    for (const file of await fs.promises.readdir(exportsDirectory)) {
-      const filePath = path.join(exportsDirectory, file);
-
-      try {
-        await fs.promises.unlink(filePath);
-      } catch (error) {
-        console.warn("Could not remove existing export file during cleanup:", filePath, error);
-      }
-    }
-  } else {
-    await fs.promises.mkdir(exportsDirectory);
+    await fs.promises.rm(exportsDirectory, { recursive: true });
   }
+
+  await fs.promises.mkdir(exportsDirectory);
 
   let progress = 0;
   const totalPhotos = project.matched.reduce(

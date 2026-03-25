@@ -18,6 +18,7 @@ const mockCopyFile = vi.fn<(src: string, dest: string) => Promise<void>>();
 const mockReaddir = vi.fn<(path: string) => Promise<string[]>>();
 const mockUnlink = vi.fn<(path: string) => Promise<void>>();
 const mockMkdir = vi.fn<(path: string) => Promise<void>>();
+const mockRm = vi.fn<(path: string, options?: { recursive?: boolean }) => Promise<void>>();
 
 vi.mock("node:fs", () => ({
   default: {
@@ -28,6 +29,7 @@ vi.mock("node:fs", () => ({
       readdir: (...args: Parameters<typeof mockReaddir>) => mockReaddir(...args),
       unlink: (...args: Parameters<typeof mockUnlink>) => mockUnlink(...args),
       mkdir: (...args: Parameters<typeof mockMkdir>) => mockMkdir(...args),
+      rm: (...args: Parameters<typeof mockRm>) => mockRm(...args),
     },
   },
 }));
@@ -108,11 +110,11 @@ describe(handleExportMatches, () => {
     const mainWindow = createMockMainWindow();
     const project = createProject({ matched: [] });
     mockExistsSync.mockReturnValue(true);
-    mockReaddir.mockResolvedValue(["old-export.jpg"]);
 
     await handleExportMatches(mainWindow, JSON.stringify(project), "edited");
 
-    expect(mockUnlink).toHaveBeenCalledWith(expect.stringContaining("old-export.jpg"));
+    expect(mockRm).toHaveBeenCalledWith(expect.stringContaining("matched"), { recursive: true });
+    expect(mockMkdir).toHaveBeenCalledWith(expect.stringContaining("matched"));
   });
 
   it("copies unedited photos directly", async () => {

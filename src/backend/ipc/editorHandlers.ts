@@ -67,6 +67,20 @@ export const handleOpenEditWindow = (config: EditorConfig) => {
       }
     });
 
+    // Block navigation to arbitrary URLs so a compromised renderer cannot leave the app origin
+    editWindow.webContents.on("will-navigate", (event, navigationUrl) => {
+      if (
+        MAIN_WINDOW_VITE_DEV_SERVER_URL &&
+        navigationUrl.startsWith(MAIN_WINDOW_VITE_DEV_SERVER_URL)
+      ) {
+        return;
+      }
+
+      if (!navigationUrl.startsWith("file:")) {
+        event.preventDefault();
+      }
+    });
+
     editWindow.once("ready-to-show", () => editWindow.show());
   };
 };
