@@ -133,6 +133,16 @@ export const handleExportMatchesInvoke = async (
   return void shell.openPath(path.join(directory, PROJECT_EXPORT_DIRECTORY));
 };
 
+export const handleFlushSaveProjectSync = (event: IpcMainEvent, data: string): void => {
+  try {
+    handleFlushSaveProject(data);
+    event.returnValue = true;
+  } catch (error) {
+    console.error("Failed to flush save project:", error);
+    event.returnValue = false;
+  }
+};
+
 export const registerProjectHandlers = (ipcMain: Electron.IpcMain): void => {
   ipcMain.on(IPC_EVENTS.OPEN_FOLDER, (event) => void handleOpenFolder(event));
   ipcMain.on(IPC_EVENTS.OPEN_FILE, (event) => void handleOpenFile(event));
@@ -145,13 +155,5 @@ export const registerProjectHandlers = (ipcMain: Electron.IpcMain): void => {
   ipcMain.handle(IPC_EVENTS.EXPORT_MATCHES, handleExportMatchesInvoke);
 
   // Synchronous save for `beforeunload`, guarantees write completes before the process exits
-  ipcMain.on(IPC_EVENTS.FLUSH_SAVE_PROJECT, (event, data: string) => {
-    try {
-      handleFlushSaveProject(data);
-      event.returnValue = true;
-    } catch (error) {
-      console.error("Failed to flush save project:", error);
-      event.returnValue = false;
-    }
-  });
+  ipcMain.on(IPC_EVENTS.FLUSH_SAVE_PROJECT, handleFlushSaveProjectSync);
 };
