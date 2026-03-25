@@ -1,5 +1,6 @@
 import "dotenv/config";
 
+import * as Sentry from "@sentry/electron/main";
 import { app, BrowserWindow, dialog, ipcMain, Menu, net, protocol, session } from "electron";
 import {
   installExtension,
@@ -27,11 +28,13 @@ initSentry();
 
 process.on("uncaughtException", (error) => {
   console.error("Uncaught exception:", error);
+  Sentry.captureException(error);
   dialog.showErrorBox("Unexpected Error", String(error));
 });
 
 process.on("unhandledRejection", (reason) => {
   console.error("Unhandled promise rejection:", reason);
+  Sentry.captureException(reason);
   dialog.showErrorBox("Unexpected Error", String(reason));
 });
 
