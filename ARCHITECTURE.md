@@ -360,3 +360,4 @@ Screen-pixel drag deltas are converted to image-pixel deltas by multiplying by `
 - Users cannot (currently) add or remove photos from a project after the project has been created
 - Project data is created and managed ONLY by the app - while in theory a user can manually edit the `project.photoid` file, the app uses no external input when managing the data file
 - All photo file access goes through the custom `photo://` protocol in order to keep the Electron app secure. The protocol validates file extensions (only allowed image types) and serves files from the project directory. It can be used in HTML (e.g. image `src`) or via `fetch` (e.g. edit view loading the full-size image).
+- **Known limitation**: Project files store OS-specific path separators. A `.photoid` file created on one platform (e.g. macOS) cannot currently be opened on a different platform (e.g. Windows). See `docs/known-issues.md` for details.

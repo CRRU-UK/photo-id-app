@@ -4,6 +4,7 @@
 - It is NOT a cataloguing tool, but a tool to group photos and edit them to more easily see identifiable marks. These photos can then be exported and used in external cataloguing software.
 - ALWAYS read `ARCHITECTURE.md` and `SECURITY.md` for specifications and requirements of user journeys and flows.
 - ALWAYS read `docs/` as it contains user-facing documentation and should be kept in sync with any changes, as well as providing further context.
+- `README.md` is for developers/contributors only. End-user documentation lives in `docs/` and is published via MkDocs.
 
 ## Architecture overview
 
