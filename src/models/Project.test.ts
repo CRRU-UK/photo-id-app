@@ -220,6 +220,60 @@ describe(Project, () => {
     });
   });
 
+  describe("photoCount", () => {
+    it("returns total photo count across all collections", () => {
+      const project = new Project(createProjectBody());
+
+      // 2 unassigned + 0 discarded + 1 left matched + 0 right matched = 3
+      expect(project.photoCount).toBe(3);
+    });
+
+    it("returns zero for an empty project", () => {
+      const project = new Project(
+        createProjectBody({
+          unassigned: { photos: [], index: 0 },
+          discarded: { photos: [], index: 0 },
+          matched: [],
+        }),
+      );
+
+      expect(project.photoCount).toBe(0);
+    });
+
+    it("includes photos from both sides of matched sets", () => {
+      const project = new Project(
+        createProjectBody({
+          unassigned: { photos: [], index: 0 },
+          discarded: { photos: [], index: 0 },
+          matched: [
+            {
+              id: 1,
+              left: { photos: [createPhoto("l1.jpg").toBody()], index: 0 },
+              right: {
+                photos: [createPhoto("r1.jpg").toBody(), createPhoto("r2.jpg").toBody()],
+                index: 0,
+              },
+            },
+          ],
+        }),
+      );
+
+      expect(project.photoCount).toBe(3);
+    });
+
+    it("includes discarded photos in the count", () => {
+      const project = new Project(
+        createProjectBody({
+          unassigned: { photos: [], index: 0 },
+          discarded: { photos: [createPhoto("d1.jpg").toBody()], index: 0 },
+          matched: [],
+        }),
+      );
+
+      expect(project.photoCount).toBe(1);
+    });
+  });
+
   describe("updatePhoto", () => {
     it("updates an existing photo by name", () => {
       const project = new Project(createProjectBody());

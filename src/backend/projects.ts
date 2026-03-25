@@ -357,15 +357,19 @@ const handleFlushSaveProject = (data: string): void => {
     return;
   }
 
-  const json: unknown = JSON.parse(data);
-  const result = projectBodySchema.safeParse(json);
+  try {
+    const json: unknown = JSON.parse(data);
+    const result = projectBodySchema.safeParse(json);
 
-  if (!result.success) {
-    console.error("Flush save failed: invalid project data:", result.error.message);
-    return;
+    if (!result.success) {
+      console.error("Flush save failed: invalid project data:", result.error.message);
+      return;
+    }
+
+    fs.writeFileSync(path.join(directory, PROJECT_FILE_NAME), data, "utf8");
+  } catch (error) {
+    console.error("Flush save failed:", error);
   }
-
-  fs.writeFileSync(path.join(directory, PROJECT_FILE_NAME), data, "utf8");
 };
 
 /**

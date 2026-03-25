@@ -133,7 +133,7 @@ const Sidebar = observer(() => {
         padding="normal"
         style={{ minHeight: "100%" }}
       >
-        <MainSelection collection={project.unassigned} total={project.allPhotos.size} />
+        <MainSelection collection={project.unassigned} total={project.photoCount} />
         <DiscardedSelection collection={project.discarded} />
 
         <FormControl style={{ marginLeft: "auto", marginTop: "auto" }}>

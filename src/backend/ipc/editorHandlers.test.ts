@@ -12,6 +12,7 @@ const mockOnce = vi.fn<(event: string, callback: () => void) => void>();
 const mockWebContentsSend = vi.fn<(channel: string, ...args: unknown[]) => void>();
 
 const mockWebContentsOn = vi.fn<(event: string, callback: (...args: unknown[]) => void) => void>();
+const mockShowMessageBoxSync = vi.fn<() => number>(() => 0);
 
 vi.mock("electron", () => ({
   BrowserWindow: class MockBrowserWindow {
@@ -31,7 +32,7 @@ vi.mock("electron", () => ({
     once = mockOnce;
   },
   dialog: {
-    showMessageBoxSync: vi.fn<() => number>(() => 0),
+    showMessageBoxSync: mockShowMessageBoxSync,
   },
 }));
 
@@ -149,6 +150,95 @@ describe("editor IPC handlers", () => {
       handler({} as IpcMainEvent, createMockPhotoBody());
 
       expect(mockOnce).toHaveBeenCalledWith("ready-to-show", expect.any(Function));
+    });
+
+    describe("will-prevent-unload", () => {
+      const getWillPreventUnloadCallback = () => {
+        const handler = handleOpenEditWindow(config);
+        handler({} as IpcMainEvent, createMockPhotoBody());
+
+        const call = mockWebContentsOn.mock.calls.find(
+          ([event]) => event === "will-prevent-unload",
+        );
+
+        return call![1] as (event: { preventDefault: () => void }) => void;
+      };
+
+      it("shows a confirmation dialog when renderer prevents unload", () => {
+        const callback = getWillPreventUnloadCallback();
+
+        callback({ preventDefault: vi.fn<() => void>() });
+
+        expect(mockShowMessageBoxSync).toHaveBeenCalledWith(
+          expect.anything(),
+          expect.objectContaining({
+            type: "question",
+            title: "Unsaved Changes",
+          }),
+        );
+      });
+
+      it("prevents default (discards changes) when user selects 'Discard Changes'", () => {
+        mockShowMessageBoxSync.mockReturnValue(0);
+        const callback = getWillPreventUnloadCallback();
+        const preventDefault = vi.fn<() => void>();
+
+        callback({ preventDefault });
+
+        expect(preventDefault).toHaveBeenCalledWith();
+      });
+
+      it("does not prevent default (keeps window open) when user selects 'Cancel'", () => {
+        mockShowMessageBoxSync.mockReturnValue(1);
+        const callback = getWillPreventUnloadCallback();
+        const preventDefault = vi.fn<() => void>();
+
+        callback({ preventDefault });
+
+        expect(preventDefault).not.toHaveBeenCalledWith();
+      });
+    });
+
+    describe("will-navigate", () => {
+      const getWillNavigateCallback = () => {
+        const handler = handleOpenEditWindow(config);
+        handler({} as IpcMainEvent, createMockPhotoBody());
+
+        const call = mockWebContentsOn.mock.calls.find(([event]) => event === "will-navigate");
+
+        return call![1] as (event: { preventDefault: () => void }, url: string) => void;
+      };
+
+      it("blocks navigation to external URLs", () => {
+        const callback = getWillNavigateCallback();
+        const preventDefault = vi.fn<() => void>();
+
+        callback({ preventDefault }, "https://example.com");
+
+        expect(preventDefault).toHaveBeenCalledWith();
+      });
+
+      it("allows navigation to file:// URLs", () => {
+        const callback = getWillNavigateCallback();
+        const preventDefault = vi.fn<() => void>();
+
+        callback({ preventDefault }, "file:///path/to/index.html");
+
+        expect(preventDefault).not.toHaveBeenCalledWith();
+      });
+
+      it("allows navigation to the dev server URL when set", () => {
+        vi.stubGlobal("MAIN_WINDOW_VITE_DEV_SERVER_URL", "http://localhost:5173");
+
+        const callback = getWillNavigateCallback();
+        const preventDefault = vi.fn<() => void>();
+
+        callback({ preventDefault }, "http://localhost:5173/edit?data=abc");
+
+        expect(preventDefault).not.toHaveBeenCalledWith();
+
+        vi.stubGlobal("MAIN_WINDOW_VITE_DEV_SERVER_URL", "");
+      });
     });
   });
 

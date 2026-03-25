@@ -17,6 +17,7 @@ class Collection {
 
   constructor({ name = undefined, index = 0, photos }: CollectionOptions, project: Project) {
     makeObservable(this, {
+      name: observable,
       index: observable,
       photos: observable,
       addPhoto: action,

@@ -1,4 +1,4 @@
-import { action, makeObservable, observable, runInAction } from "mobx";
+import { action, computed, makeObservable, observable, runInAction } from "mobx";
 
 import { SAVE_PROJECT_DEBOUNCE_MS } from "@/constants";
 import Collection from "@/models/Collection";
@@ -28,10 +28,10 @@ class Project {
 
   constructor(data?: ProjectBody) {
     makeObservable(this, {
-      allPhotos: observable,
       unassigned: observable,
       discarded: observable,
       matched: observable,
+      photoCount: computed,
       loadFromJSON: action,
     });
 
@@ -49,6 +49,20 @@ class Project {
       console.log("Loading data from json:", data);
       this.loadFromJSON(data);
     }
+  }
+
+  /**
+   * Derives the total photo count from the observable collections. Used by the sidebar to display
+   * assignment progress without making the entire `allPhotos` Map observable.
+   */
+  get photoCount(): number {
+    let count = this.unassigned.photos.length + this.discarded.photos.length;
+
+    for (const match of this.matched) {
+      count = count + match.left.photos.length + match.right.photos.length;
+    }
+
+    return count;
   }
 
   updatePhoto(data: PhotoBody) {

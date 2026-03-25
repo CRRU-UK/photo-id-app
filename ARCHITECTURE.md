@@ -28,14 +28,14 @@ Technical information, specifications, requirements, and user journeys.
 ## Error Handling
 
 - **User-facing errors**: Shown as modal dialogues via `dialog.showErrorBox` (main process) or inline error state (renderer). Never silently swallow errors that affect user data or workflow.
-- **Renderer diagnostics**: Use `console.error` for unexpected failures. These are captured by Sentry when telemetry is enabled and serve as production diagnostics — do not remove them.
+- **Renderer diagnostics**: Use `console.error` for unexpected failures. These are captured by Sentry when telemetry is enabled and serve as production diagnostics, do not remove them.
 - **Graceful fallbacks**: Settings and token files fall back to safe defaults if missing or invalid. The app should never crash on startup due to corrupted settings.
 - **Error boundaries**: The `ErrorBoundary` component (`src/frontend/components/ErrorBoundary.tsx`) wraps heavy UI components (e.g. `ImageEditor`, `AnalysisOverlay`) so a render crash in those components doesn't take down the entire project view. Wrap any new component that does complex or error-prone rendering.
 
 ## Save / Persistence Flow
 
 1. A user action mutates a MobX model (e.g. `collection.addPhoto(photo)`)
-2. The mutating method calls `project.save()` internally — **call sites do not need to call `save()` again**
+2. The mutating method calls `project.save()` internally, **call sites do not need to call `save()` again**
 3. `project.save()` updates `lastModified` and sets a debounce timer (`SAVE_PROJECT_DEBOUNCE_MS`, 1000 ms). Rapid mutations coalesce into a single write
 4. After the debounce timer fires, `project.returnAsJSONString()` serializes the entire project to compact JSON
 5. The JSON string is sent to the main process via `window.electronAPI.saveProject(data)` (IPC)

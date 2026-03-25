@@ -152,7 +152,7 @@ const ProjectPage = observer(() => {
 
   useEffect(() => {
     if (project === null) {
-      return () => {};
+      return;
     }
 
     const unsubscribeUpdatePhoto = window.electronAPI.onUpdatePhoto((data) =>

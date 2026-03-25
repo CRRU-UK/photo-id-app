@@ -3,6 +3,17 @@ title: Installation
 description: How to download and install the app.
 ---
 
+## System requirements
+
+|             | Minimum                                              |
+| ----------- | ---------------------------------------------------- |
+| **Windows** | Windows 10 or later                                  |
+| **macOS**   | macOS 11 (Big Sur) or later                          |
+| **Linux**   | Ubuntu 20.04+, Fedora 32+, Debian 10+, or equivalent |
+| **RAM**     | 4 GB (8 GB recommended for large photo sets)         |
+
+## Download
+
 To download and install the app, go to the latest release on the app's GitHub page:
 
 [github.com/CRRU-UK/photo-id-app/releases/latest](https://github.com/CRRU-UK/photo-id-app/releases/latest)

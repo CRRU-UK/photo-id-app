@@ -325,8 +325,14 @@ describe(handleFlushSaveProject, () => {
   it("does not write when data is invalid JSON", () => {
     setCurrentProject("/my/project");
 
-    expect(() => handleFlushSaveProject("not json")).toThrow(/Unexpected token|JSON/);
+    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+
+    handleFlushSaveProject("not json");
+
     expect(mockWriteFileSync).not.toHaveBeenCalled();
+    expect(consoleErrorSpy).toHaveBeenCalledWith("Flush save failed:", expect.any(SyntaxError));
+
+    consoleErrorSpy.mockRestore();
   });
 
   it("does not write when data does not match project schema", () => {
