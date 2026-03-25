@@ -5,6 +5,7 @@ import { handleExportMatches } from "@/backend/exports";
 import { closeCurrentProject, getWindowFromSender } from "@/backend/ipc/shared";
 import {
   getCurrentProjectDirectory,
+  handleFlushSaveProject,
   handleOpenDirectoryPrompt,
   handleOpenFilePrompt,
   handleOpenProjectFile,
@@ -142,4 +143,15 @@ export const registerProjectHandlers = (ipcMain: Electron.IpcMain): void => {
   ipcMain.handle(IPC_EVENTS.GET_CURRENT_PROJECT, handleGetCurrentProject);
   ipcMain.handle(IPC_EVENTS.SAVE_PROJECT, handleSaveProjectInvoke);
   ipcMain.handle(IPC_EVENTS.EXPORT_MATCHES, handleExportMatchesInvoke);
+
+  // Synchronous save for `beforeunload`, guarantees write completes before the process exits
+  ipcMain.on(IPC_EVENTS.FLUSH_SAVE_PROJECT, (event, data: string) => {
+    try {
+      handleFlushSaveProject(data);
+      event.returnValue = true;
+    } catch (error) {
+      console.error("Failed to flush save project:", error);
+      event.returnValue = false;
+    }
+  });
 };

@@ -32,6 +32,7 @@ process.on("uncaughtException", (error) => {
 
 process.on("unhandledRejection", (reason) => {
   console.error("Unhandled promise rejection:", reason);
+  dialog.showErrorBox("Unexpected Error", String(reason));
 });
 
 updateElectronApp();
@@ -190,7 +191,12 @@ void app.whenReady().then(async () => {
       });
 
       if (response === 0) {
-        return app.moveToApplicationsFolder();
+        try {
+          return app.moveToApplicationsFolder();
+        } catch (error) {
+          console.error("Failed to move to Applications folder:", error);
+          dialog.showErrorBox("Failed to move to Applications", String(error));
+        }
       }
 
       return app.exit();

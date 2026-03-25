@@ -18,6 +18,7 @@ interface RenderOptions {
  */
 export const useCanvasRenderer = ({ imageRef, getFilters, getTransform, clamp }: RenderOptions) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const contextRef = useRef<CanvasRenderingContext2D | null>(null);
   const throttleRef = useRef<number | null>(null);
   const debounceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -29,7 +30,12 @@ export const useCanvasRenderer = ({ imageRef, getFilters, getTransform, clamp }:
       return;
     }
 
-    const context = canvas.getContext("2d");
+    // Cache the context to avoid repeated getContext calls (returns the same object per spec)
+    if (contextRef.current?.canvas !== canvas) {
+      contextRef.current = canvas.getContext("2d");
+    }
+
+    const context = contextRef.current;
 
     if (!context) {
       return;

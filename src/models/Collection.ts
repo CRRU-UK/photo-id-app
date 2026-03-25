@@ -74,6 +74,10 @@ class Collection {
   }
 
   setPreviousPhoto(): this {
+    if (this.photos.length === 0) {
+      return this;
+    }
+
     let newIndex = (this.index - 1) % this.photos.length;
     if (newIndex < 0) {
       newIndex = this.photos.length - 1;
@@ -85,6 +89,10 @@ class Collection {
   }
 
   setNextPhoto(): this {
+    if (this.photos.length === 0) {
+      return this;
+    }
+
     this.index = (this.index + 1) % this.photos.length;
 
     this.project.save();

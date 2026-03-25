@@ -347,6 +347,28 @@ const handleSaveProject = async (data: string) => {
 };
 
 /**
+ * Synchronous version of `handleSaveProject` for use during app shutdown (`beforeunload`). Uses
+ * `writeFileSync` to guarantee the write completes before the process exits.
+ */
+const handleFlushSaveProject = (data: string): void => {
+  const directory = getCurrentProjectDirectory();
+
+  if (directory === null) {
+    return;
+  }
+
+  const json: unknown = JSON.parse(data);
+  const result = projectBodySchema.safeParse(json);
+
+  if (!result.success) {
+    console.error("Flush save failed: invalid project data:", result.error.message);
+    return;
+  }
+
+  fs.writeFileSync(path.join(directory, PROJECT_FILE_NAME), data, "utf8");
+};
+
+/**
  * Duplicates the original, edited, and thumbnail versions of a photo a returns the new filenames.
  */
 const handleDuplicatePhotoFile = async (data: PhotoBody): Promise<PhotoBody> => {
@@ -461,6 +483,7 @@ export {
   findPhotoInProject,
   handleDuplicatePhotoFile,
   handleEditorNavigate,
+  handleFlushSaveProject,
   handleOpenDirectoryPrompt,
   handleOpenFilePrompt,
   handleOpenProjectFile,

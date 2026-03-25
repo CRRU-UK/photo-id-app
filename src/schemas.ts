@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { DEFAULT_SETTINGS } from "@/constants";
+import { DEFAULT_SETTINGS, IMAGE_FILTERS } from "@/constants";
 
 export const recentProjectSchema = z.object({
   name: z.string(),
@@ -50,10 +50,10 @@ export const settingsDataSchema = z.object({
 });
 
 export const photoEditsSchema = z.object({
-  brightness: z.number(),
-  contrast: z.number(),
-  saturate: z.number(),
-  zoom: z.number(),
+  brightness: z.number().min(IMAGE_FILTERS.BRIGHTNESS.MIN).max(IMAGE_FILTERS.BRIGHTNESS.MAX),
+  contrast: z.number().min(IMAGE_FILTERS.CONTRAST.MIN).max(IMAGE_FILTERS.CONTRAST.MAX),
+  saturate: z.number().min(IMAGE_FILTERS.SATURATE.MIN).max(IMAGE_FILTERS.SATURATE.MAX),
+  zoom: z.number().min(0.01).max(100),
   pan: z.object({ x: z.number(), y: z.number() }),
 });
 

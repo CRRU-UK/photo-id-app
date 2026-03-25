@@ -32,6 +32,7 @@ export interface IElectronAPI {
   openProjectFile: () => void;
   openRecentProject: (path: string) => Promise<void>;
   saveProject: (data: string) => Promise<void>;
+  flushSaveProject: (data: string) => boolean;
   closeProject: () => void;
   openEditWindow: (data: PhotoBody) => void;
   openExternalLink: (link: ExternalLinks) => void;
