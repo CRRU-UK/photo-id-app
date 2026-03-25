@@ -1,5 +1,11 @@
 # photo-id
 
+## 0.6.2
+
+### Patch Changes
+
+- b345921: Improve auto-update reliability
+
 ## 0.6.1
 
 ### Patch Changes
