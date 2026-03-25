@@ -166,7 +166,7 @@ describe(getImageCoordinates, () => {
   });
 
   it("applies fitScale correctly when image is wider than canvas (height is the constraining dimension)", () => {
-    // 1600*400 image (4:1) in an 800*600 canvas — fitScale = min(800/1600, 600/400) = min(0.5, 1.5) = 0.5
+    // 1600*400 image (4:1) in an 800*600 canvas: fitScale = min(800/1600, 600/400) = min(0.5, 1.5) = 0.5
     // Top-left of image in CSS: centre (400, 300) offset by (-naturalWidth/2 * fitScale, -naturalHeight/2 * fitScale)
     //   = (400 - 400, 300 - 100) = (0, 200)
     const canvas = {
@@ -190,7 +190,7 @@ describe(getImageCoordinates, () => {
   });
 
   it("applies fitScale correctly when image is taller than canvas (width is the constraining dimension)", () => {
-    // 200*1200 image (1:6) in an 800*600 canvas — fitScale = min(800/200, 600/1200) = min(4, 0.5) = 0.5
+    // 200*1200 image (1:6) in an 800*600 canvas: fitScale = min(800/200, 600/1200) = min(4, 0.5) = 0.5
     // Top-right of image in CSS: centre (400, 300) offset by (naturalWidth/2 * fitScale, -naturalHeight/2 * fitScale)
     //   = (400 + 50, 300 - 300) = (450, 0)
     const canvas = {

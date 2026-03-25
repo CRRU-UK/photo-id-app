@@ -28,7 +28,7 @@ export const useImageTransform = (imageRef: React.RefObject<HTMLImageElement | n
     (canvas: HTMLCanvasElement | null): void => {
       const image = imageRef.current;
 
-      // Canvas checked for presence only — dimensions are not used in the boundary formula
+      // Canvas checked for presence only, dimensions are not used in the boundary formula
       if (!canvas || !image) {
         return;
       }

@@ -90,7 +90,7 @@ describe(usePanInteraction, () => {
   });
 
   it("uses a uniform scale for both axes when the image is letterboxed", () => {
-    // 1600*400 image (4:1) in 800*600 canvas — fitScale = min(0.5, 1.5) = 0.5
+    // 1600*400 image (4:1) in 800*600 canvas: fitScale = min(0.5, 1.5) = 0.5
     // Math.max(1600/800, 400/600) = Math.max(2, 0.667) = 2
     // Both X and Y get the same factor so diagonal panning is isotropic
     const onPan = vi.fn<(pan: { x: number; y: number }) => void>();
