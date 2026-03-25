@@ -33,7 +33,7 @@ class Photo {
     this.directory = directory;
     this.name = name;
     this.thumbnail = thumbnail;
-    this.version = 1;
+    this.version = Date.now();
     this.edits = { ...edits, pan: { ...edits.pan } };
 
     this.project = project;
@@ -64,7 +64,7 @@ class Photo {
   public updatePhoto(data: PhotoBody): this {
     this.edits = { ...data.edits, pan: { ...data.edits.pan } };
     this.thumbnail = data.thumbnail;
-    this.version++;
+    this.version = Date.now();
 
     this.project.save();
 
