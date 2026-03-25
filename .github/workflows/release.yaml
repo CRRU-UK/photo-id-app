@@ -41,7 +41,7 @@ jobs:
       - name: Create draft release
         if: steps.changesets.outputs.hasChangesets == 'false'
         run: |
-          npx @changesets/cli tag
+          npm run changesets:tag
           VERSION=$(node -p "require('./package.json').version")
           awk "/^## ${VERSION}$/{found=1; next} found && /^## /{exit} found{print}" CHANGELOG.md > /tmp/release-notes.md
           gh release create "v${VERSION}" --draft --title "v${VERSION}" --notes-file /tmp/release-notes.md --target $(git rev-parse HEAD) --repo CRRU-UK/photo-id-app
