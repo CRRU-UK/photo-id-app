@@ -526,7 +526,7 @@ describe(Project, () => {
 
       vi.runAllTimers();
 
-      // flushSaveProject should have been called once, and the debounced saveProject should not fire
+      // `flushSaveProject` should be called once, and the debounced `saveProject` should not fire
       expect(window.electronAPI.flushSaveProject).toHaveBeenCalledTimes(1);
       expect(window.electronAPI.saveProject).not.toHaveBeenCalled();
     });

@@ -124,10 +124,15 @@ export const EDITOR_TOOLTIPS = {
 };
 
 /**
- * Editor keyboard bindings. Each entry has a `hint` (display string for KeybindingHint) and a
+ * Editor keyboard bindings. Each entry has a `hint` (display string for `KeybindingHint`) and a
  * `code` (lowercase key value used in the keydown handler).
  */
-export const EDITOR_KEYS = {
+export const EDITOR_KEYS: {
+  [key: string]: {
+    hint: string;
+    code: string;
+  };
+} = {
   TOGGLE_EDGE_DETECTION: { hint: "E", code: "e" },
   TOGGLE_LOUPE: { hint: "Space", code: "Space" },
   PAN_LEFT: { hint: "ArrowLeft", code: "ArrowLeft" },

@@ -78,7 +78,7 @@ class Project {
   }
 
   /**
-   * Loads project state from JSON. runInAction batches all observable updates into a single
+   * Loads project state from JSON. `runInAction` batches all observable updates into a single
    * transaction so observers re-run once instead of on every property change.
    */
   public loadFromJSON(data: ProjectBody): this {
@@ -142,8 +142,8 @@ class Project {
   }
 
   /**
-   * Flushes any pending debounced save immediately using synchronous IPC. Called from beforeunload
-   * to guarantee the write completes before the window/process exits.
+   * Flushes any pending debounced save immediately using synchronous IPC. Called from
+   * `beforeunload` to guarantee the write completes before the window/process exits.
    */
   public flushSave() {
     if (this.saveDebounceTimer === null) {
