@@ -40,6 +40,17 @@ The renderer cannot open arbitrary URLs in the default browser. External link re
 
 ML model API tokens are encrypted at rest using Electron's `safeStorage` API and stored in a separate `tokens.json` file in the app user data directory. Tokens are decrypted only at the moment of an API request and never sent to the renderer. Per-token encryption flags handle edge cases where encryption availability changes between sessions. On machines where secure storage is unavailable, tokens fall back to plaintext storage with a UI warning.
 
+## macOS Entitlements
+
+`entitlements.mac.plist` declares the OS-level capabilities the app is permitted to use under the macOS hardened runtime. The declared entitlements are kept to a minimum and only for what the app actively requires:
+
+- `com.apple.security.cs.allow-jit` - Required for Electron's V8 JIT compiler to function under the hardened runtime
+- `com.apple.security.cs.allow-unsigned-executable-memory` - Required for Electron's renderer process memory model
+- `com.apple.security.cs.disable-library-validation` - Required to load `@napi-rs/canvas` native binaries, which are not signed by the same Developer ID as the app
+- `keychain-access-groups` - Binds the `safeStorage` keychain item ACL to the Team ID rather than a specific binary hash, so a user's "Always Allow" keychain permission persists across app updates, as long as the same Developer ID certificate is used
+
+Any future features that requires additional system access (camera, microphone, file access beyond user-selected, etc.) must add the corresponding entitlement to `entitlements.mac.plist` as part of that feature's implementation. The `appBundleId` in `forge.config.ts` must stay in sync with the bundle ID used in the `keychain-access-groups` value.
+
 ## Electron Fuses
 
 Production builds use Electron Fuses to disable potentially dangerous features:
