@@ -47,6 +47,8 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   test-e2e:
+    needs: test-app
+
     strategy:
       fail-fast: false
       matrix:
