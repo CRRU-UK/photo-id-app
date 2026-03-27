@@ -22,6 +22,12 @@ vi.mock("@/backend/settings", () => ({
   updateSettings: (...args: Parameters<typeof mockUpdateSettings>) => mockUpdateSettings(...args),
 }));
 
+const mockIsEncryptionAvailable = vi.fn<() => boolean>();
+
+vi.mock("@/backend/tokens", () => ({
+  isEncryptionAvailable: () => mockIsEncryptionAvailable(),
+}));
+
 const mockGetMainWindow = vi.fn<() => BrowserWindow | null>();
 
 vi.mock("@/backend/WindowManager", () => ({
@@ -40,8 +46,13 @@ vi.mock("./shared", () => ({
     mockResolveExternalLinkUrl(...args),
 }));
 
-const { handleGetSettings, handleUpdateSettings, handleOpenSettings, handleOpenExternalLink } =
-  await import("./settingsHandlers");
+const {
+  handleGetSettings,
+  handleGetEncryptionAvailability,
+  handleUpdateSettings,
+  handleOpenSettings,
+  handleOpenExternalLink,
+} = await import("./settingsHandlers");
 
 const createMockWindow = (): BrowserWindow =>
   ({
@@ -65,13 +76,24 @@ describe("settings IPC handlers", () => {
     });
   });
 
+  describe(handleGetEncryptionAvailability, () => {
+    it("returns true when encryption is available", () => {
+      mockIsEncryptionAvailable.mockReturnValue(true);
+
+      expect(handleGetEncryptionAvailability()).toBe(true);
+    });
+
+    it("returns false when encryption is not available", () => {
+      mockIsEncryptionAvailable.mockReturnValue(false);
+
+      expect(handleGetEncryptionAvailability()).toBe(false);
+    });
+  });
+
   describe(handleUpdateSettings, () => {
     it("validates, updates, and broadcasts settings", async () => {
       const settings = { ...DEFAULT_SETTINGS } as SettingsData;
-      const enrichedSettings = {
-        ...DEFAULT_SETTINGS,
-        isTokenEncryptionAvailable: true,
-      } as SettingsData;
+      const enrichedSettings = { ...DEFAULT_SETTINGS } as SettingsData;
       mockUpdateSettings.mockResolvedValue(undefined);
       mockGetSettingsForRenderer.mockResolvedValue(enrichedSettings);
 

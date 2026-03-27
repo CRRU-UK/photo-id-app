@@ -39,6 +39,7 @@ export enum IPC_EVENTS {
   DELETE_MODEL = "ml:deleteModel",
   ANALYSE_STACK = "ml:analyseStack",
   CANCEL_ANALYSE_STACK = "ml:cancelAnalyseStack",
+  GET_ENCRYPTION_AVAILABILITY = "ml:getEncryptionAvailability",
 }
 
 export const ROUTES = {
@@ -266,7 +267,6 @@ export const DEFAULT_SETTINGS = {
   telemetry: "disabled" as const,
   mlModels: [] as MLModel[],
   selectedModelId: null,
-  isTokenEncryptionAvailable: true,
 };
 
 // Machine Learning

@@ -61,6 +61,11 @@ const SettingsOverlay = ({ open, onClose, onOpenRequest, returnFocusRef }: Setti
   const [isLoading, setIsLoading] = useState(false);
   const [isModelOverlayOpen, setIsModelOverlayOpen] = useState(false);
   const [editingModel, setEditingModel] = useState<MLModel | null>(null);
+  const [isEncryptionAvailable, setIsEncryptionAvailable] = useState<boolean>(true);
+
+  useEffect(() => {
+    void window.electronAPI.getEncryptionAvailability().then(setIsEncryptionAvailable);
+  }, []);
 
   useEffect(() => {
     if (!onOpenRequest) {
@@ -215,7 +220,7 @@ const SettingsOverlay = ({ open, onClose, onOpenRequest, returnFocusRef }: Setti
 
             <UnderlinePanels.Panel>
               <Stack direction="vertical" gap="none" padding="spacious">
-                {contextSettings.isTokenEncryptionAvailable === false && (
+                {isEncryptionAvailable === false && (
                   <Banner
                     title="Warning"
                     description="Secure storage is not available on this system."

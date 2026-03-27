@@ -3,7 +3,6 @@ import { app } from "electron";
 import fs from "node:fs";
 import path from "node:path";
 
-import { isEncryptionAvailable } from "@/backend/tokens";
 import { DEFAULT_SETTINGS, SETTINGS_FILE_NAME } from "@/constants";
 import { settingsDataSchema } from "@/schemas";
 import type { MLModel, SettingsData, Telemetry } from "@/types";
@@ -116,14 +115,10 @@ const removeModel = (settings: SettingsData, modelId: string): SettingsData => {
 };
 
 /**
- * Gets settings suitable for sending to the renderer. Overrides `isTokenEncryptionAvailable` with
- * the live `safeStorage` result - the value on disk is a schema placeholder and should not be
- * trusted. Tokens are never included.
+ * Gets settings suitable for sending to the renderer. Tokens are never included.
  */
 const getSettingsForRenderer = async (): Promise<SettingsData> => {
-  const settings = await getSettings();
-
-  return { ...settings, isTokenEncryptionAvailable: isEncryptionAvailable() };
+  return getSettings();
 };
 
 export {

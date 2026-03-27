@@ -2,6 +2,7 @@ import { type IpcMainEvent, type IpcMainInvokeEvent, shell } from "electron";
 
 import { broadcastToAllWindows, resolveExternalLinkUrl } from "@/backend/ipc/shared";
 import { getSettingsForRenderer, updateSettings } from "@/backend/settings";
+import { isEncryptionAvailable } from "@/backend/tokens";
 import { windowManager } from "@/backend/WindowManager";
 import { IPC_EVENTS } from "@/constants";
 import { settingsDataSchema } from "@/schemas";
@@ -25,6 +26,8 @@ export const handleUpdateSettings = async (
   broadcastToAllWindows(IPC_EVENTS.SETTINGS_UPDATED, enrichedSettings);
 };
 
+export const handleGetEncryptionAvailability = (): boolean => isEncryptionAvailable();
+
 export const handleOpenSettings = (): void => {
   const mainWindow = windowManager.getMainWindow();
 
@@ -45,6 +48,7 @@ export const handleOpenExternalLink = (_event: IpcMainEvent, link: ExternalLinks
 export const registerSettingsHandlers = (ipcMain: Electron.IpcMain): void => {
   ipcMain.handle(IPC_EVENTS.GET_SETTINGS, handleGetSettings);
   ipcMain.handle(IPC_EVENTS.UPDATE_SETTINGS, handleUpdateSettings);
+  ipcMain.handle(IPC_EVENTS.GET_ENCRYPTION_AVAILABILITY, handleGetEncryptionAvailability);
   ipcMain.on(IPC_EVENTS.OPEN_SETTINGS, handleOpenSettings);
   ipcMain.on(IPC_EVENTS.OPEN_EXTERNAL_LINK, handleOpenExternalLink);
 };

@@ -26,6 +26,7 @@ export interface IElectronAPI {
   analyseStack: (photos: PhotoBody[]) => Promise<MLMatchResponse | null>;
   saveModel: (draft: MLModelDraft) => Promise<void>;
   deleteModel: (modelId: string) => Promise<void>;
+  getEncryptionAvailability: () => Promise<boolean>;
 
   // Methods (renderer-to-main)
   openProjectFolder: () => void;
