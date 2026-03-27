@@ -1,5 +1,11 @@
 # photo-id
 
+## 0.6.3
+
+### Patch Changes
+
+- 2d6ee56: Improved security on macOS
+
 ## 0.6.2
 
 ### Patch Changes
