@@ -67,6 +67,7 @@
 - **`Project.save()` is auto-triggered**: Many `Collection` and `Project` mutating methods (e.g. `addPhoto`, `setNextPhoto`, `setName`) call `Project.save()` internally after applying changes. When adding new mutating methods, do not call `save()` again from the call site — doing so causes a double-save. The save is debounced, so rapid mutations coalesce into a single write.
 - Thumbnails are stored next to the project: see `PROJECT_THUMBNAIL_DIRECTORY` in `src/constants.ts`.
 - Avoid editing generated files: `src/routeTree.gen.ts` and other generator outputs.
+- **macOS entitlements**: `entitlements.mac.plist` is the single source of truth for macOS OS-level permissions. When adding or changing a feature that requires a new system capability, update the corresponding entitlements to that file. Do not add entitlements speculatively, and only declare what the app actively uses. The `appBundleId` in `forge.config.ts` must stay in sync with the bundle ID in the `keychain-access-groups` value.
 
 ## Integration points / external deps
 

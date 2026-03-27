@@ -53,6 +53,7 @@ Technical information, specifications, requirements, and user journeys.
 - **External links**: The renderer calls `openExternalLink(link)` with an enum value (`ExternalLinks`); the main process maps it to a URL from `EXTERNAL_LINKS`. No arbitrary URLs can be opened from the renderer.
 - **Renderer isolation**: The renderer has no Node.js or `require` access; it only sees `window.electronAPI` as exposed by the preload script. All file I/O and system access happen in the main process. Note: edit windows currently share the same preload as the main window and have access to all IPC handlers. As a future defense-in-depth improvement, edit windows could use a restricted preload that only exposes `savePhotoFile` and `navigateEditorPhoto`.
 - **Token security**: ML model API tokens are encrypted using Electron's `safeStorage` API and stored in a separate `tokens.json` file. Tokens never leave the main process. Decryption happens only at the moment of an API request. Per-token encryption flags handle edge cases where encryption availability changes between sessions. Dedicated `SAVE_MODEL` and `DELETE_MODEL` IPC handlers manage token lifecycle.
+- **macOS entitlements**: `entitlements.mac.plist` declares the OS-level capabilities the app is permitted to use under the macOS hardened runtime. Entitlements should be kept to a minimum.
 
 ## Repository Structure
 

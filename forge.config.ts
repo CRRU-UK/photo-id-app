@@ -21,6 +21,8 @@ if (process.env.APPLE_CERTIFICATE) {
       "hardened-runtime": true,
       "gatekeeper-assess": false,
       "signature-flags": "library",
+      entitlements: "entitlements.mac.plist",
+      "entitlements-inherit": "entitlements.mac.plist",
     },
     osxNotarize: {
       keychainProfile: process.env.APPLE_KEYCHAIN_PROFILE,
@@ -52,6 +54,7 @@ const dmgOptions: MakerDMGConfig = {
 
 const config: ForgeConfig = {
   packagerConfig: {
+    appBundleId: "uk.org.crru.photo-id",
     asar: {
       unpack: "**/@napi-rs/canvas*/**",
     },
