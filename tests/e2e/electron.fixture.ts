@@ -30,8 +30,15 @@ export const test = base.extend<E2EFixtures>({
 
   electronApp: async ({ testProjectDir }, use) => {
     // Launch Electron from the Vite-built output (not the packaged binary). The packaged binary has EnableNodeCliInspectArguments fuse disabled, which blocks Playwright's CDP connection.
+    const args = [APP_DIR];
+
+    // Linux CI lacks a properly configured SUID sandbox
+    if (process.platform === "linux") {
+      args.push("--no-sandbox");
+    }
+
     const app = await electron.launch({
-      args: [APP_DIR],
+      args,
       env: {
         ...process.env,
         E2E: "true",
