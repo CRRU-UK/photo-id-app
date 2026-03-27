@@ -40,13 +40,6 @@ export const settingsDataSchema = z.object({
   telemetry: telemetrySchema.default(DEFAULT_SETTINGS.telemetry as z.infer<typeof telemetrySchema>),
   mlModels: z.array(mlModelSchema).default(DEFAULT_SETTINGS.mlModels),
   selectedModelId: z.string().nullable().default(DEFAULT_SETTINGS.selectedModelId),
-
-  /**
-   * Not a persisted setting - always overridden by `getSettingsForRenderer()` with the live
-   * `safeStorage.isEncryptionAvailable()` result before being sent to the renderer. The default
-   * here only ensures the field is present and typed correctly on the disk schema.
-   */
-  isTokenEncryptionAvailable: z.boolean().default(true),
 });
 
 export const photoEditsSchema = z.object({

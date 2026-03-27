@@ -53,6 +53,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ipcRenderer.invoke(IPC_EVENTS.SAVE_MODEL, draft),
   deleteModel: (modelId: string): Promise<void> =>
     ipcRenderer.invoke(IPC_EVENTS.DELETE_MODEL, modelId),
+  getEncryptionAvailability: (): Promise<boolean> =>
+    ipcRenderer.invoke(IPC_EVENTS.GET_ENCRYPTION_AVAILABILITY),
 
   // Methods (renderer-to-main)
   openProjectFolder: () => ipcRenderer.send(IPC_EVENTS.OPEN_FOLDER),
