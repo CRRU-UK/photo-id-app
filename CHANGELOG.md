@@ -1,5 +1,11 @@
 # photo-id
 
+## 0.6.4
+
+### Patch Changes
+
+- ffcf262: Move keychain access prompt to ML settings
+
 ## 0.6.3
 
 ### Patch Changes
