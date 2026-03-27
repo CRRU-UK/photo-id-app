@@ -10,6 +10,6 @@ export default defineConfig({
   workers: 1,
   reporter: "html",
   use: {
-    trace: "retain-on-failure",
+    trace: "on",
   },
 });
