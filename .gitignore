@@ -92,9 +92,6 @@ typings/
 out/
 dist/
 
-# Mocked data
-data/
-
 # Docs
 site/
 
@@ -103,6 +100,10 @@ site/
 
 # Agents
 CLAUDE.local.md
+
+# Playwright
+test-results/
+playwright-report/
 
 # Terraform
 **/.terraform/*
