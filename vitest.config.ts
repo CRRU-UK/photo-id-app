@@ -6,7 +6,7 @@ export default defineConfig({
   },
   test: {
     silent: true,
-    exclude: ["tests/e2e/**", "node_modules/**"],
+    exclude: ["tests/**", "node_modules/**"],
     environment: "jsdom",
     setupFiles: ["src/test.setup.ts"],
     server: {

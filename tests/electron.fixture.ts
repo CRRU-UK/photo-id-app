@@ -4,8 +4,8 @@ import os from "node:os";
 import path from "node:path";
 import { _electron as electron } from "playwright";
 
-const APP_DIR = path.join(__dirname, "..", "..");
-const TEST_DATA_DIR = path.join(__dirname, "..", "data");
+const APP_DIR = path.join(__dirname, "..");
+const TEST_DATA_DIR = path.join(__dirname, "data");
 
 type E2EFixtures = {
   testProjectDir: string;

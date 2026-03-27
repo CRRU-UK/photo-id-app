@@ -12,6 +12,7 @@
 
 - [Introduction](#introduction)
 - [Development](#development)
+  - [E2E Tests](#e2e-tests)
   - [Debugging](#debugging)
 - [Releases](#releases)
   - [Code Signing](#code-signing)
@@ -49,9 +50,15 @@ Below are the NPM commands that can be used for development:
 | `test:types`         | Runs TypeScript tests.                                           |
 | `test:unit`          | Runs unit tests and generates a coverage report.                 |
 | `test:unit:watch`    | Same as `test:unit` but runs it in watch mode.                   |
+| `test:e2e:build`     | Builds the app for E2E testing.                                  |
+| `test:e2e`           | Runs E2E tests (requires `test:e2e:build` first).                |
 | `docs`               | Builds and serves documentation locally. <sup>1</sup>            |
 
 <sup>1</sup> Requires [Material for MKDocs](https://squidfunk.github.io/mkdocs-material/).
+
+### E2E Tests
+
+More information about end-to-end (E2E) tests can be found in [`tests/`](tests/).
 
 ### Debugging
 
