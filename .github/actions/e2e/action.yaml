@@ -42,3 +42,4 @@ runs:
         path: |
           test-results/
           playwright-report/
+        retention-days: 1
