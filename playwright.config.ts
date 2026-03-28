@@ -9,12 +9,4 @@ export default defineConfig({
   retries: 0,
   workers: 1,
   reporter: "html",
-  use: {
-    trace: {
-      mode: process.env.CI ? "retain-on-failure" : "on",
-      snapshots: false,
-    },
-    screenshot: "on",
-    video: process.env.CI ? "off" : "on",
-  },
 });
