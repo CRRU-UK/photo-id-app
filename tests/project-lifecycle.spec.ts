@@ -80,10 +80,12 @@ test.describe.serial("Project lifecycle", () => {
   });
 
   test.afterAll(async () => {
-    // On Linux under xvfb-run the Electron process hangs and stops responding to Playwright's
-    // control protocol entirely so both evaluate() and close() time out. Kill the process at the OS
-    // level to guarantee the hook completes.
-    app?.process().kill();
+    // On Linux under xvfb-run the Electron process stops responding to Playwright's control
+    // protocol entirely. SIGTERM (the default) starts a graceful shutdown that can hang, leaving
+    // Playwright's CDP connection in a zombie state that causes the worker teardown to time out.
+    // SIGKILL is immediate and unblockable: the process dies instantly, the CDP WebSocket drops,
+    // and Playwright's cleanup fails fast instead of waiting 60s.
+    app?.process().kill("SIGKILL");
     await fs.promises.rm(projectDir, { recursive: true, force: true });
   });
 
