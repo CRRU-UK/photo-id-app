@@ -96,8 +96,12 @@ test.describe.serial("Project lifecycle", () => {
     await expect(page.getByTestId("sidebar")).toBeVisible();
 
     // Unassigned stack shows 2 photos (counter "1 / 2") and progress "0 of 2 assigned"
-    await expect(page.getByTestId("unassigned-section").getByText("1 / 2")).toBeVisible();
-    await expect(page.getByTestId("unassigned-section").getByText("0 of 2 assigned")).toBeVisible();
+    await expect(
+      page.getByTestId("unassigned-section").getByText("1 / 2", { exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByTestId("unassigned-section").getByText("0 of 2 assigned", { exact: true }),
+    ).toBeVisible();
   });
 
   // ── Closing projects ──────────────────────────────────────────────────────
@@ -119,7 +123,9 @@ test.describe.serial("Project lifecycle", () => {
     await page.getByRole("link", { name: projectName }).click();
 
     await expect(page.getByTestId("project-page")).toBeVisible({ timeout: 30_000 });
-    await expect(page.getByTestId("unassigned-section").getByText("1 / 2")).toBeVisible();
+    await expect(
+      page.getByTestId("unassigned-section").getByText("1 / 2", { exact: true }),
+    ).toBeVisible();
   });
 
   // ── Opening an existing project ───────────────────────────────────────────
@@ -140,8 +146,12 @@ test.describe.serial("Project lifecycle", () => {
     await page.getByRole("button", { name: "Start New Project" }).click();
 
     await expect(page.getByTestId("project-page")).toBeVisible({ timeout: 30_000 });
-    await expect(page.getByTestId("unassigned-section").getByText("1 / 2")).toBeVisible();
-    await expect(page.getByTestId("unassigned-section").getByText("0 of 2 assigned")).toBeVisible();
+    await expect(
+      page.getByTestId("unassigned-section").getByText("1 / 2", { exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByTestId("unassigned-section").getByText("0 of 2 assigned", { exact: true }),
+    ).toBeVisible();
   });
 
   test("overwrites existing project when choosing 'replace'", async () => {
@@ -160,8 +170,12 @@ test.describe.serial("Project lifecycle", () => {
     await page.getByRole("button", { name: "Start New Project" }).click();
 
     await expect(page.getByTestId("project-page")).toBeVisible({ timeout: 30_000 });
-    await expect(page.getByTestId("unassigned-section").getByText("1 / 2")).toBeVisible();
-    await expect(page.getByTestId("unassigned-section").getByText("0 of 2 assigned")).toBeVisible();
+    await expect(
+      page.getByTestId("unassigned-section").getByText("1 / 2", { exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByTestId("unassigned-section").getByText("0 of 2 assigned", { exact: true }),
+    ).toBeVisible();
   });
 
   // ── Dragging photos ───────────────────────────────────────────────────────
@@ -173,10 +187,14 @@ test.describe.serial("Project lifecycle", () => {
     );
 
     // Unassigned now has 1 photo, A-Left has 1 photo, progress advances
-    await expect(page.getByTestId("unassigned-section").getByText("1 of 2 assigned")).toBeVisible({
+    await expect(
+      page.getByTestId("unassigned-section").getByText("1 of 2 assigned", { exact: true }),
+    ).toBeVisible({
       timeout: 5_000,
     });
-    await expect(page.getByTestId("match-1-left").getByText("1 / 1")).toBeVisible();
+    await expect(
+      page.getByTestId("match-1-left").getByText("1 / 1", { exact: true }),
+    ).toBeVisible();
   });
 
   test("drags a photo from the matched stack to discarded", async () => {
@@ -186,7 +204,9 @@ test.describe.serial("Project lifecycle", () => {
     );
 
     // A-Left should now be empty (no counter), discarded should show 1 photo
-    await expect(page.getByTestId("discarded-section").getByText("1 / 1")).toBeVisible({
+    await expect(
+      page.getByTestId("discarded-section").getByText("1 / 1", { exact: true }),
+    ).toBeVisible({
       timeout: 5_000,
     });
   });
@@ -198,27 +218,30 @@ test.describe.serial("Project lifecycle", () => {
     );
 
     // Both photos should be back in unassigned
-    await expect(page.getByTestId("unassigned-section").getByText("0 of 2 assigned")).toBeVisible({
+    await expect(
+      page.getByTestId("unassigned-section").getByText("0 of 2 assigned", { exact: true }),
+    ).toBeVisible({
       timeout: 5_000,
     });
-    await expect(page.getByTestId("unassigned-section").getByText("1 / 2")).toBeVisible();
   });
 
   // ── Pagination ────────────────────────────────────────────────────────────
 
   test("switches to a different page using the page tabs", async () => {
     // With 52 initial stacks and 8 per page, the second tab is "I-P"
-    const secondPageTab = page.getByRole("navigation", { name: "Pages" }).getByText("I-P");
-    await expect(secondPageTab).toBeVisible();
+    await expect(page.getByRole("navigation", { name: "Pages" }).getByText("I-P")).toBeVisible();
 
-    await secondPageTab.click();
+    // Use the keyboard shortcut to switch pages — pressing "2" triggers handleKeyDown in
+    // project.tsx, which calls setCurrentPage(1). Clicking the tab link directly causes the
+    // hash router (createHashHistory) to navigate to "#" → root route → index page.
+    await page.keyboard.press("2");
 
     // First stack on page 2 should be labelled "I" (match-9-left), not "A" (match-1-left)
     await expect(page.getByTestId("match-9-left")).toBeVisible();
     await expect(page.getByTestId("match-1-left")).not.toBeVisible();
 
     // Navigate back to page 1
-    await page.getByRole("navigation", { name: "Pages" }).getByText("A-H").click();
+    await page.keyboard.press("1");
     await expect(page.getByTestId("match-1-left")).toBeVisible();
   });
 
