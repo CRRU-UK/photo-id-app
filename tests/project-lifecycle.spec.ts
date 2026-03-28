@@ -80,11 +80,10 @@ test.describe.serial("Project lifecycle", () => {
   });
 
   test.afterAll(async () => {
-    // On Linux under xvfb-run, app.close() can hang indefinitely waiting for the virtual
-    // framebuffer to clean up. Explicitly quitting via the main process ensures Electron
-    // exits cleanly so that app.close() returns promptly.
-    await app?.evaluate(({ app: electronApp }) => electronApp.quit()).catch(() => {});
-    await app?.close().catch(() => {});
+    // On Linux under xvfb-run the Electron process hangs and stops responding to Playwright's
+    // control protocol entirely so both evaluate() and close() time out. Kill the process at the OS
+    // level to guarantee the hook completes.
+    app?.process().kill();
     await fs.promises.rm(projectDir, { recursive: true, force: true });
   });
 
