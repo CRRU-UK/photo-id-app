@@ -80,7 +80,11 @@ test.describe.serial("Project lifecycle", () => {
   });
 
   test.afterAll(async () => {
-    await app?.close();
+    // On Linux under xvfb-run, app.close() can hang indefinitely waiting for the virtual
+    // framebuffer to clean up. Explicitly quitting via the main process ensures Electron
+    // exits cleanly so that app.close() returns promptly.
+    await app?.evaluate(({ app: electronApp }) => electronApp.quit()).catch(() => {});
+    await app?.close().catch(() => {});
     await fs.promises.rm(projectDir, { recursive: true, force: true });
   });
 
