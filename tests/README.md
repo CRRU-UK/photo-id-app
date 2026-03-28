@@ -33,3 +33,11 @@ E2E tests run across Linux, macOS, and Windows in CI (`.github/workflows/main.ya
 - **Linux** requires `xvfb-run` because there is no display server (Electron cannot run headless)
 - **Linux** also requires `--no-sandbox` because the Electron SUID sandbox helper is not configured on GitHub runners
 - **macOS** and **Windows** have display servers available on CI runners and work as-is
+
+## Notes
+
+### Linux worker tear-down
+
+On Linux under `xvfb-run`, the Electron process stops responding to Playwright's CDP protocol after the tests complete. Playwright's worker tear-down calls `gracefullyCloseAll()`, which for Electron runs `attemptToGracefullyClose()`, then `app.close()`, then `context.close()`, and finally a CDP command to the unresponsive process. If that entry is still in Playwright's internal `gracefullyCloseSet` when tear-down runs, it waits the full test timeout for a response that never arrives.
+
+The entry is only removed from `gracefullyCloseSet` when the `ChildProcess` emits its `'close'` event. Sending `SIGKILL` alone is not sufficient as the event fires asynchronously, and `afterAll` can return before it is processed. The `afterAll` hook therefore explicitly awaits the `'close'` event after killing the process, guaranteeing the set is clean before tear-down starts.
