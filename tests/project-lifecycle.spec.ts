@@ -80,19 +80,18 @@ test.describe.serial("Project lifecycle", () => {
   });
 
   test.afterAll(async () => {
-    const process = app?.process();
-
-    if (process) {
-      const closed = new Promise<void>((resolve) => {
-        if (process.exitCode) {
-          resolve(); // Process already exited
-        } else {
-          process.once("close", resolve);
-        }
-      });
-
-      process.kill("SIGKILL");
-      await closed;
+    if (process.platform === "linux") {
+      // On Linux under xvfb-run, the Electron process stops responding to Playwright's CDP protocol
+      // after tests complete, causing app.close() to hang indefinitely. Kill the process at the OS
+      // level instead. See tests/README.md for details.
+      const proc = app?.process();
+      if (proc) {
+        const closed = new Promise<void>((resolve) => proc.once("close", resolve));
+        proc.kill("SIGKILL");
+        await Promise.race([closed, new Promise<void>((resolve) => setTimeout(resolve, 5_000))]);
+      }
+    } else {
+      await app?.close();
     }
 
     await fs.promises.rm(projectDir, { recursive: true, force: true });

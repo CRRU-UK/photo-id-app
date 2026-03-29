@@ -38,6 +38,8 @@ E2E tests run across Linux, macOS, and Windows in CI (`.github/workflows/main.ya
 
 ### Linux worker tear-down
 
-On Linux under `xvfb-run`, the Electron process stops responding to Playwright's CDP protocol after the tests complete. Playwright's worker tear-down calls `gracefullyCloseAll()`, which for Electron runs `attemptToGracefullyClose()`, then `app.close()`, then `context.close()`, and finally a CDP command to the unresponsive process. If that entry is still in Playwright's internal `gracefullyCloseSet` when tear-down runs, it waits the full test timeout for a response that never arrives.
+On macOS and Windows, `app.close()` shuts down Electron gracefully via CDP. On Linux under `xvfb-run`, the Electron process stops responding to Playwright's CDP protocol after the tests complete, causing `app.close()` to hang indefinitely. The `afterAll` hook therefore uses a platform-conditional approach: `app.close()` on macOS/Windows, and `SIGKILL` on Linux.
 
-The entry is only removed from `gracefullyCloseSet` when the `ChildProcess` emits its `'close'` event. Sending `SIGKILL` alone is not sufficient as the event fires asynchronously, and `afterAll` can return before it is processed. The `afterAll` hook therefore explicitly awaits the `'close'` event after killing the process, guaranteeing the set is clean before tear-down starts.
+Sending `SIGKILL` alone is not sufficient. Playwright's worker tear-down calls `gracefullyCloseAll()`, which iterates an internal `gracefullyCloseSet`. Each entry is only removed when the `ChildProcess` emits its `'close'` event. Because this event fires asynchronously, `afterAll` can return before it is processed, leaving the entry in the set. The tear-down then calls `attemptToGracefullyClose()`, then `app.close()`, then a CDP command to the dead process - hanging for the full test timeout.
+
+To prevent this, the Linux code path awaits the `'close'` event (with a timeout fallback) after killing the process, guaranteeing the set is clean before tear-down starts.
