@@ -125,7 +125,7 @@ const Sidebar = observer(() => {
   };
 
   return (
-    <div className="sidebar">
+    <div className="sidebar" data-testid="sidebar">
       <PrimerStack
         direction="vertical"
         align="start"
