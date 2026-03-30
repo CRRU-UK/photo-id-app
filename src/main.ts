@@ -250,7 +250,7 @@ void app.whenReady().then(async () => {
     }
   });
 
-  if (!production) {
+  if (!production && !process.env.E2E) {
     await installExtension([REACT_DEVELOPER_TOOLS, MOBX_DEVTOOLS]);
   }
 
