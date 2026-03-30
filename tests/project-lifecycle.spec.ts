@@ -81,14 +81,19 @@ test.describe.serial("Project lifecycle", () => {
 
   test.afterAll(async () => {
     if (process.platform === "linux") {
-      // On Linux under xvfb-run, the Electron process stops responding to Playwright's CDP protocol
-      // after tests complete, causing app.close() to hang indefinitely. Kill the process at the OS
-      // level instead. See tests/README.md for details.
-      const proc = app?.process();
-      if (proc) {
-        const closed = new Promise<void>((resolve) => proc.once("close", resolve));
-        proc.kill("SIGKILL");
-        await Promise.race([closed, new Promise<void>((resolve) => setTimeout(resolve, 5_000))]);
+      try {
+        /**
+         * On Linux under xvfb-run, the Electron process stops responding to Playwright's CDP protocol
+         * after tests complete, causing app.close() to hang indefinitely. Kill the entire process
+         * group instead. See README for details.
+         */
+        const pid = app?.process()?.pid;
+
+        if (pid) {
+          process.kill(-pid, "SIGKILL");
+        }
+      } catch {
+        // ESRCH: process group already exited
       }
     } else {
       await app?.close();
