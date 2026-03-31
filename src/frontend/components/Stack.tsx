@@ -115,6 +115,7 @@ const Stack = observer(({ collection, showAnalysisButton = true, stackLabel }: S
           ref={setDraggableNodeRef}
           {...draggableListeners}
           {...attributes}
+          data-testid="photo-draggable"
           onDoubleClick={handleOpenEdit}
           onKeyDown={(event) => {
             if (event.key === "Enter") {

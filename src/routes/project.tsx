@@ -250,7 +250,7 @@ const ProjectPage = observer(() => {
           {draggingPhoto ? <DraggableImage photo={draggingPhoto} /> : null}
         </DragOverlay>
 
-        <div className={`project ${isCopying ? "copying" : ""}`}>
+        <div className={`project ${isCopying ? "copying" : ""}`} data-testid="project-page">
           <Sidebar />
 
           <Stack className="pages" direction="horizontal" align="center" gap="none">

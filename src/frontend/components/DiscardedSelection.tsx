@@ -19,6 +19,7 @@ const DiscardedSelection = observer(({ collection }: DiscardedSelectionProps) =>
   return (
     <div
       ref={setDroppableNodeRef}
+      data-testid="discarded-section"
       style={{
         width: "100%",
         padding: "var(--stack-gap-normal)",

@@ -101,7 +101,7 @@ const createMainWindow = async () => {
 
   mainWindow.webContents.on("did-create-window", (window) => {
     window.webContents.once("dom-ready", () => {
-      if (!production) {
+      if (!production && !process.env.E2E) {
         window.webContents.openDevTools();
       }
     });
@@ -126,7 +126,7 @@ const createMainWindow = async () => {
   const menu = Menu.buildFromTemplate(getMenu(mainWindow));
   Menu.setApplicationMenu(menu);
 
-  if (!production) {
+  if (!production && !process.env.E2E) {
     mainWindow.webContents.openDevTools();
   }
 };
@@ -189,7 +189,7 @@ app.on("web-contents-created", (_, contents) => {
 
 void app.whenReady().then(async () => {
   // Offer to move to the Applications folder on macOS if not already there
-  if (process.platform === "darwin" && production) {
+  if (process.platform === "darwin" && production && !process.env.E2E) {
     if (!app.isInApplicationsFolder()) {
       const response = dialog.showMessageBoxSync({
         type: "question",
@@ -250,7 +250,7 @@ void app.whenReady().then(async () => {
     }
   });
 
-  if (!production) {
+  if (!production && !process.env.E2E) {
     await installExtension([REACT_DEVELOPER_TOOLS, MOBX_DEVTOOLS]);
   }
 
