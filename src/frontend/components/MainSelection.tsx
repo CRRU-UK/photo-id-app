@@ -48,6 +48,7 @@ const MainSelection = observer(({ collection, total }: MainSelectionProps) => {
   return (
     <div
       ref={setDroppableNodeRef}
+      data-testid="unassigned-section"
       style={{
         width: "100%",
         padding: "var(--stack-gap-normal)",

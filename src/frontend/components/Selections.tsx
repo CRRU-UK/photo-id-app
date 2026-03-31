@@ -28,6 +28,7 @@ const SelectionStack = observer(({ id, side, collection }: SelectionStackProps) 
   return (
     <div
       ref={setDroppableNodeRef}
+      data-testid={`match-${id}-${side.toLowerCase()}`}
       style={{
         width: "100%",
         padding: "var(--stack-gap-normal)",
