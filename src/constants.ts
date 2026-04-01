@@ -162,6 +162,8 @@ export const KEYBOARD_CODE_TO_PAN_DIRECTION: Record<string, EditorPanDirection> 
   [EDITOR_KEYS.PAN_DOWN.code]: EditorPanDirection.DOWN,
 };
 
+export const ASPECT_RATIO = "3/2";
+
 export enum DragAreas {
   MainSelection = "main-selection",
   DiscardedSelection = "discarded-selection",

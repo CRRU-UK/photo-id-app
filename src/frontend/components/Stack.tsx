@@ -18,7 +18,7 @@ import {
 import { observer } from "mobx-react-lite";
 import { useState } from "react";
 
-import { PROJECT_TOOLTIPS } from "@/constants";
+import { ASPECT_RATIO, PROJECT_TOOLTIPS } from "@/constants";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { useSettings } from "@/contexts/SettingsContext";
 import type Collection from "@/models/Collection";
@@ -37,8 +37,8 @@ const StackImage = observer(({ photo }: StackImageProps) => (
       display: "block",
       width: "100%",
       height: "auto",
-      aspectRatio: "4/3",
-      objectFit: "cover",
+      aspectRatio: ASPECT_RATIO,
+      objectFit: "contain",
     }}
     alt=""
   />
@@ -110,7 +110,7 @@ const Stack = observer(({ collection, showAnalysisButton = true, stackLabel }: S
 
   return (
     <>
-      <div className="photo-stack">
+      <div className="photo-stack" style={{ aspectRatio: ASPECT_RATIO }}>
         <div
           ref={setDraggableNodeRef}
           {...draggableListeners}
