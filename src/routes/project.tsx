@@ -19,7 +19,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { observer } from "mobx-react-lite";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { MATCHED_STACKS_PER_PAGE, ROUTES } from "@/constants";
+import { ASPECT_RATIO, MATCHED_STACKS_PER_PAGE, ROUTES } from "@/constants";
 import { AnalysisProvider } from "@/contexts/AnalysisContext";
 import { useProject } from "@/contexts/ProjectContext";
 
@@ -42,8 +42,8 @@ const DraggableImageComponent = ({ photo }: { photo: Photo }) => {
         display: "block",
         width: "100%",
         height: "100%",
-        aspectRatio: "4/3",
-        objectFit: "cover",
+        aspectRatio: ASPECT_RATIO,
+        objectFit: "contain",
       }}
       alt=""
     />
