@@ -31,6 +31,7 @@ resource "cloudflare_ruleset" "docs_https_redirect" {
     action = "set_config"
     action_parameters = {
       automatic_https_rewrites = false
+      always_use_https         = false
     }
   }]
 }
