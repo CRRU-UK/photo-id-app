@@ -1,7 +1,11 @@
+locals {
+  docs_subdomain = "photoidapp"
+}
+
 resource "cloudflare_dns_record" "dns_cname" {
   zone_id = var.cloudflare_zone_id
 
-  name    = "photoidapp"
+  name    = local.docs_subdomain
   type    = "CNAME"
   content = "crru-uk.github.io"
   ttl     = "1"
@@ -21,7 +25,7 @@ resource "cloudflare_ruleset" "docs_https_redirect" {
   rules = [{
     enabled = true
 
-    expression  = "(http.host eq \"photoidapp.crru.org.uk\")"
+    expression  = "(http.host eq \"${local.docs_subdomain}.crru.org.uk\")"
     description = "Disable Automatic HTTPS Rewrites for GitHub Pages subdomain"
 
     action = "set_config"
