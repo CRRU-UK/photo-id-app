@@ -20,7 +20,7 @@ import { observer } from "mobx-react-lite";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { ASPECT_RATIO, MATCHED_STACKS_PER_PAGE, ROUTES } from "@/constants";
-import { AnalysisProvider } from "@/contexts/AnalysisContext";
+import { AnalysisProvider, useAnalysis } from "@/contexts/AnalysisContext";
 import { useProject } from "@/contexts/ProjectContext";
 
 import AnalysisOverlay from "@/frontend/components/AnalysisOverlay";
@@ -89,11 +89,54 @@ const ProjectPage = observer(() => {
   const [settingsOpen, setSettingsOpen] = useState<boolean>(false);
   const [isCopying, setIsCopying] = useState<boolean>(false);
   const [columns, setColumns] = useState<number>(2);
+
   // Guards against concurrent drag-end executions (e.g. keyboard + pointer firing simultaneously)
   const isDraggingRef = useRef<boolean>(false);
 
   const navigate = useNavigate();
-  const { project } = useProject();
+
+  const { project, setProject } = useProject();
+  const { isAnalysing, result, error, handleClose: handleCloseAnalysis } = useAnalysis();
+
+  const handleCloseProject = useCallback(() => {
+    project?.flushSave();
+    setProject(null);
+
+    window.electronAPI.closeProject();
+
+    void navigate({ to: ROUTES.INDEX });
+  }, [project, navigate, setProject]);
+
+  const analysisOverlayOpen = isAnalysing || result !== null || error !== null;
+
+  useEffect(() => {
+    const handleCloseShortcut = (event: KeyboardEvent) => {
+      const modifierKey = event.ctrlKey || event.metaKey;
+      if (!modifierKey || event.key !== "w") {
+        return;
+      }
+
+      event.preventDefault();
+
+      if (settingsOpen) {
+        setSettingsOpen(false);
+        return;
+      }
+
+      if (analysisOverlayOpen) {
+        handleCloseAnalysis();
+        return;
+      }
+
+      handleCloseProject();
+    };
+
+    document.addEventListener("keydown", handleCloseShortcut);
+
+    return () => {
+      document.removeEventListener("keydown", handleCloseShortcut);
+    };
+  }, [settingsOpen, analysisOverlayOpen, handleCloseAnalysis, handleCloseProject]);
 
   useEffect(() => {
     if (project === null) {
@@ -232,7 +275,7 @@ const ProjectPage = observer(() => {
   const handleColumnsChange = (i: number) => setColumns(i + 1);
 
   return (
-    <AnalysisProvider>
+    <>
       <LoadingOverlay data={loading} />
 
       <SettingsOverlay
@@ -251,7 +294,7 @@ const ProjectPage = observer(() => {
         </DragOverlay>
 
         <div className={`project ${isCopying ? "copying" : ""}`} data-testid="project-page">
-          <Sidebar />
+          <Sidebar onCloseProject={handleCloseProject} />
 
           <Stack className="pages" direction="horizontal" align="center" gap="none">
             <UnderlineNav aria-label="Pages">
@@ -278,10 +321,16 @@ const ProjectPage = observer(() => {
           </div>
         </div>
       </DndContext>
-    </AnalysisProvider>
+    </>
   );
 });
 
+const ProjectPageWrapper = () => (
+  <AnalysisProvider>
+    <ProjectPage />
+  </AnalysisProvider>
+);
+
 export const Route = createFileRoute(ROUTES.PROJECT)({
-  component: ProjectPage,
+  component: ProjectPageWrapper,
 });
