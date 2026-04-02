@@ -96,10 +96,7 @@ Certificates are managed in the Apple Developer Program. Signing and notarisatio
 
 #### Windows
 
-> [!NOTE]
-> This is currently being worked on and is temporarily disabled.
-
-Signing is done with [Azure Artifact Signing](https://azure.microsoft.com/en-us/products/artifact-signing) and invoked in the Windows variation of `publish.yaml` via `azure/artifact-signing-action`.
+Signing is done with [Azure Trusted Signing](https://azure.microsoft.com/en-us/products/trusted-signing) and invoked in the Windows variation of `publish.yaml` via `azure/trusted-signing-action`.
 
 | Secret / Variable                             | Description                    |
 | --------------------------------------------- | ------------------------------ |

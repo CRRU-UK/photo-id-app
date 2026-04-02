@@ -11,6 +11,7 @@ concurrency: ${{ github.workflow }}-${{ github.ref }}
 permissions:
   pull-requests: write
   contents: write
+  id-token: write
 
 jobs:
   build:
@@ -75,10 +76,45 @@ jobs:
         run: Set-MpPreference -DisableRealtimeMonitoring $true
         shell: pwsh
 
-      # Windows: publish without signing
-      - name: Build app and add to release (Windows)
+      # Windows: build only, signing happens before publish
+      - name: Build app (Windows)
         if: matrix.os == 'windows-latest'
-        run: npm run publish
+        run: npm run publish -- --dry-run
+        env:
+          CI: true
+          NODE_ENV: production
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          SENTRY_ORG: ${{ vars.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+
+      # Windows: sign artifacts via Azure Trusted Signing
+      - name: Login to Azure
+        if: matrix.os == 'windows-latest'
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Sign Windows artifacts
+        if: matrix.os == 'windows-latest'
+        uses: azure/trusted-signing-action@v0
+        with:
+          endpoint: ${{ vars.AZURE_CODE_SIGNING_ENDPOINT }}
+          trusted-signing-account-name: ${{ vars.AZURE_CODE_SIGNING_ACCOUNT_NAME }}
+          certificate-profile-name: ${{ vars.AZURE_CODE_SIGNING_CERTIFICATE_PROFILE_NAME }}
+          files-folder: out/make/squirrel.windows/x64
+          files-folder-filter: exe
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+          timestamp-digest: SHA256
+          file-digest: SHA256
+
+      # Windows: publish the signed artifacts
+      - name: Publish app (Windows)
+        if: matrix.os == 'windows-latest'
+        run: npm run publish -- --from-dry-run
         env:
           CI: true
           NODE_ENV: production
