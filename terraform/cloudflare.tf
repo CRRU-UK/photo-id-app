@@ -1,5 +1,5 @@
 locals {
-  docs_subdomain = "photoidapp"
+  docs_subdomain = "photoidapp" // photoidapp.crru.org.uk
 }
 
 resource "cloudflare_dns_record" "dns_cname" {
