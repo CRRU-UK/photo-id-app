@@ -13,12 +13,12 @@ resource "cloudflare_dns_record" "dns_cname" {
   comment = "Photo ID App docs (GitHub Pages)"
 }
 
-# Rewrite for GitHub Pages to prevent redirect loops with Cloudflare SSL config
-resource "cloudflare_ruleset" "docs_https_redirect" {
+# Override SSL to 'Full' for GitHub Pages to prevent redirect loops with zone-wide Flexible SSL
+resource "cloudflare_ruleset" "docs_ssl" {
   zone_id = var.cloudflare_zone_id
 
-  name        = "Disable HTTPS enforcement for documentation"
-  description = "Skip Cloudflare enforcement to avoid redirect loop with GitHub Pages"
+  name        = "SSL override for documentation"
+  description = "Use Full SSL for GitHub Pages subdomain to avoid redirect loop with Flexible SSL"
   kind        = "zone"
   phase       = "http_config_settings"
 
@@ -26,12 +26,11 @@ resource "cloudflare_ruleset" "docs_https_redirect" {
     enabled = true
 
     expression  = "(http.host eq \"${local.docs_subdomain}.crru.org.uk\")"
-    description = "Disable Automatic HTTPS Rewrites for GitHub Pages subdomain"
+    description = "Full SSL for GitHub Pages subdomain"
 
     action = "set_config"
     action_parameters = {
-      automatic_https_rewrites = false
-      always_use_https         = false
+      ssl = "full"
     }
   }]
 }
