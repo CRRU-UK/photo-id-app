@@ -12,7 +12,7 @@ import {
 } from "@primer/react";
 import { KeybindingHint } from "@primer/react/experimental";
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
   GLOBAL_KEYBOARD_HINTS,
@@ -35,13 +35,31 @@ const IndexPage = () => {
   const [settingsOpen, setSettingsOpen] = useState<boolean>(false);
   const settingsButtonRef = useRef<HTMLButtonElement>(null);
 
+  const handleCloseShortcut = useCallback(
+    (event: KeyboardEvent) => {
+      const modifierKey = event.ctrlKey || event.metaKey;
+      if (!modifierKey || event.key !== "w") {
+        return;
+      }
+
+      if (settingsOpen) {
+        event.preventDefault();
+        setSettingsOpen(false);
+      }
+    },
+    [settingsOpen],
+  );
+
   useEffect(() => {
     const unsubscribeLoading = window.electronAPI.onLoading((data) => setLoading(data));
 
+    document.addEventListener("keydown", handleCloseShortcut);
+
     return () => {
       unsubscribeLoading();
+      document.removeEventListener("keydown", handleCloseShortcut);
     };
-  }, []);
+  }, [handleCloseShortcut]);
 
   const handleOpenProjectFolder = () => window.electronAPI.openProjectFolder();
 

@@ -17,36 +17,28 @@ import {
   Stack as PrimerStack,
   SelectPanel,
 } from "@primer/react";
-import { useNavigate } from "@tanstack/react-router";
 import { observer } from "mobx-react-lite";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
-import { PROJECT_KEYBOARD_HINTS, ROUTES } from "@/constants";
+import { PROJECT_KEYBOARD_HINTS } from "@/constants";
 import { useProject } from "@/contexts/ProjectContext";
 import { useSettings } from "@/contexts/SettingsContext";
 import DiscardedSelection from "@/frontend/components/DiscardedSelection";
 import MainSelection from "@/frontend/components/MainSelection";
 import type { ExportTypes } from "@/types";
 
-const Sidebar = observer(() => {
-  const { project, setProject } = useProject();
+interface SidebarProps {
+  onCloseProject: () => void;
+}
+
+const Sidebar = observer(({ onCloseProject }: SidebarProps) => {
+  const { project } = useProject();
   const { settings: contextSettings, updateSettings } = useSettings();
 
   const [actionsOpen, setActionsOpen] = useState<boolean>(false);
   const [exporting, setExporting] = useState<boolean>(false);
   const [modelPanelOpen, setModelPanelOpen] = useState<boolean>(false);
   const [modelFilter, setModelFilter] = useState<string>("");
-
-  const navigate = useNavigate();
-
-  const handleCloseProject = useCallback(() => {
-    project?.flushSave();
-    setProject(null);
-
-    window.electronAPI.closeProject();
-
-    void navigate({ to: ROUTES.INDEX });
-  }, [project, navigate, setProject]);
 
   type ModelItem = ItemInput & { id: string; text: string };
 
@@ -76,22 +68,6 @@ const Sidebar = observer(() => {
   );
 
   const selectedItem = modelItems.find(({ id }) => id === selectedModelId) ?? undefined;
-
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      const modifierKey = event.ctrlKey || event.metaKey;
-      if (modifierKey && event.key === "w") {
-        event.preventDefault();
-        handleCloseProject();
-      }
-    };
-
-    document.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [handleCloseProject]);
 
   if (project === null) {
     return null;
@@ -182,7 +158,7 @@ const Sidebar = observer(() => {
             variant="invisible"
             size="large"
             aria-label="Close project"
-            onClick={() => handleCloseProject()}
+            onClick={() => onCloseProject()}
             keybindingHint={PROJECT_KEYBOARD_HINTS.CLOSE_PROJECT}
           />
 
