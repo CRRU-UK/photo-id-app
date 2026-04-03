@@ -7,7 +7,6 @@
     "skipLibCheck": true,
     "esModuleInterop": true,
     "sourceMap": true,
-    "baseUrl": ".",
     "outDir": "dist",
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
