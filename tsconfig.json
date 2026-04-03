@@ -7,13 +7,12 @@
     "skipLibCheck": true,
     "esModuleInterop": true,
     "sourceMap": true,
-    "baseUrl": ".",
     "outDir": "dist",
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "incremental": true,
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["./src/*"]
     },
     "types": ["node", "vite/client"]
   },

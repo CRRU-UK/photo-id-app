@@ -1,12 +1,12 @@
 import * as Sentry from "@sentry/electron/renderer";
 import {
   createContext,
+  type ReactNode,
   useCallback,
   useContext,
   useEffect,
   useMemo,
   useState,
-  type ReactNode,
 } from "react";
 
 import { DEFAULT_SETTINGS } from "@/constants";

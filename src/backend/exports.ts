@@ -1,10 +1,8 @@
-import { stringify } from "csv-stringify/sync";
 import fs from "node:fs";
 import path from "node:path";
-
-import type { CollectionBody, ExportTypes, ProjectBody } from "@/types";
-
+import { stringify } from "csv-stringify/sync";
 import { renderFullImageWithEdits } from "@/backend/imageRenderer";
+import { getCurrentProjectDirectory, resolvePhotoPath } from "@/backend/projects";
 import {
   IPC_EVENTS,
   PROJECT_EXPORT_CSV_FILE_NAME,
@@ -13,8 +11,7 @@ import {
 } from "@/constants";
 import { getAlphabetLetter } from "@/helpers";
 import { projectBodySchema } from "@/schemas";
-
-import { getCurrentProjectDirectory, resolvePhotoPath } from "@/backend/projects";
+import type { CollectionBody, ExportTypes, ProjectBody } from "@/types";
 
 /**
  * Returns the label used for a match in exports (CSV and photo filenames): letter from match id,

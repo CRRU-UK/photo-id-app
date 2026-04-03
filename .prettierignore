@@ -1,8 +1,0 @@
-package-lock.json
-build/
-coverage/
-out/
-site/
-
-# Tanstack
-*.gen.ts

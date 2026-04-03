@@ -1,13 +1,11 @@
 import { useDroppable } from "@dnd-kit/core";
 import { Label, Stack as PrimerStack, Text, TextInput } from "@primer/react";
 import { observer } from "mobx-react-lite";
-
-import type Collection from "@/models/Collection";
-import type { Match } from "@/types";
-
 import { BOX_HOVER_STYLES } from "@/constants";
 import Stack from "@/frontend/components/Stack";
 import { getAlphabetLetter } from "@/helpers";
+import type Collection from "@/models/Collection";
+import type { Match } from "@/types";
 
 interface SelectionStackProps {
   id: number;

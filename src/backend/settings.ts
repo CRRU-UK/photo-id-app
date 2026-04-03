@@ -1,7 +1,7 @@
-import * as Sentry from "@sentry/electron/main";
-import { app } from "electron";
 import fs from "node:fs";
 import path from "node:path";
+import * as Sentry from "@sentry/electron/main";
+import { app } from "electron";
 
 import { DEFAULT_SETTINGS, SETTINGS_FILE_NAME } from "@/constants";
 import { settingsDataSchema } from "@/schemas";

@@ -17,7 +17,7 @@
 ### Required Before Each Commit
 
 - Run `npm test` before committing any changes to ensure:
-  - Linting passes (`eslint` + `prettier`)
+  - Linting passes (`biome check`)
   - Type-checking passes (`tsc --noEmit`)
   - All unit tests pass (`vitest run`)
 - This ensures all code changes meet quality and consistency standards

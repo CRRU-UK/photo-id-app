@@ -1,7 +1,6 @@
-import type { EdgeDetectionData, PhotoBody, PhotoEdits } from "@/types";
-
 import { DEFAULT_PHOTO_EDITS, EDGE_DETECTION, PHOTO_PROTOCOL_SCHEME, ROUTES } from "@/constants";
 import { photoBodySchema } from "@/schemas";
+import type { EdgeDetectionData, PhotoBody, PhotoEdits } from "@/types";
 
 /**
  * Encodes photo data for the edit window URL query.

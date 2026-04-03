@@ -1,9 +1,7 @@
-import type { ImageFilters, ImageTransformations } from "@/types";
-
 import { useCallback, useEffect, useRef } from "react";
-
 import { LOUPE } from "@/constants";
 import { getCanvasFilters, getImageCoordinates } from "@/helpers";
+import type { ImageFilters, ImageTransformations } from "@/types";
 
 interface UseLoupeOptions {
   enabled: boolean;

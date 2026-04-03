@@ -47,8 +47,9 @@ vi.mock("piexifjs", () => ({
   },
 }));
 
-const { renderApiImage, renderFullImageWithEdits, renderThumbnailWithEdits } =
-  await import("./imageRenderer");
+const { renderApiImage, renderFullImageWithEdits, renderThumbnailWithEdits } = await import(
+  "./imageRenderer"
+);
 
 const defaultEdits = {
   brightness: 100,

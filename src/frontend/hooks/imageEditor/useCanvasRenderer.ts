@@ -1,8 +1,6 @@
-import type { ImageFilters, ImageTransformations } from "@/types";
-
 import { useCallback, useEffect, useRef } from "react";
-
 import { getCanvasFilters } from "@/helpers";
+import type { ImageFilters, ImageTransformations } from "@/types";
 
 const TRAILING_DRAW_DEBOUNCE_MS = 100;
 

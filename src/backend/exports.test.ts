@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/unbound-method */
-
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
@@ -154,7 +152,6 @@ describe(handleExportMatches, () => {
     await handleExportMatches(mainWindow, JSON.stringify(project), "edited");
 
     expect(mockRenderFullImageWithEdits).toHaveBeenCalledWith(
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       expect.objectContaining({ sourcePath: expect.any(String) }),
     );
     expect(mockWriteFile).toHaveBeenCalledWith(expect.any(String), expect.any(Buffer));
