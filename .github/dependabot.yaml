@@ -16,7 +16,7 @@ updates:
           - "major"
 
   - package-ecosystem: "terraform"
-    directory: "/"
+    directory: "terraform/"
     schedule:
       interval: "weekly"
     groups:
