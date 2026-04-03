@@ -7,9 +7,9 @@ import "@primer/primitives/dist/css/primitives.css";
 
 import { BaseStyles, ThemeProvider } from "@primer/react";
 import {
-  RouterProvider,
   createHashHistory,
   createRouter,
+  RouterProvider,
   useNavigate,
   useRouterState,
 } from "@tanstack/react-router";

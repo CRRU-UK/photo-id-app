@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/unbound-method */
-
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { DEFAULT_PHOTO_EDITS, IPC_EVENTS, PROJECT_FILE_NAME } from "@/constants";
@@ -444,7 +442,7 @@ describe(handleEditorNavigate, () => {
 
     const result = await handleEditorNavigate(photos[0], "next");
 
-    expect(result!.name).toBe("b.jpg");
+    expect(result?.name).toBe("b.jpg");
   });
 
   it("wraps to first photo when navigating forward from the last", async () => {
@@ -456,7 +454,7 @@ describe(handleEditorNavigate, () => {
 
     const result = await handleEditorNavigate(photos[2], "next");
 
-    expect(result!.name).toBe("a.jpg");
+    expect(result?.name).toBe("a.jpg");
   });
 
   it("returns the previous photo when navigating backward", async () => {
@@ -468,7 +466,7 @@ describe(handleEditorNavigate, () => {
 
     const result = await handleEditorNavigate(photos[1], "prev");
 
-    expect(result!.name).toBe("a.jpg");
+    expect(result?.name).toBe("a.jpg");
   });
 
   it("wraps to last photo when navigating backward from the first", async () => {
@@ -480,7 +478,7 @@ describe(handleEditorNavigate, () => {
 
     const result = await handleEditorNavigate(photos[0], "prev");
 
-    expect(result!.name).toBe("c.jpg");
+    expect(result?.name).toBe("c.jpg");
   });
 
   it("throws when the photo is not found in the project", async () => {
@@ -521,7 +519,7 @@ describe(handleEditorNavigate, () => {
 
     const result = await handleEditorNavigate(photos[0], "next");
 
-    expect(result!.name).toBe("m2.jpg");
+    expect(result?.name).toBe("m2.jpg");
   });
 });
 
@@ -748,6 +746,7 @@ describe(handleOpenDirectoryPrompt, () => {
 
     // Only photo.jpg and image.png should be included (not subfolder)
     const writeCall = mockWriteFile.mock.calls.find((call) => call[0].includes(PROJECT_FILE_NAME));
+    // biome-ignore lint/style/noNonNullAssertion: test assertion — find() guaranteed to match
     const savedProject = JSON.parse(writeCall![1]) as ProjectBody;
 
     expect(savedProject.unassigned.photos).toHaveLength(2);
@@ -784,6 +783,7 @@ describe(handleOpenDirectoryPrompt, () => {
 
     // The written project should only include .jpg and .png files (2 photos)
     const writeCall = mockWriteFile.mock.calls.find((call) => call[0].includes(PROJECT_FILE_NAME));
+    // biome-ignore lint/style/noNonNullAssertion: test assertion — find() guaranteed to match
     const savedProject = JSON.parse(writeCall![1]) as ProjectBody;
 
     expect(savedProject.unassigned.photos).toHaveLength(2);

@@ -1,9 +1,6 @@
-import type { EditorNavigation, PhotoBody } from "@/types";
-
 import { EyeClosedIcon, EyeIcon } from "@primer/octicons-react";
 import { IconButton, Stack } from "@primer/react";
-import { forwardRef, memo, useCallback, useEffect, useRef, useState } from "react";
-
+import { memo, type RefObject, useCallback, useEffect, useRef, useState } from "react";
 import {
   EDGE_DETECTION,
   EDITOR_KEYS,
@@ -18,6 +15,7 @@ import Slider from "@/frontend/components/Slider";
 import Toolbar from "@/frontend/components/Toolbar";
 import useImageEditor from "@/frontend/hooks/useImageEditor";
 import { computeIsEdited } from "@/helpers";
+import type { EditorNavigation, PhotoBody } from "@/types";
 
 interface CanvasImageProps {
   handlePointerDown: (event: React.PointerEvent<HTMLCanvasElement>) => void;
@@ -27,23 +25,25 @@ interface CanvasImageProps {
   loupeEnabled: boolean;
 }
 
-const CanvasImage = forwardRef<HTMLCanvasElement, CanvasImageProps>(
-  (
-    { handlePointerDown, handlePointerMove, handlePointerUp, handlePointerLeave, loupeEnabled },
-    ref,
-  ) => {
-    return (
-      <canvas
-        ref={ref}
-        className={loupeEnabled ? "canvas-photo loupe-active" : "canvas-photo"}
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerUp}
-        onPointerLeave={handlePointerLeave}
-      />
-    );
-  },
-);
+const CanvasImage = ({
+  handlePointerDown,
+  handlePointerMove,
+  handlePointerUp,
+  handlePointerLeave,
+  loupeEnabled,
+  ref,
+}: CanvasImageProps & { ref?: RefObject<HTMLCanvasElement | null> }) => {
+  return (
+    <canvas
+      ref={ref}
+      className={loupeEnabled ? "canvas-photo loupe-active" : "canvas-photo"}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerLeave={handlePointerLeave}
+    />
+  );
+};
 
 CanvasImage.displayName = "CanvasImage";
 
@@ -104,19 +104,13 @@ const ImageEditor = ({
       handlers.handlePointerMove(event);
       handlers.handleLoupeMove(event);
     },
-    // Intentionally list specific handler refs so this callback only updates when they change
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [handlers.handlePointerMove, handlers.handleLoupeMove],
   );
 
-  const handleCanvasPointerLeave = useCallback(
-    () => {
-      handlers.handlePointerUp();
-      handlers.handleLoupeLeave();
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- specific handler refs for tighter deps
-    [handlers.handlePointerUp, handlers.handleLoupeLeave],
-  );
+  const handleCanvasPointerLeave = useCallback(() => {
+    handlers.handlePointerUp();
+    handlers.handleLoupeLeave();
+  }, [handlers.handlePointerUp, handlers.handleLoupeLeave]);
 
   const handleToggleLoupe = useCallback(() => {
     setLoupeEnabled((prev) => {
@@ -126,7 +120,6 @@ const ImageEditor = ({
 
       return !prev;
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- specific handler ref for tighter deps
   }, [handlers.handleLoupeLeave]);
 
   const [edgeDetectionEnabled, setEdgeDetectionEnabled] = useState<boolean>(false);
@@ -309,7 +302,6 @@ const ImageEditor = ({
         return handleToggleEdgeDetection();
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- specific handler refs for tighter deps
     [
       handlers.handleDirectionalPan,
       handleEditorNavigation,
@@ -373,6 +365,7 @@ const ImageEditor = ({
     onImageLoaded,
   ]);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentionally omit refs.canvasRef so this effect only re-runs when handleWheel or handleKeyDown change
   useEffect(() => {
     const canvas = refs.canvasRef.current;
 
@@ -387,10 +380,6 @@ const ImageEditor = ({
       canvas.removeEventListener("wheel", handlers.handleWheel);
       document.removeEventListener("keydown", handleKeyDown);
     };
-
-    // We intentionally omit refs.canvasRef from dependencies so this effect only re-runs when
-    // handleWheel or handleKeyDown change, not when canvasRef.current changes.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [handlers.handleWheel, handleKeyDown]);
 
   // Warn the user before closing the edit window when there are unsaved changes

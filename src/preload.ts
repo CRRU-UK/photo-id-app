@@ -1,3 +1,5 @@
+import { contextBridge, ipcRenderer } from "electron";
+import { IPC_EVENTS } from "@/constants";
 import type {
   EditorNavigation,
   ExportTypes,
@@ -10,10 +12,6 @@ import type {
   RecentProject,
   SettingsData,
 } from "@/types";
-
-import { contextBridge, ipcRenderer } from "electron";
-
-import { IPC_EVENTS } from "@/constants";
 
 /**
  * Subscribe to an IPC channel and return an unsubscribe function. Ensures listeners are removed

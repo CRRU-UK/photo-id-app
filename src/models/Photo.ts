@@ -1,8 +1,7 @@
+import { action, computed, makeObservable, observable } from "mobx";
+import { buildPhotoUrl, computeIsEdited } from "@/helpers";
 import type Project from "@/models/Project";
 import type { Directory, FileName, PhotoBody, PhotoEdits } from "@/types";
-
-import { buildPhotoUrl, computeIsEdited } from "@/helpers";
-import { action, computed, makeObservable, observable } from "mobx";
 
 interface PhotoOptions {
   directory: Directory;

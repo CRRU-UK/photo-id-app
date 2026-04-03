@@ -1,9 +1,7 @@
-import type { ImageTransformations } from "@/types";
-
 import { useCallback, useRef } from "react";
-
 import { IMAGE_EDITS } from "@/constants";
 import { getImageCoordinates } from "@/helpers";
+import type { ImageTransformations } from "@/types";
 
 export const useImageTransform = (imageRef: React.RefObject<HTMLImageElement | null>) => {
   const zoomRef = useRef<number>(IMAGE_EDITS.ZOOM);

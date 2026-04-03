@@ -1,5 +1,3 @@
-import { useEffect, useState } from "react";
-
 import {
   AiModelIcon,
   EyeClosedIcon,
@@ -9,6 +7,7 @@ import {
   PencilIcon,
 } from "@primer/octicons-react";
 import { Dialog, FormControl, Stack, TextInput } from "@primer/react";
+import { useEffect, useState } from "react";
 
 import type { MLModel, MLModelDraft } from "@/types";
 

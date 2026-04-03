@@ -1,5 +1,3 @@
-import type { EditorNavigation } from "@/types";
-
 import {
   ArrowDownIcon,
   ArrowLeftIcon,
@@ -14,10 +12,9 @@ import {
 import { Button, ButtonGroup, IconButton, Stack } from "@primer/react";
 import { KeybindingHint } from "@primer/react/experimental";
 import { memo, useCallback } from "react";
-
 import { EDITOR_KEYS, EDITOR_TOOLTIPS, EditorPanDirection, IMAGE_FILTERS } from "@/constants";
-
 import Slider from "@/frontend/components/Slider";
+import type { EditorNavigation } from "@/types";
 
 interface ToolbarProps {
   sliderInitials: {

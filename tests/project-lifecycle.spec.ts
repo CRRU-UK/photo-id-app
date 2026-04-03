@@ -1,7 +1,13 @@
-import { type ElectronApplication, type Locator, type Page, expect, test } from "@playwright/test";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import {
+  type ElectronApplication,
+  expect,
+  type Locator,
+  type Page,
+  test,
+} from "@playwright/test";
 import { _electron as electron } from "playwright";
 
 import { EXISTING_DATA_RESPONSE } from "../src/constants";
@@ -45,11 +51,16 @@ async function drag(source: Locator, target: Locator): Promise<void> {
 
 test.describe.serial("Project lifecycle", () => {
   test.beforeAll(async () => {
-    projectDir = await fs.promises.mkdtemp(path.join(os.tmpdir(), "photo-id-e2e-"));
+    projectDir = await fs.promises.mkdtemp(
+      path.join(os.tmpdir(), "photo-id-e2e-"),
+    );
 
     const files = await fs.promises.readdir(TEST_DATA_DIR);
     for (const file of files) {
-      await fs.promises.copyFile(path.join(TEST_DATA_DIR, file), path.join(projectDir, file));
+      await fs.promises.copyFile(
+        path.join(TEST_DATA_DIR, file),
+        path.join(projectDir, file),
+      );
     }
 
     const args = [APP_DIR];
@@ -66,8 +77,10 @@ test.describe.serial("Project lifecycle", () => {
     // Default dialog mock: open dialog returns project dir, message box replaces existing data
     await app.evaluate(
       ({ dialog }, { dir, response }) => {
-        dialog.showOpenDialog = () => Promise.resolve({ canceled: false, filePaths: [dir] });
-        dialog.showMessageBox = () => Promise.resolve({ response, checkboxChecked: false });
+        dialog.showOpenDialog = () =>
+          Promise.resolve({ canceled: false, filePaths: [dir] });
+        dialog.showMessageBox = () =>
+          Promise.resolve({ response, checkboxChecked: false });
         dialog.showErrorBox = (title: string, content: string) => {
           console.error(`[E2E dialog.showErrorBox] ${title}: ${content}`);
         };
@@ -106,19 +119,27 @@ test.describe.serial("Project lifecycle", () => {
 
   test("creates a new project from a folder", async () => {
     await expect(page.getByRole("heading", { name: "Photo ID" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Start New Project" })).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Start New Project" }),
+    ).toBeVisible();
 
     await page.getByRole("button", { name: "Start New Project" }).click();
 
-    await expect(page.getByTestId("project-page")).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByTestId("project-page")).toBeVisible({
+      timeout: 30_000,
+    });
     await expect(page.getByTestId("sidebar")).toBeVisible();
 
     // Unassigned stack shows 2 photos (counter "1 / 2") and progress "0 of 2 assigned"
     await expect(
-      page.getByTestId("unassigned-section").getByText("1 / 2", { exact: true }),
+      page
+        .getByTestId("unassigned-section")
+        .getByText("1 / 2", { exact: true }),
     ).toBeVisible();
     await expect(
-      page.getByTestId("unassigned-section").getByText("0 of 2 assigned", { exact: true }),
+      page
+        .getByTestId("unassigned-section")
+        .getByText("0 of 2 assigned", { exact: true }),
     ).toBeVisible();
   });
 
@@ -140,9 +161,13 @@ test.describe.serial("Project lifecycle", () => {
     const projectName = path.basename(projectDir);
     await page.getByRole("link", { name: projectName }).click();
 
-    await expect(page.getByTestId("project-page")).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByTestId("project-page")).toBeVisible({
+      timeout: 30_000,
+    });
     await expect(
-      page.getByTestId("unassigned-section").getByText("1 / 2", { exact: true }),
+      page
+        .getByTestId("unassigned-section")
+        .getByText("1 / 2", { exact: true }),
     ).toBeVisible();
   });
 
@@ -155,20 +180,28 @@ test.describe.serial("Project lifecycle", () => {
     // Override the message box to return EXISTING_DATA_RESPONSE.OPEN_EXISTING so the saved project is loaded
     await app.evaluate(
       ({ dialog }, { dir, response }) => {
-        dialog.showOpenDialog = () => Promise.resolve({ canceled: false, filePaths: [dir] });
-        dialog.showMessageBox = () => Promise.resolve({ response, checkboxChecked: false });
+        dialog.showOpenDialog = () =>
+          Promise.resolve({ canceled: false, filePaths: [dir] });
+        dialog.showMessageBox = () =>
+          Promise.resolve({ response, checkboxChecked: false });
       },
       { dir: projectDir, response: EXISTING_DATA_RESPONSE.OPEN_EXISTING },
     );
 
     await page.getByRole("button", { name: "Start New Project" }).click();
 
-    await expect(page.getByTestId("project-page")).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByTestId("project-page")).toBeVisible({
+      timeout: 30_000,
+    });
     await expect(
-      page.getByTestId("unassigned-section").getByText("1 / 2", { exact: true }),
+      page
+        .getByTestId("unassigned-section")
+        .getByText("1 / 2", { exact: true }),
     ).toBeVisible();
     await expect(
-      page.getByTestId("unassigned-section").getByText("0 of 2 assigned", { exact: true }),
+      page
+        .getByTestId("unassigned-section")
+        .getByText("0 of 2 assigned", { exact: true }),
     ).toBeVisible();
   });
 
@@ -179,20 +212,28 @@ test.describe.serial("Project lifecycle", () => {
     // Restore the default mock (REPLACE)
     await app.evaluate(
       ({ dialog }, { dir, response }) => {
-        dialog.showOpenDialog = () => Promise.resolve({ canceled: false, filePaths: [dir] });
-        dialog.showMessageBox = () => Promise.resolve({ response, checkboxChecked: false });
+        dialog.showOpenDialog = () =>
+          Promise.resolve({ canceled: false, filePaths: [dir] });
+        dialog.showMessageBox = () =>
+          Promise.resolve({ response, checkboxChecked: false });
       },
       { dir: projectDir, response: EXISTING_DATA_RESPONSE.REPLACE },
     );
 
     await page.getByRole("button", { name: "Start New Project" }).click();
 
-    await expect(page.getByTestId("project-page")).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByTestId("project-page")).toBeVisible({
+      timeout: 30_000,
+    });
     await expect(
-      page.getByTestId("unassigned-section").getByText("1 / 2", { exact: true }),
+      page
+        .getByTestId("unassigned-section")
+        .getByText("1 / 2", { exact: true }),
     ).toBeVisible();
     await expect(
-      page.getByTestId("unassigned-section").getByText("0 of 2 assigned", { exact: true }),
+      page
+        .getByTestId("unassigned-section")
+        .getByText("0 of 2 assigned", { exact: true }),
     ).toBeVisible();
   });
 
@@ -206,7 +247,9 @@ test.describe.serial("Project lifecycle", () => {
 
     // Unassigned now has 1 photo, A-Left has 1 photo, progress advances
     await expect(
-      page.getByTestId("unassigned-section").getByText("1 of 2 assigned", { exact: true }),
+      page
+        .getByTestId("unassigned-section")
+        .getByText("1 of 2 assigned", { exact: true }),
     ).toBeVisible({
       timeout: 5_000,
     });
@@ -237,7 +280,9 @@ test.describe.serial("Project lifecycle", () => {
 
     // Both photos should be back in unassigned
     await expect(
-      page.getByTestId("unassigned-section").getByText("0 of 2 assigned", { exact: true }),
+      page
+        .getByTestId("unassigned-section")
+        .getByText("0 of 2 assigned", { exact: true }),
     ).toBeVisible({
       timeout: 5_000,
     });
@@ -247,7 +292,9 @@ test.describe.serial("Project lifecycle", () => {
 
   test("switches to a different page using the page tabs", async () => {
     // With 52 initial stacks and 8 per page, the second tab is "I-P"
-    await expect(page.getByRole("navigation", { name: "Pages" }).getByText("I-P")).toBeVisible();
+    await expect(
+      page.getByRole("navigation", { name: "Pages" }).getByText("I-P"),
+    ).toBeVisible();
 
     // Use the keyboard shortcut to switch pages. Pressing "2" triggers handleKeyDown in
     // project.tsx, which calls setCurrentPage(1). Clicking the tab link directly causes the
@@ -274,7 +321,9 @@ test.describe.serial("Project lifecycle", () => {
       PROJECT_EXPORT_DATA_DIRECTORY,
       PROJECT_EXPORT_CSV_FILE_NAME,
     );
-    await expect.poll(() => fs.existsSync(csvPath), { timeout: 15_000 }).toBe(true);
+    await expect
+      .poll(() => fs.existsSync(csvPath), { timeout: 15_000 })
+      .toBe(true);
 
     const content = await fs.promises.readFile(csvPath, "utf8");
     expect(content).toContain("match_id,original_file_name");
@@ -282,10 +331,15 @@ test.describe.serial("Project lifecycle", () => {
 
   test("exports matches without edits", async () => {
     await page.getByRole("button", { name: "Actions" }).click();
-    await page.getByRole("menuitem").filter({ hasText: "without edits" }).click();
+    await page
+      .getByRole("menuitem")
+      .filter({ hasText: "without edits" })
+      .click();
 
     const exportDir = path.join(projectDir, PROJECT_EXPORT_DIRECTORY);
-    await expect.poll(() => fs.existsSync(exportDir), { timeout: 15_000 }).toBe(true);
+    await expect
+      .poll(() => fs.existsSync(exportDir), { timeout: 15_000 })
+      .toBe(true);
   });
 
   test("exports matches with edits", async () => {
@@ -293,7 +347,9 @@ test.describe.serial("Project lifecycle", () => {
     await page.getByRole("menuitem").filter({ hasText: "with edits" }).click();
 
     const exportDir = path.join(projectDir, PROJECT_EXPORT_DIRECTORY);
-    await expect.poll(() => fs.existsSync(exportDir), { timeout: 15_000 }).toBe(true);
+    await expect
+      .poll(() => fs.existsSync(exportDir), { timeout: 15_000 })
+      .toBe(true);
   });
 
   // ── Recent projects management ────────────────────────────────────────────
@@ -305,8 +361,12 @@ test.describe.serial("Project lifecycle", () => {
     const projectName = path.basename(projectDir);
     await expect(page.getByRole("link", { name: projectName })).toBeVisible();
 
-    await page.getByRole("button", { name: "Remove from recent projects" }).click();
+    await page
+      .getByRole("button", { name: "Remove from recent projects" })
+      .click();
 
-    await expect(page.getByRole("link", { name: projectName })).not.toBeVisible();
+    await expect(
+      page.getByRole("link", { name: projectName }),
+    ).not.toBeVisible();
   });
 });

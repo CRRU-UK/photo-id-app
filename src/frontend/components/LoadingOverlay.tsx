@@ -1,7 +1,7 @@
 import { Stack as PrimerStack, ProgressBar, Spinner, Text } from "@primer/react";
 import { memo } from "react";
 
-import { LoadingData } from "@/types";
+import type { LoadingData } from "@/types";
 
 interface ProgressProps {
   value: number;

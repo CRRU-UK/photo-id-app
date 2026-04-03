@@ -1,15 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type { SetStateAction } from "react";
 import { useCallback, useEffect, useState } from "react";
-
-import type { LoadingData, PhotoBody } from "@/types";
-
 import { DEFAULT_WINDOW_TITLE, ROUTES } from "@/constants";
-import { buildPhotoUrl, decodeEditPayload } from "@/helpers";
-
 import ErrorBoundary from "@/frontend/components/ErrorBoundary";
 import ImageEditor from "@/frontend/components/ImageEditor";
 import LoadingOverlay from "@/frontend/components/LoadingOverlay";
+import { buildPhotoUrl, decodeEditPayload } from "@/helpers";
+import type { LoadingData, PhotoBody } from "@/types";
 
 const fetchLocalFile = async (data: PhotoBody) => {
   const response = await fetch(buildPhotoUrl(data.directory, data.name));

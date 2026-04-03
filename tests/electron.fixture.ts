@@ -1,7 +1,7 @@
-import { type ElectronApplication, type Page, test as base } from "@playwright/test";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { test as base, type ElectronApplication, type Page } from "@playwright/test";
 import { _electron as electron } from "playwright";
 
 const APP_DIR = path.join(__dirname, "..");
@@ -14,7 +14,7 @@ type E2EFixtures = {
 };
 
 export const test = base.extend<E2EFixtures>({
-  // eslint-disable-next-line no-empty-pattern
+  // biome-ignore lint/correctness/noEmptyPattern: Playwright fixture pattern requires empty destructuring
   testProjectDir: async ({}, use) => {
     const directory = await fs.promises.mkdtemp(path.join(os.tmpdir(), "photo-id-e2e-"));
 

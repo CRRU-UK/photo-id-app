@@ -1,17 +1,8 @@
-import { app, dialog } from "electron";
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
+import { app, dialog } from "electron";
 import { ZodError } from "zod";
-
-import type {
-  CollectionBody,
-  EditorNavigation,
-  LoadingData,
-  PhotoBody,
-  ProjectBody,
-} from "@/types";
-
 import { createPhotoThumbnail } from "@/backend/photos";
 import { addRecentProject } from "@/backend/recents";
 import {
@@ -31,6 +22,13 @@ import {
   THUMBNAIL_GENERATION_CONCURRENCY,
 } from "@/constants";
 import { projectBodySchema } from "@/schemas";
+import type {
+  CollectionBody,
+  EditorNavigation,
+  LoadingData,
+  PhotoBody,
+  ProjectBody,
+} from "@/types";
 
 /**
  * Validates that a filename does not escape the given directory via path traversal sequences.

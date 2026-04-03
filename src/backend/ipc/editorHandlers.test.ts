@@ -161,7 +161,7 @@ describe("editor IPC handlers", () => {
           ([event]) => event === "will-prevent-unload",
         );
 
-        return call![1] as (event: { preventDefault: () => void }) => void;
+        return call?.[1] as (event: { preventDefault: () => void }) => void;
       };
 
       it("shows a confirmation dialog when renderer prevents unload", () => {
@@ -206,7 +206,7 @@ describe("editor IPC handlers", () => {
 
         const call = mockWebContentsOn.mock.calls.find(([event]) => event === "will-navigate");
 
-        return call![1] as (event: { preventDefault: () => void }, url: string) => void;
+        return call?.[1] as (event: { preventDefault: () => void }, url: string) => void;
       };
 
       it("blocks navigation to external URLs", () => {

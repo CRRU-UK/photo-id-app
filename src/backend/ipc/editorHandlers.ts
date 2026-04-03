@@ -1,5 +1,5 @@
-import { BrowserWindow, dialog, type IpcMainEvent, type IpcMainInvokeEvent } from "electron";
 import url from "node:url";
+import { BrowserWindow, dialog, type IpcMainEvent, type IpcMainInvokeEvent } from "electron";
 
 import { handleEditorNavigate } from "@/backend/projects";
 import { windowManager } from "@/backend/WindowManager";

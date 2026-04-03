@@ -1,3 +1,6 @@
+import fs from "node:fs";
+import path from "node:path";
+import { FuseV1Options, FuseVersion } from "@electron/fuses";
 import { MakerDeb } from "@electron-forge/maker-deb";
 import { MakerDMG, type MakerDMGConfig } from "@electron-forge/maker-dmg";
 import { MakerRpm } from "@electron-forge/maker-rpm";
@@ -6,9 +9,6 @@ import { MakerZIP } from "@electron-forge/maker-zip";
 import { FusesPlugin } from "@electron-forge/plugin-fuses";
 import { VitePlugin } from "@electron-forge/plugin-vite";
 import type { ForgeConfig } from "@electron-forge/shared-types";
-import { FuseV1Options, FuseVersion } from "@electron/fuses";
-import fs from "node:fs";
-import path from "node:path";
 
 import { version } from "./package.json";
 import { PROJECT_FILE_EXTENSION } from "./src/constants";

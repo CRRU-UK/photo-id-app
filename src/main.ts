@@ -1,5 +1,7 @@
 import "dotenv/config";
 
+import path from "node:path";
+import url from "node:url";
 import * as Sentry from "@sentry/electron/main";
 import { app, BrowserWindow, dialog, ipcMain, Menu, net, protocol, session } from "electron";
 import {
@@ -8,8 +10,6 @@ import {
   REACT_DEVELOPER_TOOLS,
 } from "electron-devtools-installer";
 import started from "electron-squirrel-startup";
-import path from "node:path";
-import url from "node:url";
 import { updateElectronApp } from "update-electron-app";
 
 import { registerEditorHandlers } from "@/backend/ipc/editorHandlers";
