@@ -21,7 +21,7 @@ let projectDir: string;
  * Drags from the centre of `source` to the centre of `target` using pointer events. Moves slightly
  * off-centre first to exceed activation constraint.
  */
-async function drag(source: Locator, target: Locator): Promise<void> {
+const drag = async (source: Locator, target: Locator): Promise<void> => {
   const sourceBox = await source.boundingBox();
   const targetBox = await target.boundingBox();
 
@@ -41,7 +41,7 @@ async function drag(source: Locator, target: Locator): Promise<void> {
   await source.page().mouse.move(fromX + 12, fromY + 12);
   await source.page().mouse.move(toX, toY, { steps: 8 });
   await source.page().mouse.up();
-}
+};
 
 test.describe
   .serial("Project lifecycle", () => {
