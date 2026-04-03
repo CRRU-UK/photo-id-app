@@ -73,9 +73,7 @@
   },
   "overrides": [
     {
-      "includes": [
-        "docs/**/*.md"
-      ],
+      "includes": ["docs/**/*.md"],
       "formatter": {
         "indentWidth": 4
       }
