@@ -100,7 +100,7 @@ jobs:
 
       - name: Sign Windows artifacts
         if: matrix.os == 'windows-latest'
-        uses: azure/artifact-signing-action@v0
+        uses: azure/artifact-signing-action@v1.2.0
         with:
           endpoint: ${{ vars.AZURE_CODE_SIGNING_ENDPOINT }}
           trusted-signing-account-name: ${{ vars.AZURE_CODE_SIGNING_ACCOUNT_NAME }}
