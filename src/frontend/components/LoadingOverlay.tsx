@@ -4,13 +4,13 @@ import { memo } from "react";
 import type { LoadingData } from "@/types";
 
 interface ProgressProps {
-  value: number;
   label?: string;
+  value: number;
 }
 
 const Progress = ({ value, label }: ProgressProps) => (
   <>
-    <ProgressBar animated progress={value} barSize="large" style={{ width: "100%" }} />
+    <ProgressBar animated barSize="large" progress={value} style={{ width: "100%" }} />
     {label && (
       <Text style={{ color: "var(--fgColor-muted)", font: "var(--text-body-shorthand-medium)" }}>
         {label}
@@ -33,14 +33,14 @@ const LoadingOverlay = ({ data }: LoadingOverlayProps) => {
   return (
     <div className="loading">
       <PrimerStack
-        direction="vertical"
         align="center"
+        direction="vertical"
         gap="spacious"
         style={{ width: "100%", maxWidth: "600px" }}
       >
         {progressValue === null && <Spinner size="large" />}
         {text && <span className="text">{text}</span>}
-        {progressValue !== null && <Progress value={progressValue} label={progressText} />}
+        {progressValue !== null && <Progress label={progressText} value={progressValue} />}
       </PrimerStack>
     </div>
   );

@@ -72,8 +72,8 @@ const applyTheme = (colorMode: "light" | "dark") => {
 };
 
 interface SettingsContextValue {
-  settings: SettingsData | null;
   colorMode: "light" | "dark";
+  settings: SettingsData | null;
   updateSettings: (settings: SettingsData) => Promise<void>;
 }
 

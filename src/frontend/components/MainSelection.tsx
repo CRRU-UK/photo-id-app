@@ -13,22 +13,22 @@ interface ProgressElementsProps {
 
 const ProgressElements = ({ progress, total }: ProgressElementsProps) => (
   <PrimerStack
-    direction="horizontal"
     align="center"
+    direction="horizontal"
     gap="condensed"
     style={{ marginTop: "var(--stack-gap-normal)" }}
   >
     <Text
       size="small"
-      weight="light"
       style={{ color: "var(--fgColor-muted)", whiteSpace: "nowrap" }}
+      weight="light"
     >
       {progress} of {total} assigned
     </Text>
     <ProgressBar
-      progress={Math.floor((progress / total) * 100)}
-      inline
       bg={progress >= total ? "success.emphasis" : "accent.emphasis"}
+      inline
+      progress={Math.floor((progress / total) * 100)}
       style={{ width: "100%" }}
     />
   </PrimerStack>
@@ -47,8 +47,8 @@ const MainSelection = observer(({ collection, total }: MainSelectionProps) => {
 
   return (
     <div
-      ref={setDroppableNodeRef}
       data-testid="unassigned-section"
+      ref={setDroppableNodeRef}
       style={{
         width: "100%",
         padding: "var(--stack-gap-normal)",
@@ -62,12 +62,12 @@ const MainSelection = observer(({ collection, total }: MainSelectionProps) => {
     >
       <Text
         size="medium"
-        weight="semibold"
         style={{
           display: "block",
           color: "var(--fgColor-muted)",
           marginBottom: "var(--stack-gap-condensed)",
         }}
+        weight="semibold"
       >
         Unassigned Photos
       </Text>

@@ -4,11 +4,11 @@ import { getCanvasFilters, getImageCoordinates } from "@/helpers";
 import type { ImageFilters, ImageTransformations } from "@/types";
 
 interface UseLoupeOptions {
-  enabled: boolean;
-  imageRef: React.RefObject<HTMLImageElement | null>;
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
+  enabled: boolean;
   getFilters: () => ImageFilters;
   getTransform: () => ImageTransformations;
+  imageRef: React.RefObject<HTMLImageElement | null>;
 }
 
 export const useLoupe = ({

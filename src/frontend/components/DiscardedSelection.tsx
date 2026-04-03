@@ -18,8 +18,8 @@ const DiscardedSelection = observer(({ collection }: DiscardedSelectionProps) =>
 
   return (
     <div
-      ref={setDroppableNodeRef}
       data-testid="discarded-section"
+      ref={setDroppableNodeRef}
       style={{
         width: "100%",
         padding: "var(--stack-gap-normal)",
@@ -33,12 +33,12 @@ const DiscardedSelection = observer(({ collection }: DiscardedSelectionProps) =>
     >
       <Text
         size="medium"
-        weight="semibold"
         style={{
           display: "block",
           color: "var(--fgColor-muted)",
           marginBottom: "var(--stack-gap-condensed)",
         }}
+        weight="semibold"
       >
         Discarded Photos
       </Text>

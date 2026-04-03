@@ -37,9 +37,9 @@ const EmptyModels = (
       started.
       <Button
         block
-        variant="link"
         onClick={() => window.electronAPI.openExternalLink("user-guide-ml")}
         style={{ marginTop: "var(--stack-gap-normal)" }}
+        variant="link"
       >
         View documentation
       </Button>
@@ -48,9 +48,9 @@ const EmptyModels = (
 );
 
 interface SettingsProps {
-  open: boolean;
   onClose: () => void;
   onOpenRequest?: () => void;
+  open: boolean;
   returnFocusRef?: RefObject<HTMLElement | null>;
 }
 
@@ -157,13 +157,13 @@ const SettingsOverlay = ({ open, onClose, onOpenRequest, returnFocusRef }: Setti
   return (
     <>
       <Dialog
-        title="App Settings"
-        subtitle="App settings are per-user and affect all projects."
+        className="settings-overlay"
+        footerButtons={[{ buttonType: "default", content: "Close", onClick: onClose }]}
         onClose={onClose}
         returnFocusRef={returnFocusRef ?? undefined}
-        footerButtons={[{ buttonType: "default", content: "Close", onClick: onClose }]}
+        subtitle="App settings are per-user and affect all projects."
+        title="App Settings"
         width="xlarge"
-        className="settings-overlay"
       >
         {contextSettings && (
           <UnderlinePanels aria-label="Select a tab">
@@ -175,9 +175,9 @@ const SettingsOverlay = ({ open, onClose, onOpenRequest, returnFocusRef }: Setti
                 <FormControl disabled={isLoading}>
                   <FormControl.Label>Theme Mode</FormControl.Label>
                   <Select
+                    onChange={(event) => void handleThemeModeChange(event.target.value)}
                     size="large"
                     value={contextSettings.themeMode}
-                    onChange={(event) => void handleThemeModeChange(event.target.value)}
                   >
                     <Select.Option value="light">Light</Select.Option>
                     <Select.Option value="dark">Dark (Default)</Select.Option>
@@ -192,9 +192,9 @@ const SettingsOverlay = ({ open, onClose, onOpenRequest, returnFocusRef }: Setti
                 <FormControl disabled={isLoading}>
                   <FormControl.Label>Telemetry</FormControl.Label>
                   <Select
+                    onChange={(event) => void handleTelemetryChange(event.target.value)}
                     size="large"
                     value={contextSettings.telemetry}
-                    onChange={(event) => void handleTelemetryChange(event.target.value)}
                   >
                     <Select.Option value="disabled">Disabled (Default)</Select.Option>
                     <Select.Option value="enabled">Enabled</Select.Option>
@@ -221,8 +221,8 @@ const SettingsOverlay = ({ open, onClose, onOpenRequest, returnFocusRef }: Setti
               <Stack direction="vertical" gap="none" padding="spacious">
                 {isEncryptionAvailable === false && (
                   <Banner
-                    title="Warning"
                     description="Secure storage is not available on this system."
+                    hideTitle
                     leadingVisual={<AlertIcon size="small" />}
                     primaryAction={
                       <Banner.PrimaryAction
@@ -231,14 +231,14 @@ const SettingsOverlay = ({ open, onClose, onOpenRequest, returnFocusRef }: Setti
                         View Details
                       </Banner.PrimaryAction>
                     }
-                    variant="warning"
-                    hideTitle
                     style={{ marginBottom: "var(--stack-gap-spacious)" }}
+                    title="Warning"
+                    variant="warning"
                   />
                 )}
 
                 <div style={{ display: "flex", justifyContent: "flex-end", paddingBottom: "12px" }}>
-                  <Button onClick={handleAddModel} variant="primary" leadingVisual={PlusIcon}>
+                  <Button leadingVisual={PlusIcon} onClick={handleAddModel} variant="primary">
                     Add Model
                   </Button>
                 </div>
@@ -249,16 +249,16 @@ const SettingsOverlay = ({ open, onClose, onOpenRequest, returnFocusRef }: Setti
                   <Stack direction="vertical" gap="none">
                     {mlModels.map((model) => (
                       <Stack
-                        key={model.id}
+                        align="center"
+                        className="ml-list-row"
                         direction="horizontal"
                         gap="condensed"
-                        padding="normal"
-                        align="center"
                         justify="start"
-                        className="ml-list-row"
+                        key={model.id}
+                        padding="normal"
                       >
                         <Stack direction="vertical" gap="none" style={{ width: "100%" }}>
-                          <Text weight="semibold" size="medium">
+                          <Text size="medium" weight="semibold">
                             {model.name}
                           </Text>
                           <Text
@@ -275,17 +275,17 @@ const SettingsOverlay = ({ open, onClose, onOpenRequest, returnFocusRef }: Setti
                         <IconButton
                           aria-label={`Edit ${model.name}`}
                           icon={PencilIcon}
-                          variant="default"
-                          size="small"
                           onClick={() => handleEditModel(model)}
+                          size="small"
+                          variant="default"
                         />
 
                         <IconButton
                           aria-label={`Delete ${model.name}`}
                           icon={TrashIcon}
-                          variant="danger"
-                          size="small"
                           onClick={() => void handleDeleteModel(model)}
+                          size="small"
+                          variant="danger"
                         />
                       </Stack>
                     ))}
@@ -298,9 +298,9 @@ const SettingsOverlay = ({ open, onClose, onOpenRequest, returnFocusRef }: Setti
       </Dialog>
 
       <ModelOverlay
-        open={isModelOverlayOpen}
-        onClose={handleModelOverlayClose}
         editingModel={editingModel}
+        onClose={handleModelOverlayClose}
+        open={isModelOverlayOpen}
       />
     </>
   );

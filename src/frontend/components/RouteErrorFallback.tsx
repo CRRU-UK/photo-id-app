@@ -19,7 +19,7 @@ const RouteErrorFallback = ({ error, recovery }: RouteErrorFallbackProps) => {
       </Blankslate.Visual>
       <Blankslate.Heading>An error occurred</Blankslate.Heading>
       <Blankslate.Description>{error.message}</Blankslate.Description>
-      <Blankslate.PrimaryAction title={recovery.label} onClick={recovery.onClick}>
+      <Blankslate.PrimaryAction onClick={recovery.onClick} title={recovery.label}>
         {recovery.label}
       </Blankslate.PrimaryAction>
     </Blankslate>

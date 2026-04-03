@@ -19,9 +19,9 @@ import type { EditorNavigation, PhotoBody } from "@/types";
 
 interface CanvasImageProps {
   handlePointerDown: (event: React.PointerEvent<HTMLCanvasElement>) => void;
+  handlePointerLeave: () => void;
   handlePointerMove: (event: React.PointerEvent<HTMLCanvasElement>) => void;
   handlePointerUp: () => void;
-  handlePointerLeave: () => void;
   loupeEnabled: boolean;
 }
 
@@ -35,12 +35,12 @@ const CanvasImage = ({
 }: CanvasImageProps & { ref?: RefObject<HTMLCanvasElement | null> }) => {
   return (
     <canvas
-      ref={ref}
       className={loupeEnabled ? "canvas-photo loupe-active" : "canvas-photo"}
       onPointerDown={handlePointerDown}
+      onPointerLeave={handlePointerLeave}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
-      onPointerLeave={handlePointerLeave}
+      ref={ref}
     />
   );
 };
@@ -50,9 +50,9 @@ CanvasImage.displayName = "CanvasImage";
 interface ImageEditorProps {
   data: PhotoBody;
   image: File;
-  setQueryCallback: React.Dispatch<React.SetStateAction<string>>;
-  onImageLoaded?: () => void;
   onError?: () => void;
+  onImageLoaded?: () => void;
+  setQueryCallback: React.Dispatch<React.SetStateAction<string>>;
 }
 
 const ImageEditor = ({
@@ -403,66 +403,66 @@ const ImageEditor = ({
 
       <div className="edit">
         <CanvasImage
-          ref={refs.canvasRef}
           handlePointerDown={handlers.handlePointerDown}
+          handlePointerLeave={handleCanvasPointerLeave}
           handlePointerMove={handleCanvasPointerMove}
           handlePointerUp={handlers.handlePointerUp}
-          handlePointerLeave={handleCanvasPointerLeave}
           loupeEnabled={loupeEnabled}
+          ref={refs.canvasRef}
         />
 
-        <div ref={refs.loupeContainerRef} className="loupe">
+        <div className="loupe" ref={refs.loupeContainerRef}>
           <canvas
+            className="canvas-loupe"
+            height={LOUPE.SIZE}
             ref={refs.loupeCanvasRef}
             width={LOUPE.SIZE}
-            height={LOUPE.SIZE}
-            className="canvas-loupe"
           />
         </div>
 
-        <Stack className="edge-toggle" direction="horizontal" align="center" spacing="none">
+        <Stack align="center" className="edge-toggle" direction="horizontal" spacing="none">
           <IconButton
-            icon={edgeDetectionEnabled ? EyeIcon : EyeClosedIcon}
-            variant={edgeDetectionEnabled ? "primary" : "default"}
-            size="medium"
             aria-label={
               edgeDetectionEnabled
                 ? EDITOR_TOOLTIPS.DISABLE_EDGE_DETECTION
                 : EDITOR_TOOLTIPS.ENABLE_EDGE_DETECTION
             }
+            icon={edgeDetectionEnabled ? EyeIcon : EyeClosedIcon}
             keybindingHint={EDITOR_KEYS.TOGGLE_EDGE_DETECTION.hint}
             onClick={handleToggleEdgeDetection}
+            size="medium"
+            variant={edgeDetectionEnabled ? "primary" : "default"}
           />
 
           {edgeDetectionEnabled && (
             <Slider
-              key={`edge-detection-${state.resetKey}`}
-              name="Edge Detection"
-              initial={edgeDetectionValueRef.current}
-              min={EDGE_DETECTION.MIN}
-              max={EDGE_DETECTION.MAX}
-              simple
               callback={handleEdgeDetectionValue}
+              initial={edgeDetectionValueRef.current}
+              key={`edge-detection-${state.resetKey}`}
+              max={EDGE_DETECTION.MAX}
+              min={EDGE_DETECTION.MIN}
+              name="Edge Detection"
+              simple
             />
           )}
         </Stack>
 
         <Toolbar
-          sliderInitials={sliderInitials}
-          resetKey={state.resetKey}
           edgeDetectionEnabled={edgeDetectionEnabled}
           loupeEnabled={loupeEnabled}
-          saving={saving}
-          onSetBrightness={filters.setBrightness}
-          onSetContrast={filters.setContrast}
-          onSetSaturate={filters.setSaturate}
           onDirectionalPan={handlers.handleDirectionalPan}
-          onZoomOut={handlers.handleZoomOut}
-          onZoomIn={handlers.handleZoomIn}
-          onToggleLoupe={handleToggleLoupe}
           onNavigate={handleEditorNavigation}
           onReset={handleReset}
           onSave={handleSave}
+          onSetBrightness={filters.setBrightness}
+          onSetContrast={filters.setContrast}
+          onSetSaturate={filters.setSaturate}
+          onToggleLoupe={handleToggleLoupe}
+          onZoomIn={handlers.handleZoomIn}
+          onZoomOut={handlers.handleZoomOut}
+          resetKey={state.resetKey}
+          saving={saving}
+          sliderInitials={sliderInitials}
         />
       </div>
     </>

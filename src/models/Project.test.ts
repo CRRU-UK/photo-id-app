@@ -322,7 +322,7 @@ describe(Project, () => {
       const project = new Project(createProjectBody());
       const from = project.unassigned;
       const to = project.discarded;
-      const photo = from.currentPhoto!;
+      const photo = from.currentPhoto as Photo;
 
       project.addPhotoToStack(from, to, photo);
 
@@ -333,7 +333,7 @@ describe(Project, () => {
     it("does not add photo if it already exists in the target collection", () => {
       const project = new Project(createProjectBody());
       const from = project.unassigned;
-      const photo = from.currentPhoto!;
+      const photo = from.currentPhoto as Photo;
 
       const result = project.addPhotoToStack(from, from, photo);
 
@@ -345,7 +345,7 @@ describe(Project, () => {
       const project = new Project(createProjectBody());
       const from = project.unassigned;
       const to = project.matched[0].left;
-      const photo = from.currentPhoto!;
+      const photo = from.currentPhoto as Photo;
 
       vi.mocked(window.electronAPI.saveProject).mockClear();
 
@@ -360,7 +360,7 @@ describe(Project, () => {
       const project = new Project(createProjectBody());
       const from = project.unassigned;
       const to = project.discarded;
-      const photo = from.currentPhoto!;
+      const photo = from.currentPhoto as Photo;
 
       const result = project.addPhotoToStack(from, to, photo);
 
@@ -372,7 +372,7 @@ describe(Project, () => {
     it("creates a new photo from the duplicated file and adds it to the target collection", async () => {
       const project = new Project(createProjectBody());
       const to = project.matched[0].left;
-      const photo = to.currentPhoto!;
+      const photo = to.currentPhoto as Photo;
       const sizeBefore = to.photos.length;
 
       vi.mocked(window.electronAPI.duplicatePhotoFile).mockResolvedValue({
@@ -389,7 +389,7 @@ describe(Project, () => {
     it("adds the new photo to allPhotos", async () => {
       const project = new Project(createProjectBody());
       const to = project.unassigned;
-      const photo = to.currentPhoto!;
+      const photo = to.currentPhoto as Photo;
       const allPhotosBefore = project.allPhotos.size;
 
       vi.mocked(window.electronAPI.duplicatePhotoFile).mockResolvedValue({
@@ -406,7 +406,7 @@ describe(Project, () => {
     it("calls duplicatePhotoFile with the photo body", async () => {
       const project = new Project(createProjectBody());
       const to = project.unassigned;
-      const photo = to.currentPhoto!;
+      const photo = to.currentPhoto as Photo;
 
       vi.mocked(window.electronAPI.duplicatePhotoFile).mockResolvedValue({
         ...photo.toBody(),
@@ -424,7 +424,7 @@ describe(Project, () => {
     it("saves the project after duplicating", async () => {
       const project = new Project(createProjectBody());
       const to = project.discarded;
-      const photo = project.unassigned.currentPhoto!;
+      const photo = project.unassigned.currentPhoto as Photo;
 
       vi.mocked(window.electronAPI.duplicatePhotoFile).mockResolvedValue({
         ...photo.toBody(),
@@ -443,7 +443,7 @@ describe(Project, () => {
     it("returns the project for chaining", async () => {
       const project = new Project(createProjectBody());
       const to = project.unassigned;
-      const photo = to.currentPhoto!;
+      const photo = to.currentPhoto as Photo;
 
       vi.mocked(window.electronAPI.duplicatePhotoFile).mockResolvedValue({
         ...photo.toBody(),

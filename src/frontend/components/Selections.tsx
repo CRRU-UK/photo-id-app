@@ -8,9 +8,9 @@ import type Collection from "@/models/Collection";
 import type { Match } from "@/types";
 
 interface SelectionStackProps {
+  collection: Collection;
   id: number;
   side: string;
-  collection: Collection;
 }
 
 const SelectionStack = observer(({ id, side, collection }: SelectionStackProps) => {
@@ -25,8 +25,8 @@ const SelectionStack = observer(({ id, side, collection }: SelectionStackProps) 
 
   return (
     <div
-      ref={setDroppableNodeRef}
       data-testid={`match-${id}-${side.toLowerCase()}`}
+      ref={setDroppableNodeRef}
       style={{
         width: "100%",
         padding: "var(--stack-gap-normal)",
@@ -39,19 +39,19 @@ const SelectionStack = observer(({ id, side, collection }: SelectionStackProps) 
       }}
     >
       <PrimerStack
-        direction="horizontal"
         align="center"
-        justify="space-between"
+        direction="horizontal"
         gap="condensed"
+        justify="space-between"
         style={{ marginBottom: "var(--stack-gap-condensed)" }}
       >
         <Text
           size="medium"
-          weight="semibold"
           style={{
             display: "block",
             color: "var(--fgColor-default)",
           }}
+          weight="semibold"
         >
           {getAlphabetLetter(id)} <Label>{side}</Label>
         </Text>
@@ -75,11 +75,11 @@ const Selections = observer(({ matches }: SelectionsProps) =>
   matches.map((match) => (
     <PrimerStack
       direction="horizontal"
-      style={{ marginBottom: "var(--stack-gap-normal)" }}
       key={match.id}
+      style={{ marginBottom: "var(--stack-gap-normal)" }}
     >
-      <SelectionStack id={match.id} side="Left" collection={match.left} />
-      <SelectionStack id={match.id} side="Right" collection={match.right} />
+      <SelectionStack collection={match.left} id={match.id} side="Left" />
+      <SelectionStack collection={match.right} id={match.id} side="Right" />
     </PrimerStack>
   )),
 );

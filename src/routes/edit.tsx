@@ -107,9 +107,9 @@ const EditPage = () => {
           <ImageEditor
             data={data}
             image={file}
-            setQueryCallback={setQueryCallback}
-            onImageLoaded={handleImageLoaded}
             onError={handleImageError}
+            onImageLoaded={handleImageLoaded}
+            setQueryCallback={setQueryCallback}
           />
         </ErrorBoundary>
       )}
