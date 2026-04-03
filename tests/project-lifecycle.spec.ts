@@ -255,7 +255,7 @@ test.describe
     // ── Pagination ────────────────────────────────────────────────────────────
 
     test("switches to a different page using the page tabs", async () => {
-    // With 52 initial stacks and 8 per page, the second tab is "I-P"
+      // With 52 initial stacks and 8 per page, the second tab is "I-P"
       await expect(page.getByRole("navigation", { name: "Pages" }).getByText("I-P")).toBeVisible();
 
       // Use the keyboard shortcut to switch pages. Pressing "2" triggers handleKeyDown in
