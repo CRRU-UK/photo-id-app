@@ -28,10 +28,6 @@ Then, depending on your platform, download the appropriate file from the release
 2. Open and run the executable to install the app
 3. The app will open automatically after being installed - otherwise it can be opened from the Start menu
 
-!!! warning
-
-    When opening the setup executable Windows will show a "Windows protected your PC" warning. Click on "More info" and then click on "Run anyway".
-
 ### macOS
 
 1. Download the `Photo ID.dmg` file
