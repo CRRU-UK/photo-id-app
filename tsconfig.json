@@ -12,7 +12,7 @@
     "resolveJsonModule": true,
     "incremental": true,
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["./src/*"]
     },
     "types": ["node", "vite/client"]
   },
