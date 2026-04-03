@@ -33,12 +33,6 @@
       "nursery": {
         "noFloatingPromises": "error"
       },
-      "correctness": {
-        "useUniqueElementIds": "warn"
-      },
-      "a11y": {
-        "noStaticElementInteractions": "warn"
-      },
       "style": {
         "useComponentExportOnlyModules": {
           "options": {
@@ -79,7 +73,9 @@
   },
   "overrides": [
     {
-      "includes": ["docs/**/*.md"],
+      "includes": [
+        "docs/**/*.md"
+      ],
       "formatter": {
         "indentWidth": 4
       }
