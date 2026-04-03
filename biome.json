@@ -45,7 +45,8 @@
     },
     "domains": {
       "react": "all",
-      "test": "all"
+      "test": "all",
+      "playwright": "all"
     }
   },
   "javascript": {
