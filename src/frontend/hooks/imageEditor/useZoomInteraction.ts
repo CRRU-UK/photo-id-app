@@ -4,17 +4,17 @@ import { ZOOM_FACTORS } from "@/constants";
 
 interface ZoomInteractionOptions {
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
-  imageRef: React.RefObject<HTMLImageElement | null>;
+  clamp: (canvas: HTMLCanvasElement | null) => void;
   getImageCoords: (
     clientX: number,
     clientY: number,
     canvas: HTMLCanvasElement | null,
   ) => { x: number; y: number } | null;
   getTransform: () => { zoom: number; pan: { x: number; y: number } };
-  setZoom: (zoom: number) => void;
-  setPan: (pan: { x: number; y: number }) => void;
-  clamp: (canvas: HTMLCanvasElement | null) => void;
+  imageRef: React.RefObject<HTMLImageElement | null>;
   onDraw: () => void;
+  setPan: (pan: { x: number; y: number }) => void;
+  setZoom: (zoom: number) => void;
 }
 
 export const useZoomInteraction = ({

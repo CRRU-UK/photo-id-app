@@ -40,7 +40,11 @@
         "noStaticElementInteractions": "warn"
       },
       "style": {
-        "useComponentExportOnlyModules": "warn"
+        "useComponentExportOnlyModules": {
+          "options": {
+            "allowConstantExport": true
+          }
+        }
       }
     },
     "domains": {
@@ -66,7 +70,10 @@
     "enabled": true,
     "actions": {
       "source": {
-        "organizeImports": "on"
+        "organizeImports": "on",
+        "useSortedAttributes": "on",
+        "useSortedInterfaceMembers": "on",
+        "useSortedProperties": "on"
       }
     }
   },

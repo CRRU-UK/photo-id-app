@@ -11,12 +11,12 @@ import {
 import type { MLMatchResponse, PhotoBody } from "@/types";
 
 interface AnalysisContextValue {
-  isAnalysing: boolean;
-  result: MLMatchResponse | null;
   error: string | null;
-  stackLabel: string | null;
   handleAnalyse: (photos: PhotoBody[], stackLabel: string) => Promise<void>;
   handleClose: () => void;
+  isAnalysing: boolean;
+  result: MLMatchResponse | null;
+  stackLabel: string | null;
 }
 
 const AnalysisContext = createContext<AnalysisContextValue | null>(null);

@@ -50,17 +50,17 @@ const RecentProjects = () => {
     return (
       <>
         <Text>Or open a recent project:</Text>
-        <RecentProjectsList projects={recentProjects} onRemove={handleRemoveRecentProject} />
+        <RecentProjectsList onRemove={handleRemoveRecentProject} projects={recentProjects} />
       </>
     );
   }
 
-  return <></>;
+  return null;
 };
 
 interface RecentProjectsListProps {
-  projects: RecentProject[];
   onRemove: (path: string) => Promise<void>;
+  projects: RecentProject[];
 }
 
 const RecentProjectsList = ({ projects, onRemove }: RecentProjectsListProps) => {
@@ -74,7 +74,7 @@ const RecentProjectsList = ({ projects, onRemove }: RecentProjectsListProps) => 
             <HistoryIcon />
           </Timeline.Badge>
           <Timeline.Body>
-            <PrimerStack direction="horizontal" justify="space-between" align="center">
+            <PrimerStack align="center" direction="horizontal" justify="space-between">
               <div>
                 <Link
                   href="#"
@@ -90,20 +90,20 @@ const RecentProjectsList = ({ projects, onRemove }: RecentProjectsListProps) => 
                   style={{ marginLeft: "var(--stack-gap-condensed)" }}
                 />
                 <Text
-                  weight="semibold"
                   size="small"
                   style={{ display: "block", fontFamily: "var(--fontStack-monospace)" }}
+                  weight="semibold"
                 >
                   {item.path}
                 </Text>
               </div>
 
               <IconButton
+                aria-label="Remove from recent projects"
                 icon={TrashIcon}
+                onClick={() => onRemove(item.path)}
                 size="small"
                 variant="invisible"
-                aria-label="Remove from recent projects"
-                onClick={() => onRemove(item.path)}
               />
             </PrimerStack>
           </Timeline.Body>

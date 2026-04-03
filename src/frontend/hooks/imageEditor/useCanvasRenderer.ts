@@ -5,10 +5,10 @@ import type { ImageFilters, ImageTransformations } from "@/types";
 const TRAILING_DRAW_DEBOUNCE_MS = 100;
 
 interface RenderOptions {
-  imageRef: React.RefObject<HTMLImageElement | null>;
+  clamp: (canvas: HTMLCanvasElement | null) => void;
   getFilters: () => ImageFilters;
   getTransform: () => ImageTransformations;
-  clamp: (canvas: HTMLCanvasElement | null) => void;
+  imageRef: React.RefObject<HTMLImageElement | null>;
 }
 
 /**

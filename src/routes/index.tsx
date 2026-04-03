@@ -67,47 +67,47 @@ const IndexPage = () => {
       <LoadingOverlay data={loading} />
 
       <SettingsOverlay
-        open={settingsOpen}
         onClose={() => setSettingsOpen(false)}
         onOpenRequest={() => setSettingsOpen(true)}
+        open={settingsOpen}
         returnFocusRef={settingsButtonRef}
       />
 
       <div className="index">
-        <PrimerStack direction="vertical" align="stretch" gap="condensed" className="content">
+        <PrimerStack align="stretch" className="content" direction="vertical" gap="condensed">
           <PrimerStack
-            gap="spacious"
-            direction="horizontal"
             align="center"
+            direction="horizontal"
+            gap="spacious"
             justify="start"
             style={{ marginBottom: "var(--stack-gap-spacious)" }}
           >
             <div>
-              <img className="theme-icon theme-icon-light" src={iconLight} alt="" />
-              <img className="theme-icon theme-icon-dark" src={iconDark} alt="" />
+              <img alt="" className="theme-icon theme-icon-light" src={iconLight} />
+              <img alt="" className="theme-icon theme-icon-dark" src={iconDark} />
             </div>
 
             <div>
-              <PrimerStack direction="horizontal" align="center" justify="start" gap="normal">
+              <PrimerStack align="center" direction="horizontal" gap="normal" justify="start">
                 <Heading variant="large">Photo ID</Heading>
                 <BranchName as="span">v{version}</BranchName>
               </PrimerStack>
 
-              <PrimerStack direction="horizontal" align="center">
+              <PrimerStack align="center" direction="horizontal">
                 <Link
                   href="#"
-                  onClick={() => window.electronAPI.openExternalLink("user-guide")}
                   inline
                   muted
+                  onClick={() => window.electronAPI.openExternalLink("user-guide")}
                   style={{ fontSize: "var(--text-body-size-medium)" }}
                 >
                   <BookIcon size={16} /> <Text>User Guide</Text>
                 </Link>
                 <Link
                   href="#"
-                  onClick={() => window.electronAPI.openExternalLink("changelog")}
                   inline
                   muted
+                  onClick={() => window.electronAPI.openExternalLink("changelog")}
                   style={{ fontSize: "var(--text-body-size-medium)" }}
                 >
                   <RepoIcon size={16} /> <Text>What&apos;s New</Text>
@@ -116,12 +116,12 @@ const IndexPage = () => {
             </div>
 
             <IconButton
-              ref={settingsButtonRef}
-              icon={GearIcon}
-              size="large"
               aria-label="Settings"
+              icon={GearIcon}
               keybindingHint={GLOBAL_KEYBOARD_HINTS.OPEN_SETTINGS}
               onClick={() => setSettingsOpen(!settingsOpen)}
+              ref={settingsButtonRef}
+              size="large"
               style={{ marginLeft: "auto" }}
             />
           </PrimerStack>
@@ -139,23 +139,23 @@ const IndexPage = () => {
             }}
           >
             <Button
-              onClick={() => handleOpenProjectFolder()}
-              variant="primary"
-              size="large"
               block
               leadingVisual={FileDirectoryIcon}
+              onClick={() => handleOpenProjectFolder()}
+              size="large"
               trailingVisual={<KeybindingHint keys={PROJECT_KEYBOARD_HINTS.OPEN_PROJECT_FOLDER} />}
+              variant="primary"
             >
               Start New Project
             </Button>
 
             <Button
-              onClick={() => handleOpenFilePrompt()}
-              variant="default"
-              size="large"
               block
               leadingVisual={FileIcon}
+              onClick={() => handleOpenFilePrompt()}
+              size="large"
               trailingVisual={<KeybindingHint keys={PROJECT_KEYBOARD_HINTS.OPEN_PROJECT_FILE} />}
+              variant="default"
             >
               Open Project File
             </Button>
@@ -165,27 +165,27 @@ const IndexPage = () => {
         </PrimerStack>
 
         <PrimerStack
-          className="footer"
           align="center"
-          justify="center"
+          className="footer"
           direction="horizontal"
+          justify="center"
           padding="spacious"
         >
           <img
+            alt=""
+            src={logo as string}
             style={{
               display: "block",
               width: "32px",
               height: "32px",
             }}
-            src={logo as string}
-            alt=""
           />
           <Text size="small">
             By{" "}
             <Link
               href="#"
-              onClick={() => window.electronAPI.openExternalLink("website")}
               muted
+              onClick={() => window.electronAPI.openExternalLink("website")}
               style={{ textDecoration: "underline" }}
             >
               Cetacean Research &amp; Rescue Unit

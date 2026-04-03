@@ -30,8 +30,9 @@ interface StackImageProps {
 
 const StackImage = observer(({ photo }: StackImageProps) => (
   <img
-    src={photo.thumbnailFullPath}
+    alt=""
     loading="lazy"
+    src={photo.thumbnailFullPath}
     style={{
       cursor: "pointer",
       display: "block",
@@ -40,7 +41,6 @@ const StackImage = observer(({ photo }: StackImageProps) => (
       aspectRatio: ASPECT_RATIO,
       objectFit: "contain",
     }}
-    alt=""
   />
 ));
 
@@ -111,6 +111,7 @@ const Stack = observer(({ collection, showAnalysisButton = true, stackLabel }: S
   return (
     <>
       <div className="photo-stack" style={{ aspectRatio: ASPECT_RATIO }}>
+        {/* biome-ignore lint/a11y/noStaticElementInteractions: needed for drag-and-drop */}
         <div
           ref={setDraggableNodeRef}
           {...draggableListeners}
@@ -131,14 +132,14 @@ const Stack = observer(({ collection, showAnalysisButton = true, stackLabel }: S
       </div>
 
       <PrimerStack
-        direction="horizontal"
         align="center"
+        direction="horizontal"
         justify="end"
         style={{ marginTop: "var(--stack-gap-normal)" }}
       >
         <PrimerStack
-          direction="horizontal"
           align="end"
+          direction="horizontal"
           justify="space-between"
           style={{ marginRight: "auto" }}
         >
@@ -151,43 +152,43 @@ const Stack = observer(({ collection, showAnalysisButton = true, stackLabel }: S
 
         {showAnalysisButton && !!selectedModel && (
           <IconButton
-            icon={AiModelIcon}
-            size="small"
             aria-label={PROJECT_TOOLTIPS.ANALYSE_PHOTOS}
             disabled={collection.photos.length === 0 || isAnalysing}
+            icon={AiModelIcon}
             onClick={handleAnalyseClick}
+            size="small"
           />
         )}
 
         <ButtonGroup>
           <IconButton
-            icon={PencilIcon}
-            size="small"
             aria-label={PROJECT_TOOLTIPS.EDIT_PHOTO}
+            disabled={collection.photos.length <= 0 || revertingPhoto}
+            icon={PencilIcon}
             onClick={(event) => {
               event.preventDefault();
               return handleOpenEdit();
             }}
-            disabled={collection.photos.length <= 0 || revertingPhoto}
+            size="small"
           >
             Edit
           </IconButton>
-          <ActionMenu open={actionsOpen} onOpenChange={setActionsOpen}>
+          <ActionMenu onOpenChange={setActionsOpen} open={actionsOpen}>
             <ActionMenu.Button
               aria-label={PROJECT_TOOLTIPS.MORE_OPTIONS}
+              disabled={collection.photos.length <= 0}
               icon={TriangleDownIcon}
               size="small"
-              disabled={collection.photos.length <= 0}
             />
             <ActionMenu.Overlay>
               <ActionList>
                 <ActionList.Item
-                  variant="danger"
                   disabled={
                     collection.photos.length <= 0 || revertingPhoto || !currentPhoto?.isEdited
                   }
                   loading={revertingPhoto}
                   onSelect={handleRevertPhoto}
+                  variant="danger"
                 >
                   <ActionList.LeadingVisual>
                     <UndoIcon />
@@ -203,18 +204,18 @@ const Stack = observer(({ collection, showAnalysisButton = true, stackLabel }: S
 
         <ButtonGroup>
           <IconButton
-            icon={ChevronLeftIcon}
-            size="small"
             aria-label={PROJECT_TOOLTIPS.PREVIOUS_PHOTO}
-            onClick={handlePrev}
             disabled={collection.photos.length <= 1}
+            icon={ChevronLeftIcon}
+            onClick={handlePrev}
+            size="small"
           />
           <IconButton
-            icon={ChevronRightIcon}
-            size="small"
             aria-label={PROJECT_TOOLTIPS.NEXT_PHOTO}
-            onClick={handleNext}
             disabled={collection.photos.length <= 1}
+            icon={ChevronRightIcon}
+            onClick={handleNext}
+            size="small"
           />
         </ButtonGroup>
       </PrimerStack>
