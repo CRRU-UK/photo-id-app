@@ -1,12 +1,12 @@
 import { useNavigate } from "@tanstack/react-router";
 import {
   createContext,
+  type ReactNode,
   useContext,
   useEffect,
   useMemo,
   useRef,
   useState,
-  type ReactNode,
 } from "react";
 
 import { ROUTES } from "@/constants";
@@ -44,6 +44,7 @@ export const ProjectProvider = ({ children }: ProjectProviderProps) => {
    */
   const projectLoadedViaListenerRef = useRef<boolean>(false);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: setProject is stable but included for explicitness
   useEffect(() => {
     if (inEditWindow) {
       return;

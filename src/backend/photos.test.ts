@@ -1,8 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
-import type { PhotoBody, PhotoEdits } from "@/types";
-
 import { DEFAULT_PHOTO_EDITS, PROJECT_THUMBNAIL_DIRECTORY } from "@/constants";
+import type { PhotoBody, PhotoEdits } from "@/types";
 
 const mockWriteFile = vi.fn<(path: string, data: Buffer) => Promise<void>>();
 

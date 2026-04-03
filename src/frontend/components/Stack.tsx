@@ -123,7 +123,6 @@ const Stack = observer(({ collection, showAnalysisButton = true, stackLabel }: S
             }
 
             // dnd-kit types SyntheticListenerMap handlers as Function
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
             draggableOnKeyDown?.(event);
           }}
         >

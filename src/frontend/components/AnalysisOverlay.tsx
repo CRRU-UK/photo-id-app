@@ -68,9 +68,9 @@ const Results = ({
 }) => {
   const [pageIndex, setPageIndex] = useState(0);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: reset local UI state when data prop changes
   useEffect(() => {
     // Reset pagination when analysis result changes (reset state when prop changes).
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- reset local UI state when data prop changes
     setPageIndex(0);
   }, [data]);
 

@@ -1,5 +1,3 @@
-import type { LoadingData } from "@/types";
-
 import { BookIcon, FileDirectoryIcon, FileIcon, GearIcon, RepoIcon } from "@primer/octicons-react";
 import {
   BranchName,
@@ -13,7 +11,6 @@ import {
 import { KeybindingHint } from "@primer/react/experimental";
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-
 import {
   GLOBAL_KEYBOARD_HINTS,
   PROJECT_FILE_NAME,
@@ -23,10 +20,10 @@ import {
 import LoadingOverlay from "@/frontend/components/LoadingOverlay";
 import RecentProjects from "@/frontend/components/RecentProjects";
 import SettingsOverlay from "@/frontend/components/SettingsOverlay";
-
 import iconDark from "@/frontend/img/icon-dark.svg";
 import iconLight from "@/frontend/img/icon-light.svg";
 import logo from "@/frontend/img/logo.png";
+import type { LoadingData } from "@/types";
 
 import { version } from "../../package.json";
 

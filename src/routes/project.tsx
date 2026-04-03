@@ -1,7 +1,3 @@
-import type Collection from "@/models/Collection";
-import type Photo from "@/models/Photo";
-import type { DraggableEndData, DraggableStartData, LoadingData, Match } from "@/types";
-
 import {
   DndContext,
   type DragEndEvent,
@@ -11,26 +7,25 @@ import {
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
-
 import { ColumnsIcon } from "@primer/octicons-react";
 import { SegmentedControl, Stack, UnderlineNav } from "@primer/react";
 import { KeybindingHint } from "@primer/react/experimental";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { observer } from "mobx-react-lite";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
-
 import { ASPECT_RATIO, MATCHED_STACKS_PER_PAGE, ROUTES } from "@/constants";
 import { AnalysisProvider, useAnalysis } from "@/contexts/AnalysisContext";
 import { useProject } from "@/contexts/ProjectContext";
-
 import AnalysisOverlay from "@/frontend/components/AnalysisOverlay";
 import ErrorBoundary from "@/frontend/components/ErrorBoundary";
 import LoadingOverlay from "@/frontend/components/LoadingOverlay";
 import Selections from "@/frontend/components/Selections";
 import SettingsOverlay from "@/frontend/components/SettingsOverlay";
 import Sidebar from "@/frontend/components/Sidebar";
-
 import { chunkArray, getAlphabetLetter } from "@/helpers";
+import type Collection from "@/models/Collection";
+import type Photo from "@/models/Photo";
+import type { DraggableEndData, DraggableStartData, LoadingData, Match } from "@/types";
 
 // Defined outside ProjectPage to prevent unnecessary unmount/remount on parent re-render
 const DraggableImageComponent = ({ photo }: { photo: Photo }) => {
@@ -59,9 +54,11 @@ interface MatchedPagesProps {
 }
 
 // Extracted to its own memo component so switching pages doesn't recreate all tab elements
-function MatchedPagesComponent({ matchedArray, currentPage, onPageChange }: MatchedPagesProps) {
+const MatchedPagesComponent = ({ matchedArray, currentPage, onPageChange }: MatchedPagesProps) => {
   return chunkArray(matchedArray, MATCHED_STACKS_PER_PAGE).map((item, index) => {
+    // biome-ignore lint/style/noNonNullAssertion: chunkArray guarantees non-empty chunks
     const first = item.at(0)!.id;
+    // biome-ignore lint/style/noNonNullAssertion: chunkArray guarantees non-empty chunks
     const last = item.at(-1)!.id;
 
     return (
@@ -78,7 +75,8 @@ function MatchedPagesComponent({ matchedArray, currentPage, onPageChange }: Matc
       </UnderlineNav.Item>
     );
   });
-}
+};
+
 const MatchedPages = memo(MatchedPagesComponent);
 
 const ProjectPage = observer(() => {
@@ -153,6 +151,7 @@ const ProjectPage = observer(() => {
   }, [draggingPhoto, isCopying]);
 
   const matchedArray = useMemo<Match[]>(() => (project === null ? [] : project.matched), [project]);
+
   const matchedPageCount = Math.ceil(matchedArray.length / MATCHED_STACKS_PER_PAGE);
 
   const handleKeyUp = useCallback(() => setIsCopying(false), []);
@@ -215,7 +214,10 @@ const ProjectPage = observer(() => {
     };
   }, [project, handleKeyDown, handleKeyUp]);
 
-  const pointerSensor = useSensor(PointerSensor, { activationConstraint: { distance: 5 } });
+  const pointerSensor = useSensor(PointerSensor, {
+    activationConstraint: { distance: 5 },
+  });
+
   const sensors = useSensors(pointerSensor);
 
   const matchedRows = useMemo(

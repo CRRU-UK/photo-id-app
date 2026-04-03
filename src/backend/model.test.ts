@@ -98,7 +98,7 @@ describe(analyseStack, () => {
     const [, callInit] = mockFetch.mock.calls[0] as unknown as [string, RequestInit];
     const headers = callInit.headers as Record<string, string>;
 
-    expect(headers["Authorization"]).toBe("Bearer test-token");
+    expect(headers.Authorization).toBe("Bearer test-token");
   });
 
   it("renders each photo via renderApiImage with its edits", async () => {

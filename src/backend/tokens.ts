@@ -1,6 +1,6 @@
-import { app, safeStorage } from "electron";
 import fs from "node:fs";
 import path from "node:path";
+import { app, safeStorage } from "electron";
 
 import { TOKENS_FILE_NAME } from "@/constants";
 import { tokenStoreSchema } from "@/schemas";

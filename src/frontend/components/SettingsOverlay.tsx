@@ -1,6 +1,3 @@
-import type { RefObject } from "react";
-import { useCallback, useEffect, useState } from "react";
-
 import {
   AiModelIcon,
   AlertIcon,
@@ -21,6 +18,8 @@ import {
   Text,
 } from "@primer/react";
 import { Blankslate, UnderlinePanels } from "@primer/react/experimental";
+import type { RefObject } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { useSettings } from "@/contexts/SettingsContext";
 import type { MLModel, Telemetry, ThemeMode } from "@/types";

@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/unbound-method */
-
 import type { BrowserWindow, IpcMainInvokeEvent } from "electron";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -32,8 +30,9 @@ vi.mock("@/backend/WindowManager", () => ({
   },
 }));
 
-const { handleSavePhotoFile, handleRevertPhotoFile, handleDuplicatePhotoFileInvoke } =
-  await import("./photoHandlers");
+const { handleSavePhotoFile, handleRevertPhotoFile, handleDuplicatePhotoFileInvoke } = await import(
+  "./photoHandlers"
+);
 
 const mockEvent = {} as IpcMainInvokeEvent;
 

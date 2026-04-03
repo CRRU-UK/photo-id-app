@@ -1,5 +1,5 @@
-import { BrowserWindow, dialog } from "electron";
 import path from "node:path";
+import { BrowserWindow, dialog } from "electron";
 import { ZodError } from "zod";
 
 import {
