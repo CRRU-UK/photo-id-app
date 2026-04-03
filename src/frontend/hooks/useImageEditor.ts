@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 
+import type { EdgeDetectionData } from "@/types";
 import { useCanvasRenderer } from "./imageEditor/useCanvasRenderer";
 import { useImageFilters } from "./imageEditor/useImageFilters";
 import { useImageLoader } from "./imageEditor/useImageLoader";
@@ -165,7 +166,7 @@ const useImageEditor = ({ file, loupeEnabled, onError }: UseImageEditorProps) =>
    * @param state - Edge detection configuration with enabled state and intensity value
    */
   const setEdgeDetection = useCallback(
-    (state: Parameters<typeof setEdgeDetectionInternal>[0]) => {
+    (state: EdgeDetectionData) => {
       setEdgeDetectionInternal(state);
       drawThrottled();
       redrawLoupe();

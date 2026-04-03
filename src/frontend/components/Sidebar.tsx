@@ -103,8 +103,8 @@ const Sidebar = observer(({ onCloseProject }: SidebarProps) => {
   return (
     <div className="sidebar" data-testid="sidebar">
       <PrimerStack
-        direction="vertical"
         align="start"
+        direction="vertical"
         justify="space-between"
         padding="normal"
         style={{ minHeight: "100%" }}
@@ -115,15 +115,7 @@ const Sidebar = observer(({ onCloseProject }: SidebarProps) => {
         <FormControl style={{ marginLeft: "auto", marginTop: "auto" }}>
           <FormControl.Label visuallyHidden>Select analysis ML model</FormControl.Label>
           <SelectPanel
-            title="Analysis ML Model"
-            subtitle="Select which ML model to use for stack analysis."
-            placeholderText="Filter models"
-            open={modelPanelOpen}
-            onOpenChange={setModelPanelOpen}
             items={filteredItems}
-            selected={selectedItem}
-            onSelectedChange={(item: ItemInput | undefined) => void handleModelChange(item)}
-            onFilterChange={setModelFilter}
             message={
               modelItems.length === 0
                 ? {
@@ -133,36 +125,44 @@ const Sidebar = observer(({ onCloseProject }: SidebarProps) => {
                   }
                 : undefined
             }
+            onFilterChange={setModelFilter}
+            onOpenChange={setModelPanelOpen}
+            onSelectedChange={(item: ItemInput | undefined) => void handleModelChange(item)}
+            open={modelPanelOpen}
+            placeholderText="Filter models"
             renderAnchor={(anchorProps) => (
               <Button
                 {...anchorProps}
-                variant={selectedModel ? "primary" : "default"}
                 leadingVisual={AiModelIcon}
                 trailingAction={TriangleDownIcon}
+                variant={selectedModel ? "primary" : "default"}
               >
                 {selectedModel?.name ?? "ML Model"}
               </Button>
             )}
+            selected={selectedItem}
+            subtitle="Select which ML model to use for stack analysis."
+            title="Analysis ML Model"
           />
         </FormControl>
 
         <PrimerStack
-          direction="horizontal"
           align="center"
-          justify="space-between"
+          direction="horizontal"
           gap="condensed"
+          justify="space-between"
           style={{ width: "100%" }}
         >
           <IconButton
-            icon={ReplyIcon}
-            variant="invisible"
-            size="large"
             aria-label="Close project"
-            onClick={() => onCloseProject()}
+            icon={ReplyIcon}
             keybindingHint={PROJECT_KEYBOARD_HINTS.CLOSE_PROJECT}
+            onClick={() => onCloseProject()}
+            size="large"
+            variant="invisible"
           />
 
-          <ActionMenu open={actionsOpen} onOpenChange={setActionsOpen}>
+          <ActionMenu onOpenChange={setActionsOpen} open={actionsOpen}>
             <ActionMenu.Button leadingVisual={ThreeBarsIcon} size="large">
               Actions
             </ActionMenu.Button>

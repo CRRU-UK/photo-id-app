@@ -5,9 +5,9 @@ import type { Directory, FileName, PhotoBody, PhotoEdits } from "@/types";
 
 interface PhotoOptions {
   directory: Directory;
+  edits: PhotoEdits;
   name: FileName;
   thumbnail: FileName;
-  edits: PhotoEdits;
 }
 
 class Photo {

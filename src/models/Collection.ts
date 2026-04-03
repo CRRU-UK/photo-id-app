@@ -4,8 +4,8 @@ import type Photo from "@/models/Photo";
 import type Project from "@/models/Project";
 
 interface CollectionOptions {
-  name?: string;
   index: number;
+  name?: string;
   photos: Photo[];
 }
 

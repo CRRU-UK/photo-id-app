@@ -4,13 +4,13 @@ import { EditorPanDirection, PAN_AMOUNT } from "@/constants";
 
 interface PanInteractionOptions {
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
+  getTransform: () => { pan: { x: number; y: number } };
   imageRef: React.RefObject<HTMLImageElement | null>;
-  onPan: (pan: { x: number; y: number }) => void;
+  onCancelThrottle: () => void;
   onDirectionalPan: (delta: { x: number; y: number }) => void;
   onDraw: () => void;
   onDrawThrottled: () => void;
-  onCancelThrottle: () => void;
-  getTransform: () => { pan: { x: number; y: number } };
+  onPan: (pan: { x: number; y: number }) => void;
 }
 
 export const usePanInteraction = ({

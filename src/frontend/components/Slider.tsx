@@ -2,13 +2,13 @@ import { FormControl, Label, Stack } from "@primer/react";
 import { useEffect, useState } from "react";
 
 interface SliderProps {
-  name: string;
-  min: number;
-  max: number;
-  initial: number;
-  disabled?: boolean;
-  simple?: boolean;
   callback: (value: number) => void;
+  disabled?: boolean;
+  initial: number;
+  max: number;
+  min: number;
+  name: string;
+  simple?: boolean;
 }
 
 const Slider = ({
@@ -28,8 +28,8 @@ const Slider = ({
 
   return (
     <FormControl disabled={disabled}>
-      <FormControl.Label visuallyHidden={simple} style={{ width: "100%" }}>
-        <Stack direction="horizontal" align="center" justify="space-between">
+      <FormControl.Label style={{ width: "100%" }} visuallyHidden={simple}>
+        <Stack align="center" direction="horizontal" justify="space-between">
           {name}
           <Label variant="secondary">
             <pre>{value}</pre>
@@ -38,16 +38,16 @@ const Slider = ({
       </FormControl.Label>
 
       <input
-        type="range"
-        min={min}
-        max={max}
-        value={value}
         disabled={disabled}
+        max={max}
+        min={min}
         onChange={(event) => {
           const newValue = Number(event.target.value);
           setValue(newValue);
           callback(newValue);
         }}
+        type="range"
+        value={value}
       />
     </FormControl>
   );

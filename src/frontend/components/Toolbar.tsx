@@ -17,25 +17,25 @@ import Slider from "@/frontend/components/Slider";
 import type { EditorNavigation } from "@/types";
 
 interface ToolbarProps {
+  edgeDetectionEnabled: boolean;
+  loupeEnabled: boolean;
+  onDirectionalPan: (direction: EditorPanDirection) => void;
+  onNavigate: (direction: EditorNavigation) => void;
+  onReset: () => void;
+  onSave: () => void;
+  onSetBrightness: (value: number) => void;
+  onSetContrast: (value: number) => void;
+  onSetSaturate: (value: number) => void;
+  onToggleLoupe: () => void;
+  onZoomIn: () => void;
+  onZoomOut: () => void;
+  resetKey: number;
+  saving: boolean;
   sliderInitials: {
     brightness: number;
     contrast: number;
     saturate: number;
   };
-  resetKey: number;
-  edgeDetectionEnabled: boolean;
-  loupeEnabled: boolean;
-  saving: boolean;
-  onSetBrightness: (value: number) => void;
-  onSetContrast: (value: number) => void;
-  onSetSaturate: (value: number) => void;
-  onDirectionalPan: (direction: EditorPanDirection) => void;
-  onZoomOut: () => void;
-  onZoomIn: () => void;
-  onToggleLoupe: () => void;
-  onNavigate: (direction: EditorNavigation) => void;
-  onReset: () => void;
-  onSave: () => void;
 }
 
 const Toolbar = ({
@@ -77,131 +77,131 @@ const Toolbar = ({
 
   return (
     <div className="toolbar">
-      <Stack direction="horizontal" align="center" gap="condensed">
+      <Stack align="center" direction="horizontal" gap="condensed">
         <Slider
-          key={`brightness-${resetKey}`}
-          name="Brightness"
-          initial={sliderInitials.brightness}
-          min={IMAGE_FILTERS.BRIGHTNESS.MIN}
-          max={IMAGE_FILTERS.BRIGHTNESS.MAX}
-          disabled={edgeDetectionEnabled}
           callback={onSetBrightness}
+          disabled={edgeDetectionEnabled}
+          initial={sliderInitials.brightness}
+          key={`brightness-${resetKey}`}
+          max={IMAGE_FILTERS.BRIGHTNESS.MAX}
+          min={IMAGE_FILTERS.BRIGHTNESS.MIN}
+          name="Brightness"
         />
         <Slider
-          key={`contrast-${resetKey}`}
-          name="Contrast"
-          initial={sliderInitials.contrast}
-          min={IMAGE_FILTERS.CONTRAST.MIN}
-          max={IMAGE_FILTERS.CONTRAST.MAX}
-          disabled={edgeDetectionEnabled}
           callback={onSetContrast}
+          disabled={edgeDetectionEnabled}
+          initial={sliderInitials.contrast}
+          key={`contrast-${resetKey}`}
+          max={IMAGE_FILTERS.CONTRAST.MAX}
+          min={IMAGE_FILTERS.CONTRAST.MIN}
+          name="Contrast"
         />
         <Slider
-          key={`saturation-${resetKey}`}
-          name="Saturation"
-          initial={sliderInitials.saturate}
-          min={IMAGE_FILTERS.SATURATE.MIN}
-          max={IMAGE_FILTERS.SATURATE.MAX}
-          disabled={edgeDetectionEnabled}
           callback={onSetSaturate}
+          disabled={edgeDetectionEnabled}
+          initial={sliderInitials.saturate}
+          key={`saturation-${resetKey}`}
+          max={IMAGE_FILTERS.SATURATE.MAX}
+          min={IMAGE_FILTERS.SATURATE.MIN}
+          name="Saturation"
         />
       </Stack>
 
       <ButtonGroup style={{ marginLeft: "auto", marginRight: "var(--stack-gap-spacious)" }}>
         <IconButton
-          icon={ArrowLeftIcon}
-          size="large"
           aria-label={EDITOR_TOOLTIPS.PAN_LEFT}
+          icon={ArrowLeftIcon}
           keybindingHint={EDITOR_KEYS.PAN_LEFT.hint}
           onClick={handlePanLeft}
+          size="large"
         />
         <IconButton
-          icon={ArrowUpIcon}
-          size="large"
           aria-label={EDITOR_TOOLTIPS.PAN_UP}
+          icon={ArrowUpIcon}
           keybindingHint={EDITOR_KEYS.PAN_UP.hint}
           onClick={handlePanUp}
+          size="large"
         />
         <IconButton
-          icon={ArrowDownIcon}
-          size="large"
           aria-label={EDITOR_TOOLTIPS.PAN_DOWN}
+          icon={ArrowDownIcon}
           keybindingHint={EDITOR_KEYS.PAN_DOWN.hint}
           onClick={handlePanDown}
+          size="large"
         />
         <IconButton
-          icon={ArrowRightIcon}
-          size="large"
           aria-label={EDITOR_TOOLTIPS.PAN_RIGHT}
+          icon={ArrowRightIcon}
           keybindingHint={EDITOR_KEYS.PAN_RIGHT.hint}
           onClick={handlePanRight}
+          size="large"
         />
       </ButtonGroup>
 
       <ButtonGroup style={{ marginRight: "var(--stack-gap-spacious)" }}>
         <IconButton
-          icon={ZoomOutIcon}
-          size="large"
           aria-label={EDITOR_TOOLTIPS.ZOOM_OUT}
+          icon={ZoomOutIcon}
           keybindingHint={EDITOR_KEYS.ZOOM_OUT.hint}
           onClick={onZoomOut}
+          size="large"
         />
         <IconButton
-          icon={ZoomInIcon}
-          size="large"
           aria-label={EDITOR_TOOLTIPS.ZOOM_IN}
+          icon={ZoomInIcon}
           keybindingHint={EDITOR_KEYS.ZOOM_IN.hint}
           onClick={onZoomIn}
+          size="large"
         />
       </ButtonGroup>
 
       <ButtonGroup style={{ marginRight: "auto" }}>
         <IconButton
-          icon={CodescanIcon}
-          size="large"
-          variant={loupeEnabled ? "primary" : "default"}
           aria-label={loupeEnabled ? EDITOR_TOOLTIPS.DISABLE_LOUPE : EDITOR_TOOLTIPS.ENABLE_LOUPE}
+          icon={CodescanIcon}
           keybindingHint={EDITOR_KEYS.TOGGLE_LOUPE.hint}
           onClick={onToggleLoupe}
+          size="large"
+          variant={loupeEnabled ? "primary" : "default"}
         />
       </ButtonGroup>
 
       <ButtonGroup style={{ marginRight: "var(--stack-gap-spacious)" }}>
         <IconButton
-          icon={ChevronLeftIcon}
-          size="large"
-          variant="invisible"
           aria-label={EDITOR_TOOLTIPS.PREVIOUS_PHOTO}
+          icon={ChevronLeftIcon}
           keybindingHint={EDITOR_KEYS.PREVIOUS_PHOTO.hint}
           onClick={handleNavigatePrev}
-        />
-        <IconButton
-          icon={ChevronRightIcon}
           size="large"
           variant="invisible"
+        />
+        <IconButton
           aria-label={EDITOR_TOOLTIPS.NEXT_PHOTO}
+          icon={ChevronRightIcon}
           keybindingHint={EDITOR_KEYS.NEXT_PHOTO.hint}
           onClick={handleNavigateNext}
+          size="large"
+          variant="invisible"
         />
       </ButtonGroup>
 
       <Button
+        onClick={onReset}
         size="large"
-        variant="danger"
         style={{ marginRight: "var(--stack-gap-normal)" }}
         trailingVisual={<KeybindingHint keys={EDITOR_KEYS.RESET.hint} />}
-        onClick={onReset}
+        variant="danger"
       >
         {EDITOR_TOOLTIPS.RESET}
       </Button>
 
       <Button
-        size="large"
-        variant="primary"
-        loading={saving}
         disabled={saving}
-        trailingVisual={<KeybindingHint keys={EDITOR_KEYS.SAVE.hint} />}
+        loading={saving}
         onClick={onSave}
+        size="large"
+        trailingVisual={<KeybindingHint keys={EDITOR_KEYS.SAVE.hint} />}
+        variant="primary"
       >
         {EDITOR_TOOLTIPS.SAVE}
       </Button>

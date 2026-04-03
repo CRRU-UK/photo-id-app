@@ -18,11 +18,11 @@ import type {
  * when the renderer cleans up (e.g. on route change), avoiding duplicate handlers and
  * setState-on-unmounted warnings.
  */
-function subscribeIpc<T>(channel: string, callback: (data: T) => void): () => void {
+const subscribeIpc = <T>(channel: string, callback: (data: T) => void): (() => void) => {
   const handler = (_event: Electron.IpcRendererEvent, ...args: unknown[]) => callback(args[0] as T);
   ipcRenderer.on(channel, handler);
   return () => ipcRenderer.removeListener(channel, handler);
-}
+};
 
 contextBridge.exposeInMainWorld("electronAPI", {
   // Invocations (main and renderer)

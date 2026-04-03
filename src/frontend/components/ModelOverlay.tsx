@@ -12,9 +12,9 @@ import { useEffect, useState } from "react";
 import type { MLModel, MLModelDraft } from "@/types";
 
 interface ModelOverlayProps {
-  open: boolean;
-  onClose: () => void;
   editingModel?: MLModel | null;
+  onClose: () => void;
+  open: boolean;
 }
 
 type ModelFields = {
@@ -75,9 +75,6 @@ const ModelOverlay = ({ open, onClose, editingModel }: ModelOverlayProps) => {
 
   return (
     <Dialog
-      title={isEditing ? "Edit Model" : "Add Model"}
-      position="right"
-      onClose={onClose}
       footerButtons={[
         { buttonType: "default", content: "Cancel", onClick: onClose },
         {
@@ -88,17 +85,20 @@ const ModelOverlay = ({ open, onClose, editingModel }: ModelOverlayProps) => {
           disabled: !fieldsValid,
         },
       ]}
+      onClose={onClose}
+      position="right"
+      title={isEditing ? "Edit Model" : "Add Model"}
     >
       <Stack direction="vertical" gap="spacious" padding="spacious">
         <FormControl required>
           <FormControl.Label>Model name</FormControl.Label>
           <TextInput
+            block
+            leadingVisual={AiModelIcon}
+            onChange={(event) => setDraft((prev) => ({ ...prev, name: event.target.value }))}
+            placeholder="e.g. MiewID"
             size="large"
             value={draft.name}
-            leadingVisual={AiModelIcon}
-            placeholder="e.g. MiewID"
-            onChange={(event) => setDraft((prev) => ({ ...prev, name: event.target.value }))}
-            block
           />
           <FormControl.Caption>Label shown in the app to identify this model.</FormControl.Caption>
         </FormControl>
@@ -106,12 +106,12 @@ const ModelOverlay = ({ open, onClose, editingModel }: ModelOverlayProps) => {
         <FormControl required>
           <FormControl.Label>API URL</FormControl.Label>
           <TextInput
-            size="large"
-            value={draft.endpoint}
-            placeholder="https://api.example.com"
+            block
             leadingVisual={LinkIcon}
             onChange={(event) => setDraft((prev) => ({ ...prev, endpoint: event.target.value }))}
-            block
+            placeholder="https://api.example.com"
+            size="large"
+            value={draft.endpoint}
           />
           <FormControl.Caption>Base URL of your model API.</FormControl.Caption>
         </FormControl>
@@ -120,29 +120,27 @@ const ModelOverlay = ({ open, onClose, editingModel }: ModelOverlayProps) => {
           <FormControl.Label>API Token</FormControl.Label>
           {tokenLocked ? (
             <TextInput
-              type="password"
-              size="large"
-              value=""
+              block
+              leadingVisual={KeyIcon}
               placeholder="••••••••••••"
               readOnly
-              leadingVisual={KeyIcon}
+              size="large"
               trailingAction={
                 <TextInput.Action
                   aria-label="Edit token"
                   icon={PencilIcon}
-                  variant="default"
                   onClick={() => setIsEditingToken(true)}
+                  variant="default"
                 />
               }
-              block
+              value=""
             />
           ) : (
             <TextInput
-              type={showToken ? "text" : "password"}
-              size="large"
-              value={draft.token}
+              block
               leadingVisual={KeyIcon}
               onChange={(event) => setDraft((prev) => ({ ...prev, token: event.target.value }))}
+              size="large"
               trailingAction={
                 <TextInput.Action
                   aria-label={showToken ? "Hide token" : "Show token"}
@@ -150,7 +148,8 @@ const ModelOverlay = ({ open, onClose, editingModel }: ModelOverlayProps) => {
                   onClick={() => setShowToken((prev) => !prev)}
                 />
               }
-              block
+              type={showToken ? "text" : "password"}
+              value={draft.token}
             />
           )}
           <FormControl.Caption>

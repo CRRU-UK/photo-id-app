@@ -11,51 +11,55 @@ import {
   Tooltip,
 } from "@primer/react";
 import { DataTable, Table } from "@primer/react/experimental";
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 
 import { ANALYSIS_RESULTS_PER_PAGE, RATING_THRESHOLDS } from "@/constants";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { useSettings } from "@/contexts/SettingsContext";
 import type { MLMatch, MLMatchResponse } from "@/types";
 
-const Loading = ({ stackLabel }: { stackLabel: string | null }) => (
-  <Table.Container>
-    <Table.Subtitle as="p" id="subtitle">
-      <PrimerStack direction="horizontal" align="start" gap="condensed">
-        <Spinner size="small" />
-        <span>
-          Processing stack <Label variant="accent">{stackLabel}</Label>...
-        </span>
-      </PrimerStack>
-    </Table.Subtitle>
-    <Table.Skeleton
-      aria-labelledby="subtitle"
-      rows={10}
-      columns={[
-        {
-          header: "Rank",
-          id: "rank",
-          width: "auto",
-        },
-        {
-          header: "ID",
-          id: "id",
-          width: "80px",
-        },
-        {
-          header: "Rating",
-          id: "rating",
-          width: "grow",
-        },
-        {
-          header: "",
-          id: "details",
-          width: "50px",
-        },
-      ]}
-    />
-  </Table.Container>
-);
+const Loading = ({ stackLabel }: { stackLabel: string | null }) => {
+  const subtitleId = useId();
+
+  return (
+    <Table.Container>
+      <Table.Subtitle as="p" id={subtitleId}>
+        <PrimerStack align="start" direction="horizontal" gap="condensed">
+          <Spinner size="small" />
+          <span>
+            Processing stack <Label variant="accent">{stackLabel}</Label>...
+          </span>
+        </PrimerStack>
+      </Table.Subtitle>
+      <Table.Skeleton
+        aria-labelledby={subtitleId}
+        columns={[
+          {
+            header: "Rank",
+            id: "rank",
+            width: "auto",
+          },
+          {
+            header: "ID",
+            id: "id",
+            width: "80px",
+          },
+          {
+            header: "Rating",
+            id: "rating",
+            width: "grow",
+          },
+          {
+            header: "",
+            id: "details",
+            width: "50px",
+          },
+        ]}
+        rows={10}
+      />
+    </Table.Container>
+  );
+};
 
 const Results = ({
   data,
@@ -80,9 +84,10 @@ const Results = ({
 
   const rows = data.matches.slice(start, end);
 
+  const subtitleId = useId();
+
   const tableContent = (
     <DataTable<MLMatch>
-      data={rows}
       cellPadding="spacious"
       columns={[
         {
@@ -117,9 +122,9 @@ const Results = ({
             return (
               <>
                 <ProgressBar
-                  progress={rating}
-                  inline
                   bg={progressBarColor}
+                  inline
+                  progress={rating}
                   style={{ width: "100%", marginRight: "var(--stack-gap-condensed)" }}
                 />
                 <Text>{rating}%</Text>
@@ -135,22 +140,23 @@ const Results = ({
             return (
               <Tooltip text={row.details} type="label">
                 <IconButton
+                  aria-label="View details"
                   icon={InfoIcon}
                   size="small"
                   variant="invisible"
-                  aria-label="View details"
                 />
               </Tooltip>
             );
           },
         },
       ]}
+      data={rows}
     />
   );
 
   return (
     <Table.Container>
-      <Table.Subtitle as="p" id="subtitle">
+      <Table.Subtitle as="p" id={subtitleId}>
         Matches for stack {stackLabel !== null && <Label variant="accent">{stackLabel}</Label>} with
         model {modelLabel !== null && <Label variant="done">{modelLabel}</Label>}:
       </Table.Subtitle>
@@ -159,9 +165,9 @@ const Results = ({
 
       <Table.Pagination
         aria-label="Pagination for matches"
+        onChange={({ pageIndex: newPageIndex }) => setPageIndex(newPageIndex)}
         pageSize={pageSize}
         totalCount={data.matches.length}
-        onChange={({ pageIndex: newPageIndex }) => setPageIndex(newPageIndex)}
       />
     </Table.Container>
   );
@@ -183,17 +189,17 @@ const AnalysisOverlay = () => {
 
   return (
     <Dialog
-      title="Machine Learning Analysis"
-      onClose={handleClose}
       footerButtons={
         isAnalysing
           ? [{ buttonType: "danger", content: "Cancel", onClick: handleClose }]
           : [{ buttonType: "default", content: "Close", onClick: handleClose }]
       }
+      onClose={handleClose}
+      title="Machine Learning Analysis"
     >
       {isAnalysing && <Loading stackLabel={stackLabel} />}
 
-      {result !== null && <Results data={result} stackLabel={stackLabel} modelLabel={modelLabel} />}
+      {result !== null && <Results data={result} modelLabel={modelLabel} stackLabel={stackLabel} />}
 
       {error !== null && (
         <Banner title="Error" variant="critical">

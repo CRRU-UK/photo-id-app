@@ -31,6 +31,7 @@ import type { DraggableEndData, DraggableStartData, LoadingData, Match } from "@
 const DraggableImageComponent = ({ photo }: { photo: Photo }) => {
   return (
     <img
+      alt=""
       src={photo.thumbnailFullPath}
       style={{
         opacity: 0.7,
@@ -40,7 +41,6 @@ const DraggableImageComponent = ({ photo }: { photo: Photo }) => {
         aspectRatio: ASPECT_RATIO,
         objectFit: "contain",
       }}
-      alt=""
     />
   );
 };
@@ -48,8 +48,8 @@ const DraggableImageComponent = ({ photo }: { photo: Photo }) => {
 const DraggableImage = memo(DraggableImageComponent);
 
 interface MatchedPagesProps {
-  matchedArray: Match[];
   currentPage: number;
+  matchedArray: Match[];
   onPageChange: (index: number) => void;
 }
 
@@ -64,12 +64,12 @@ const MatchedPagesComponent = ({ matchedArray, currentPage, onPageChange }: Matc
     return (
       <UnderlineNav.Item
         aria-current={index === currentPage ? "page" : undefined}
+        key={`${first}-${last}`}
+        leadingVisual={<KeybindingHint keys={String(index + 1)} />}
         onClick={(event) => {
           event.preventDefault();
           onPageChange(index);
         }}
-        key={`${first}-${last}`}
-        leadingVisual={<KeybindingHint keys={String(index + 1)} />}
       >
         {getAlphabetLetter(first)}-{getAlphabetLetter(last)}
       </UnderlineNav.Item>
@@ -281,16 +281,16 @@ const ProjectPage = observer(() => {
       <LoadingOverlay data={loading} />
 
       <SettingsOverlay
-        open={settingsOpen}
         onClose={() => setSettingsOpen(false)}
         onOpenRequest={() => setSettingsOpen(true)}
+        open={settingsOpen}
       />
 
       <ErrorBoundary recovery={{ label: "Dismiss", onClick: () => {} }}>
         <AnalysisOverlay />
       </ErrorBoundary>
 
-      <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+      <DndContext onDragEnd={handleDragEnd} onDragStart={handleDragStart} sensors={sensors}>
         <DragOverlay dropAnimation={null}>
           {draggingPhoto ? <DraggableImage photo={draggingPhoto} /> : null}
         </DragOverlay>
@@ -298,16 +298,16 @@ const ProjectPage = observer(() => {
         <div className={`project ${isCopying ? "copying" : ""}`} data-testid="project-page">
           <Sidebar onCloseProject={handleCloseProject} />
 
-          <Stack className="pages" direction="horizontal" align="center" gap="none">
+          <Stack align="center" className="pages" direction="horizontal" gap="none">
             <UnderlineNav aria-label="Pages">
               <MatchedPages
-                matchedArray={matchedArray}
                 currentPage={currentPage}
+                matchedArray={matchedArray}
                 onPageChange={setCurrentPage}
               />
             </UnderlineNav>
 
-            <Stack className="columns" direction="horizontal" align="center" gap="normal">
+            <Stack align="center" className="columns" direction="horizontal" gap="normal">
               <ColumnsIcon size={16} />
               <SegmentedControl aria-label="Columns" onChange={handleColumnsChange}>
                 <SegmentedControl.Button selected={columns === 1}>1</SegmentedControl.Button>

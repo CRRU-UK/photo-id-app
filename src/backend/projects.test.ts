@@ -746,7 +746,7 @@ describe(handleOpenDirectoryPrompt, () => {
 
     // Only photo.jpg and image.png should be included (not subfolder)
     const writeCall = mockWriteFile.mock.calls.find((call) => call[0].includes(PROJECT_FILE_NAME));
-    // biome-ignore lint/style/noNonNullAssertion: test assertion — find() guaranteed to match
+    // biome-ignore lint/style/noNonNullAssertion: test assertion - find() guaranteed to match
     const savedProject = JSON.parse(writeCall![1]) as ProjectBody;
 
     expect(savedProject.unassigned.photos).toHaveLength(2);
@@ -783,7 +783,7 @@ describe(handleOpenDirectoryPrompt, () => {
 
     // The written project should only include .jpg and .png files (2 photos)
     const writeCall = mockWriteFile.mock.calls.find((call) => call[0].includes(PROJECT_FILE_NAME));
-    // biome-ignore lint/style/noNonNullAssertion: test assertion — find() guaranteed to match
+    // biome-ignore lint/style/noNonNullAssertion: test assertion - find() guaranteed to match
     const savedProject = JSON.parse(writeCall![1]) as ProjectBody;
 
     expect(savedProject.unassigned.photos).toHaveLength(2);
