@@ -26,8 +26,13 @@ const CopyDetailsButton = ({ details }: { details: string }) => {
   const [copied, setCopied] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const handleCopy = useCallback(() => {
-    navigator.clipboard.writeText(details);
+  const handleCopy = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(details);
+    } catch (error) {
+      console.error("Failed to copy to clipboard:", error);
+      return;
+    }
 
     setCopied(true);
 
