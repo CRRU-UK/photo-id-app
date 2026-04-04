@@ -1,5 +1,13 @@
 # photo-id
 
+## 0.6.5
+
+### Patch Changes
+
+- 322cfdf: Details button in ML analysis results now copies the result to the clipboard
+- 3a24e1c: Thumbnails now show entire image
+- 771efbf: Pressing CMD/CTRL+W closes overlays before closing the app
+
 ## 0.6.4
 
 ### Patch Changes
