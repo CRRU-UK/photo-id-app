@@ -52,7 +52,7 @@ const CopyDetailsButton = ({ details }: { details: string }) => {
   return (
     <Tooltip text={copied ? "Copied" : details} type="label">
       <IconButton
-        aria-label={copied ? "Copied to clipboard" : "Copy path to clipboard"}
+        aria-label={copied ? "Copied to clipboard" : "Copy details to clipboard"}
         icon={copied ? CheckIcon : CopyIcon}
         onClick={handleCopy}
         size="small"

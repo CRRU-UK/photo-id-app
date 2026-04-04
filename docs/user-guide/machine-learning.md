@@ -46,7 +46,9 @@ A table will be shown with the corresponding information:
 - Rating (e.g. confidence, similarity)
 - Details (useful for debugging information)
 
-Results are paginated for every 10 matches. You can cancel in-progress analysis using the ==Cancel== button in the overlay.
+Selecting the ==:octicons-copy-16: Copy details to clipboard== button will copy the details of the selected row to your clipboard. Results are paginated for every 10 matches.
+
+You can cancel in-progress analysis using the ==Cancel== button in the overlay.
 
 ## Notes
 
