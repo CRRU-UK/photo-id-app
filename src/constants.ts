@@ -65,7 +65,9 @@ export const CSP_HEADERS = [
 
 export const THUMBNAIL_GENERATION_CONCURRENCY = 3;
 
-export const SAVE_PROJECT_DEBOUNCE_MS = 1000;
+export const SAVE_PROJECT_DEBOUNCE_MS = 1_000;
+
+export const COPY_FEEDBACK_DURATION_MS = 2_000;
 
 export const UNSAVED_EDITS_MESSAGE =
   "This photo has unsaved edits. Are you sure you want to discard your changes?";
