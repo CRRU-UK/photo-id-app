@@ -1,4 +1,4 @@
-import { InfoIcon } from "@primer/octicons-react";
+import { CheckIcon, CopyIcon } from "@primer/octicons-react";
 import {
   Banner,
   Dialog,
@@ -11,12 +11,56 @@ import {
   Tooltip,
 } from "@primer/react";
 import { DataTable, Table } from "@primer/react/experimental";
-import { useEffect, useId, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 
-import { ANALYSIS_RESULTS_PER_PAGE, RATING_THRESHOLDS } from "@/constants";
+import {
+  ANALYSIS_RESULTS_PER_PAGE,
+  COPY_FEEDBACK_DURATION_MS,
+  RATING_THRESHOLDS,
+} from "@/constants";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { useSettings } from "@/contexts/SettingsContext";
 import type { MLMatch, MLMatchResponse } from "@/types";
+
+const CopyDetailsButton = ({ details }: { details: string }) => {
+  const [copied, setCopied] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleCopy = useCallback(() => {
+    navigator.clipboard.writeText(details);
+
+    setCopied(true);
+
+    if (timerRef.current !== null) {
+      clearTimeout(timerRef.current);
+    }
+
+    timerRef.current = setTimeout(() => {
+      setCopied(false);
+      timerRef.current = null;
+    }, COPY_FEEDBACK_DURATION_MS);
+  }, [details]);
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current !== null) {
+        clearTimeout(timerRef.current);
+      }
+    };
+  }, []);
+
+  return (
+    <Tooltip text={copied ? "Copied" : details} type="label">
+      <IconButton
+        aria-label={copied ? "Copied to clipboard" : "Copy path to clipboard"}
+        icon={copied ? CheckIcon : CopyIcon}
+        onClick={handleCopy}
+        size="small"
+        variant="invisible"
+      />
+    </Tooltip>
+  );
+};
 
 const Loading = ({ stackLabel }: { stackLabel: string | null }) => {
   const subtitleId = useId();
@@ -137,16 +181,7 @@ const Results = ({
           field: "details",
           width: "auto",
           renderCell: (row: MLMatch) => {
-            return (
-              <Tooltip text={row.details} type="label">
-                <IconButton
-                  aria-label="View details"
-                  icon={InfoIcon}
-                  size="small"
-                  variant="invisible"
-                />
-              </Tooltip>
-            );
+            return <CopyDetailsButton details={row.details} />;
           },
         },
       ]}
