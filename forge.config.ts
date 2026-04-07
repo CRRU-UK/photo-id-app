@@ -30,6 +30,24 @@ if (process.env.APPLE_CERTIFICATE) {
   };
 }
 
+/**
+ * Windows: Azure Artifact Signing via `signtool /dlib` extension. The signing tools and
+ * `metadata.json` are installed by the CI workflow before the build. Authentication uses the Azure
+ * CLI session established via OIDC in the workflow.
+ */
+let windowsSignConfig: object | undefined;
+
+if (process.env.AZURE_CODE_SIGNING_DLIB) {
+  windowsSignConfig = {
+    signToolPath: process.env.AZURE_CODE_SIGNING_SIGNTOOL,
+    signWithParams: `/dlib "${process.env.AZURE_CODE_SIGNING_DLIB}" /dmdf "${process.env.AZURE_CODE_SIGNING_METADATA}"`,
+    timestampServer: "http://timestamp.acs.microsoft.com",
+    hashes: ["sha256"],
+    automaticallySelectCertificate: false,
+    debug: true,
+  };
+}
+
 const dmgOptions: MakerDMGConfig = {
   name: `Photo.ID-${version}`,
   format: "ULFO",
@@ -71,10 +89,11 @@ const config: ForgeConfig = {
       ],
     },
     ...signingConfig,
+    ...(windowsSignConfig ? { windowsSign: windowsSignConfig } : {}),
   },
   rebuildConfig: {},
   makers: [
-    new MakerSquirrel({}),
+    new MakerSquirrel(windowsSignConfig ? { windowsSign: windowsSignConfig } : {}),
     new MakerDMG(dmgOptions),
     new MakerZIP({}, ["darwin"]),
     new MakerRpm({ options: { mimeType: ["application/x-photoid"] } }),
