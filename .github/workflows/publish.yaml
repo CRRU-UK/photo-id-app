@@ -132,6 +132,32 @@ jobs:
           SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
+      - name: Build app and add to release (macOS)
+        if: matrix.os == 'macos-latest'
+        run: npm run publish
+        env:
+          CI: true
+          NODE_ENV: production
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          SENTRY_ORG: ${{ vars.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_KEYCHAIN_PROFILE: notarytool-profile
+
+      - name: Build app and add to release (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: npm run publish
+        env:
+          CI: true
+          NODE_ENV: production
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          SENTRY_ORG: ${{ vars.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+
       # Verify both the app executable and installer are signed before the release is published
       - name: Verify Windows signatures
         if: matrix.os == 'windows-latest'
@@ -154,20 +180,6 @@ jobs:
           if ($failed) {
             exit 1
           }
-
-      - name: Build app and add to release (macOS / Linux)
-        if: matrix.os == 'macos-latest' || matrix.os == 'ubuntu-latest'
-        run: npm run publish
-        env:
-          CI: true
-          NODE_ENV: production
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
-          SENTRY_ORG: ${{ vars.SENTRY_ORG }}
-          SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT }}
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
-          APPLE_KEYCHAIN_PROFILE: notarytool-profile
 
       # Always runs so submission status is visible even if the publish step times out
       - name: Check macOS submission history
