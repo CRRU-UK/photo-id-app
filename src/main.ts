@@ -24,21 +24,32 @@ import { initSentry } from "@/backend/settings";
 import { windowManager } from "@/backend/WindowManager";
 import { CSP_HEADERS, PHOTO_FILE_EXTENSIONS, PHOTO_PROTOCOL_SCHEME } from "@/constants";
 
-initSentry();
+/**
+ * Handle Squirrel lifecycle events (install, update, uninstall). `app.quit()` only posts a quit
+ * event and does not stop synchronous execution, so we also skip initialisation to prevent rejected
+ * promises from surfacing error dialogues while the update is in progress.
+ */
+if (started) {
+  app.quit();
+}
 
-process.on("uncaughtException", (error) => {
-  console.error("Uncaught exception:", error);
-  Sentry.captureException(error);
-  dialog.showErrorBox("Unexpected Error", String(error));
-});
+if (!started) {
+  initSentry();
 
-process.on("unhandledRejection", (reason) => {
-  console.error("Unhandled promise rejection:", reason);
-  Sentry.captureException(reason);
-  dialog.showErrorBox("Unexpected Error", String(reason));
-});
+  process.on("uncaughtException", (error) => {
+    console.error("Uncaught exception:", error);
+    Sentry.captureException(error);
+    dialog.showErrorBox("Unexpected Error", String(error));
+  });
 
-updateElectronApp();
+  process.on("unhandledRejection", (reason) => {
+    console.error("Unhandled promise rejection:", reason);
+    Sentry.captureException(reason);
+    dialog.showErrorBox("Unexpected Error", String(reason));
+  });
+
+  updateElectronApp();
+}
 
 protocol.registerSchemesAsPrivileged([
   {
@@ -51,10 +62,6 @@ protocol.registerSchemesAsPrivileged([
 ]);
 
 const production = app.isPackaged;
-
-if (started) {
-  app.quit();
-}
 
 const gotTheLock = app.requestSingleInstanceLock();
 if (!gotTheLock) {
