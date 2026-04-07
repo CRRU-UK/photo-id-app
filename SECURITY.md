@@ -58,7 +58,7 @@ Production builds use Electron Fuses to disable potentially dangerous features:
 - `RunAsNode: false` - Prevents using the app binary as a Node.js runtime
 - `EnableNodeOptionsEnvironmentVariable: false` - Blocks `NODE_OPTIONS`
 - `EnableNodeCliInspectArguments: false` - Blocks debugging flags
-- `EnableEmbeddedAsarIntegrityValidation` - Validates ASAR archive integrity (macOS only, on Windows code signing modifies the binary after integrity checksums are embedded, which invalidates them)
+- `EnableEmbeddedAsarIntegrityValidation` - Validates ASAR archive integrity (disabled on Windows where code signing modifies the binary after integrity checksums are embedded, which invalidates them)
 - `OnlyLoadAppFromAsar: true` - Only loads code from the packaged archive
 - `EnableCookieEncryption: true` - Encrypts cookies at rest
 

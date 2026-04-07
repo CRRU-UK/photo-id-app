@@ -130,10 +130,9 @@ const config: ForgeConfig = {
       [FuseV1Options.EnableCookieEncryption]: true,
       [FuseV1Options.EnableNodeOptionsEnvironmentVariable]: false,
       [FuseV1Options.EnableNodeCliInspectArguments]: false,
-      // ASAR integrity validation is only reliable on macOS where codesign preserves the embedded
-      // checksums. On Windows, code signing modifies the binary after the checksums are embedded,
-      // which causes errors when Electron validates the ASAR during Squirrel update events.
-      [FuseV1Options.EnableEmbeddedAsarIntegrityValidation]: process.platform === "darwin",
+      // Disabled on Windows because code signing modifies the binary after ASAR integrity checksums
+      // are embedded, which causes validation errors during Squirrel update events.
+      [FuseV1Options.EnableEmbeddedAsarIntegrityValidation]: process.platform !== "win32",
       [FuseV1Options.OnlyLoadAppFromAsar]: true,
     }),
     {
