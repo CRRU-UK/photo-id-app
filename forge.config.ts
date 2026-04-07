@@ -130,7 +130,9 @@ const config: ForgeConfig = {
       [FuseV1Options.EnableCookieEncryption]: true,
       [FuseV1Options.EnableNodeOptionsEnvironmentVariable]: false,
       [FuseV1Options.EnableNodeCliInspectArguments]: false,
-      [FuseV1Options.EnableEmbeddedAsarIntegrityValidation]: true,
+      // Disabled on Windows because code signing modifies the binary after ASAR integrity checksums
+      // are embedded, which causes validation errors during Squirrel update events.
+      [FuseV1Options.EnableEmbeddedAsarIntegrityValidation]: process.platform !== "win32",
       [FuseV1Options.OnlyLoadAppFromAsar]: true,
     }),
     {
