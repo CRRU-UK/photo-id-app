@@ -1,5 +1,11 @@
 # photo-id
 
+## 0.7.2
+
+### Patch Changes
+
+- b952659: Fix error popup when auto-updating on Windows
+
 ## 0.7.1
 
 ### Patch Changes
