@@ -40,7 +40,7 @@ let windowsSignConfig: object | undefined;
 if (process.env.AZURE_CODE_SIGNING_DLIB) {
   windowsSignConfig = {
     signToolPath: process.env.AZURE_CODE_SIGNING_SIGNTOOL,
-    signWithParams: `/dlib "${process.env.AZURE_CODE_SIGNING_DLIB}" /dmdf "${process.env.AZURE_CODE_SIGNING_METADATA}"`,
+    signWithParams: ["/dlib", process.env.AZURE_CODE_SIGNING_DLIB, "/dmdf", process.env.AZURE_CODE_SIGNING_METADATA],
     timestampServer: "http://timestamp.acs.microsoft.com",
     hashes: ["sha256"],
     automaticallySelectCertificate: false,
