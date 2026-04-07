@@ -47,17 +47,35 @@ variable "apple_team_id" {
   type        = string
 }
 
-# variable "resource_group_name" {
-#   description = "Name of the existing Azure resource group"
-#   type        = string
-# }
+variable "azure_client_id" {
+  description = "Client ID of the Azure service principal used by GitHub Actions"
+  type        = string
+  sensitive   = true
+}
 
-# variable "signing_account_name" {
-#   description = "Name of the Azure Artifact Signing account"
-#   type        = string
-# }
+variable "azure_tenant_id" {
+  description = "Azure tenant ID"
+  type        = string
+  sensitive   = true
+}
 
-# variable "certificate_profile_name" {
-#   description = "Name of the Azure Artifact Signing certificate profile"
-#   type        = string
-# }
+variable "azure_subscription_id" {
+  description = "Azure subscription ID"
+  type        = string
+  sensitive   = true
+}
+
+variable "azure_code_signing_account_name" {
+  description = "Azure Artifact Signing account name"
+  type        = string
+}
+
+variable "azure_code_signing_endpoint" {
+  description = "Azure Artifact Signing regional endpoint URL"
+  type        = string
+}
+
+variable "azure_code_signing_certificate_profile_name" {
+  description = "Azure Artifact Signing certificate profile name"
+  type        = string
+}
