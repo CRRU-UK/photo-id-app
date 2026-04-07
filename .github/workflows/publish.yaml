@@ -104,8 +104,23 @@ jobs:
             -Version $signingClientVersion `
             -OutputDirectory "$basePath\SigningClient"
 
-          $signtool = "$basePath\BuildTools\Microsoft.Windows.SDK.BuildTools.$buildToolsVersion\bin\$buildToolsVersion\x64\signtool.exe"
-          $dlib = "$basePath\SigningClient\Microsoft.Trusted.Signing.Client.$signingClientVersion\bin\x64\Azure.CodeSigning.Dlib.dll"
+          $signtool = Get-ChildItem -Path "$basePath\BuildTools" -Recurse -Filter "signtool.exe" |
+            Where-Object { $_.FullName -match "x64" } |
+            Select-Object -First 1 -ExpandProperty FullName
+
+          if (-not $signtool) {
+            Write-Error "signtool.exe not found in BuildTools package"
+            exit 1
+          }
+
+          $dlib = Get-ChildItem -Path "$basePath\SigningClient" -Recurse -Filter "Azure.CodeSigning.Dlib.dll" |
+            Where-Object { $_.FullName -match "x64" } |
+            Select-Object -First 1 -ExpandProperty FullName
+
+          if (-not $dlib) {
+            Write-Error "Azure.CodeSigning.Dlib.dll not found in SigningClient package"
+            exit 1
+          }
 
           $metadata = @{
             Endpoint = "${{ vars.AZURE_CODE_SIGNING_ENDPOINT }}"
