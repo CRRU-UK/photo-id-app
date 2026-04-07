@@ -76,20 +76,7 @@ jobs:
         run: Set-MpPreference -DisableRealtimeMonitoring $true
         shell: pwsh
 
-      # Windows: build only, signing happens before publish
-      - name: Build app (Windows)
-        if: matrix.os == 'windows-latest'
-        run: npm run publish -- --dry-run
-        env:
-          CI: true
-          NODE_ENV: production
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
-          SENTRY_ORG: ${{ vars.SENTRY_ORG }}
-          SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT }}
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-
-      # Windows: sign artifacts via Azure Artifact Signing
+      # Windows: authenticate with Azure for code signing via OIDC
       - name: Login to Azure
         if: matrix.os == 'windows-latest'
         uses: azure/login@v2
@@ -98,23 +85,44 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Sign Windows artifacts
+      # Windows: install Azure Artifact Signing tools and create metadata for signtool. Forge's
+      # windowsSign config reads the exported env vars to sign both the app executable (during
+      # package) and the installer (during make).
+      - name: Install Azure signing tools
         if: matrix.os == 'windows-latest'
-        uses: azure/artifact-signing-action@v1.2.0
-        with:
-          endpoint: ${{ vars.AZURE_CODE_SIGNING_ENDPOINT }}
-          trusted-signing-account-name: ${{ vars.AZURE_CODE_SIGNING_ACCOUNT_NAME }}
-          certificate-profile-name: ${{ vars.AZURE_CODE_SIGNING_CERTIFICATE_PROFILE_NAME }}
-          files-folder: out/make/squirrel.windows/x64
-          files-folder-filter: exe
-          timestamp-rfc3161: http://timestamp.acs.microsoft.com
-          timestamp-digest: SHA256
-          file-digest: SHA256
+        shell: pwsh
+        run: |
+          $buildToolsVersion = "10.0.26100.4188"
+          $signingClientVersion = "1.0.95"
+          $basePath = "$env:LOCALAPPDATA\ArtifactSigning"
 
-      # Windows: publish the signed artifacts
-      - name: Publish app (Windows)
+          nuget install Microsoft.Windows.SDK.BuildTools `
+            -Version $buildToolsVersion `
+            -OutputDirectory "$basePath\BuildTools"
+
+          nuget install Microsoft.Trusted.Signing.Client `
+            -Version $signingClientVersion `
+            -OutputDirectory "$basePath\SigningClient"
+
+          $signtool = "$basePath\BuildTools\Microsoft.Windows.SDK.BuildTools.$buildToolsVersion\bin\$buildToolsVersion\x64\signtool.exe"
+          $dlib = "$basePath\SigningClient\Microsoft.Trusted.Signing.Client.$signingClientVersion\bin\x64\Azure.CodeSigning.Dlib.dll"
+
+          $metadata = @{
+            Endpoint = "${{ vars.AZURE_CODE_SIGNING_ENDPOINT }}"
+            CodeSigningAccountName = "${{ vars.AZURE_CODE_SIGNING_ACCOUNT_NAME }}"
+            CertificateProfileName = "${{ vars.AZURE_CODE_SIGNING_CERTIFICATE_PROFILE_NAME }}"
+          } | ConvertTo-Json
+
+          $metadataPath = "$basePath\metadata.json"
+          $metadata | Out-File -FilePath $metadataPath -Encoding utf8
+
+          "AZURE_CODE_SIGNING_SIGNTOOL=$signtool" | Out-File -FilePath $env:GITHUB_ENV -Append
+          "AZURE_CODE_SIGNING_DLIB=$dlib" | Out-File -FilePath $env:GITHUB_ENV -Append
+          "AZURE_CODE_SIGNING_METADATA=$metadataPath" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Build app and add to release (Windows)
         if: matrix.os == 'windows-latest'
-        run: npm run publish -- --from-dry-run
+        run: npm run publish
         env:
           CI: true
           NODE_ENV: production
@@ -123,6 +131,29 @@ jobs:
           SENTRY_ORG: ${{ vars.SENTRY_ORG }}
           SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+
+      # Verify both the app executable and installer are signed before the release is published
+      - name: Verify Windows signatures
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          $failed = $false
+
+          Get-ChildItem -Path out -Recurse -Include *.exe | ForEach-Object {
+            $sig = Get-AuthenticodeSignature $_.FullName
+            $relativePath = Resolve-Path -Relative $_.FullName
+
+            if ($sig.Status -eq "Valid") {
+              Write-Host "Signed: $relativePath ($($sig.SignerCertificate.Subject))"
+            } else {
+              Write-Host "::error::Unsigned or invalid: $relativePath (status: $($sig.Status))"
+              $failed = $true
+            }
+          }
+
+          if ($failed) {
+            exit 1
+          }
 
       - name: Build app and add to release (macOS / Linux)
         if: matrix.os == 'macos-latest' || matrix.os == 'ubuntu-latest'
