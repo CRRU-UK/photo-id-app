@@ -196,14 +196,6 @@ jobs:
             exit 1
           }
 
-      # Always runs so submission status is visible even if the publish step times out
-      - name: Check macOS submission history
-        if: matrix.os == 'macos-latest' && always()
-        run: >
-          xcrun notarytool history
-          --keychain-profile "notarytool-profile"
-          --keychain "$HOME/Library/Keychains/signing_temp.keychain-db"
-
   e2e:
     needs: build
 
