@@ -184,7 +184,7 @@ The project view is accessed when opening a project. It allows the user to:
 - Organise photos into various stacks
 - Open a photo in the photo editor
 - Export photos
-  - Matched photos can be exported with or without edits applied
+  - Matched photos can be exported with edits applied and renamed based on the stack IDs
   - Exporting photos should automatically open and focus the export folder when completed
   - Previous exports should be removed before exporting new matches to avoid mixed data
 - Export data

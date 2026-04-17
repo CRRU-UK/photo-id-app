@@ -70,7 +70,6 @@ const exportMatchesAsPhotos = async (
   mainWindow: Electron.BrowserWindow,
   project: ProjectBody,
   directory: string,
-  useEdits: boolean,
 ): Promise<string> => {
   mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, {
     show: true,
@@ -113,7 +112,7 @@ const exportMatchesAsPhotos = async (
       const exportedName = `${baseExportName}${originalExtension}`;
       const exportedPath = path.join(exportsDirectory, exportedName);
 
-      if (!useEdits || !photo.isEdited) {
+      if (!photo.isEdited) {
         await fs.promises.copyFile(sourcePath, exportedPath);
         continue;
       }
@@ -167,5 +166,5 @@ export const handleExportMatches = async (
     return exportMatchesAsCSV(mainWindow, project, directory);
   }
 
-  return exportMatchesAsPhotos(mainWindow, project, directory, type === "edited");
+  return exportMatchesAsPhotos(mainWindow, project, directory);
 };

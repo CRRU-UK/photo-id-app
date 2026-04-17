@@ -105,4 +105,4 @@ export type MLMatchResponse = z.infer<typeof mlMatchResponseSchema>;
 
 export type SettingsData = z.infer<typeof settingsDataSchema>;
 
-export type ExportTypes = "edited" | "unedited" | "csv";
+export type ExportTypes = "edited" | "csv";

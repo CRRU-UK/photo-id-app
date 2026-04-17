@@ -2,7 +2,6 @@ import {
   AiModelIcon,
   DatabaseIcon,
   FileDiffIcon,
-  FileIcon,
   ReplyIcon,
   ThreeBarsIcon,
   TriangleDownIcon,
@@ -179,19 +178,7 @@ const Sidebar = observer(({ onCloseProject }: SidebarProps) => {
                     <ActionList.LeadingVisual>
                       <FileDiffIcon />
                     </ActionList.LeadingVisual>
-                    Export matches
-                    <ActionList.Description variant="block">(with edits)</ActionList.Description>
-                  </ActionList.Item>
-                  <ActionList.Item
-                    disabled={exporting}
-                    loading={exporting}
-                    onClick={() => handleExport("unedited")}
-                  >
-                    <ActionList.LeadingVisual>
-                      <FileIcon />
-                    </ActionList.LeadingVisual>
-                    Export matches
-                    <ActionList.Description variant="block">(without edits)</ActionList.Description>
+                    Export Matches
                   </ActionList.Item>
                 </ActionList.Group>
 
