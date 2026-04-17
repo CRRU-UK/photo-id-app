@@ -76,8 +76,7 @@ For more information, check out the [Machine Learning](./machine-learning.md) gu
 
 Once photos have been sorted and matched, they can be exported by opening the ==:octicons-three-bars-16: Actions== menu in the bottom-left of the project screen. There are three ways to export a project:
 
-- ==:octicons-file-diff-16: Export Matches (with edits)== exports all matched photos with any edits applied and renamed with the matched ID
-- ==:octicons-file-16: Export Matches (without edits)== is the same as above, but _without_ any edits applied
+- ==:octicons-file-diff-16: Export Matches== exports all matched photos with any edits applied and renamed with the matched ID
 - ==:octicons-database-16: Export CSV== generates a comma-separated CSV file (`matches.csv`) in the project `data/` folder, with two columns: match ID and original file name. The file explorer opens with the CSV file selected.
 
 Exporting photos (with or without edits) writes photos into a `matched/` folder and clears that folder before each export. Exporting CSV writes a `matches.csv` file into a `data/` folder.

@@ -346,28 +346,6 @@ describe(handleExportMatches, () => {
     );
   });
 
-  it("unedited export copies all photos and never renders with edits", async () => {
-    const mainWindow = createMockMainWindow();
-    const editedPhoto = createPhoto("edited.jpg", { isEdited: true });
-    const uneditedPhoto = createPhoto("unedited.jpg", { isEdited: false });
-    const project = createProject({
-      matched: [
-        {
-          id: 1,
-          left: { photos: [editedPhoto, uneditedPhoto], index: 0, name: "" },
-          right: createEmptyCollection(),
-        },
-      ],
-    });
-    mockExistsSync.mockReturnValue(false);
-
-    await handleExportMatches(mainWindow, JSON.stringify(project), "unedited");
-
-    expect(mockCopyFile).toHaveBeenCalledTimes(2);
-    expect(mockRenderFullImageWithEdits).not.toHaveBeenCalled();
-    expect(mockWriteFile).not.toHaveBeenCalled();
-  });
-
   it("csv export writes to project root and does not clear matched folder", async () => {
     const mainWindow = createMockMainWindow();
     const photo1 = createPhoto("left.jpg", { isEdited: false });
