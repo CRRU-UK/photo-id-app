@@ -61,7 +61,7 @@ export const useLoupe = ({
         Math.min(Math.round(Math.min(canvasRect.width, canvasRect.height) * 0.4), LOUPE.SIZE),
       );
 
-      const regionSize = loupeSize / (LOUPE.ZOOM * transform.zoom);
+      const regionSize = loupeSize / (LOUPE.MAGNIFICATION * transform.zoom);
       const halfRegion = regionSize / 2;
 
       const sx = Math.max(0, Math.min(imageCoords.x - halfRegion, image.naturalWidth - regionSize));
@@ -118,9 +118,21 @@ export const useLoupe = ({
       const cursorX = clientX - editRect.left;
       const cursorY = clientY - editRect.top;
 
-      // Cursor sits at the bottom-right corner of the loupe box
-      const loupeX = cursorX - loupeSize;
-      const loupeY = cursorY - loupeSize;
+      // Default: cursor at bottom-right corner. Flip to opposite side when the loupe would overflow
+      // that edge, then clamp to keep it fully within the edit area.
+      let loupeX = cursorX - loupeSize;
+      let loupeY = cursorY - loupeSize;
+
+      if (loupeX < 0) {
+        loupeX = cursorX;
+      }
+
+      if (loupeY < 0) {
+        loupeY = cursorY;
+      }
+
+      loupeX = Math.min(loupeX, editRect.width - loupeSize);
+      loupeY = Math.min(loupeY, editRect.height - loupeSize);
 
       loupeContainer.style.display = "block";
       loupeContainer.style.transform = `translate(${loupeX}px, ${loupeY}px)`;

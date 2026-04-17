@@ -255,7 +255,7 @@ export const PAN_AMOUNT = 50;
 export const LOUPE = {
   SIZE: 450, // Maximum size in CSS pixels
   MIN_SIZE: 150, // Minimum size in CSS pixels
-  ZOOM: 2,
+  MAGNIFICATION: 1,
 };
 
 export const EDGE_DETECTION = {
