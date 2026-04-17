@@ -289,14 +289,6 @@ test.describe
       expect(content).toContain("match_id,original_file_name");
     });
 
-    test("exports matches without edits", async () => {
-      await page.getByRole("button", { name: "Actions" }).click();
-      await page.getByRole("menuitem").filter({ hasText: "without edits" }).click();
-
-      const exportDir = path.join(projectDir, PROJECT_EXPORT_DIRECTORY);
-      await expect.poll(() => fs.existsSync(exportDir), { timeout: 15_000 }).toBe(true);
-    });
-
     test("exports matches with edits", async () => {
       await page.getByRole("button", { name: "Actions" }).click();
       await page.getByRole("menuitem").filter({ hasText: "Export Matches" }).click();
