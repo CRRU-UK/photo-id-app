@@ -1,4 +1,5 @@
 import {
+  AiModelIcon,
   ArrowDownIcon,
   ArrowLeftIcon,
   ArrowRightIcon,
@@ -19,6 +20,7 @@ import type { EditorNavigation } from "@/types";
 interface ToolbarProps {
   edgeDetectionEnabled: boolean;
   loupeEnabled: boolean;
+  onAnalyse: () => void;
   onDirectionalPan: (direction: EditorPanDirection) => void;
   onNavigate: (direction: EditorNavigation) => void;
   onReset: () => void;
@@ -31,6 +33,7 @@ interface ToolbarProps {
   onZoomOut: () => void;
   resetKey: number;
   saving: boolean;
+  selectedModel: string | undefined;
   sliderInitials: {
     brightness: number;
     contrast: number;
@@ -43,7 +46,9 @@ const Toolbar = ({
   resetKey,
   edgeDetectionEnabled,
   loupeEnabled,
+  selectedModel,
   saving,
+  onAnalyse,
   onSetBrightness,
   onSetContrast,
   onSetSaturate,
@@ -165,6 +170,18 @@ const Toolbar = ({
           variant={loupeEnabled ? "primary" : "default"}
         />
       </ButtonGroup>
+
+      {selectedModel !== undefined && (
+        <ButtonGroup style={{ marginRight: "auto" }}>
+          <IconButton
+            aria-label={EDITOR_TOOLTIPS.ANALYSE}
+            icon={AiModelIcon}
+            keybindingHint={EDITOR_KEYS.ANALYSE.hint}
+            onClick={onAnalyse}
+            size="large"
+          />
+        </ButtonGroup>
+      )}
 
       <ButtonGroup style={{ marginRight: "var(--stack-gap-spacious)" }}>
         <IconButton

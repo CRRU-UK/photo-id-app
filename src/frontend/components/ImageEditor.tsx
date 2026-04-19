@@ -10,6 +10,8 @@ import {
   LOUPE,
   UNSAVED_EDITS_MESSAGE,
 } from "@/constants";
+import { useAnalysis } from "@/contexts/AnalysisContext";
+import { useSettings } from "@/contexts/SettingsContext";
 import LoadingOverlay from "@/frontend/components/LoadingOverlay";
 import Slider from "@/frontend/components/Slider";
 import Toolbar from "@/frontend/components/Toolbar";
@@ -92,6 +94,21 @@ const ImageEditor = ({
     contrast: edits.contrast,
     saturate: edits.saturate,
   });
+
+  const { settings } = useSettings();
+  const selectedModel = settings?.mlModels?.find(
+    ({ id }) => id === settings?.selectedModelId,
+  )?.name;
+
+  const {
+    handleAnalyse,
+    handleClose: handleCloseAnalysis,
+    isAnalysing,
+    result,
+    error,
+  } = useAnalysis();
+
+  const analysisOverlayOpen = isAnalysing || result !== null || error !== null;
 
   const { refs, state, getters, filters, handlers, actions } = useImageEditor({
     file: image,
@@ -191,6 +208,28 @@ const ImageEditor = ({
     }
   }, [data, getters]);
 
+  const handleAnalysis = useCallback(() => {
+    if (!selectedModel) {
+      return;
+    }
+
+    const currentFilters = getters.getFilters();
+    const transform = getters.getTransform();
+
+    const currentEdits = {
+      brightness: currentFilters.brightness,
+      contrast: currentFilters.contrast,
+      saturate: currentFilters.saturate,
+      zoom: transform.zoom,
+      pan: transform.pan,
+    };
+
+    void handleAnalyse(
+      [{ ...data, edits: currentEdits, isEdited: computeIsEdited(currentEdits) }],
+      data.name,
+    );
+  }, [data, getters, handleAnalyse, selectedModel]);
+
   /**
    * Ref ensures the dirty check always reads the latest getters without re-subscribing on every
    * change. Used by `beforeunload` and navigation confirmation.
@@ -267,6 +306,11 @@ const ImageEditor = ({
           return handlers.handleZoomIn();
         }
 
+        if (key === EDITOR_KEYS.ANALYSE.code) {
+          event.preventDefault();
+          return handleAnalysis();
+        }
+
         return;
       }
 
@@ -309,6 +353,7 @@ const ImageEditor = ({
       handleToggleEdgeDetection,
       handleReset,
       handleSave,
+      handleAnalysis,
       handlers.handleZoomOut,
       handlers.handleZoomIn,
     ],
@@ -382,6 +427,27 @@ const ImageEditor = ({
     };
   }, [handlers.handleWheel, handleKeyDown]);
 
+  // Close the analysis overlay when it is open instead of closing the window
+  useEffect(() => {
+    const handleCloseShortcut = (event: KeyboardEvent) => {
+      const modifierKey = event.ctrlKey || event.metaKey;
+      if (!modifierKey || event.key.toLowerCase() !== "w") {
+        return;
+      }
+
+      if (analysisOverlayOpen) {
+        event.preventDefault();
+        handleCloseAnalysis();
+      }
+    };
+
+    document.addEventListener("keydown", handleCloseShortcut);
+
+    return () => {
+      document.removeEventListener("keydown", handleCloseShortcut);
+    };
+  }, [analysisOverlayOpen, handleCloseAnalysis]);
+
   // Warn the user before closing the edit window when there are unsaved changes
   useEffect(() => {
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
@@ -450,6 +516,7 @@ const ImageEditor = ({
         <Toolbar
           edgeDetectionEnabled={edgeDetectionEnabled}
           loupeEnabled={loupeEnabled}
+          onAnalyse={handleAnalysis}
           onDirectionalPan={handlers.handleDirectionalPan}
           onNavigate={handleEditorNavigation}
           onReset={handleReset}
@@ -462,6 +529,7 @@ const ImageEditor = ({
           onZoomOut={handlers.handleZoomOut}
           resetKey={state.resetKey}
           saving={saving}
+          selectedModel={selectedModel}
           sliderInitials={sliderInitials}
         />
       </div>

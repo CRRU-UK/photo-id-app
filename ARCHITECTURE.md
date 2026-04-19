@@ -240,14 +240,15 @@ The project view is accessed when opening a project. It allows the user to:
 
 #### Machine Learning Analysis
 
-- An analysis button should show in stacks once a model has been selected in the sidebar
+- An analysis button should show in stacks and the image editor once a model has been selected in the sidebar
   - Only one model can be selected, and the selection in the sidebar allows the user to filter through all the models they've added
   - If a model is currently selected, it should always be shown regardless of the filter value
   - Selecting the current model should unselect it and result in a state where analysis is disabled
   - Re-selecting any model should re-enable analysis
 - The unassigned and discarded stacks should NOT show the analysis button as this would not be useful
-- Clicking the analysis button sends all photos in that stack to the selected model's API endpoint with the token
-- Clicking the analysis button opens an overlay with a data table loading state while the request is being sent and the response is being received
+- Clicking the stack analysis button sends all photos in that stack to the selected model's API endpoint with the token
+- Clicking the stack analysis button opens an overlay with a data table loading state while the request is being sent and the response is being received
+- Clicking the image editor analysis button should send ONLY the currently displayed photo to the selected model's API endpoint, INCLUDING any pending edits (regardless if they have not yet been saved)
 - Once the response has been received, the overlay content should update the data table with the data received
 - The data table contains the following columns:
   - ID of the match

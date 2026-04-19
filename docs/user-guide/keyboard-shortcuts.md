@@ -38,6 +38,7 @@ Keyboard shortcuts can be used for many functions in the app:
 | Pan photo down        | ++arrow-down++             | ++arrow-down++   |
 | Toggle loupe          | ++space++                  | ++space++        |
 | Toggle edge detection | ++e++                      | ++e++            |
+| Analyse image         | ++ctrl+a++                 | ++cmd+a++        |
 | Previous photo        | ++p++                      | ++p++            |
 | Next photo            | ++n++                      | ++n++            |
 | Reset photo edits     | ++ctrl+r++                 | ++cmd+r++        |

@@ -28,13 +28,13 @@ Enter a model label, your base API URL, and token. Tokens cannot be viewed after
 
 ## Analysis
 
-To choose a model to use for analysis, open the ==ML Model== dropdown in the project view sidebar. Here you can choose from the models you have added. Select the model you want to use, and an ==:octicons-ai-model-16: Analyse Photos== button will appear below each stack.
+To choose a model to use for analysis, open the ==ML Model== dropdown in the project view sidebar. Here you can choose from the models you have added. Select the model you want to use, and an ==:octicons-ai-model-16: Analyse Photos== button will appear below each stack and in the image editor.
 
 ![Selecting a model](../assets/images/analysis-model-select.png?v1){ width="300" }
 
 You can unselect a model by selecting it again in the list, which will disable the analysis buttons until a model is selected again. Note that the unassigned and discarded stacks do not support analysis.
 
-To analyse a stack, select the ==:octicons-ai-model-16: Analyse Photos== button below the photo. Analysing a stack will send _all_ photos in that stack to the API's `/match` endpoint.
+To analyse a stack, select the ==:octicons-ai-model-16: Analyse Photos== button below the photo in the project view, or in the toolbar in the image editor view. Analysing a stack will analyse _all_ photos in that stack, and analysing an image in the image editor will analyse only that image (with any pending edits applied).
 
 !!! info
 

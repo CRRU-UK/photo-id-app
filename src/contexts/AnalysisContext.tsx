@@ -12,11 +12,11 @@ import type { MLMatchResponse, PhotoBody } from "@/types";
 
 interface AnalysisContextValue {
   error: string | null;
-  handleAnalyse: (photos: PhotoBody[], stackLabel: string) => Promise<void>;
+  handleAnalyse: (photos: PhotoBody[], inputLabel: string) => Promise<void>;
   handleClose: () => void;
+  inputLabel: string | null;
   isAnalysing: boolean;
   result: MLMatchResponse | null;
-  stackLabel: string | null;
 }
 
 const AnalysisContext = createContext<AnalysisContextValue | null>(null);
@@ -29,7 +29,7 @@ export const AnalysisProvider = ({ children }: AnalysisProviderProps) => {
   const [isAnalysing, setIsAnalysing] = useState(false);
   const [result, setResult] = useState<MLMatchResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [stackLabel, setStackLabel] = useState<string | null>(null);
+  const [inputLabel, setinputLabel] = useState<string | null>(null);
 
   useEffect(() => {
     return () => {
@@ -48,7 +48,7 @@ export const AnalysisProvider = ({ children }: AnalysisProviderProps) => {
       setIsAnalysing(true);
       setResult(null);
       setError(null);
-      setStackLabel(label);
+      setinputLabel(label);
 
       try {
         const response = await window.electronAPI.analyseStack(photos);
@@ -71,12 +71,12 @@ export const AnalysisProvider = ({ children }: AnalysisProviderProps) => {
 
     setResult(null);
     setError(null);
-    setStackLabel(null);
+    setinputLabel(null);
   }, [isAnalysing]);
 
   const value = useMemo<AnalysisContextValue>(
-    () => ({ isAnalysing, result, error, stackLabel, handleAnalyse, handleClose }),
-    [isAnalysing, result, error, stackLabel, handleAnalyse, handleClose],
+    () => ({ isAnalysing, result, error, inputLabel, handleAnalyse, handleClose }),
+    [isAnalysing, result, error, inputLabel, handleAnalyse, handleClose],
   );
 
   return <AnalysisContext.Provider value={value}>{children}</AnalysisContext.Provider>;
