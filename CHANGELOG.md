@@ -1,5 +1,13 @@
 # photo-id
 
+## 0.7.3
+
+### Patch Changes
+
+- 6ac6bf7: Loupe is now kept within the image editor when using near the edges of the screen
+- c92d7e9: Add analysis button to image editor
+- ae6701c: Removed exporting matches without edits (as this is covered by CSV exports)
+
 ## 0.7.2
 
 ### Patch Changes
