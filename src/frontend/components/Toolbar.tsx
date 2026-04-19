@@ -15,7 +15,7 @@ import { KeybindingHint } from "@primer/react/experimental";
 import { memo, useCallback } from "react";
 import { EDITOR_KEYS, EDITOR_TOOLTIPS, EditorPanDirection, IMAGE_FILTERS } from "@/constants";
 import Slider from "@/frontend/components/Slider";
-import type { EditorNavigation } from "@/types";
+import type { EditorNavigation, MLModel } from "@/types";
 
 interface ToolbarProps {
   edgeDetectionEnabled: boolean;
@@ -33,7 +33,7 @@ interface ToolbarProps {
   onZoomOut: () => void;
   resetKey: number;
   saving: boolean;
-  selectedModel: string | undefined;
+  selectedModel: MLModel | undefined;
   sliderInitials: {
     brightness: number;
     contrast: number;

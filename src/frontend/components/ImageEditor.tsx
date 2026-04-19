@@ -96,9 +96,7 @@ const ImageEditor = ({
   });
 
   const { settings } = useSettings();
-  const selectedModel = settings?.mlModels?.find(
-    ({ id }) => id === settings?.selectedModelId,
-  )?.name;
+  const selectedModel = settings?.mlModels?.find(({ id }) => id === settings?.selectedModelId);
 
   const {
     handleAnalyse,
