@@ -67,7 +67,13 @@ const CopyDetailsButton = ({ details }: { details: string }) => {
   );
 };
 
-const Loading = ({ stackLabel }: { stackLabel: string | null }) => {
+const Loading = ({
+  inputLabel,
+  modelLabel,
+}: {
+  inputLabel: string | null;
+  modelLabel: string | null;
+}) => {
   const subtitleId = useId();
 
   return (
@@ -76,7 +82,8 @@ const Loading = ({ stackLabel }: { stackLabel: string | null }) => {
         <PrimerStack align="start" direction="horizontal" gap="condensed">
           <Spinner size="small" />
           <span>
-            Processing stack <Label variant="accent">{stackLabel}</Label>...
+            Processing for {inputLabel !== null && <Label variant="accent">{inputLabel}</Label>}{" "}
+            with model {modelLabel !== null && <Label variant="done">{modelLabel}</Label>}...
           </span>
         </PrimerStack>
       </Table.Subtitle>
@@ -112,11 +119,11 @@ const Loading = ({ stackLabel }: { stackLabel: string | null }) => {
 
 const Results = ({
   data,
-  stackLabel,
+  inputLabel,
   modelLabel,
 }: {
   data: MLMatchResponse;
-  stackLabel: string | null;
+  inputLabel: string | null;
   modelLabel: string | null;
 }) => {
   const [pageIndex, setPageIndex] = useState(0);
@@ -197,8 +204,8 @@ const Results = ({
   return (
     <Table.Container>
       <Table.Subtitle as="p" id={subtitleId}>
-        Matches for stack {stackLabel !== null && <Label variant="accent">{stackLabel}</Label>} with
-        model {modelLabel !== null && <Label variant="done">{modelLabel}</Label>}:
+        Matches for {inputLabel !== null && <Label variant="accent">{inputLabel}</Label>} with model{" "}
+        {modelLabel !== null && <Label variant="done">{modelLabel}</Label>}:
       </Table.Subtitle>
 
       {tableContent}
@@ -214,7 +221,7 @@ const Results = ({
 };
 
 const AnalysisOverlay = () => {
-  const { isAnalysing, result, error, stackLabel, handleClose } = useAnalysis();
+  const { isAnalysing, result, error, inputLabel, handleClose } = useAnalysis();
   const { settings } = useSettings();
 
   const selectedModel =
@@ -237,9 +244,9 @@ const AnalysisOverlay = () => {
       onClose={handleClose}
       title="Machine Learning Analysis"
     >
-      {isAnalysing && <Loading stackLabel={stackLabel} />}
+      {isAnalysing && <Loading inputLabel={inputLabel} modelLabel={modelLabel} />}
 
-      {result !== null && <Results data={result} modelLabel={modelLabel} stackLabel={stackLabel} />}
+      {result !== null && <Results data={result} inputLabel={inputLabel} modelLabel={modelLabel} />}
 
       {error !== null && (
         <Banner title="Error" variant="critical">
