@@ -255,20 +255,20 @@ test.describe
     // ── Pagination ────────────────────────────────────────────────────────────
 
     test("switches to a different page using the page tabs", async () => {
-      // With 52 initial stacks and 8 per page, the second tab is "I-P"
+      // With 56 initial stacks and 8 per page, the second tab is "I-P"
       await expect(page.getByRole("navigation", { name: "Pages" }).getByText("I-P")).toBeVisible();
 
-      // Use the keyboard shortcut to switch pages. Pressing "2" triggers handleKeyDown in
-      // project.tsx, which calls setCurrentPage(1). Clicking the tab link directly causes the
+      // Use the keyboard shortcut to switch pages. ArrowRight triggers handleKeyDown in
+      // project.tsx, which advances currentPage. Clicking the tab link directly causes the
       // hash router (createHashHistory) to navigate to "#", root route, then index page.
-      await page.keyboard.press("2");
+      await page.keyboard.press("ArrowRight");
 
       // First stack on page 2 should be labelled "I" (match-9-left), not "A" (match-1-left)
       await expect(page.getByTestId("match-9-left")).toBeVisible();
       await expect(page.getByTestId("match-1-left")).not.toBeVisible();
 
       // Navigate back to page 1
-      await page.keyboard.press("1");
+      await page.keyboard.press("ArrowLeft");
       await expect(page.getByTestId("match-1-left")).toBeVisible();
     });
 
