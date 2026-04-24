@@ -118,7 +118,7 @@ const ProjectPage = observer(() => {
   }, [draggingPhoto, isCopying]);
 
   // Read directly during render (not inside useMemo) so MobX observer subscribes to
-  // mutations on project.matched; otherwise adding/removing pages won't trigger a re-render
+  // mutations on project.matched, otherwise adding/removing pages won't trigger a re-render
   const matchedArray: Match[] = project === null ? [] : project.matched;
   const matchedArrayLength = matchedArray.length;
 
