@@ -202,7 +202,7 @@ export const MAX_RECENT_PROJECTS = 5;
 
 export const MATCHED_STACKS_PER_PAGE = 8;
 
-export const INITIAL_MATCHED_STACKS = 52;
+export const INITIAL_MATCHED_STACKS = 56;
 
 export enum EXTERNAL_LINKS {
   WEBSITE = "https://crru.org.uk",

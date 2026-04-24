@@ -20,11 +20,12 @@ Keyboard shortcuts can be used for many functions in the app:
 
 ## Project screen
 
-| Function      | Shortcut (Windows / Linux) | Shortcut (macOS) |
-| ------------- | -------------------------- | ---------------- |
-| Select page   | ++1++-++7++                | ++1++-++7++      |
-| Open settings | ++ctrl+comma++             | ++cmd+comma++    |
-| Close project | ++ctrl+w++                 | ++cmd+w++        |
+| Function       | Shortcut (Windows / Linux) | Shortcut (macOS) |
+| -------------- | -------------------------- | ---------------- |
+| Previous page  | ++arrow-left++             | ++arrow-left++   |
+| Next page      | ++arrow-right++            | ++arrow-right++  |
+| Open settings  | ++ctrl+comma++             | ++cmd+comma++    |
+| Close project  | ++ctrl+w++                 | ++cmd+w++        |
 
 ## Photo editor
 

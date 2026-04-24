@@ -1,6 +1,6 @@
 import { action, computed, makeObservable, observable, runInAction } from "mobx";
 
-import { SAVE_PROJECT_DEBOUNCE_MS } from "@/constants";
+import { MATCHED_STACKS_PER_PAGE, SAVE_PROJECT_DEBOUNCE_MS } from "@/constants";
 import Collection from "@/models/Collection";
 import Photo from "@/models/Photo";
 import type {
@@ -33,6 +33,7 @@ class Project {
       matched: observable,
       photoCount: computed,
       loadFromJSON: action,
+      addPage: action,
     });
 
     this.version = "v1";
@@ -201,6 +202,21 @@ class Project {
 
     this.save();
 
+    return this;
+  }
+
+  public addPage(): this {
+    const lastId = this.matched.reduce((max, match) => Math.max(max, match.id), 0);
+
+    for (let i = 0; i < MATCHED_STACKS_PER_PAGE; i = i + 1) {
+      this.matched.push({
+        id: lastId + i + 1,
+        left: new Collection({ photos: [], index: 0 }, this),
+        right: new Collection({ photos: [], index: 0 }, this),
+      });
+    }
+
+    this.save();
     return this;
   }
 

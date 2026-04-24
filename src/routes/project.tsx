@@ -7,9 +7,8 @@ import {
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
-import { ColumnsIcon } from "@primer/octicons-react";
-import { SegmentedControl, Stack, UnderlineNav } from "@primer/react";
-import { KeybindingHint } from "@primer/react/experimental";
+import { ColumnsIcon, PlusIcon } from "@primer/octicons-react";
+import { IconButton, SegmentedControl, Stack, UnderlineNav } from "@primer/react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { observer } from "mobx-react-lite";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -46,38 +45,6 @@ const DraggableImageComponent = ({ photo }: { photo: Photo }) => {
 };
 
 const DraggableImage = memo(DraggableImageComponent);
-
-interface MatchedPagesProps {
-  currentPage: number;
-  matchedArray: Match[];
-  onPageChange: (index: number) => void;
-}
-
-// Extracted to its own memo component so switching pages doesn't recreate all tab elements
-const MatchedPagesComponent = ({ matchedArray, currentPage, onPageChange }: MatchedPagesProps) => {
-  return chunkArray(matchedArray, MATCHED_STACKS_PER_PAGE).map((item, index) => {
-    // biome-ignore lint/style/noNonNullAssertion: chunkArray guarantees non-empty chunks
-    const first = item.at(0)!.id;
-    // biome-ignore lint/style/noNonNullAssertion: chunkArray guarantees non-empty chunks
-    const last = item.at(-1)!.id;
-
-    return (
-      <UnderlineNav.Item
-        aria-current={index === currentPage ? "page" : undefined}
-        key={`${first}-${last}`}
-        leadingVisual={<KeybindingHint keys={String(index + 1)} />}
-        onClick={(event) => {
-          event.preventDefault();
-          onPageChange(index);
-        }}
-      >
-        {getAlphabetLetter(first)}-{getAlphabetLetter(last)}
-      </UnderlineNav.Item>
-    );
-  });
-};
-
-const MatchedPages = memo(MatchedPagesComponent);
 
 const ProjectPage = observer(() => {
   const [draggingPhoto, setDraggingPhoto] = useState<Photo | null>(null);
@@ -150,9 +117,44 @@ const ProjectPage = observer(() => {
     return document.body.classList.remove("copying");
   }, [draggingPhoto, isCopying]);
 
-  const matchedArray = useMemo<Match[]>(() => (project === null ? [] : project.matched), [project]);
+  // Read directly during render (not inside useMemo) so MobX observer subscribes to
+  // mutations on project.matched; otherwise adding/removing pages won't trigger a re-render
+  const matchedArray: Match[] = project === null ? [] : project.matched;
+  const matchedArrayLength = matchedArray.length;
 
-  const matchedPageCount = Math.ceil(matchedArray.length / MATCHED_STACKS_PER_PAGE);
+  const matchedPageCount = Math.ceil(matchedArrayLength / MATCHED_STACKS_PER_PAGE);
+
+  /**
+   * `matchedArray` is a MobX observable array whose reference is stable across mutations, length is
+   * included so the memo invalidates when pages are added/removed. `matchedPageItems` is returned
+   * as an array (not a wrapping component) so UnderlineNav sees each `Item` directly and can
+   * collapse overflow into the "More" menu.
+   */
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: see above comment
+  const matchedPageItems = useMemo(
+    () =>
+      chunkArray(matchedArray, MATCHED_STACKS_PER_PAGE).map((item, index) => {
+        // biome-ignore lint/style/noNonNullAssertion: chunkArray guarantees non-empty chunks
+        const first = item.at(0)!.id;
+        // biome-ignore lint/style/noNonNullAssertion: chunkArray guarantees non-empty chunks
+        const last = item.at(-1)!.id;
+
+        return (
+          <UnderlineNav.Item
+            aria-current={index === currentPage ? "page" : undefined}
+            key={`${first}-${last}`}
+            onSelect={(event) => {
+              event.preventDefault();
+              setCurrentPage(index);
+            }}
+          >
+            {getAlphabetLetter(first)}-{getAlphabetLetter(last)}
+          </UnderlineNav.Item>
+        );
+      }),
+    [matchedArray, matchedArrayLength, currentPage],
+  );
 
   const handleKeyUp = useCallback(() => setIsCopying(false), []);
 
@@ -166,18 +168,21 @@ const ProjectPage = observer(() => {
         return setIsCopying(true);
       }
 
-      const keyNumber = Number(event.key);
-      if (!Number.isInteger(keyNumber)) {
+      if (matchedPageCount === 0) {
         return;
       }
 
-      const pageIndex = keyNumber - 1;
-      if (pageIndex < 0 || pageIndex >= matchedPageCount) {
+      if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        setCurrentPage((previous) => (previous - 1 + matchedPageCount) % matchedPageCount);
         return;
       }
 
-      event.preventDefault();
-      setCurrentPage(pageIndex);
+      if (event.key === "ArrowRight") {
+        event.preventDefault();
+        setCurrentPage((previous) => (previous + 1) % matchedPageCount);
+        return;
+      }
     },
     [matchedPageCount],
   );
@@ -220,13 +225,14 @@ const ProjectPage = observer(() => {
 
   const sensors = useSensors(pointerSensor);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: see matchedPageItems
   const matchedRows = useMemo(
     () =>
       matchedArray.slice(
         currentPage * MATCHED_STACKS_PER_PAGE,
         (currentPage + 1) * MATCHED_STACKS_PER_PAGE,
       ),
-    [matchedArray, currentPage],
+    [matchedArray, matchedArrayLength, currentPage],
   );
 
   if (project === null) {
@@ -276,6 +282,12 @@ const ProjectPage = observer(() => {
 
   const handleColumnsChange = (i: number) => setColumns(i + 1);
 
+  const handleAddPage = () => {
+    project.addPage();
+    // matchedPageCount is the pre-add count, which equals the zero-based index of the new page
+    setCurrentPage(matchedPageCount);
+  };
+
   return (
     <>
       <LoadingOverlay data={loading} />
@@ -299,13 +311,24 @@ const ProjectPage = observer(() => {
           <Sidebar onCloseProject={handleCloseProject} />
 
           <Stack align="center" className="pages" direction="horizontal" gap="none">
-            <UnderlineNav aria-label="Pages">
-              <MatchedPages
-                currentPage={currentPage}
-                matchedArray={matchedArray}
-                onPageChange={setCurrentPage}
-              />
+            {/*
+              Key on the page count so UnderlineNav remounts when pages are added. Primer's
+              overflow layout is computed via a ResizeObserver and doesn't re-measure on
+              children changes alone, so without this the new tabs only appear after a
+              window resize.
+            */}
+            <UnderlineNav aria-label="Pages" key={matchedPageCount}>
+              {matchedPageItems}
             </UnderlineNav>
+
+            <Stack align="center" className="add-page" direction="horizontal" gap="normal">
+              <IconButton
+                aria-label="Add new page"
+                icon={PlusIcon}
+                onClick={handleAddPage}
+                variant="invisible"
+              />
+            </Stack>
 
             <Stack align="center" className="columns" direction="horizontal" gap="normal">
               <ColumnsIcon size={16} />

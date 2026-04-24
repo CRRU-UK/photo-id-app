@@ -457,6 +457,76 @@ describe(Project, () => {
     });
   });
 
+  describe("addPage", () => {
+    it("appends MATCHED_STACKS_PER_PAGE empty stacks to matched", () => {
+      const project = new Project(createProjectBody());
+      const sizeBefore = project.matched.length;
+
+      project.addPage();
+
+      expect(project.matched).toHaveLength(sizeBefore + 8);
+    });
+
+    it("assigns incrementing ids continuing from the largest existing id", () => {
+      const project = new Project(createProjectBody());
+      const lastIdBefore = project.matched[project.matched.length - 1].id;
+
+      project.addPage();
+
+      const newIds = project.matched.slice(-8).map((match) => match.id);
+      expect(newIds).toStrictEqual([
+        lastIdBefore + 1,
+        lastIdBefore + 2,
+        lastIdBefore + 3,
+        lastIdBefore + 4,
+        lastIdBefore + 5,
+        lastIdBefore + 6,
+        lastIdBefore + 7,
+        lastIdBefore + 8,
+      ]);
+    });
+
+    it("creates empty Collection instances for left and right", () => {
+      const project = new Project(createProjectBody());
+
+      project.addPage();
+
+      for (const match of project.matched.slice(-8)) {
+        expect(match.left).toBeInstanceOf(Collection);
+        expect(match.right).toBeInstanceOf(Collection);
+        expect(match.left.photos).toHaveLength(0);
+        expect(match.right.photos).toHaveLength(0);
+      }
+    });
+
+    it("calls save after adding the page", () => {
+      const project = new Project(createProjectBody());
+      vi.mocked(window.electronAPI.saveProject).mockClear();
+
+      project.addPage();
+
+      vi.runAllTimers();
+
+      expect(window.electronAPI.saveProject).toHaveBeenCalledWith(expect.any(String));
+    });
+
+    it("returns the project for chaining", () => {
+      const project = new Project(createProjectBody());
+
+      const result = project.addPage();
+
+      expect(result).toBe(project);
+    });
+
+    it("starts ids at 1 when matched is empty", () => {
+      const project = new Project(createProjectBody({ matched: [] }));
+
+      project.addPage();
+
+      expect(project.matched.map((match) => match.id)).toStrictEqual([1, 2, 3, 4, 5, 6, 7, 8]);
+    });
+  });
+
   describe("exportMatches", () => {
     it("calls window.electronAPI.exportMatches with the project JSON and type", async () => {
       const project = new Project(createProjectBody());
