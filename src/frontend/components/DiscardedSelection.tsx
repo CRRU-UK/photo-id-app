@@ -22,7 +22,7 @@ const DiscardedSelection = observer(({ collection }: DiscardedSelectionProps) =>
       ref={setDroppableNodeRef}
       style={{
         width: "100%",
-        padding: "var(--stack-gap-normal)",
+        padding: "var(--photo-stack-padding)",
         borderColor: "var(--borderColor-default)",
         borderWidth: "var(--borderWidth-default)",
         borderStyle: "solid",

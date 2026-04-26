@@ -105,7 +105,6 @@ export const PROJECT_TOOLTIPS = {
   NEXT_PHOTO: "Next photo",
   MORE_OPTIONS: "More options",
   REVERT_PHOTO: "Revert to original",
-  REVERTING_PHOTO: "Reverting...",
   ANALYSE_PHOTOS: "Analyse photos",
 };
 

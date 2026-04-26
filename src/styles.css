@@ -52,10 +52,43 @@ html[data-color-mode="dark"] .theme-icon-dark {
 }
 
 .project {
+  --photo-sidebar-width: 380px;
+  --photo-stack-padding: var(--stack-gap-normal);
+  --photo-stack-controls-gap: var(--stack-gap-normal);
+  --photo-stack-buttons-gap: var(--stack-gap-normal);
+  --photo-stack-info-padding: var(--stack-gap-condensed);
+  --photo-grid-column-gap: var(--stack-gap-spacious);
+  --photo-grid-row-gap: var(--stack-gap-normal);
+  --photo-pages-padding: var(--stack-gap-normal);
+
   position: relative;
   width: 100vw;
   height: 100vh;
   background: var(--bgColor-default);
+}
+
+@media (max-width: 1600px) {
+  .project {
+    --photo-sidebar-width: 320px;
+  }
+}
+
+@media (max-width: 1280px) {
+  .project {
+    --photo-sidebar-width: 280px;
+    --photo-stack-padding: var(--stack-gap-condensed);
+    --photo-stack-controls-gap: var(--stack-gap-condensed);
+    --photo-stack-buttons-gap: var(--stack-gap-condensed);
+    --photo-grid-column-gap: var(--stack-gap-normal);
+    --photo-grid-row-gap: var(--stack-gap-condensed);
+    --photo-pages-padding: var(--stack-gap-condensed);
+  }
+}
+
+@media (max-width: 1024px) {
+  .project {
+    --photo-sidebar-width: 260px;
+  }
 }
 
 body.copying *:hover {
@@ -67,7 +100,7 @@ body.copying *:hover {
   position: fixed;
   top: 0;
   left: 0;
-  width: 380px;
+  width: var(--photo-sidebar-width);
   height: 100%;
   overflow: hidden;
   overflow-y: scroll;
@@ -107,7 +140,7 @@ body.copying *:hover {
   top: 0;
   right: 0;
   z-index: 10;
-  width: calc(100% - 380px);
+  width: calc(100% - var(--photo-sidebar-width));
   background: var(--bgColor-default);
 }
 
@@ -121,7 +154,7 @@ body.copying *:hover {
 .project > .pages > .add-page,
 .project > .pages > .columns {
   min-height: var(--control-xlarge-size, 48px);
-  padding: 0 var(--stack-gap-normal);
+  padding: 0 var(--photo-pages-padding);
   box-shadow: inset 0 -1px var(--borderColor-muted, var(--color-border-muted));
 }
 
@@ -133,7 +166,7 @@ body.copying *:hover {
   position: fixed;
   top: 0;
   right: 0;
-  width: calc(100% - 380px);
+  width: calc(100% - var(--photo-sidebar-width));
   height: 100%;
   padding-top: 50px;
   overflow: hidden;
@@ -141,9 +174,9 @@ body.copying *:hover {
 }
 
 .project > .content > .grid {
-  padding: var(--stack-gap-normal);
+  padding: var(--photo-stack-padding);
   column-count: 2;
-  column-gap: var(--stack-gap-spacious);
+  column-gap: var(--photo-grid-column-gap);
 }
 
 .project > .content > .grid[data-columns="1"] {
@@ -152,6 +185,16 @@ body.copying *:hover {
 
 .project > .content > .grid[data-columns="2"] {
   column-count: 2;
+}
+
+@media (max-width: 1024px) {
+  .project > .pages > .columns {
+    display: none;
+  }
+
+  .project > .content > .grid[data-columns="2"] {
+    column-count: 1;
+  }
 }
 
 .project .photo-stack {
@@ -165,12 +208,12 @@ html[data-color-mode="light"] .project .photo-stack {
   background: var(--bgColor-neutral-muted);
 }
 
-.project .photo-stack .photo-info {
+.project .photo-stack .stack-info {
   position: absolute;
-  right: 10px;
-  bottom: 10px;
+  right: 0;
+  bottom: 0;
   z-index: 10;
-  opacity: 0.8;
+  width: 100%;
 }
 
 .project .photo-stack img {
