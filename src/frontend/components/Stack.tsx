@@ -3,6 +3,7 @@ import {
   AiModelIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  InfoIcon,
   PencilIcon,
   TriangleDownIcon,
   UndoIcon,
@@ -30,7 +31,7 @@ interface StackImageProps {
 
 const StackImage = observer(({ photo }: StackImageProps) => (
   <img
-    alt=""
+    alt={photo.fileName}
     loading="lazy"
     src={photo.thumbnailFullPath}
     style={{
@@ -127,6 +128,14 @@ const Stack = observer(({ collection, showAnalysisButton = true, stackLabel }: S
             draggableOnKeyDown?.(event);
           }}
         >
+          {currentPhoto && (
+            <IconButton
+              aria-label={currentPhoto.fileName}
+              className="photo-info"
+              icon={InfoIcon}
+              size="small"
+            />
+          )}
           {currentPhoto && <StackImage photo={currentPhoto} />}
         </div>
       </div>
@@ -138,11 +147,28 @@ const Stack = observer(({ collection, showAnalysisButton = true, stackLabel }: S
         style={{ marginTop: "var(--stack-gap-normal)" }}
       >
         <PrimerStack
-          align="end"
+          align="center"
           direction="horizontal"
           justify="space-between"
           style={{ marginRight: "auto" }}
         >
+          <ButtonGroup>
+            <IconButton
+              aria-label={PROJECT_TOOLTIPS.PREVIOUS_PHOTO}
+              disabled={collection.photos.length <= 1}
+              icon={ChevronLeftIcon}
+              onClick={handlePrev}
+              size="small"
+            />
+            <IconButton
+              aria-label={PROJECT_TOOLTIPS.NEXT_PHOTO}
+              disabled={collection.photos.length <= 1}
+              icon={ChevronRightIcon}
+              onClick={handleNext}
+              size="small"
+            />
+          </ButtonGroup>
+
           {collection.photos.length > 0 && (
             <CounterLabel variant="secondary">
               {collection.index + 1} / {collection.photos.length}
@@ -200,23 +226,6 @@ const Stack = observer(({ collection, showAnalysisButton = true, stackLabel }: S
               </ActionList>
             </ActionMenu.Overlay>
           </ActionMenu>
-        </ButtonGroup>
-
-        <ButtonGroup>
-          <IconButton
-            aria-label={PROJECT_TOOLTIPS.PREVIOUS_PHOTO}
-            disabled={collection.photos.length <= 1}
-            icon={ChevronLeftIcon}
-            onClick={handlePrev}
-            size="small"
-          />
-          <IconButton
-            aria-label={PROJECT_TOOLTIPS.NEXT_PHOTO}
-            disabled={collection.photos.length <= 1}
-            icon={ChevronRightIcon}
-            onClick={handleNext}
-            size="small"
-          />
         </ButtonGroup>
       </PrimerStack>
     </>
