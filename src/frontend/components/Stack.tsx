@@ -131,7 +131,7 @@ const Stack = observer(({ collection, showAnalysisButton = true, stackLabel }: S
             direction="horizontal"
             justify="space-between"
             style={{
-              padding: "var(--photo-stack-info-padding)",
+              padding: "var(--stack-gap-condensed)",
             }}
           >
             {collection.photos.length > 0 && (
@@ -154,8 +154,8 @@ const Stack = observer(({ collection, showAnalysisButton = true, stackLabel }: S
         justify="end"
         style={{
           flexWrap: "wrap",
-          gap: "var(--photo-stack-buttons-gap)",
-          marginTop: "var(--photo-stack-controls-gap)",
+          gap: "var(--project-spacing)",
+          marginTop: "var(--project-spacing)",
         }}
       >
         <div style={{ flexShrink: 0, marginRight: "auto" }}>

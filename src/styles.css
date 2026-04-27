@@ -14,7 +14,7 @@ textarea,
 }
 
 :root {
-  --toolbar-height: 60px;
+  --editor-toolbar-height: 60px;
 }
 
 .theme-icon-light,
@@ -52,14 +52,9 @@ html[data-color-mode="dark"] .theme-icon-dark {
 }
 
 .project {
-  --photo-sidebar-width: 380px;
-  --photo-stack-padding: var(--stack-gap-normal);
-  --photo-stack-controls-gap: var(--stack-gap-normal);
-  --photo-stack-buttons-gap: var(--stack-gap-normal);
-  --photo-stack-info-padding: var(--stack-gap-condensed);
-  --photo-grid-column-gap: var(--stack-gap-spacious);
-  --photo-grid-row-gap: var(--stack-gap-normal);
-  --photo-pages-padding: var(--stack-gap-normal);
+  --project-sidebar-width: 380px;
+  --project-spacing: var(--stack-gap-normal);
+  --project-spacing-large: var(--stack-gap-spacious);
 
   position: relative;
   width: 100vw;
@@ -69,25 +64,21 @@ html[data-color-mode="dark"] .theme-icon-dark {
 
 @media (max-width: 1600px) {
   .project {
-    --photo-sidebar-width: 320px;
+    --project-sidebar-width: 320px;
   }
 }
 
 @media (max-width: 1280px) {
   .project {
-    --photo-sidebar-width: 280px;
-    --photo-stack-padding: var(--stack-gap-condensed);
-    --photo-stack-controls-gap: var(--stack-gap-condensed);
-    --photo-stack-buttons-gap: var(--stack-gap-condensed);
-    --photo-grid-column-gap: var(--stack-gap-normal);
-    --photo-grid-row-gap: var(--stack-gap-condensed);
-    --photo-pages-padding: var(--stack-gap-condensed);
+    --project-sidebar-width: 280px;
+    --project-spacing: var(--stack-gap-condensed);
+    --project-spacing-large: var(--stack-gap-normal);
   }
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 1080px) {
   .project {
-    --photo-sidebar-width: 260px;
+    --project-sidebar-width: 260px;
   }
 }
 
@@ -100,7 +91,7 @@ body.copying *:hover {
   position: fixed;
   top: 0;
   left: 0;
-  width: var(--photo-sidebar-width);
+  width: var(--project-sidebar-width);
   height: 100%;
   overflow: hidden;
   overflow-y: scroll;
@@ -140,7 +131,7 @@ body.copying *:hover {
   top: 0;
   right: 0;
   z-index: 10;
-  width: calc(100% - var(--photo-sidebar-width));
+  width: calc(100% - var(--project-sidebar-width));
   background: var(--bgColor-default);
 }
 
@@ -154,7 +145,7 @@ body.copying *:hover {
 .project > .pages > .add-page,
 .project > .pages > .columns {
   min-height: var(--control-xlarge-size, 48px);
-  padding: 0 var(--photo-pages-padding);
+  padding: 0 var(--project-spacing);
   box-shadow: inset 0 -1px var(--borderColor-muted, var(--color-border-muted));
 }
 
@@ -166,7 +157,7 @@ body.copying *:hover {
   position: fixed;
   top: 0;
   right: 0;
-  width: calc(100% - var(--photo-sidebar-width));
+  width: calc(100% - var(--project-sidebar-width));
   height: 100%;
   padding-top: 50px;
   overflow: hidden;
@@ -174,9 +165,9 @@ body.copying *:hover {
 }
 
 .project > .content > .grid {
-  padding: var(--photo-stack-padding);
+  padding: var(--project-spacing);
   column-count: 2;
-  column-gap: var(--photo-grid-column-gap);
+  column-gap: var(--project-spacing-large);
 }
 
 .project > .content > .grid[data-columns="1"] {
@@ -187,7 +178,7 @@ body.copying *:hover {
   column-count: 2;
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 1080px) {
   .project > .pages > .columns {
     display: none;
   }
@@ -238,7 +229,7 @@ html[data-color-mode="light"] .project .photo-stack {
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  height: var(--toolbar-height);
+  height: var(--editor-toolbar-height);
   padding: 0 var(--stack-gap-normal);
   background: var(--bgColor-muted);
   border-top: var(--borderWidth-default) var(--borderColor-muted) solid;
@@ -269,7 +260,7 @@ html[data-color-mode="light"] .project .photo-stack {
 
 .edit > .edge-toggle {
   position: absolute;
-  bottom: calc(var(--stack-gap-normal) + var(--toolbar-height));
+  bottom: calc(var(--stack-gap-normal) + var(--editor-toolbar-height));
   left: var(--stack-gap-normal);
   z-index: 10;
   padding: var(--stack-gap-condensed);
@@ -309,7 +300,7 @@ html[data-color-mode="light"] .project .photo-stack {
   left: 0;
   z-index: 0;
   width: 100%;
-  height: calc(100% - var(--toolbar-height));
+  height: calc(100% - var(--editor-toolbar-height));
 }
 
 .edit > .canvas-photo,
