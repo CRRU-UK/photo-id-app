@@ -103,7 +103,8 @@ export const PROJECT_TOOLTIPS = {
   EDIT_PHOTO: "Edit photo",
   PREVIOUS_PHOTO: "Previous photo",
   NEXT_PHOTO: "Next photo",
-  MORE_OPTIONS: "More options",
+  STACK_ACTIONS: "Stack actions",
+  OTHER_ACTIONS: "Other actions",
   REVERT_PHOTO: "Revert to original",
   ANALYSIS_MATCH_STACK: "Analyse matches",
 };

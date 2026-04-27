@@ -179,7 +179,7 @@ const Stack = observer(({ collection, showAnalysisButton = true, stackLabel }: S
           </ButtonGroup>
         </div>
 
-        <ActionBar aria-label={PROJECT_TOOLTIPS.MORE_OPTIONS} flush gap="none" size="small">
+        <ActionBar aria-label={PROJECT_TOOLTIPS.STACK_ACTIONS} flush gap="none" size="small">
           {showAnalysisButton && !!selectedProvider && (
             <ActionBar.IconButton
               aria-label={PROJECT_TOOLTIPS.ANALYSIS_MATCH_STACK}
@@ -199,7 +199,7 @@ const Stack = observer(({ collection, showAnalysisButton = true, stackLabel }: S
           />
           <ActionBar.Divider />
           <ActionBar.Menu
-            aria-label={PROJECT_TOOLTIPS.MORE_OPTIONS}
+            aria-label={PROJECT_TOOLTIPS.OTHER_ACTIONS}
             icon={KebabHorizontalIcon}
             items={[
               {
