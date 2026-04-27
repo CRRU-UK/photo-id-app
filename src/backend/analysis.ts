@@ -57,6 +57,73 @@ const buildFormData = async (
 };
 
 /**
+ * Performs the POST to the `/match` endpoint, validates, and sorts the response.
+ */
+const performMatchRequest = async (
+  formData: FormData,
+  settings: AnalyseMatchesSettings,
+  abortController: AbortController,
+): Promise<AnalysisMatchResponse> => {
+  const endpoint = settings.endpoint.replace(/\/+$/, "");
+  const url = `${endpoint}/match`;
+
+  const signal = AbortSignal.any([
+    abortController.signal,
+    AbortSignal.timeout(ANALYSIS_API_REQUEST_TIMEOUT_MS),
+  ]);
+
+  const options = {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${settings.token}`,
+    },
+    body: formData,
+    signal,
+  };
+
+  console.debug("request", { url, method: options.method });
+
+  const response = await fetch(url, options);
+
+  if (!response.ok) {
+    const body = (await response.json().catch(() => null)) as { detail?: string } | null;
+    throw new Error(body?.detail ?? `HTTP ${response.status}`);
+  }
+
+  const result = analysisMatchResponseSchema.parse(await response.json());
+
+  // Ensure data is sorted by rank ascending
+  result.matches = result.matches.toSorted((a, b) => a.rank - b.rank);
+
+  console.debug("response", result);
+
+  return result;
+};
+
+/**
+ * Normalises errors thrown by the request pipeline. Returns null for cancelled or aborted
+ * requests, rethrows a friendlier message for timeouts, and rethrows everything else as-is.
+ */
+const normaliseRequestError = (
+  error: unknown,
+  abortController: AbortController,
+): AnalysisMatchResponse | null => {
+  if (abortController.signal.aborted) {
+    return null;
+  }
+
+  if (error instanceof Error && error.name === "AbortError") {
+    return null;
+  }
+
+  if (error instanceof Error && error.name === "TimeoutError") {
+    throw new Error("The request timed out. The API took too long to respond.");
+  }
+
+  throw error;
+};
+
+/**
  * Sends all photos in a stack to the API /match endpoint. Returns null if the request is cancelled
  * via cancelAnalyseMatches.
  */
@@ -82,62 +149,13 @@ const analyseMatches = async ({
       return null;
     }
 
-    const endpoint = settings.endpoint.replace(/\/+$/, "");
-    const url = `${endpoint}/match`;
-
-    const signal = AbortSignal.any([
-      abortController.signal,
-      AbortSignal.timeout(ANALYSIS_API_REQUEST_TIMEOUT_MS),
-    ]);
-
-    const options = {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${settings.token}`,
-      },
-      body: formData,
-      signal,
-    };
-
-    console.debug("request", { url, method: options.method });
-
-    const response = await fetch(url, options);
-
-    if (currentAbortController === abortController) {
-      currentAbortController = null;
-    }
-
-    if (!response.ok) {
-      const body = (await response.json().catch(() => null)) as { detail?: string } | null;
-      throw new Error(body?.detail ?? `HTTP ${response.status}`);
-    }
-
-    const result = analysisMatchResponseSchema.parse(await response.json());
-
-    // Ensure data is sorted by rank ascending
-    result.matches = result.matches.toSorted((a, b) => a.rank - b.rank);
-
-    console.debug("response", result);
-
-    return result;
+    return await performMatchRequest(formData, settings, abortController);
   } catch (error) {
+    return normaliseRequestError(error, abortController);
+  } finally {
     if (currentAbortController === abortController) {
       currentAbortController = null;
     }
-
-    if (abortController.signal.aborted) {
-      return null;
-    }
-
-    if (error instanceof Error && error.name === "AbortError") {
-      return null;
-    }
-
-    if (error instanceof Error && error.name === "TimeoutError") {
-      throw new Error("The request timed out. The API took too long to respond.");
-    }
-
-    throw error;
   }
 };
 

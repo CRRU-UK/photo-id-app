@@ -19,6 +19,12 @@ import useImageEditor from "@/frontend/hooks/useImageEditor";
 import { computeIsEdited } from "@/helpers";
 import type { EditorNavigation, PhotoBody } from "@/types";
 
+const isInteractiveTarget = (target: EventTarget | null): boolean =>
+  target instanceof HTMLButtonElement ||
+  target instanceof HTMLInputElement ||
+  target instanceof HTMLTextAreaElement ||
+  target instanceof HTMLSelectElement;
+
 interface CanvasImageProps {
   handlePointerDown: (event: React.PointerEvent<HTMLCanvasElement>) => void;
   handlePointerLeave: () => void;
@@ -282,83 +288,79 @@ const ImageEditor = ({
     [data, setQueryCallback, hasUnsavedEdits, handleCloseAnalysis],
   );
 
-  const handleKeyDown = useCallback(
-    (event: KeyboardEvent) => {
-      const modifierKey = event.ctrlKey || event.metaKey;
-      const key = event.key.toLowerCase();
+  const handleModifierShortcut = useCallback(
+    (key: string): boolean => {
+      const modifierActions: Record<string, () => void> = {
+        [EDITOR_KEYS.RESET.code]: handleReset,
+        [EDITOR_KEYS.SAVE.code]: handleSave,
+        [EDITOR_KEYS.ZOOM_OUT.code]: handlers.handleZoomOut,
+        [EDITOR_KEYS.ZOOM_IN.code]: handlers.handleZoomIn,
+        [EDITOR_KEYS.ANALYSE.code]: handleAnalysis,
+      };
 
-      if (modifierKey) {
-        if (key === EDITOR_KEYS.RESET.code) {
-          event.preventDefault();
-          return handleReset();
-        }
-
-        if (key === EDITOR_KEYS.SAVE.code) {
-          event.preventDefault();
-          return handleSave();
-        }
-
-        if (key === EDITOR_KEYS.ZOOM_OUT.code) {
-          event.preventDefault();
-          return handlers.handleZoomOut();
-        }
-
-        if (key === EDITOR_KEYS.ZOOM_IN.code) {
-          event.preventDefault();
-          return handlers.handleZoomIn();
-        }
-
-        if (key === EDITOR_KEYS.ANALYSE.code) {
-          event.preventDefault();
-          return handleAnalysis();
-        }
-
-        return;
+      const action = modifierActions[key];
+      if (!action) {
+        return false;
       }
+
+      action();
+      return true;
+    },
+    [handleReset, handleSave, handlers.handleZoomOut, handlers.handleZoomIn, handleAnalysis],
+  );
+
+  const handlePlainShortcut = useCallback(
+    (event: KeyboardEvent): boolean => {
+      const key = event.key.toLowerCase();
 
       const panDirection = KEYBOARD_CODE_TO_PAN_DIRECTION?.[event.code];
       if (panDirection) {
-        event.preventDefault();
-        return handlers.handleDirectionalPan(panDirection);
+        handlers.handleDirectionalPan(panDirection);
+        return true;
       }
 
       if (key === EDITOR_KEYS.PREVIOUS_PHOTO.code) {
-        event.preventDefault();
-        return handleEditorNavigation("prev");
+        void handleEditorNavigation("prev");
+        return true;
       }
 
       if (key === EDITOR_KEYS.NEXT_PHOTO.code) {
-        event.preventDefault();
-        return handleEditorNavigation("next");
+        void handleEditorNavigation("next");
+        return true;
       }
 
-      const isInteractiveTarget =
-        event.target instanceof HTMLButtonElement ||
-        event.target instanceof HTMLInputElement ||
-        event.target instanceof HTMLTextAreaElement ||
-        event.target instanceof HTMLSelectElement;
-
-      if (!isInteractiveTarget && event.code === EDITOR_KEYS.TOGGLE_LOUPE.code) {
-        event.preventDefault();
-        return handleToggleLoupe();
+      if (event.code === EDITOR_KEYS.TOGGLE_LOUPE.code && !isInteractiveTarget(event.target)) {
+        handleToggleLoupe();
+        return true;
       }
 
       if (key === EDITOR_KEYS.TOGGLE_EDGE_DETECTION.code) {
-        event.preventDefault();
-        return handleToggleEdgeDetection();
+        handleToggleEdgeDetection();
+        return true;
       }
+
+      return false;
     },
     [
       handlers.handleDirectionalPan,
       handleEditorNavigation,
       handleToggleLoupe,
       handleToggleEdgeDetection,
-      handleReset,
-      handleSave,
-      handleAnalysis,
-      handlers.handleZoomOut,
-      handlers.handleZoomIn,
     ],
+  );
+
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent) => {
+      const modifierKey = event.ctrlKey || event.metaKey;
+      const handled = modifierKey
+        ? handleModifierShortcut(event.key.toLowerCase())
+        : handlePlainShortcut(event);
+
+      if (handled) {
+        event.preventDefault();
+      }
+    },
+    [handleModifierShortcut, handlePlainShortcut],
   );
 
   const previousPhotoIdRef = useRef<string>(`${data.directory}/${data.name}`);
