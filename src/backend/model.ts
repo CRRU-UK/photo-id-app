@@ -125,6 +125,10 @@ const analyseStack = async ({
       currentAbortController = null;
     }
 
+    if (abortController.signal.aborted) {
+      return null;
+    }
+
     if (error instanceof Error && error.name === "AbortError") {
       return null;
     }

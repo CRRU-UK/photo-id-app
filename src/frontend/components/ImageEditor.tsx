@@ -263,6 +263,8 @@ const ImageEditor = ({
         }
       }
 
+      handleCloseAnalysis();
+
       navigatingRef.current = true;
       setNavigating(true);
 
@@ -275,7 +277,7 @@ const ImageEditor = ({
         setQueryCallback(result);
       }
     },
-    [data, setQueryCallback, hasUnsavedEdits],
+    [data, setQueryCallback, hasUnsavedEdits, handleCloseAnalysis],
   );
 
   const handleKeyDown = useCallback(
@@ -513,6 +515,7 @@ const ImageEditor = ({
 
         <Toolbar
           edgeDetectionEnabled={edgeDetectionEnabled}
+          isAnalysing={isAnalysing}
           loupeEnabled={loupeEnabled}
           onAnalyse={handleAnalysis}
           onDirectionalPan={handlers.handleDirectionalPan}
