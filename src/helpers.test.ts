@@ -13,6 +13,7 @@ import {
   getCanvasFilters,
   getImageCoordinates,
   isEditWindow,
+  stripWhitespace,
 } from "./helpers";
 
 describe(getAlphabetLetter, () => {
@@ -455,5 +456,21 @@ describe(buildPhotoUrl, () => {
     const result = url.fileURLToPath(fileUrl);
 
     expect(result).toBe("/Users/admin/Photo ID/photo.jpg");
+  });
+});
+
+describe(stripWhitespace, () => {
+  it.each([
+    ["leading and trailing spaces", "  abc  ", "abc"],
+    ["interior space", "abc def", "abcdef"],
+    ["narrow no-break space (U+202F)", "abc def", "abcdef"],
+    ["non-breaking space (U+00A0)", "abc def", "abcdef"],
+    ["tab and newline", "abc\tdef\nghi", "abcdefghi"],
+    ["multiple consecutive whitespace characters", "abc \t\n def", "abcdef"],
+    ["empty string", "", ""],
+    ["whitespace-only string", "   \t\n", ""],
+    ["string with no whitespace", "abcdef", "abcdef"],
+  ])("strips %s", (_label, input, expected) => {
+    expect(stripWhitespace(input)).toBe(expected);
   });
 });

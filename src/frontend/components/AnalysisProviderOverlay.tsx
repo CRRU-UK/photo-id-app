@@ -9,6 +9,7 @@ import {
 import { Dialog, FormControl, Stack, TextInput } from "@primer/react";
 import { useEffect, useState } from "react";
 
+import { stripWhitespace } from "@/helpers";
 import type { AnalysisProvider, AnalysisProviderDraft } from "@/types";
 
 interface AnalysisProviderOverlayProps {
@@ -39,7 +40,7 @@ const AnalysisProviderOverlay = ({
   const tokenLocked = isEditing && !isEditingToken;
   const fieldsValid = tokenLocked
     ? Boolean(draft.name.trim() && draft.endpoint.trim())
-    : Boolean(draft.name.trim() && draft.endpoint.trim() && draft.token.trim());
+    : Boolean(draft.name.trim() && draft.endpoint.trim() && stripWhitespace(draft.token));
 
   useEffect(() => {
     if (open) {
@@ -64,7 +65,7 @@ const AnalysisProviderOverlay = ({
       ...(editingProvider ? { id: editingProvider.id } : {}),
       name: draft.name.trim(),
       endpoint: draft.endpoint.trim(),
-      token: tokenLocked ? undefined : draft.token.trim() || undefined,
+      token: tokenLocked ? undefined : stripWhitespace(draft.token) || undefined,
     };
 
     try {

@@ -153,6 +153,11 @@ export const computeIsEdited = (edits: PhotoEdits): boolean =>
 export const isEditWindow = (hash: string): boolean => hash.startsWith(`#${ROUTES.EDIT}`);
 
 /**
+ * Strips all whitespace (including invisible characters).
+ */
+export const stripWhitespace = (value: string): string => value.replaceAll(/\s+/g, "");
+
+/**
  * Builds a valid photo:// URL from a directory path and file name. Normalizes to forward slashes
  * and encodes each path segment so spaces, #, ? etc. are safe. Always produces photo:/// (three
  * slashes) followed by encoded path segments, mirroring the file:// URL format so the main process
