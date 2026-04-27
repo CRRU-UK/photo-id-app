@@ -184,6 +184,33 @@ describe(analyseStack, () => {
     expect(result).toBeNull();
   });
 
+  it("returns null when the request is cancelled and the fetch throws a non-AbortError", async () => {
+    mockFetch.mockImplementation((_url, options) => {
+      return new Promise((_resolve, reject) => {
+        const signal = options?.signal;
+
+        const abort = () => {
+          const error = new TypeError("Invalid state: ReadableStream is already closed");
+          reject(error);
+        };
+
+        if (signal?.aborted) {
+          abort();
+          return;
+        }
+
+        signal?.addEventListener("abort", abort);
+      });
+    });
+
+    const promise = analyseStack({ photos: [defaultPhoto], settings: defaultSettings });
+    cancelAnalyseStack();
+
+    const result = await promise;
+
+    expect(result).toBeNull();
+  });
+
   it("throws network errors that are not abort errors", async () => {
     mockFetch.mockRejectedValue(new Error("Network connection failed"));
 

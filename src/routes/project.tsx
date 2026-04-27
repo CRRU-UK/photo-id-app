@@ -356,6 +356,6 @@ const ProjectPageWrapper = () => (
   </AnalysisProvider>
 );
 
-export const Route = createFileRoute(ROUTES.PROJECT)({
+export const Route = createFileRoute("/project")({
   component: ProjectPageWrapper,
 });

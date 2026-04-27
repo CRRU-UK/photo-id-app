@@ -19,6 +19,7 @@ import type { EditorNavigation, MLModel } from "@/types";
 
 interface ToolbarProps {
   edgeDetectionEnabled: boolean;
+  isAnalysing: boolean;
   loupeEnabled: boolean;
   onAnalyse: () => void;
   onDirectionalPan: (direction: EditorPanDirection) => void;
@@ -45,6 +46,7 @@ const Toolbar = ({
   sliderInitials,
   resetKey,
   edgeDetectionEnabled,
+  isAnalysing,
   loupeEnabled,
   selectedModel,
   saving,
@@ -169,6 +171,7 @@ const Toolbar = ({
           <ActionBar.Group>
             <ActionBar.IconButton
               aria-label={EDITOR_TOOLTIPS.ANALYSE}
+              disabled={isAnalysing}
               icon={AiModelIcon}
               keybindingHint={EDITOR_KEYS.ANALYSE.hint}
               onClick={onAnalyse}

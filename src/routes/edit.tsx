@@ -120,6 +120,6 @@ const EditPage = () => {
   );
 };
 
-export const Route = createFileRoute(ROUTES.EDIT)({
+export const Route = createFileRoute("/edit")({
   component: EditPage,
 });
