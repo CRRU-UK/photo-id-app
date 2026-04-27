@@ -5,7 +5,7 @@ description: How to add and use an analysis provider in the app.
 
 An analysis provider (such as a machine learning model) can be integrated in the app that can be used to analyse photos and display a list of closest matches.
 
-![Analysis results](../assets/images/analysis-provider-results.png?v1){ width="700" }
+![Analysis results](../assets/images/analysis-match-results.png?v1){ width="700" }
 
 ## Managing providers
 

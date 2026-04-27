@@ -20,7 +20,7 @@ Technical information, specifications, requirements, and user journeys.
 - Types: central types live in `src/types.ts` - use these for consistent shapes between main and renderer. Project-file types (`PhotoEdits`, `PhotoBody`, `CollectionBody`, `MatchedBody`, `ProjectBody`) are derived from Zod schemas in `src/schemas.ts` via `z.infer`.
 - Schema validation: `src/schemas.ts` defines Zod schemas for project data. Project files are validated against these schemas on load via `parseProjectFile` in `src/backend/projects.ts`.
 - Thumbnail path convention: `photo.thumbnail` (and `PhotoBody.thumbnail`) is a **relative** path (e.g. `thumbnails/photo.jpg`), not an absolute path. The Photo model computes the full URL via `thumbnailFullPath` by joining `directory` and `thumbnail`. Use `thumbnailFullPath` when rendering thumbnails in the UI.
-- AnalysisContext flow: `AnalysisContextProvider` wraps only the project route (project page). The context is consumed by **Sidebar** (analysis provider selection), **Stack** (the “Analyse” action that triggers analysis), and **AnalysisMatchOverlay** (loading state, results table, and errors). Analysis state and the overlay are thus shared across these components via context rather than props.
+- AnalysisContext flow: `AnalysisContextProvider` wraps both the project and edit routes (each window has its own provider instance, analysis state is per-window, not shared across windows). The context is consumed by **Stack** and **ImageEditor** (the “Analyse” actions that trigger analysis), **AnalysisMatchOverlay** (loading state, results table, and errors), and the project route itself (for closing the overlay alongside the project). Analysis provider selection is held in `SettingsContext`.
 - SAVE_PROJECT IPC: The `SAVE_PROJECT` handler receives a **pre-serialized JSON string** (not a typed object). The renderer calls `project.save()`, which serializes the project to JSON and sends that string over IPC. The main process validates the payload and writes it to disk using the current project directory. This differs from other IPC handlers that receive typed payloads.
 - Platform-specific file association: Opening a `.photoid` file from the OS uses **macOS**: the `open-file` app event (may fire before `whenReady`). **Windows/Linux**: `second-instance` and the process `argv` (the path is passed as an argument). The app handles both so that double-clicking a `.photoid` opens that project.
 - **Settings storage**: Settings are stored in the app user data directory (per user) as a JSON file, validated on read with `settingsDataSchema` in `src/schemas.ts`. Invalid or missing data causes a silent fallback to defaults. Analysis provider API tokens are stored separately in `tokens.json` using Electron's `safeStorage` API for encryption at rest; on machines where secure storage is unavailable, tokens fall back to plaintext storage with a UI warning.
@@ -85,7 +85,7 @@ Technical information, specifications, requirements, and user journeys.
 - `src/contexts/` - React Context providers:
   - **ProjectContext** - Holds the current open project (MobX Project instance or null). Subscribes to `onLoadProject` IPC; when a project is loaded, sets the project and triggers navigation to the project route.
   - **SettingsContext** - App settings (theme, telemetry, analysis providers). Fetches via `getSettings` and subscribes to `onSettingsUpdated` IPC so all windows receive live updates when settings change.
-  - **AnalysisContext** - Analysis state (selected provider, analysis in progress, results, errors). Shared between Sidebar (provider selection), Stack (Analyse button), and AnalysisMatchOverlay (loading state, results table). Wraps only the project route.
+  - **AnalysisContext** - In-flight analysis state (in progress, results, errors, input label) and handlers (`handleAnalyse`, `handleClose`). Wraps both the project and edit routes. Consumed by Stack and ImageEditor (Analyse actions) and AnalysisMatchOverlay (loading/results/errors). Provider selection itself is held in SettingsContext.
 - `docs/` - User and technical documentation
 - Tests: `*.test.ts` files co-located with source files
 - Configuration: `tsconfig.json`, `vite.*.mts`, `forge.config.ts`, `vitest.config.ts`
@@ -246,14 +246,15 @@ The project view is accessed when opening a project. It allows the user to:
   - Selecting the current provider should unselect it and result in a state where analysis is disabled
   - Re-selecting any provider should re-enable analysis
 - The unassigned and discarded stacks should NOT show the analysis button as this would not be useful
-- Clicking the stack analysis button sends all photos in that stack to the selected provider's API endpoint with the token
+- Clicking the stack analysis button sends all photos in that stack to the selected provider's match API endpoint with the token
 - Clicking the stack analysis button opens an overlay with a data table loading state while the request is being sent and the response is being received
-- Clicking the image editor analysis button should send ONLY the currently displayed photo to the selected provider's API endpoint, INCLUDING any pending edits (regardless if they have not yet been saved)
+- Clicking the image editor analysis button should send ONLY the currently displayed photo to the selected provider's match API endpoint, including any pending edits (even if they have not yet been saved)
 - Once the response has been received, the overlay content should update the data table with the data received
 - The data table contains the following columns:
+  - Rank of the match (1-indexed, best first)
   - ID of the match
   - Match rating (i.e. confidence, similarity, etc.) visualised as a progress bar and percentage value
-  - Tooltip button to show detail information for the match
+  - Copy button which shows the match details on hover and copies them to the clipboard on click
 - The API contract in [`analysis-api-spec.yaml`](./docs/assets/analysis-api-spec.yaml) should be used as the ONLY contract for what the app sends and expects to receive from an analysis provider API
 - The data table results should show all the results received, paginated at a fixed amount per page
 - The progress bars change colour depending on the value of the rating

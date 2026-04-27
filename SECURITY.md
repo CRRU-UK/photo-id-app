@@ -69,7 +69,7 @@ All data crossing process boundaries is validated with Zod schemas (`src/schemas
 - Project files are validated on load via `parseProjectFile()`
 - Settings and token files are validated on read with their respective schemas
 - IPC payloads are validated in handlers before processing
-- Analysis API responses are validated with `analysisMatchResponseSchema`
+- Analysis API responses are validated with schemas such as `analysisMatchResponseSchema`
 
 ## Reporting Security Issues
 
