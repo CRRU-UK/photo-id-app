@@ -68,9 +68,9 @@ Photos can be duplicated by holding the ++ctrl++/++cmd++ key while dragging-and-
 
 ### Analysis
 
-You can use a machine learning model to analyse photos in your project.
+You can use an analysis provider to analyse photos in your project.
 
-For more information, check out the [Machine Learning](./machine-learning.md) guide.
+For more information, check out the [Analysis](./analysis.md) guide.
 
 ### Exporting
 

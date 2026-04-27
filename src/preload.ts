@@ -1,12 +1,12 @@
 import { contextBridge, ipcRenderer } from "electron";
 import { IPC_EVENTS } from "@/constants";
 import type {
+  AnalysisMatchResponse,
+  AnalysisProviderDraft,
   EditorNavigation,
   ExportTypes,
   ExternalLinks,
   LoadingData,
-  MLMatchResponse,
-  MLModelDraft,
   PhotoBody,
   ProjectBody,
   RecentProject,
@@ -45,12 +45,12 @@ contextBridge.exposeInMainWorld("electronAPI", {
   getSettings: (): Promise<SettingsData> => ipcRenderer.invoke(IPC_EVENTS.GET_SETTINGS),
   updateSettings: (settings: SettingsData): Promise<void> =>
     ipcRenderer.invoke(IPC_EVENTS.UPDATE_SETTINGS, settings),
-  analyseStack: (photos: PhotoBody[]): Promise<MLMatchResponse | null> =>
+  analyseStack: (photos: PhotoBody[]): Promise<AnalysisMatchResponse | null> =>
     ipcRenderer.invoke(IPC_EVENTS.ANALYSE_STACK, photos),
-  saveModel: (draft: MLModelDraft): Promise<void> =>
-    ipcRenderer.invoke(IPC_EVENTS.SAVE_MODEL, draft),
-  deleteModel: (modelId: string): Promise<void> =>
-    ipcRenderer.invoke(IPC_EVENTS.DELETE_MODEL, modelId),
+  saveAnalysisProvider: (draft: AnalysisProviderDraft): Promise<void> =>
+    ipcRenderer.invoke(IPC_EVENTS.SAVE_ANALYSIS_PROVIDER, draft),
+  deleteAnalysisProvider: (providerId: string): Promise<void> =>
+    ipcRenderer.invoke(IPC_EVENTS.DELETE_ANALYSIS_PROVIDER, providerId),
   getEncryptionAvailability: (): Promise<boolean> =>
     ipcRenderer.invoke(IPC_EVENTS.GET_ENCRYPTION_AVAILABILITY),
 

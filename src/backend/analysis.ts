@@ -3,8 +3,8 @@ import path from "node:path";
 import { renderApiImage } from "@/backend/imageRenderer";
 import { resolvePhotoPath } from "@/backend/projects";
 import { ANALYSIS_API_REQUEST_TIMEOUT_MS } from "@/constants";
-import { mlMatchResponseSchema } from "@/schemas";
-import type { MLMatchResponse, PhotoBody } from "@/types";
+import { analysisMatchResponseSchema } from "@/schemas";
+import type { AnalysisMatchResponse, PhotoBody } from "@/types";
 
 type AnalyseStackSettings = {
   endpoint: string;
@@ -63,7 +63,7 @@ const buildFormData = async (
 const analyseStack = async ({
   photos,
   settings,
-}: AnalyseStackOptions): Promise<MLMatchResponse | null> => {
+}: AnalyseStackOptions): Promise<AnalysisMatchResponse | null> => {
   if (photos.length === 0) {
     throw new Error("No photos to analyse");
   }
@@ -112,7 +112,7 @@ const analyseStack = async ({
       throw new Error(body?.detail ?? `HTTP ${response.status}`);
     }
 
-    const result = mlMatchResponseSchema.parse(await response.json());
+    const result = analysisMatchResponseSchema.parse(await response.json());
 
     // Ensure data is sorted by rank ascending
     result.matches = result.matches.toSorted((a, b) => a.rank - b.rank);

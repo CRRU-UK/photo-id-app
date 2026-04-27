@@ -3,12 +3,12 @@ import type { z } from "zod";
 import type Collection from "@/models/Collection";
 import type Photo from "@/models/Photo";
 import type {
+  analysisMatchResponseSchema,
+  analysisMatchSchema,
+  analysisProviderDraftSchema,
+  analysisProviderSchema,
   collectionBodySchema,
   matchedBodySchema,
-  mlMatchResponseSchema,
-  mlMatchSchema,
-  mlModelDraftSchema,
-  mlModelSchema,
   photoBodySchema,
   photoEditsSchema,
   projectBodySchema,
@@ -68,8 +68,8 @@ export type EditorNavigation = "prev" | "next";
 export type ExternalLinks =
   | "website"
   | "user-guide"
-  | "user-guide-ml"
-  | "user-guide-ml-tokens"
+  | "user-guide-analysis"
+  | "user-guide-analysis-tokens"
   | "changelog"
   | "privacy";
 
@@ -91,17 +91,17 @@ export type ThemeMode = z.infer<typeof themeModeSchema>;
 
 export type Telemetry = z.infer<typeof telemetrySchema>;
 
-export type MLModel = z.infer<typeof mlModelSchema>;
+export type AnalysisProvider = z.infer<typeof analysisProviderSchema>;
 
-export type MLModelDraft = z.infer<typeof mlModelDraftSchema>;
+export type AnalysisProviderDraft = z.infer<typeof analysisProviderDraftSchema>;
 
 export type TokenEntry = z.infer<typeof tokenEntrySchema>;
 
 export type TokenStore = z.infer<typeof tokenStoreSchema>;
 
-export type MLMatch = z.infer<typeof mlMatchSchema>;
+export type AnalysisMatch = z.infer<typeof analysisMatchSchema>;
 
-export type MLMatchResponse = z.infer<typeof mlMatchResponseSchema>;
+export type AnalysisMatchResponse = z.infer<typeof analysisMatchResponseSchema>;
 
 export type SettingsData = z.infer<typeof settingsDataSchema>;
 

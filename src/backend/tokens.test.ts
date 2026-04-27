@@ -82,12 +82,12 @@ describe("tokens", () => {
     it("encrypts and stores a token when encryption is available", async () => {
       mockExistsSync.mockReturnValue(false);
 
-      await saveToken("model-1", "my-secret-token");
+      await saveToken("provider-1", "my-secret-token");
 
       const writtenData = JSON.parse(mockWriteFile.mock.calls[0][1]) as TokenStore;
 
-      expect(writtenData.tokens["model-1"].encrypted).toBe(true);
-      expect(writtenData.tokens["model-1"].value).toBe(
+      expect(writtenData.tokens["provider-1"].encrypted).toBe(true);
+      expect(writtenData.tokens["provider-1"].value).toBe(
         Buffer.from("encrypted:my-secret-token").toString("base64"),
       );
     });
@@ -96,50 +96,50 @@ describe("tokens", () => {
       mockIsEncryptionAvailable.mockReturnValue(false);
       mockExistsSync.mockReturnValue(false);
 
-      await saveToken("model-1", "my-secret-token");
+      await saveToken("provider-1", "my-secret-token");
 
       const writtenData = JSON.parse(mockWriteFile.mock.calls[0][1]) as TokenStore;
 
-      expect(writtenData.tokens["model-1"].encrypted).toBe(false);
-      expect(writtenData.tokens["model-1"].value).toBe("my-secret-token");
+      expect(writtenData.tokens["provider-1"].encrypted).toBe(false);
+      expect(writtenData.tokens["provider-1"].value).toBe("my-secret-token");
     });
 
-    it("overwrites an existing token for the same model ID", async () => {
+    it("overwrites an existing token for the same provider ID", async () => {
       const existingStore = {
-        tokens: { "model-1": { value: "old-value", encrypted: false } },
+        tokens: { "provider-1": { value: "old-value", encrypted: false } },
       };
       mockExistsSync.mockReturnValue(true);
       mockReadFile.mockResolvedValue(JSON.stringify(existingStore));
 
-      await saveToken("model-1", "new-token");
+      await saveToken("provider-1", "new-token");
 
       const writtenData = JSON.parse(mockWriteFile.mock.calls[0][1]) as TokenStore;
 
-      expect(writtenData.tokens["model-1"].encrypted).toBe(true);
+      expect(writtenData.tokens["provider-1"].encrypted).toBe(true);
     });
 
-    it("preserves tokens for other models when saving", async () => {
+    it("preserves tokens for other providers when saving", async () => {
       const existingStore = {
-        tokens: { "model-1": { value: "existing-value", encrypted: false } },
+        tokens: { "provider-1": { value: "existing-value", encrypted: false } },
       };
       mockExistsSync.mockReturnValue(true);
       mockReadFile.mockResolvedValue(JSON.stringify(existingStore));
 
-      await saveToken("model-2", "another-token");
+      await saveToken("provider-2", "another-token");
 
       const writtenData = JSON.parse(mockWriteFile.mock.calls[0][1]) as TokenStore;
 
-      expect(writtenData.tokens["model-1"]).toStrictEqual({
+      expect(writtenData.tokens["provider-1"]).toStrictEqual({
         value: "existing-value",
         encrypted: false,
       });
-      expect(writtenData.tokens["model-2"]).toBeDefined();
+      expect(writtenData.tokens["provider-2"]).toBeDefined();
     });
 
     it("writes to the userData path", async () => {
       mockExistsSync.mockReturnValue(false);
 
-      await saveToken("model-1", "token");
+      await saveToken("provider-1", "token");
 
       const writtenPath = mockWriteFile.mock.calls[0][0];
 
@@ -152,30 +152,30 @@ describe("tokens", () => {
     it("decrypts and returns an encrypted token", async () => {
       const encryptedValue = Buffer.from("encrypted:my-secret-token").toString("base64");
       const store = {
-        tokens: { "model-1": { value: encryptedValue, encrypted: true } },
+        tokens: { "provider-1": { value: encryptedValue, encrypted: true } },
       };
       mockExistsSync.mockReturnValue(true);
       mockReadFile.mockResolvedValue(JSON.stringify(store));
 
-      const result = await getToken("model-1");
+      const result = await getToken("provider-1");
 
       expect(result).toBe("my-secret-token");
     });
 
     it("returns a plaintext token without decryption", async () => {
       const store = {
-        tokens: { "model-1": { value: "plain-token", encrypted: false } },
+        tokens: { "provider-1": { value: "plain-token", encrypted: false } },
       };
       mockExistsSync.mockReturnValue(true);
       mockReadFile.mockResolvedValue(JSON.stringify(store));
 
-      const result = await getToken("model-1");
+      const result = await getToken("provider-1");
 
       expect(result).toBe("plain-token");
       expect(mockDecryptString).not.toHaveBeenCalled();
     });
 
-    it("returns null for a non-existent model ID", async () => {
+    it("returns null for a non-existent provider ID", async () => {
       const store = { tokens: {} };
       mockExistsSync.mockReturnValue(true);
       mockReadFile.mockResolvedValue(JSON.stringify(store));
@@ -188,19 +188,19 @@ describe("tokens", () => {
     it("returns null when the tokens file does not exist", async () => {
       mockExistsSync.mockReturnValue(false);
 
-      const result = await getToken("model-1");
+      const result = await getToken("provider-1");
 
       expect(result).toBeNull();
     });
 
     it("returns null when decryption fails", async () => {
       const store = {
-        tokens: { "model-1": { value: "bad-encrypted-data", encrypted: true } },
+        tokens: { "provider-1": { value: "bad-encrypted-data", encrypted: true } },
       };
       mockExistsSync.mockReturnValue(true);
       mockReadFile.mockResolvedValue(JSON.stringify(store));
 
-      const result = await getToken("model-1");
+      const result = await getToken("provider-1");
 
       expect(result).toBeNull();
     });
@@ -210,22 +210,25 @@ describe("tokens", () => {
     it("removes a token from the store", async () => {
       const store = {
         tokens: {
-          "model-1": { value: "token-1", encrypted: false },
-          "model-2": { value: "token-2", encrypted: false },
+          "provider-1": { value: "token-1", encrypted: false },
+          "provider-2": { value: "token-2", encrypted: false },
         },
       };
       mockExistsSync.mockReturnValue(true);
       mockReadFile.mockResolvedValue(JSON.stringify(store));
 
-      await deleteToken("model-1");
+      await deleteToken("provider-1");
 
       const writtenData = JSON.parse(mockWriteFile.mock.calls[0][1]) as TokenStore;
 
-      expect(writtenData.tokens["model-1"]).toBeUndefined();
-      expect(writtenData.tokens["model-2"]).toStrictEqual({ value: "token-2", encrypted: false });
+      expect(writtenData.tokens["provider-1"]).toBeUndefined();
+      expect(writtenData.tokens["provider-2"]).toStrictEqual({
+        value: "token-2",
+        encrypted: false,
+      });
     });
 
-    it("does not throw when deleting a non-existent model ID", async () => {
+    it("does not throw when deleting a non-existent provider ID", async () => {
       mockExistsSync.mockReturnValue(false);
 
       await expect(deleteToken("non-existent")).resolves.not.toThrow();
@@ -237,7 +240,7 @@ describe("tokens", () => {
       mockExistsSync.mockReturnValue(true);
       mockReadFile.mockResolvedValue("not valid json {{{");
 
-      const result = await getToken("model-1");
+      const result = await getToken("provider-1");
 
       expect(result).toBeNull();
     });
@@ -246,7 +249,7 @@ describe("tokens", () => {
       mockExistsSync.mockReturnValue(true);
       mockReadFile.mockRejectedValue(new Error("Permission denied"));
 
-      const result = await getToken("model-1");
+      const result = await getToken("provider-1");
 
       expect(result).toBeNull();
     });

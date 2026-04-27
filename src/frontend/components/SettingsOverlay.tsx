@@ -22,22 +22,21 @@ import type { RefObject } from "react";
 import { useCallback, useEffect, useState } from "react";
 
 import { useSettings } from "@/contexts/SettingsContext";
-import type { MLModel, Telemetry, ThemeMode } from "@/types";
+import type { AnalysisProvider, Telemetry, ThemeMode } from "@/types";
 
-import ModelOverlay from "./ModelOverlay";
+import AnalysisProviderOverlay from "./AnalysisProviderOverlay";
 
-const EmptyModels = (
+const EmptyProviders = (
   <Blankslate narrow>
     <Blankslate.Visual>
       <AiModelIcon size="medium" />
     </Blankslate.Visual>
-    <Blankslate.Heading>No ML Models Configured</Blankslate.Heading>
+    <Blankslate.Heading>No Analysis Providers Configured</Blankslate.Heading>
     <Blankslate.Description>
-      Use a machine learning model to analyse photos in a stack. Select the Add Model button to get
-      started.
+      Select the Add Provider button to get started.
       <Button
         block
-        onClick={() => window.electronAPI.openExternalLink("user-guide-ml")}
+        onClick={() => window.electronAPI.openExternalLink("user-guide-analysis")}
         style={{ marginTop: "var(--stack-gap-normal)" }}
         variant="link"
       >
@@ -58,8 +57,8 @@ const SettingsOverlay = ({ open, onClose, onOpenRequest, returnFocusRef }: Setti
   const { settings: contextSettings, updateSettings } = useSettings();
 
   const [isLoading, setIsLoading] = useState(false);
-  const [isModelOverlayOpen, setIsModelOverlayOpen] = useState(false);
-  const [editingModel, setEditingModel] = useState<MLModel | null>(null);
+  const [isProviderOverlayOpen, setIsProviderOverlayOpen] = useState(false);
+  const [editingProvider, setEditingProvider] = useState<AnalysisProvider | null>(null);
   const [isEncryptionAvailable, setIsEncryptionAvailable] = useState<boolean>(true);
 
   useEffect(() => {
@@ -76,8 +75,8 @@ const SettingsOverlay = ({ open, onClose, onOpenRequest, returnFocusRef }: Setti
 
   useEffect(() => {
     if (!open) {
-      setIsModelOverlayOpen(false);
-      setEditingModel(null);
+      setIsProviderOverlayOpen(false);
+      setEditingProvider(null);
     }
   }, [open]);
 
@@ -125,34 +124,34 @@ const SettingsOverlay = ({ open, onClose, onOpenRequest, returnFocusRef }: Setti
     [contextSettings, updateSettings],
   );
 
-  const handleDeleteModel = useCallback(async (model: MLModel) => {
+  const handleDeleteProvider = useCallback(async (provider: AnalysisProvider) => {
     try {
-      await window.electronAPI.deleteModel(model.id);
+      await window.electronAPI.deleteAnalysisProvider(provider.id);
     } catch (error) {
-      console.error("Error deleting model:", error);
+      console.error("Error deleting analysis provider:", error);
     }
   }, []);
 
-  const handleEditModel = useCallback((model: MLModel) => {
-    setEditingModel(model);
-    setIsModelOverlayOpen(true);
+  const handleEditProvider = useCallback((provider: AnalysisProvider) => {
+    setEditingProvider(provider);
+    setIsProviderOverlayOpen(true);
   }, []);
 
-  const handleAddModel = useCallback(() => {
-    setEditingModel(null);
-    setIsModelOverlayOpen(true);
+  const handleAddProvider = useCallback(() => {
+    setEditingProvider(null);
+    setIsProviderOverlayOpen(true);
   }, []);
 
-  const handleModelOverlayClose = useCallback(() => {
-    setIsModelOverlayOpen(false);
-    setEditingModel(null);
+  const handleProviderOverlayClose = useCallback(() => {
+    setIsProviderOverlayOpen(false);
+    setEditingProvider(null);
   }, []);
 
   if (!open) {
     return null;
   }
 
-  const mlModels = contextSettings?.mlModels ?? [];
+  const analysisProviders = contextSettings?.analysisProviders ?? [];
 
   return (
     <>
@@ -168,7 +167,7 @@ const SettingsOverlay = ({ open, onClose, onOpenRequest, returnFocusRef }: Setti
         {contextSettings && (
           <UnderlinePanels aria-label="Select a tab">
             <UnderlinePanels.Tab icon={GearIcon}>General</UnderlinePanels.Tab>
-            <UnderlinePanels.Tab icon={AiModelIcon}>Machine Learning</UnderlinePanels.Tab>
+            <UnderlinePanels.Tab icon={AiModelIcon}>Analysis</UnderlinePanels.Tab>
 
             <UnderlinePanels.Panel>
               <Stack direction="vertical" gap="spacious" padding="spacious">
@@ -226,7 +225,9 @@ const SettingsOverlay = ({ open, onClose, onOpenRequest, returnFocusRef }: Setti
                     leadingVisual={<AlertIcon size="small" />}
                     primaryAction={
                       <Banner.PrimaryAction
-                        onClick={() => window.electronAPI.openExternalLink("user-guide-ml-tokens")}
+                        onClick={() =>
+                          window.electronAPI.openExternalLink("user-guide-analysis-tokens")
+                        }
                       >
                         View Details
                       </Banner.PrimaryAction>
@@ -238,28 +239,28 @@ const SettingsOverlay = ({ open, onClose, onOpenRequest, returnFocusRef }: Setti
                 )}
 
                 <div style={{ display: "flex", justifyContent: "flex-end", paddingBottom: "12px" }}>
-                  <Button leadingVisual={PlusIcon} onClick={handleAddModel} variant="primary">
-                    Add Model
+                  <Button leadingVisual={PlusIcon} onClick={handleAddProvider} variant="primary">
+                    Add Provider
                   </Button>
                 </div>
 
-                {mlModels.length === 0 ? (
-                  EmptyModels
+                {analysisProviders.length === 0 ? (
+                  EmptyProviders
                 ) : (
                   <Stack direction="vertical" gap="none">
-                    {mlModels.map((model) => (
+                    {analysisProviders.map((provider) => (
                       <Stack
                         align="center"
-                        className="ml-list-row"
+                        className="analysis-provider-list-row"
                         direction="horizontal"
                         gap="condensed"
                         justify="start"
-                        key={model.id}
+                        key={provider.id}
                         padding="normal"
                       >
                         <Stack direction="vertical" gap="none" style={{ width: "100%" }}>
                           <Text size="medium" weight="semibold">
-                            {model.name}
+                            {provider.name}
                           </Text>
                           <Text
                             size="small"
@@ -268,22 +269,22 @@ const SettingsOverlay = ({ open, onClose, onOpenRequest, returnFocusRef }: Setti
                               color: "var(--fgColor-muted)",
                             }}
                           >
-                            {model.endpoint}
+                            {provider.endpoint}
                           </Text>
                         </Stack>
 
                         <IconButton
-                          aria-label={`Edit ${model.name}`}
+                          aria-label={`Edit ${provider.name}`}
                           icon={PencilIcon}
-                          onClick={() => handleEditModel(model)}
+                          onClick={() => handleEditProvider(provider)}
                           size="small"
                           variant="default"
                         />
 
                         <IconButton
-                          aria-label={`Delete ${model.name}`}
+                          aria-label={`Delete ${provider.name}`}
                           icon={TrashIcon}
-                          onClick={() => void handleDeleteModel(model)}
+                          onClick={() => void handleDeleteProvider(provider)}
                           size="small"
                           variant="danger"
                         />
@@ -297,10 +298,10 @@ const SettingsOverlay = ({ open, onClose, onOpenRequest, returnFocusRef }: Setti
         )}
       </Dialog>
 
-      <ModelOverlay
-        editingModel={editingModel}
-        onClose={handleModelOverlayClose}
-        open={isModelOverlayOpen}
+      <AnalysisProviderOverlay
+        editingProvider={editingProvider}
+        onClose={handleProviderOverlayClose}
+        open={isProviderOverlayOpen}
       />
     </>
   );

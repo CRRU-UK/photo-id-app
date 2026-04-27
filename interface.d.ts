@@ -1,10 +1,10 @@
 import type {
+  AnalysisMatchResponse,
+  AnalysisProviderDraft,
   EditorNavigation,
   ExportTypes,
   ExternalLinks,
   LoadingData,
-  MLMatchResponse,
-  MLModelDraft,
   PhotoBody,
   ProjectBody,
   RecentProject,
@@ -12,10 +12,10 @@ import type {
 } from "./src/types";
 
 export interface IElectronAPI {
-  analyseStack: (photos: PhotoBody[]) => Promise<MLMatchResponse | null>;
+  analyseStack: (photos: PhotoBody[]) => Promise<AnalysisMatchResponse | null>;
   cancelAnalyseStack: () => void;
   closeProject: () => void;
-  deleteModel: (modelId: string) => Promise<void>;
+  deleteAnalysisProvider: (providerId: string) => Promise<void>;
   duplicatePhotoFile: (data: PhotoBody) => Promise<PhotoBody>;
   exportMatches: (data: string, type: ExportTypes) => Promise<void>;
   flushSaveProject: (data: string) => boolean;
@@ -36,7 +36,7 @@ export interface IElectronAPI {
   openRecentProject: (path: string) => Promise<void>;
   removeRecentProject: (path: string) => Promise<RecentProject[]>;
   revertPhotoFile: (data: PhotoBody) => Promise<PhotoBody>;
-  saveModel: (draft: MLModelDraft) => Promise<void>;
+  saveAnalysisProvider: (draft: AnalysisProviderDraft) => Promise<void>;
   savePhotoFile: (data: PhotoBody) => Promise<void>;
   saveProject: (data: string) => Promise<void>;
   updateSettings: (settings: SettingsData) => Promise<void>;

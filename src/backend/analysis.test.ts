@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { MLMatchResponse, PhotoBody, PhotoEdits } from "@/types";
+import type { AnalysisMatchResponse, PhotoBody, PhotoEdits } from "@/types";
 
 type RenderApiImageOptions = { sourcePath: string; edits: PhotoEdits };
 
@@ -17,7 +17,7 @@ vi.mock("@/backend/projects", () => ({
 const mockFetch = vi.fn<typeof fetch>();
 vi.stubGlobal("fetch", mockFetch);
 
-const { analyseStack, cancelAnalyseStack } = await import("./model");
+const { analyseStack, cancelAnalyseStack } = await import("./analysis");
 
 const defaultSettings = {
   endpoint: "https://api.example.com",
@@ -32,7 +32,7 @@ const defaultPhoto: PhotoBody = {
   isEdited: false,
 };
 
-const successResponse: MLMatchResponse = {
+const successResponse: AnalysisMatchResponse = {
   matches: [
     { rank: 1, id: "047", rating: 0.91, details: "047_20220615_0034.jpg" },
     { rank: 2, id: "012", rating: 0.73, details: "012_20190801_0005.jpg" },
@@ -54,7 +54,7 @@ describe(analyseStack, () => {
   });
 
   it("sorts matches by rank ascending", async () => {
-    const unorderedResponse: MLMatchResponse = {
+    const unorderedResponse: AnalysisMatchResponse = {
       matches: [
         { rank: 3, id: "237", rating: 0.71, details: "237_20180623_0152.jpg" },
         { rank: 1, id: "047", rating: 0.91, details: "047_20220615_0034.jpg" },

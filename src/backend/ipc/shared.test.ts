@@ -218,12 +218,12 @@ describe("shared IPC utilities", () => {
       expect(resolveExternalLinkUrl("user-guide")).toContain("user-guide/usage");
     });
 
-    it("resolves 'user-guide-ml' to the ML guide URL", () => {
-      expect(resolveExternalLinkUrl("user-guide-ml")).toContain("machine-learning");
+    it("resolves 'user-guide-analysis' to the analysis guide URL", () => {
+      expect(resolveExternalLinkUrl("user-guide-analysis")).toContain("analysis");
     });
 
-    it("resolves 'user-guide-ml-tokens' to the ML tokens URL", () => {
-      expect(resolveExternalLinkUrl("user-guide-ml-tokens")).toContain("api-tokens");
+    it("resolves 'user-guide-analysis-tokens' to the analysis tokens URL", () => {
+      expect(resolveExternalLinkUrl("user-guide-analysis-tokens")).toContain("api-tokens");
     });
 
     it("resolves 'privacy' to the privacy URL", () => {

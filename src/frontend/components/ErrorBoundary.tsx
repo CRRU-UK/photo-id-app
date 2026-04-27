@@ -15,8 +15,8 @@ interface ErrorBoundaryState {
 
 /**
  * Catches render errors in child components and displays a recovery UI instead of crashing the
- * entire view. Wrap heavy components (ImageEditor, AnalysisOverlay) so a canvas or ML error doesn't
- * take down the whole project page.
+ * entire view. Wrap heavy components (ImageEditor, AnalysisMatchOverlay) so a canvas or analysis error
+ * doesn't take down the whole project page.
  */
 class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   constructor(props: ErrorBoundaryProps) {

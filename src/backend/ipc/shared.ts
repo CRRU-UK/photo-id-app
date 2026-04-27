@@ -79,8 +79,8 @@ export const openProjectFromPath = async (filePath: string): Promise<void> => {
 const EXTERNAL_LINK_MAP: Record<string, string> = {
   website: EXTERNAL_LINKS.WEBSITE,
   "user-guide": EXTERNAL_LINKS.USER_GUIDE,
-  "user-guide-ml": EXTERNAL_LINKS.USER_GUIDE_ML,
-  "user-guide-ml-tokens": EXTERNAL_LINKS.USER_GUIDE_ML_TOKENS,
+  "user-guide-analysis": EXTERNAL_LINKS.USER_GUIDE_ANALYSIS,
+  "user-guide-analysis-tokens": EXTERNAL_LINKS.USER_GUIDE_ANALYSIS_TOKENS,
   privacy: EXTERNAL_LINKS.PRIVACY,
   "keyboard-shortcuts": EXTERNAL_LINKS.KEYBOARD_SHORTCUTS,
   changelog: EXTERNAL_LINKS.CHANGELOG,

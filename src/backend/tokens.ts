@@ -57,30 +57,30 @@ const isEncryptionAvailable = (): boolean => {
 };
 
 /**
- * Saves a token for a model ID. Encrypts with safeStorage if available, otherwise stores as
- * plaintext.
+ * Saves a token for an analysis provider ID. Encrypts with safeStorage if available, otherwise
+ * stores as plaintext.
  */
-const saveToken = async (modelId: string, token: string): Promise<void> => {
+const saveToken = async (providerId: string, token: string): Promise<void> => {
   const store = await readTokenStore();
   const encrypted = isEncryptionAvailable();
 
   if (encrypted) {
     const buffer = safeStorage.encryptString(token);
-    store.tokens[modelId] = { value: buffer.toString("base64"), encrypted: true };
+    store.tokens[providerId] = { value: buffer.toString("base64"), encrypted: true };
   } else {
-    store.tokens[modelId] = { value: token, encrypted: false };
+    store.tokens[providerId] = { value: token, encrypted: false };
   }
 
   await writeTokenStore(store);
 };
 
 /**
- * Retrieves and decrypts a token for a model ID. Returns null if not found or if decryption fails
- * (e.g. OS keychain key has changed).
+ * Retrieves and decrypts a token for an analysis provider ID. Returns null if not found or if
+ * decryption fails (e.g. OS keychain key has changed).
  */
-const getToken = async (modelId: string): Promise<string | null> => {
+const getToken = async (providerId: string): Promise<string | null> => {
   const store = await readTokenStore();
-  const entry = store.tokens[modelId];
+  const entry = store.tokens[providerId];
 
   if (!entry) {
     return null;
@@ -91,7 +91,7 @@ const getToken = async (modelId: string): Promise<string | null> => {
       const buffer = Buffer.from(entry.value, "base64");
       return safeStorage.decryptString(buffer);
     } catch (error) {
-      console.error("Failed to decrypt token for model:", modelId, error);
+      console.error("Failed to decrypt token for analysis provider:", providerId, error);
       return null;
     }
   }
@@ -100,12 +100,12 @@ const getToken = async (modelId: string): Promise<string | null> => {
 };
 
 /**
- * Removes a token for a model ID from the store.
+ * Removes a token for an analysis provider ID from the store.
  */
-const deleteToken = async (modelId: string): Promise<void> => {
+const deleteToken = async (providerId: string): Promise<void> => {
   const store = await readTokenStore();
 
-  delete store.tokens[modelId];
+  delete store.tokens[providerId];
 
   await writeTokenStore(store);
 };

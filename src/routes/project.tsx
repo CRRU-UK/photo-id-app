@@ -13,9 +13,9 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { observer } from "mobx-react-lite";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ASPECT_RATIO, MATCHED_STACKS_PER_PAGE, ROUTES } from "@/constants";
-import { AnalysisProvider, useAnalysis } from "@/contexts/AnalysisContext";
+import { AnalysisContextProvider, useAnalysis } from "@/contexts/AnalysisContext";
 import { useProject } from "@/contexts/ProjectContext";
-import AnalysisOverlay from "@/frontend/components/AnalysisOverlay";
+import AnalysisMatchOverlay from "@/frontend/components/AnalysisMatchOverlay";
 import ErrorBoundary from "@/frontend/components/ErrorBoundary";
 import LoadingOverlay from "@/frontend/components/LoadingOverlay";
 import Selections from "@/frontend/components/Selections";
@@ -299,7 +299,7 @@ const ProjectPage = observer(() => {
       />
 
       <ErrorBoundary recovery={{ label: "Dismiss", onClick: () => {} }}>
-        <AnalysisOverlay />
+        <AnalysisMatchOverlay />
       </ErrorBoundary>
 
       <DndContext onDragEnd={handleDragEnd} onDragStart={handleDragStart} sensors={sensors}>
@@ -351,9 +351,9 @@ const ProjectPage = observer(() => {
 });
 
 const ProjectPageWrapper = () => (
-  <AnalysisProvider>
+  <AnalysisContextProvider>
     <ProjectPage />
-  </AnalysisProvider>
+  </AnalysisContextProvider>
 );
 
 export const Route = createFileRoute("/project")({

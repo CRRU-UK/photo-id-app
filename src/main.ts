@@ -12,8 +12,8 @@ import {
 import started from "electron-squirrel-startup";
 import { updateElectronApp } from "update-electron-app";
 
+import { registerAnalysisHandlers } from "@/backend/ipc/analysisHandlers";
 import { registerEditorHandlers } from "@/backend/ipc/editorHandlers";
-import { registerModelHandlers } from "@/backend/ipc/modelHandlers";
 import { registerPhotoHandlers } from "@/backend/ipc/photoHandlers";
 import { registerProjectHandlers } from "@/backend/ipc/projectHandlers";
 import { registerSettingsHandlers } from "@/backend/ipc/settingsHandlers";
@@ -266,7 +266,7 @@ void app.whenReady().then(async () => {
   registerPhotoHandlers(ipcMain);
   registerEditorHandlers(ipcMain, { production, defaultWebPreferences, basePath });
   registerSettingsHandlers(ipcMain);
-  registerModelHandlers(ipcMain);
+  registerAnalysisHandlers(ipcMain);
 
   await createMainWindow();
 

@@ -8,7 +8,7 @@ import {
   useState,
 } from "react";
 
-import type { MLMatchResponse, PhotoBody } from "@/types";
+import type { AnalysisMatchResponse, PhotoBody } from "@/types";
 
 interface AnalysisContextValue {
   error: string | null;
@@ -16,18 +16,18 @@ interface AnalysisContextValue {
   handleClose: () => void;
   inputLabel: string | null;
   isAnalysing: boolean;
-  result: MLMatchResponse | null;
+  result: AnalysisMatchResponse | null;
 }
 
 const AnalysisContext = createContext<AnalysisContextValue | null>(null);
 
-interface AnalysisProviderProps {
+interface AnalysisContextProviderProps {
   children: ReactNode;
 }
 
-export const AnalysisProvider = ({ children }: AnalysisProviderProps) => {
+export const AnalysisContextProvider = ({ children }: AnalysisContextProviderProps) => {
   const [isAnalysing, setIsAnalysing] = useState(false);
-  const [result, setResult] = useState<MLMatchResponse | null>(null);
+  const [result, setResult] = useState<AnalysisMatchResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [inputLabel, setinputLabel] = useState<string | null>(null);
 
@@ -86,7 +86,7 @@ export const useAnalysis = (): AnalysisContextValue => {
   const context = useContext(AnalysisContext);
 
   if (context === null) {
-    throw new Error("useAnalysis must be used within an AnalysisProvider");
+    throw new Error("useAnalysis must be used within an AnalysisContextProvider");
   }
 
   return context;

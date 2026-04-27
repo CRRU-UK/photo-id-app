@@ -30,7 +30,7 @@ All image rendering in the renderer uses the custom `photo://` protocol instead 
 
 ## Path Traversal Protection
 
-Backend file operations (duplicate, export, thumbnail generation, ML analysis) use `resolvePhotoPath()` to validate that constructed file paths do not escape the project directory. This guards against tampered project JSON containing traversal sequences (e.g. `../../`) in photo filenames.
+Backend file operations (duplicate, export, thumbnail generation, analysis) use `resolvePhotoPath()` to validate that constructed file paths do not escape the project directory. This guards against tampered project JSON containing traversal sequences (e.g. `../../`) in photo filenames.
 
 ## External Links
 
@@ -38,7 +38,7 @@ The renderer cannot open arbitrary URLs in the default browser. External link re
 
 ## Token Security
 
-ML model API tokens are encrypted at rest using Electron's `safeStorage` API and stored in a separate `tokens.json` file in the app user data directory. Tokens are decrypted only at the moment of an API request and never sent to the renderer. Per-token encryption flags handle edge cases where encryption availability changes between sessions. On machines where secure storage is unavailable, tokens fall back to plaintext storage with a UI warning.
+Analysis provider API tokens are encrypted at rest using Electron's `safeStorage` API and stored in a separate `tokens.json` file in the app user data directory. Tokens are decrypted only at the moment of an API request and never sent to the renderer. Per-token encryption flags handle edge cases where encryption availability changes between sessions. On machines where secure storage is unavailable, tokens fall back to plaintext storage with a UI warning.
 
 ## macOS Entitlements
 
@@ -69,7 +69,7 @@ All data crossing process boundaries is validated with Zod schemas (`src/schemas
 - Project files are validated on load via `parseProjectFile()`
 - Settings and token files are validated on read with their respective schemas
 - IPC payloads are validated in handlers before processing
-- ML API responses are validated with `mlMatchResponseSchema`
+- Analysis API responses are validated with `analysisMatchResponseSchema`
 
 ## Reporting Security Issues
 

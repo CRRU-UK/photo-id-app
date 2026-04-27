@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { DEFAULT_SETTINGS, SETTINGS_FILE_NAME } from "@/constants";
-import type { MLModel, SettingsData } from "@/types";
+import type { AnalysisProvider, SettingsData } from "@/types";
 
 vi.mock("electron", () => ({
   app: {
@@ -44,9 +44,9 @@ const {
   getSettingsForRenderer,
   getTelemetrySync,
   initSentry,
-  removeModel,
+  removeAnalysisProvider,
   updateSettings,
-  upsertModel,
+  upsertAnalysisProvider,
 } = await import("./settings");
 
 describe("settings", () => {
@@ -83,8 +83,8 @@ describe("settings", () => {
         version: "v1",
         themeMode: "light",
         telemetry: "enabled",
-        mlModels: [],
-        selectedModelId: null,
+        analysisProviders: [],
+        selectedAnalysisProviderId: null,
       };
       mockExistsSync.mockReturnValue(true);
       mockReadFile.mockResolvedValue(JSON.stringify(savedSettings));
@@ -142,8 +142,8 @@ describe("settings", () => {
       const settingsWithoutVersion = {
         themeMode: "light",
         telemetry: "enabled",
-        mlModels: [],
-        selectedModelId: null,
+        analysisProviders: [],
+        selectedAnalysisProviderId: null,
       };
       mockExistsSync.mockReturnValue(true);
       mockReadFile.mockResolvedValue(JSON.stringify(settingsWithoutVersion));
@@ -188,115 +188,122 @@ describe("settings", () => {
     });
   });
 
-  describe(upsertModel, () => {
-    const modelA: MLModel = {
+  describe(upsertAnalysisProvider, () => {
+    const providerA: AnalysisProvider = {
       id: "00000000-0000-0000-0000-000000000001",
-      name: "Model A",
+      name: "Provider A",
       endpoint: "https://a.com",
     };
-    const modelB: MLModel = {
+    const providerB: AnalysisProvider = {
       id: "00000000-0000-0000-0000-000000000002",
-      name: "Model B",
+      name: "Provider B",
       endpoint: "https://b.com",
     };
 
-    it("adds a new model when no model with that ID exists", () => {
-      const settings: SettingsData = { ...DEFAULT_SETTINGS, mlModels: [] };
+    it("adds a new provider when no provider with that ID exists", () => {
+      const settings: SettingsData = { ...DEFAULT_SETTINGS, analysisProviders: [] };
 
-      const result = upsertModel(settings, modelA.id, modelA);
+      const result = upsertAnalysisProvider(settings, providerA.id, providerA);
 
-      expect(result.mlModels).toHaveLength(1);
-      expect(result.mlModels[0]).toStrictEqual(modelA);
+      expect(result.analysisProviders).toHaveLength(1);
+      expect(result.analysisProviders[0]).toStrictEqual(providerA);
     });
 
-    it("replaces an existing model when a model with that ID already exists", () => {
-      const updated: MLModel = { ...modelA, name: "Updated Name", endpoint: "https://new.com" };
-      const settings: SettingsData = { ...DEFAULT_SETTINGS, mlModels: [modelA] };
+    it("replaces an existing provider when a provider with that ID already exists", () => {
+      const updated: AnalysisProvider = {
+        ...providerA,
+        name: "Updated Name",
+        endpoint: "https://new.com",
+      };
+      const settings: SettingsData = { ...DEFAULT_SETTINGS, analysisProviders: [providerA] };
 
-      const result = upsertModel(settings, modelA.id, updated);
+      const result = upsertAnalysisProvider(settings, providerA.id, updated);
 
-      expect(result.mlModels).toHaveLength(1);
-      expect(result.mlModels[0]).toStrictEqual(updated);
+      expect(result.analysisProviders).toHaveLength(1);
+      expect(result.analysisProviders[0]).toStrictEqual(updated);
     });
 
-    it("preserves other models when adding a new one", () => {
-      const settings: SettingsData = { ...DEFAULT_SETTINGS, mlModels: [modelA] };
+    it("preserves other providers when adding a new one", () => {
+      const settings: SettingsData = { ...DEFAULT_SETTINGS, analysisProviders: [providerA] };
 
-      const result = upsertModel(settings, modelB.id, modelB);
+      const result = upsertAnalysisProvider(settings, providerB.id, providerB);
 
-      expect(result.mlModels).toHaveLength(2);
-      expect(result.mlModels[0]).toStrictEqual(modelA);
-      expect(result.mlModels[1]).toStrictEqual(modelB);
+      expect(result.analysisProviders).toHaveLength(2);
+      expect(result.analysisProviders[0]).toStrictEqual(providerA);
+      expect(result.analysisProviders[1]).toStrictEqual(providerB);
     });
 
     it("does not mutate the original settings", () => {
-      const settings: SettingsData = { ...DEFAULT_SETTINGS, mlModels: [] };
+      const settings: SettingsData = { ...DEFAULT_SETTINGS, analysisProviders: [] };
 
-      upsertModel(settings, modelA.id, modelA);
+      upsertAnalysisProvider(settings, providerA.id, providerA);
 
-      expect(settings.mlModels).toHaveLength(0);
+      expect(settings.analysisProviders).toHaveLength(0);
     });
   });
 
-  describe(removeModel, () => {
-    const modelA: MLModel = {
+  describe(removeAnalysisProvider, () => {
+    const providerA: AnalysisProvider = {
       id: "00000000-0000-0000-0000-000000000001",
-      name: "Model A",
+      name: "Provider A",
       endpoint: "https://a.com",
     };
-    const modelB: MLModel = {
+    const providerB: AnalysisProvider = {
       id: "00000000-0000-0000-0000-000000000002",
-      name: "Model B",
+      name: "Provider B",
       endpoint: "https://b.com",
     };
 
-    it("removes the model with the given ID", () => {
-      const settings: SettingsData = { ...DEFAULT_SETTINGS, mlModels: [modelA] };
+    it("removes the provider with the given ID", () => {
+      const settings: SettingsData = { ...DEFAULT_SETTINGS, analysisProviders: [providerA] };
 
-      const result = removeModel(settings, modelA.id);
+      const result = removeAnalysisProvider(settings, providerA.id);
 
-      expect(result.mlModels).toHaveLength(0);
+      expect(result.analysisProviders).toHaveLength(0);
     });
 
-    it("preserves other models when removing", () => {
-      const settings: SettingsData = { ...DEFAULT_SETTINGS, mlModels: [modelA, modelB] };
-
-      const result = removeModel(settings, modelA.id);
-
-      expect(result.mlModels).toHaveLength(1);
-      expect(result.mlModels[0]).toStrictEqual(modelB);
-    });
-
-    it("clears selectedModelId when removing the selected model", () => {
+    it("preserves other providers when removing", () => {
       const settings: SettingsData = {
         ...DEFAULT_SETTINGS,
-        mlModels: [modelA],
-        selectedModelId: modelA.id,
+        analysisProviders: [providerA, providerB],
       };
 
-      const result = removeModel(settings, modelA.id);
+      const result = removeAnalysisProvider(settings, providerA.id);
 
-      expect(result.selectedModelId).toBeNull();
+      expect(result.analysisProviders).toHaveLength(1);
+      expect(result.analysisProviders[0]).toStrictEqual(providerB);
     });
 
-    it("preserves selectedModelId when removing a different model", () => {
+    it("clears selectedAnalysisProviderId when removing the selected provider", () => {
       const settings: SettingsData = {
         ...DEFAULT_SETTINGS,
-        mlModels: [modelA, modelB],
-        selectedModelId: modelA.id,
+        analysisProviders: [providerA],
+        selectedAnalysisProviderId: providerA.id,
       };
 
-      const result = removeModel(settings, modelB.id);
+      const result = removeAnalysisProvider(settings, providerA.id);
 
-      expect(result.selectedModelId).toBe(modelA.id);
+      expect(result.selectedAnalysisProviderId).toBeNull();
+    });
+
+    it("preserves selectedAnalysisProviderId when removing a different provider", () => {
+      const settings: SettingsData = {
+        ...DEFAULT_SETTINGS,
+        analysisProviders: [providerA, providerB],
+        selectedAnalysisProviderId: providerA.id,
+      };
+
+      const result = removeAnalysisProvider(settings, providerB.id);
+
+      expect(result.selectedAnalysisProviderId).toBe(providerA.id);
     });
 
     it("does not mutate the original settings", () => {
-      const settings: SettingsData = { ...DEFAULT_SETTINGS, mlModels: [modelA] };
+      const settings: SettingsData = { ...DEFAULT_SETTINGS, analysisProviders: [providerA] };
 
-      removeModel(settings, modelA.id);
+      removeAnalysisProvider(settings, providerA.id);
 
-      expect(settings.mlModels).toHaveLength(1);
+      expect(settings.analysisProviders).toHaveLength(1);
     });
   });
 
@@ -306,8 +313,8 @@ describe("settings", () => {
         version: "v1",
         themeMode: "auto",
         telemetry: "disabled",
-        mlModels: [],
-        selectedModelId: null,
+        analysisProviders: [],
+        selectedAnalysisProviderId: null,
       };
 
       await updateSettings(settings);
@@ -340,8 +347,8 @@ describe("settings", () => {
         version: "v1",
         themeMode: "dark",
         telemetry: "enabled",
-        mlModels: [],
-        selectedModelId: null,
+        analysisProviders: [],
+        selectedAnalysisProviderId: null,
       };
 
       mockExistsSync.mockReturnValue(true);
@@ -375,8 +382,8 @@ describe("settings", () => {
         version: "v1",
         themeMode: "dark",
         telemetry: "enabled",
-        mlModels: [],
-        selectedModelId: null,
+        analysisProviders: [],
+        selectedAnalysisProviderId: null,
       };
 
       mockExistsSync.mockReturnValue(true);

@@ -55,7 +55,9 @@ const Stack = observer(({ collection, showAnalysisButton = true, stackLabel }: S
   const { isAnalysing, handleAnalyse } = useAnalysis();
   const [revertingPhoto, setRevertingPhoto] = useState<boolean>(false);
 
-  const selectedModel = settings?.mlModels?.find(({ id }) => id === settings?.selectedModelId);
+  const selectedProvider = settings?.analysisProviders?.find(
+    ({ id }) => id === settings?.selectedAnalysisProviderId,
+  );
 
   const handleAnalyseClick = () => {
     if (collection.photos.length === 0) {
@@ -178,9 +180,9 @@ const Stack = observer(({ collection, showAnalysisButton = true, stackLabel }: S
         </div>
 
         <ActionBar aria-label={PROJECT_TOOLTIPS.MORE_OPTIONS} flush gap="none" size="small">
-          {showAnalysisButton && !!selectedModel && (
+          {showAnalysisButton && !!selectedProvider && (
             <ActionBar.IconButton
-              aria-label={PROJECT_TOOLTIPS.ANALYSE_PHOTOS}
+              aria-label={PROJECT_TOOLTIPS.ANALYSIS_MATCH_STACK}
               disabled={collection.photos.length === 0 || isAnalysing}
               icon={AiModelIcon}
               onClick={handleAnalyseClick}

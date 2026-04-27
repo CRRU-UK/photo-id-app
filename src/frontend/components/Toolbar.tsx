@@ -15,7 +15,7 @@ import { KeybindingHint } from "@primer/react/experimental";
 import { memo, useCallback } from "react";
 import { EDITOR_KEYS, EDITOR_TOOLTIPS, EditorPanDirection, IMAGE_FILTERS } from "@/constants";
 import Slider from "@/frontend/components/Slider";
-import type { EditorNavigation, MLModel } from "@/types";
+import type { AnalysisProvider, EditorNavigation } from "@/types";
 
 interface ToolbarProps {
   edgeDetectionEnabled: boolean;
@@ -34,7 +34,7 @@ interface ToolbarProps {
   onZoomOut: () => void;
   resetKey: number;
   saving: boolean;
-  selectedModel: MLModel | undefined;
+  selectedProvider: AnalysisProvider | undefined;
   sliderInitials: {
     brightness: number;
     contrast: number;
@@ -48,7 +48,7 @@ const Toolbar = ({
   edgeDetectionEnabled,
   isAnalysing,
   loupeEnabled,
-  selectedModel,
+  selectedProvider,
   saving,
   onAnalyse,
   onSetBrightness,
@@ -166,8 +166,8 @@ const Toolbar = ({
             variant={loupeEnabled ? "primary" : "default"}
           />
         </ActionBar.Group>
-        {selectedModel !== undefined && <ActionBar.Divider />}
-        {selectedModel !== undefined && (
+        {selectedProvider !== undefined && <ActionBar.Divider />}
+        {selectedProvider !== undefined && (
           <ActionBar.Group>
             <ActionBar.IconButton
               aria-label={EDITOR_TOOLTIPS.ANALYSE}

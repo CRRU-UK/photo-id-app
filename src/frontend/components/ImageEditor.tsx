@@ -96,7 +96,9 @@ const ImageEditor = ({
   });
 
   const { settings } = useSettings();
-  const selectedModel = settings?.mlModels?.find(({ id }) => id === settings?.selectedModelId);
+  const selectedProvider = settings?.analysisProviders?.find(
+    ({ id }) => id === settings?.selectedAnalysisProviderId,
+  );
 
   const {
     handleAnalyse,
@@ -207,7 +209,7 @@ const ImageEditor = ({
   }, [data, getters]);
 
   const handleAnalysis = useCallback(() => {
-    if (!selectedModel) {
+    if (!selectedProvider) {
       return;
     }
 
@@ -226,7 +228,7 @@ const ImageEditor = ({
       [{ ...data, edits: currentEdits, isEdited: computeIsEdited(currentEdits) }],
       data.name,
     );
-  }, [data, getters, handleAnalyse, selectedModel]);
+  }, [data, getters, handleAnalyse, selectedProvider]);
 
   /**
    * Ref ensures the dirty check always reads the latest getters without re-subscribing on every
@@ -530,7 +532,7 @@ const ImageEditor = ({
           onZoomOut={handlers.handleZoomOut}
           resetKey={state.resetKey}
           saving={saving}
-          selectedModel={selectedModel}
+          selectedProvider={selectedProvider}
           sliderInitials={sliderInitials}
         />
       </div>
