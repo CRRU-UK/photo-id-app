@@ -12,8 +12,8 @@ import type {
 } from "./src/types";
 
 export interface IElectronAPI {
-  analyseStack: (photos: PhotoBody[]) => Promise<AnalysisMatchResponse | null>;
-  cancelAnalyseStack: () => void;
+  analyseMatches: (photos: PhotoBody[]) => Promise<AnalysisMatchResponse | null>;
+  cancelAnalyseMatches: () => void;
   closeProject: () => void;
   deleteAnalysisProvider: (providerId: string) => Promise<void>;
   duplicatePhotoFile: (data: PhotoBody) => Promise<PhotoBody>;

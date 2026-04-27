@@ -34,7 +34,7 @@ export const AnalysisContextProvider = ({ children }: AnalysisContextProviderPro
   useEffect(() => {
     return () => {
       if (isAnalysing) {
-        window.electronAPI.cancelAnalyseStack();
+        window.electronAPI.cancelAnalyseMatches();
       }
     };
   }, [isAnalysing]);
@@ -51,7 +51,7 @@ export const AnalysisContextProvider = ({ children }: AnalysisContextProviderPro
       setinputLabel(label);
 
       try {
-        const response = await window.electronAPI.analyseStack(photos);
+        const response = await window.electronAPI.analyseMatches(photos);
         setResult(response);
       } catch (error) {
         setError(error instanceof Error ? error.message : "An unexpected error occurred.");
@@ -65,7 +65,7 @@ export const AnalysisContextProvider = ({ children }: AnalysisContextProviderPro
 
   const handleClose = useCallback(() => {
     if (isAnalysing) {
-      window.electronAPI.cancelAnalyseStack();
+      window.electronAPI.cancelAnalyseMatches();
       setIsAnalysing(false);
     }
 

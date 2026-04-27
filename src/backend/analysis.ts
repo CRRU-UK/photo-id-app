@@ -6,14 +6,14 @@ import { ANALYSIS_API_REQUEST_TIMEOUT_MS } from "@/constants";
 import { analysisMatchResponseSchema } from "@/schemas";
 import type { AnalysisMatchResponse, PhotoBody } from "@/types";
 
-type AnalyseStackSettings = {
+type AnalyseMatchesSettings = {
   endpoint: string;
   token: string;
 };
 
-type AnalyseStackOptions = {
+type AnalyseMatchesOptions = {
   photos: PhotoBody[];
-  settings: AnalyseStackSettings;
+  settings: AnalyseMatchesSettings;
 };
 
 let currentAbortController: AbortController | null = null;
@@ -58,12 +58,12 @@ const buildFormData = async (
 
 /**
  * Sends all photos in a stack to the API /match endpoint. Returns null if the request is cancelled
- * via cancelAnalyseStack.
+ * via cancelAnalyseMatches.
  */
-const analyseStack = async ({
+const analyseMatches = async ({
   photos,
   settings,
-}: AnalyseStackOptions): Promise<AnalysisMatchResponse | null> => {
+}: AnalyseMatchesOptions): Promise<AnalysisMatchResponse | null> => {
   if (photos.length === 0) {
     throw new Error("No photos to analyse");
   }
@@ -142,13 +142,13 @@ const analyseStack = async ({
 };
 
 /**
- * Cancels any in-flight analyseStack request.
+ * Cancels any in-flight analyseMatches request.
  */
-const cancelAnalyseStack = (): void => {
+const cancelAnalyseMatches = (): void => {
   if (currentAbortController) {
     currentAbortController.abort();
     currentAbortController = null;
   }
 };
 
-export { analyseStack, cancelAnalyseStack };
+export { analyseMatches, cancelAnalyseMatches };

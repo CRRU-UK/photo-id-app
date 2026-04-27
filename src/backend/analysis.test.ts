@@ -17,7 +17,7 @@ vi.mock("@/backend/projects", () => ({
 const mockFetch = vi.fn<typeof fetch>();
 vi.stubGlobal("fetch", mockFetch);
 
-const { analyseStack, cancelAnalyseStack } = await import("./analysis");
+const { analyseMatches, cancelAnalyseMatches } = await import("./analysis");
 
 const defaultSettings = {
   endpoint: "https://api.example.com",
@@ -39,7 +39,7 @@ const successResponse: AnalysisMatchResponse = {
   ],
 };
 
-describe(analyseStack, () => {
+describe(analyseMatches, () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockRenderApiImage.mockResolvedValue(Buffer.from("image-data"));
@@ -48,7 +48,7 @@ describe(analyseStack, () => {
   it("returns ranked matches on a successful response", async () => {
     mockFetch.mockResolvedValue(new Response(JSON.stringify(successResponse), { status: 200 }));
 
-    const result = await analyseStack({ photos: [defaultPhoto], settings: defaultSettings });
+    const result = await analyseMatches({ photos: [defaultPhoto], settings: defaultSettings });
 
     expect(result).toStrictEqual(successResponse);
   });
@@ -63,7 +63,7 @@ describe(analyseStack, () => {
     };
     mockFetch.mockResolvedValue(new Response(JSON.stringify(unorderedResponse), { status: 200 }));
 
-    const result = await analyseStack({ photos: [defaultPhoto], settings: defaultSettings });
+    const result = await analyseMatches({ photos: [defaultPhoto], settings: defaultSettings });
 
     expect(result?.matches.map(({ rank }) => rank)).toStrictEqual([1, 2, 3]);
   });
@@ -71,7 +71,7 @@ describe(analyseStack, () => {
   it("sends a POST to the endpoint /match URL", async () => {
     mockFetch.mockResolvedValue(new Response(JSON.stringify(successResponse), { status: 200 }));
 
-    await analyseStack({ photos: [defaultPhoto], settings: defaultSettings });
+    await analyseMatches({ photos: [defaultPhoto], settings: defaultSettings });
 
     expect(mockFetch).toHaveBeenCalledWith(
       "https://api.example.com/match",
@@ -83,7 +83,7 @@ describe(analyseStack, () => {
     mockFetch.mockResolvedValue(new Response(JSON.stringify(successResponse), { status: 200 }));
 
     const settingsWithTrailingSlash = { ...defaultSettings, endpoint: "https://api.example.com/" };
-    await analyseStack({ photos: [defaultPhoto], settings: settingsWithTrailingSlash });
+    await analyseMatches({ photos: [defaultPhoto], settings: settingsWithTrailingSlash });
 
     const [url] = mockFetch.mock.calls[0];
 
@@ -93,7 +93,7 @@ describe(analyseStack, () => {
   it("sends the Authorization bearer token header", async () => {
     mockFetch.mockResolvedValue(new Response(JSON.stringify(successResponse), { status: 200 }));
 
-    await analyseStack({ photos: [defaultPhoto], settings: defaultSettings });
+    await analyseMatches({ photos: [defaultPhoto], settings: defaultSettings });
 
     const [, callInit] = mockFetch.mock.calls[0] as unknown as [string, RequestInit];
     const headers = callInit.headers as Record<string, string>;
@@ -109,7 +109,7 @@ describe(analyseStack, () => {
       edits: { brightness: 150, contrast: 80, saturate: 120, zoom: 2, pan: { x: 10, y: -5 } },
     };
 
-    await analyseStack({ photos: [editedPhoto], settings: defaultSettings });
+    await analyseMatches({ photos: [editedPhoto], settings: defaultSettings });
 
     expect(mockRenderApiImage).toHaveBeenCalledWith({
       sourcePath: "/project/photo.jpg",
@@ -121,7 +121,7 @@ describe(analyseStack, () => {
     mockFetch.mockResolvedValue(new Response(JSON.stringify(successResponse), { status: 200 }));
 
     const secondPhoto: PhotoBody = { ...defaultPhoto, name: "photo2.jpg" };
-    await analyseStack({ photos: [defaultPhoto, secondPhoto], settings: defaultSettings });
+    await analyseMatches({ photos: [defaultPhoto, secondPhoto], settings: defaultSettings });
 
     expect(mockRenderApiImage).toHaveBeenCalledTimes(2);
   });
@@ -132,7 +132,7 @@ describe(analyseStack, () => {
     );
 
     await expect(
-      analyseStack({ photos: [defaultPhoto], settings: defaultSettings }),
+      analyseMatches({ photos: [defaultPhoto], settings: defaultSettings }),
     ).rejects.toThrow("Invalid or missing token");
   });
 
@@ -144,7 +144,7 @@ describe(analyseStack, () => {
     );
 
     await expect(
-      analyseStack({ photos: [defaultPhoto], settings: defaultSettings }),
+      analyseMatches({ photos: [defaultPhoto], settings: defaultSettings }),
     ).rejects.toThrow("could not be decoded as an image");
   });
 
@@ -152,7 +152,7 @@ describe(analyseStack, () => {
     mockFetch.mockResolvedValue(new Response("Internal Server Error", { status: 503 }));
 
     await expect(
-      analyseStack({ photos: [defaultPhoto], settings: defaultSettings }),
+      analyseMatches({ photos: [defaultPhoto], settings: defaultSettings }),
     ).rejects.toThrow("HTTP 503");
   });
 
@@ -176,8 +176,8 @@ describe(analyseStack, () => {
       });
     });
 
-    const promise = analyseStack({ photos: [defaultPhoto], settings: defaultSettings });
-    cancelAnalyseStack();
+    const promise = analyseMatches({ photos: [defaultPhoto], settings: defaultSettings });
+    cancelAnalyseMatches();
 
     const result = await promise;
 
@@ -203,8 +203,8 @@ describe(analyseStack, () => {
       });
     });
 
-    const promise = analyseStack({ photos: [defaultPhoto], settings: defaultSettings });
-    cancelAnalyseStack();
+    const promise = analyseMatches({ photos: [defaultPhoto], settings: defaultSettings });
+    cancelAnalyseMatches();
 
     const result = await promise;
 
@@ -215,7 +215,7 @@ describe(analyseStack, () => {
     mockFetch.mockRejectedValue(new Error("Network connection failed"));
 
     await expect(
-      analyseStack({ photos: [defaultPhoto], settings: defaultSettings }),
+      analyseMatches({ photos: [defaultPhoto], settings: defaultSettings }),
     ).rejects.toThrow("Network connection failed");
   });
 
@@ -223,14 +223,14 @@ describe(analyseStack, () => {
     mockRenderApiImage.mockRejectedValue(new Error("Could not load image: file not found"));
 
     await expect(
-      analyseStack({ photos: [defaultPhoto], settings: defaultSettings }),
+      analyseMatches({ photos: [defaultPhoto], settings: defaultSettings }),
     ).rejects.toThrow("Could not load image: file not found");
 
     expect(mockFetch).not.toHaveBeenCalled();
   });
 
   it("throws when called with an empty photos array", async () => {
-    await expect(analyseStack({ photos: [], settings: defaultSettings })).rejects.toThrow(
+    await expect(analyseMatches({ photos: [], settings: defaultSettings })).rejects.toThrow(
       "No photos to analyse",
     );
 
@@ -242,7 +242,7 @@ describe(analyseStack, () => {
     mockRenderApiImage.mockImplementation(() => {
       renderCount = renderCount + 1;
       if (renderCount === 1) {
-        cancelAnalyseStack();
+        cancelAnalyseMatches();
       }
       return Promise.resolve(Buffer.from("image-data"));
     });
@@ -250,7 +250,7 @@ describe(analyseStack, () => {
     mockFetch.mockResolvedValue(new Response(JSON.stringify(successResponse), { status: 200 }));
 
     const secondPhoto: PhotoBody = { ...defaultPhoto, name: "photo2.jpg" };
-    const result = await analyseStack({
+    const result = await analyseMatches({
       photos: [defaultPhoto, secondPhoto],
       settings: defaultSettings,
     });
@@ -269,7 +269,7 @@ describe(analyseStack, () => {
     );
 
     await expect(
-      analyseStack({ photos: [defaultPhoto], settings: defaultSettings }),
+      analyseMatches({ photos: [defaultPhoto], settings: defaultSettings }),
     ).rejects.toThrow("The request timed out. The API took too long to respond.");
   });
 
@@ -278,7 +278,7 @@ describe(analyseStack, () => {
 
     mockFetch.mockResolvedValue(new Response(JSON.stringify(successResponse), { status: 200 }));
 
-    await analyseStack({ photos: [defaultPhoto], settings: defaultSettings });
+    await analyseMatches({ photos: [defaultPhoto], settings: defaultSettings });
 
     const debugOutput = JSON.stringify(debugSpy.mock.calls);
 
@@ -288,13 +288,13 @@ describe(analyseStack, () => {
   });
 });
 
-describe(cancelAnalyseStack, () => {
+describe(cancelAnalyseMatches, () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockRenderApiImage.mockResolvedValue(Buffer.from("image-data"));
   });
 
   it("does not throw when there is no in-flight request", () => {
-    expect(() => cancelAnalyseStack()).not.toThrow();
+    expect(() => cancelAnalyseMatches()).not.toThrow();
   });
 });

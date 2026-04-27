@@ -13,18 +13,18 @@ vi.mock("electron", () => ({}));
 
 const MOCK_UUID = "a0b1c2d3-e4f5-6789-abcd-ef0123456789";
 
-const mockAnalyseStack =
+const mockAnalyseMatches =
   vi.fn<
     (options: {
       photos: PhotoBody[];
       settings: { endpoint: string; token: string };
     }) => Promise<AnalysisMatchResponse | null>
   >();
-const mockCancelAnalyseStack = vi.fn<() => void>();
+const mockCancelAnalyseMatches = vi.fn<() => void>();
 
 vi.mock("@/backend/analysis", () => ({
-  analyseStack: (...args: Parameters<typeof mockAnalyseStack>) => mockAnalyseStack(...args),
-  cancelAnalyseStack: () => mockCancelAnalyseStack(),
+  analyseMatches: (...args: Parameters<typeof mockAnalyseMatches>) => mockAnalyseMatches(...args),
+  cancelAnalyseMatches: () => mockCancelAnalyseMatches(),
 }));
 
 const mockGetSettings = vi.fn<() => Promise<SettingsData>>();
@@ -67,7 +67,7 @@ vi.mock("./shared", () => ({
 const {
   handleSaveAnalysisProvider,
   handleDeleteAnalysisProvider,
-  handleAnalyseStack,
+  handleAnalyseMatches,
   handleGetEncryptionAvailability,
 } = await import("./analysisHandlers");
 
@@ -175,7 +175,7 @@ describe("analysis IPC handlers", () => {
     });
   });
 
-  describe(handleAnalyseStack, () => {
+  describe(handleAnalyseMatches, () => {
     it("throws when no provider is configured", async () => {
       const settings = {
         ...DEFAULT_SETTINGS,
@@ -183,7 +183,7 @@ describe("analysis IPC handlers", () => {
       } as SettingsData;
       mockGetSettings.mockResolvedValue(settings);
 
-      await expect(handleAnalyseStack(mockEvent, [createMockPhotoBody()])).rejects.toThrow(
+      await expect(handleAnalyseMatches(mockEvent, [createMockPhotoBody()])).rejects.toThrow(
         "Analysis provider is not configured.",
       );
     });
@@ -196,7 +196,7 @@ describe("analysis IPC handlers", () => {
       } as SettingsData;
       mockGetSettings.mockResolvedValue(settings);
 
-      await expect(handleAnalyseStack(mockEvent, [createMockPhotoBody()])).rejects.toThrow(
+      await expect(handleAnalyseMatches(mockEvent, [createMockPhotoBody()])).rejects.toThrow(
         "Analysis provider is not configured.",
       );
     });
@@ -210,12 +210,12 @@ describe("analysis IPC handlers", () => {
       mockGetSettings.mockResolvedValue(settings);
       mockGetToken.mockResolvedValue(null);
 
-      await expect(handleAnalyseStack(mockEvent, [createMockPhotoBody()])).rejects.toThrow(
+      await expect(handleAnalyseMatches(mockEvent, [createMockPhotoBody()])).rejects.toThrow(
         "Analysis API token is not configured or could not be decrypted.",
       );
     });
 
-    it("calls analyseStack with validated photos and settings", async () => {
+    it("calls analyseMatches with validated photos and settings", async () => {
       const settings = {
         ...DEFAULT_SETTINGS,
         selectedAnalysisProviderId: MOCK_UUID,
@@ -226,11 +226,11 @@ describe("analysis IPC handlers", () => {
 
       mockGetSettings.mockResolvedValue(settings);
       mockGetToken.mockResolvedValue("api-token");
-      mockAnalyseStack.mockResolvedValue(mockResponse);
+      mockAnalyseMatches.mockResolvedValue(mockResponse);
 
-      const result = await handleAnalyseStack(mockEvent, [photo]);
+      const result = await handleAnalyseMatches(mockEvent, [photo]);
 
-      expect(mockAnalyseStack).toHaveBeenCalledWith({
+      expect(mockAnalyseMatches).toHaveBeenCalledWith({
         photos: [expect.objectContaining({ name: "photo.jpg" })],
         settings: { endpoint: "https://api.com", token: "api-token" },
       });

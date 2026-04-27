@@ -1,6 +1,6 @@
 import type { IpcMainInvokeEvent } from "electron";
 
-import { analyseStack, cancelAnalyseStack } from "@/backend/analysis";
+import { analyseMatches, cancelAnalyseMatches } from "@/backend/analysis";
 import { broadcastToAllWindows } from "@/backend/ipc/shared";
 import {
   getSettings,
@@ -67,7 +67,7 @@ export const handleDeleteAnalysisProvider = async (
   await broadcastSettingsUpdate();
 };
 
-export const handleAnalyseStack = async (
+export const handleAnalyseMatches = async (
   _event: IpcMainInvokeEvent,
   photos: PhotoBody[],
 ): Promise<AnalysisMatchResponse | null> => {
@@ -89,7 +89,7 @@ export const handleAnalyseStack = async (
     throw new Error("Analysis API token is not configured or could not be decrypted.");
   }
 
-  return analyseStack({
+  return analyseMatches({
     photos: validatedPhotos,
     settings: { endpoint: selectedProvider.endpoint, token },
   });
@@ -100,7 +100,7 @@ export const handleGetEncryptionAvailability = (): boolean => isEncryptionAvaila
 export const registerAnalysisHandlers = (ipcMain: Electron.IpcMain): void => {
   ipcMain.handle(IPC_EVENTS.SAVE_ANALYSIS_PROVIDER, handleSaveAnalysisProvider);
   ipcMain.handle(IPC_EVENTS.DELETE_ANALYSIS_PROVIDER, handleDeleteAnalysisProvider);
-  ipcMain.handle(IPC_EVENTS.ANALYSE_STACK, handleAnalyseStack);
+  ipcMain.handle(IPC_EVENTS.ANALYSE_MATCHES, handleAnalyseMatches);
   ipcMain.handle(IPC_EVENTS.GET_ENCRYPTION_AVAILABILITY, handleGetEncryptionAvailability);
-  ipcMain.on(IPC_EVENTS.CANCEL_ANALYSE_STACK, () => cancelAnalyseStack());
+  ipcMain.on(IPC_EVENTS.CANCEL_ANALYSE_MATCHES, () => cancelAnalyseMatches());
 };

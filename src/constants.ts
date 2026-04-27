@@ -37,8 +37,8 @@ export enum IPC_EVENTS {
   // Analysis
   SAVE_ANALYSIS_PROVIDER = "analysis:saveProvider",
   DELETE_ANALYSIS_PROVIDER = "analysis:deleteProvider",
-  ANALYSE_STACK = "analysis:analyseStack",
-  CANCEL_ANALYSE_STACK = "analysis:cancelAnalyseStack",
+  ANALYSE_MATCHES = "analysis:analyseMatches",
+  CANCEL_ANALYSE_MATCHES = "analysis:cancelAnalyseMatches",
   GET_ENCRYPTION_AVAILABILITY = "analysis:getEncryptionAvailability",
 }
 
