@@ -77,13 +77,13 @@ html[data-color-mode="dark"] .theme-icon-dark {
 
 @media (max-width: 1280px) {
   .project {
-    --project-sidebar-width: 280px;
+    --project-sidebar-width: 260px;
   }
 }
 
 @media (max-width: 1080px) {
   .project {
-    --project-sidebar-width: 260px;
+    --project-sidebar-width: 300px;
   }
 }
 

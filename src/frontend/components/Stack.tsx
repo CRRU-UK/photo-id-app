@@ -179,38 +179,33 @@ const Stack = observer(({ collection, showAnalysisButton = true, stackLabel }: S
           </ButtonGroup>
         </div>
 
-        <ActionBar aria-label={PROJECT_TOOLTIPS.STACK_ACTIONS} flush gap="none" size="small">
-          {showAnalysisButton && !!selectedProvider && (
+        <ActionBar aria-label={PROJECT_TOOLTIPS.STACK_ACTIONS} flush gap="condensed" size="small">
+          <ActionBar.Group>
             <ActionBar.IconButton
-              aria-label={PROJECT_TOOLTIPS.ANALYSIS_MATCH_STACK}
-              disabled={collection.photos.length === 0 || isAnalysing}
-              icon={AiModelIcon}
-              onClick={handleAnalyseClick}
+              aria-label={PROJECT_TOOLTIPS.EDIT_PHOTO}
+              disabled={collection.photos.length <= 0 || revertingPhoto}
+              icon={PencilIcon}
+              onClick={(event) => {
+                event.preventDefault();
+                return handleOpenEdit();
+              }}
             />
-          )}
-          <ActionBar.IconButton
-            aria-label={PROJECT_TOOLTIPS.EDIT_PHOTO}
-            disabled={collection.photos.length <= 0 || revertingPhoto}
-            icon={PencilIcon}
-            onClick={(event) => {
-              event.preventDefault();
-              return handleOpenEdit();
-            }}
-          />
+            {showAnalysisButton && !!selectedProvider && (
+              <ActionBar.IconButton
+                aria-label={PROJECT_TOOLTIPS.ANALYSIS_MATCH_STACK}
+                disabled={collection.photos.length === 0 || isAnalysing}
+                icon={AiModelIcon}
+                onClick={handleAnalyseClick}
+              />
+            )}
+          </ActionBar.Group>
           <ActionBar.Divider />
-          <ActionBar.Menu
-            aria-label={PROJECT_TOOLTIPS.OTHER_ACTIONS}
-            icon={KebabHorizontalIcon}
-            items={[
-              {
-                label: PROJECT_TOOLTIPS.REVERT_PHOTO,
-                leadingVisual: UndoIcon,
-                variant: "danger",
-                disabled:
-                  collection.photos.length <= 0 || revertingPhoto || !currentPhoto?.isEdited,
-                onClick: handleRevertPhoto,
-              },
-            ]}
+          <ActionBar.IconButton
+            aria-label={PROJECT_TOOLTIPS.REVERT_PHOTO}
+            disabled={collection.photos.length <= 0 || revertingPhoto || !currentPhoto?.isEdited}
+            icon={UndoIcon}
+            onClick={handleRevertPhoto}
+            variant="danger"
           />
         </ActionBar>
       </PrimerStack>
