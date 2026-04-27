@@ -4,7 +4,6 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   InfoIcon,
-  KebabHorizontalIcon,
   PencilIcon,
   UndoIcon,
 } from "@primer/octicons-react";
