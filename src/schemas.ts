@@ -12,13 +12,13 @@ export const themeModeSchema = z.enum(["light", "dark", "auto"]);
 
 export const telemetrySchema = z.enum(["enabled", "disabled"]);
 
-export const mlModelSchema = z.object({
+export const analysisProviderSchema = z.object({
   id: z.uuid(),
   name: z.string().nonempty("Name is required"),
   endpoint: z.url("Must be a valid URL (e.g. http://localhost:8080)"),
 });
 
-export const mlModelDraftSchema = z.object({
+export const analysisProviderDraftSchema = z.object({
   id: z.uuid().optional(),
   name: z.string().nonempty("Name is required"),
   endpoint: z.url("Must be a valid URL (e.g. http://localhost:8080)"),
@@ -38,8 +38,11 @@ export const settingsDataSchema = z.object({
   version: z.literal("v1"),
   themeMode: themeModeSchema.default(DEFAULT_SETTINGS.themeMode as z.infer<typeof themeModeSchema>),
   telemetry: telemetrySchema.default(DEFAULT_SETTINGS.telemetry as z.infer<typeof telemetrySchema>),
-  mlModels: z.array(mlModelSchema).default(DEFAULT_SETTINGS.mlModels),
-  selectedModelId: z.string().nullable().default(DEFAULT_SETTINGS.selectedModelId),
+  analysisProviders: z.array(analysisProviderSchema).default(DEFAULT_SETTINGS.analysisProviders),
+  selectedAnalysisProviderId: z
+    .string()
+    .nullable()
+    .default(DEFAULT_SETTINGS.selectedAnalysisProviderId),
 });
 
 export const photoEditsSchema = z.object({
@@ -74,7 +77,7 @@ export const matchedBodySchema = z.object({
  * Always ensure this stays in sync with the OpenAPI specs.
  * @see [analysis-api-spec.yaml](../docs/assets/analysis-api-spec.yaml)
  */
-export const mlMatchSchema = z.object({
+export const analysisMatchSchema = z.object({
   rank: z.number(),
   id: z.string(),
   rating: z.number(),
@@ -85,8 +88,8 @@ export const mlMatchSchema = z.object({
  * Always ensure this stays in sync with the OpenAPI specs.
  * @see [analysis-api-spec.yaml](../docs/assets/analysis-api-spec.yaml)
  */
-export const mlMatchResponseSchema = z.object({
-  matches: z.array(mlMatchSchema),
+export const analysisMatchResponseSchema = z.object({
+  matches: z.array(analysisMatchSchema),
 });
 
 export const projectBodySchema = z.object({

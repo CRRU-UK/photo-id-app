@@ -2,8 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import type { SetStateAction } from "react";
 import { useCallback, useEffect, useState } from "react";
 import { DEFAULT_WINDOW_TITLE, ROUTES } from "@/constants";
-import { AnalysisProvider } from "@/contexts/AnalysisContext";
-import AnalysisOverlay from "@/frontend/components/AnalysisOverlay";
+import { AnalysisContextProvider } from "@/contexts/AnalysisContext";
+import AnalysisMatchOverlay from "@/frontend/components/AnalysisMatchOverlay";
 import ErrorBoundary from "@/frontend/components/ErrorBoundary";
 import ImageEditor from "@/frontend/components/ImageEditor";
 import LoadingOverlay from "@/frontend/components/LoadingOverlay";
@@ -102,9 +102,9 @@ const EditPage = () => {
   }
 
   return (
-    <AnalysisProvider>
+    <AnalysisContextProvider>
       <LoadingOverlay data={loading} />
-      <AnalysisOverlay />
+      <AnalysisMatchOverlay />
       {data && file && (
         <ErrorBoundary recovery={{ label: "Reload photo", onClick: () => setError(null) }}>
           <ImageEditor
@@ -116,7 +116,7 @@ const EditPage = () => {
           />
         </ErrorBoundary>
       )}
-    </AnalysisProvider>
+    </AnalysisContextProvider>
   );
 };
 

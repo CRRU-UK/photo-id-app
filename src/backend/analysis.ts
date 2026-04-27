@@ -3,17 +3,17 @@ import path from "node:path";
 import { renderApiImage } from "@/backend/imageRenderer";
 import { resolvePhotoPath } from "@/backend/projects";
 import { ANALYSIS_API_REQUEST_TIMEOUT_MS } from "@/constants";
-import { mlMatchResponseSchema } from "@/schemas";
-import type { MLMatchResponse, PhotoBody } from "@/types";
+import { analysisMatchResponseSchema } from "@/schemas";
+import type { AnalysisMatchResponse, PhotoBody } from "@/types";
 
-type AnalyseStackSettings = {
+type AnalyseMatchesSettings = {
   endpoint: string;
   token: string;
 };
 
-type AnalyseStackOptions = {
+type AnalyseMatchesOptions = {
   photos: PhotoBody[];
-  settings: AnalyseStackSettings;
+  settings: AnalyseMatchesSettings;
 };
 
 let currentAbortController: AbortController | null = null;
@@ -58,12 +58,12 @@ const buildFormData = async (
 
 /**
  * Sends all photos in a stack to the API /match endpoint. Returns null if the request is cancelled
- * via cancelAnalyseStack.
+ * via cancelAnalyseMatches.
  */
-const analyseStack = async ({
+const analyseMatches = async ({
   photos,
   settings,
-}: AnalyseStackOptions): Promise<MLMatchResponse | null> => {
+}: AnalyseMatchesOptions): Promise<AnalysisMatchResponse | null> => {
   if (photos.length === 0) {
     throw new Error("No photos to analyse");
   }
@@ -112,7 +112,7 @@ const analyseStack = async ({
       throw new Error(body?.detail ?? `HTTP ${response.status}`);
     }
 
-    const result = mlMatchResponseSchema.parse(await response.json());
+    const result = analysisMatchResponseSchema.parse(await response.json());
 
     // Ensure data is sorted by rank ascending
     result.matches = result.matches.toSorted((a, b) => a.rank - b.rank);
@@ -142,13 +142,13 @@ const analyseStack = async ({
 };
 
 /**
- * Cancels any in-flight analyseStack request.
+ * Cancels any in-flight analyseMatches request.
  */
-const cancelAnalyseStack = (): void => {
+const cancelAnalyseMatches = (): void => {
   if (currentAbortController) {
     currentAbortController.abort();
     currentAbortController = null;
   }
 };
 
-export { analyseStack, cancelAnalyseStack };
+export { analyseMatches, cancelAnalyseMatches };

@@ -20,17 +20,17 @@ Technical information, specifications, requirements, and user journeys.
 - Types: central types live in `src/types.ts` - use these for consistent shapes between main and renderer. Project-file types (`PhotoEdits`, `PhotoBody`, `CollectionBody`, `MatchedBody`, `ProjectBody`) are derived from Zod schemas in `src/schemas.ts` via `z.infer`.
 - Schema validation: `src/schemas.ts` defines Zod schemas for project data. Project files are validated against these schemas on load via `parseProjectFile` in `src/backend/projects.ts`.
 - Thumbnail path convention: `photo.thumbnail` (and `PhotoBody.thumbnail`) is a **relative** path (e.g. `thumbnails/photo.jpg`), not an absolute path. The Photo model computes the full URL via `thumbnailFullPath` by joining `directory` and `thumbnail`. Use `thumbnailFullPath` when rendering thumbnails in the UI.
-- AnalysisContext flow: `AnalysisProvider` wraps only the project route (project page). The context is consumed by **Sidebar** (model selection), **Stack** (the “Analyse” action that triggers analysis), and **AnalysisOverlay** (loading state, results table, and errors). Analysis state and the overlay are thus shared across these components via context rather than props.
+- AnalysisContext flow: `AnalysisContextProvider` wraps both the project and edit routes (each window has its own provider instance, analysis state is per-window, not shared across windows). The context is consumed by **Stack** and **ImageEditor** (the “Analyse” actions that trigger analysis), **AnalysisMatchOverlay** (loading state, results table, and errors), and the project route itself (for closing the overlay alongside the project). Analysis provider selection is held in `SettingsContext`.
 - SAVE_PROJECT IPC: The `SAVE_PROJECT` handler receives a **pre-serialized JSON string** (not a typed object). The renderer calls `project.save()`, which serializes the project to JSON and sends that string over IPC. The main process validates the payload and writes it to disk using the current project directory. This differs from other IPC handlers that receive typed payloads.
 - Platform-specific file association: Opening a `.photoid` file from the OS uses **macOS**: the `open-file` app event (may fire before `whenReady`). **Windows/Linux**: `second-instance` and the process `argv` (the path is passed as an argument). The app handles both so that double-clicking a `.photoid` opens that project.
-- **Settings storage**: Settings are stored in the app user data directory (per user) as a JSON file, validated on read with `settingsDataSchema` in `src/schemas.ts`. Invalid or missing data causes a silent fallback to defaults. ML model API tokens are stored separately in `tokens.json` using Electron's `safeStorage` API for encryption at rest; on machines where secure storage is unavailable, tokens fall back to plaintext storage with a UI warning.
+- **Settings storage**: Settings are stored in the app user data directory (per user) as a JSON file, validated on read with `settingsDataSchema` in `src/schemas.ts`. Invalid or missing data causes a silent fallback to defaults. Analysis provider API tokens are stored separately in `tokens.json` using Electron's `safeStorage` API for encryption at rest; on machines where secure storage is unavailable, tokens fall back to plaintext storage with a UI warning.
 
 ## Error Handling
 
 - **User-facing errors**: Shown as modal dialogues via `dialog.showErrorBox` (main process) or inline error state (renderer). Never silently swallow errors that affect user data or workflow.
 - **Renderer diagnostics**: Use `console.error` for unexpected failures. These are captured by Sentry when telemetry is enabled and serve as production diagnostics, do not remove them.
 - **Graceful fallbacks**: Settings and token files fall back to safe defaults if missing or invalid. The app should never crash on startup due to corrupted settings.
-- **Error boundaries**: The `ErrorBoundary` component (`src/frontend/components/ErrorBoundary.tsx`) wraps heavy UI components (e.g. `ImageEditor`, `AnalysisOverlay`) so a render crash in those components doesn't take down the entire project view. Wrap any new component that does complex or error-prone rendering.
+- **Error boundaries**: The `ErrorBoundary` component (`src/frontend/components/ErrorBoundary.tsx`) wraps heavy UI components (e.g. `ImageEditor`, `AnalysisMatchOverlay`) so a render crash in those components doesn't take down the entire project view. Wrap any new component that does complex or error-prone rendering.
 
 ## Save / Persistence Flow
 
@@ -52,7 +52,7 @@ Technical information, specifications, requirements, and user journeys.
 - **photo:// protocol**: The custom protocol serves only files whose extension is in `PHOTO_FILE_EXTENSIONS` (allowed image types). Other paths return 403. Files are served from the project directory; the renderer never receives raw filesystem paths for image `src` (use `photo://` URLs only, not `file://`).
 - **External links**: The renderer calls `openExternalLink(link)` with an enum value (`ExternalLinks`); the main process maps it to a URL from `EXTERNAL_LINKS`. No arbitrary URLs can be opened from the renderer.
 - **Renderer isolation**: The renderer has no Node.js or `require` access; it only sees `window.electronAPI` as exposed by the preload script. All file I/O and system access happen in the main process. Note: edit windows currently share the same preload as the main window and have access to all IPC handlers. As a future defense-in-depth improvement, edit windows could use a restricted preload that only exposes `savePhotoFile` and `navigateEditorPhoto`.
-- **Token security**: ML model API tokens are encrypted using Electron's `safeStorage` API and stored in a separate `tokens.json` file. Tokens never leave the main process. Decryption happens only at the moment of an API request. Per-token encryption flags handle edge cases where encryption availability changes between sessions. Dedicated `SAVE_MODEL` and `DELETE_MODEL` IPC handlers manage token lifecycle.
+- **Token security**: Analysis provider API tokens are encrypted using Electron's `safeStorage` API and stored in a separate `tokens.json` file. Tokens never leave the main process. Decryption happens only at the moment of an API request. Per-token encryption flags handle edge cases where encryption availability changes between sessions. Dedicated `SAVE_ANALYSIS_PROVIDER` and `DELETE_ANALYSIS_PROVIDER` IPC handlers manage token lifecycle.
 - **macOS entitlements**: `entitlements.mac.plist` declares the OS-level capabilities the app is permitted to use under the macOS hardened runtime. Entitlements should be kept to a minimum.
 
 ## Repository Structure
@@ -84,8 +84,8 @@ Technical information, specifications, requirements, and user journeys.
   - `Collection.ts` - Collection (stack) model
 - `src/contexts/` - React Context providers:
   - **ProjectContext** - Holds the current open project (MobX Project instance or null). Subscribes to `onLoadProject` IPC; when a project is loaded, sets the project and triggers navigation to the project route.
-  - **SettingsContext** - App settings (theme, telemetry, ML models). Fetches via `getSettings` and subscribes to `onSettingsUpdated` IPC so all windows receive live updates when settings change.
-  - **AnalysisContext** - ML analysis state (selected model, analysis in progress, results, errors). Shared between Sidebar (model selection), Stack (Analyse button), and AnalysisOverlay (loading state, results table). Wraps only the project route.
+  - **SettingsContext** - App settings (theme, telemetry, analysis providers). Fetches via `getSettings` and subscribes to `onSettingsUpdated` IPC so all windows receive live updates when settings change.
+  - **AnalysisContext** - In-flight analysis state (in progress, results, errors, input label) and handlers (`handleAnalyseMatches`, `handleClose`). Wraps both the project and edit routes. Consumed by Stack and ImageEditor (Analyse actions) and AnalysisMatchOverlay (loading/results/errors). Provider selection itself is held in SettingsContext.
 - `docs/` - User and technical documentation
 - Tests: `*.test.ts` files co-located with source files
 - Configuration: `tsconfig.json`, `vite.*.mts`, `forge.config.ts`, `vitest.config.ts`
@@ -162,14 +162,14 @@ The index view is the default view when opening the app. It allows the user to:
     - Telemetry (frontend and backend) can be changed from the settings
       - This setting requires an application restart due to being integrated into the Node process and cannot be toggled in runtime
     - Changing a field value should automatically update the settings in both the frontend and backend, unless otherwise stated
-  - Machine learning
-    - Machine learning models can be managed in this tab
-    - A blank slate should be shown when no models have been added
-    - Adding a model should show another overlay where the information can be added
-    - Models MUST contain a value for all fields
-    - Models cannot be added if ANY of the fields are empty
-    - Models can be edited (name, endpoint) but the API token must be re-entered as tokens are write-only
-    - Models can be removed
+  - Analysis
+    - Analysis providers can be managed in this tab
+    - A blank slate should be shown when no providers have been added
+    - Adding a provider should show another overlay where the information can be added
+    - Providers MUST contain a value for all fields
+    - Providers cannot be added if ANY of the fields are empty
+    - Providers can be edited (name, endpoint) but the API token must be re-entered as tokens are write-only
+    - Providers can be removed
 - Settings should use default values on new installations
 - Settings should persist between sessions
 - ONLY the main window should have the settings overlay - edit windows should NEVER display the settings overlay
@@ -238,23 +238,24 @@ The project view is accessed when opening a project. It allows the user to:
 - Matched stacks are displayed in chunks (pages), with pagination allowing the user to navigate between these chunks by clicking the page labels or by keyboard navigation
 - A column toggle allows the user to view stacks by one or two stacks in a row by clicking the toggle
 
-#### Machine Learning Analysis
+#### Analysis
 
-- An analysis button should show in stacks and the image editor once a model has been selected in the sidebar
-  - Only one model can be selected, and the selection in the sidebar allows the user to filter through all the models they've added
-  - If a model is currently selected, it should always be shown regardless of the filter value
-  - Selecting the current model should unselect it and result in a state where analysis is disabled
-  - Re-selecting any model should re-enable analysis
+- An analysis button should show in stacks and the image editor once a provider has been selected in the sidebar
+  - Only one provider can be selected, and the selection in the sidebar allows the user to filter through all the providers they've added
+  - If a provider is currently selected, it should always be shown regardless of the filter value
+  - Selecting the current provider should unselect it and result in a state where analysis is disabled
+  - Re-selecting any provider should re-enable analysis
 - The unassigned and discarded stacks should NOT show the analysis button as this would not be useful
-- Clicking the stack analysis button sends all photos in that stack to the selected model's API endpoint with the token
+- Clicking the stack analysis button sends all photos in that stack to the selected provider's `/match` endpoint with the token
 - Clicking the stack analysis button opens an overlay with a data table loading state while the request is being sent and the response is being received
-- Clicking the image editor analysis button should send ONLY the currently displayed photo to the selected model's API endpoint, INCLUDING any pending edits (regardless if they have not yet been saved)
+- Clicking the image editor analysis button should send ONLY the currently displayed photo to the selected provider's `/match` endpoint, including any pending edits (even if they have not yet been saved)
 - Once the response has been received, the overlay content should update the data table with the data received
 - The data table contains the following columns:
+  - Rank of the match (1-indexed, best first)
   - ID of the match
   - Match rating (i.e. confidence, similarity, etc.) visualised as a progress bar and percentage value
-  - Tooltip button to show detail information for the match
-- The API contract in [`analysis-api-spec.yaml`](./docs/assets/analysis-api-spec.yaml) should be used as the ONLY contract for what the app sends and expects to receive from a model API
+  - Copy button which shows the match details on hover and copies them to the clipboard on click
+- The API contract in [`analysis-api-spec.yaml`](./docs/assets/analysis-api-spec.yaml) should be used as the ONLY contract for what the app sends and expects to receive from an analysis provider API
 - The data table results should show all the results received, paginated at a fixed amount per page
 - The progress bars change colour depending on the value of the rating
 - Table rows are ordered by rank ascending (best match first)

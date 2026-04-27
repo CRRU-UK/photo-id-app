@@ -8,38 +8,38 @@ import {
   useState,
 } from "react";
 
-import type { MLMatchResponse, PhotoBody } from "@/types";
+import type { AnalysisMatchResponse, PhotoBody } from "@/types";
 
 interface AnalysisContextValue {
   error: string | null;
-  handleAnalyse: (photos: PhotoBody[], inputLabel: string) => Promise<void>;
+  handleAnalyseMatches: (photos: PhotoBody[], inputLabel: string) => Promise<void>;
   handleClose: () => void;
   inputLabel: string | null;
   isAnalysing: boolean;
-  result: MLMatchResponse | null;
+  result: AnalysisMatchResponse | null;
 }
 
 const AnalysisContext = createContext<AnalysisContextValue | null>(null);
 
-interface AnalysisProviderProps {
+interface AnalysisContextProviderProps {
   children: ReactNode;
 }
 
-export const AnalysisProvider = ({ children }: AnalysisProviderProps) => {
+export const AnalysisContextProvider = ({ children }: AnalysisContextProviderProps) => {
   const [isAnalysing, setIsAnalysing] = useState(false);
-  const [result, setResult] = useState<MLMatchResponse | null>(null);
+  const [result, setResult] = useState<AnalysisMatchResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [inputLabel, setinputLabel] = useState<string | null>(null);
 
   useEffect(() => {
     return () => {
       if (isAnalysing) {
-        window.electronAPI.cancelAnalyseStack();
+        window.electronAPI.cancelAnalyseMatches();
       }
     };
   }, [isAnalysing]);
 
-  const handleAnalyse = useCallback(
+  const handleAnalyseMatches = useCallback(
     async (photos: PhotoBody[], label: string) => {
       if (isAnalysing) {
         return;
@@ -51,7 +51,7 @@ export const AnalysisProvider = ({ children }: AnalysisProviderProps) => {
       setinputLabel(label);
 
       try {
-        const response = await window.electronAPI.analyseStack(photos);
+        const response = await window.electronAPI.analyseMatches(photos);
         setResult(response);
       } catch (error) {
         setError(error instanceof Error ? error.message : "An unexpected error occurred.");
@@ -65,7 +65,7 @@ export const AnalysisProvider = ({ children }: AnalysisProviderProps) => {
 
   const handleClose = useCallback(() => {
     if (isAnalysing) {
-      window.electronAPI.cancelAnalyseStack();
+      window.electronAPI.cancelAnalyseMatches();
       setIsAnalysing(false);
     }
 
@@ -75,8 +75,8 @@ export const AnalysisProvider = ({ children }: AnalysisProviderProps) => {
   }, [isAnalysing]);
 
   const value = useMemo<AnalysisContextValue>(
-    () => ({ isAnalysing, result, error, inputLabel, handleAnalyse, handleClose }),
-    [isAnalysing, result, error, inputLabel, handleAnalyse, handleClose],
+    () => ({ isAnalysing, result, error, inputLabel, handleAnalyseMatches, handleClose }),
+    [isAnalysing, result, error, inputLabel, handleAnalyseMatches, handleClose],
   );
 
   return <AnalysisContext.Provider value={value}>{children}</AnalysisContext.Provider>;
@@ -86,7 +86,7 @@ export const useAnalysis = (): AnalysisContextValue => {
   const context = useContext(AnalysisContext);
 
   if (context === null) {
-    throw new Error("useAnalysis must be used within an AnalysisProvider");
+    throw new Error("useAnalysis must be used within an AnalysisContextProvider");
   }
 
   return context;

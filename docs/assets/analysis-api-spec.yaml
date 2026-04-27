@@ -4,9 +4,9 @@ info:
   title: Analysis API Contract
   version: "0.0.1"
   description: |
-    API contract for a machine learning model analysis API that can be integrated with the Photo ID App. It should be used when designing an API for the 'bring-your-own-model' machine learning integration. The app will send requests and expect responses to an API as outlined in this specification.
+    API contract for an analysis provider API that can be integrated with the Photo ID App. It should be used when designing an API for the analysis integration. The app will send requests and expect responses to an API as outlined in this specification.
 
-    Users can set the token and endpoint URLs in the Photo ID App settings to enable the machine learning integration described in the [documentation](https://photoidapp.crru.org.uk/user-guide/machine-learning/).
+    Users can set the token and endpoint URLs in the Photo ID App settings to enable the analysis integration described in the [documentation](https://photoidapp.crru.org.uk/user-guide/analysis/).
 
     ## Authorization
 
@@ -73,9 +73,9 @@ paths:
   /match:
     post:
       operationId: match
-      summary: Match a single or multiple photos against a model
+      summary: Match photos
       description: |
-        When clicking 'analyse' on a stack, the app will send all photos in that stack in a single request to this endpoint.
+        When clicking 'analyse' on a stack or in the image editor, the app will send the photo(s) to this endpoint. Typically used with a machine learning model.
       tags: [Identification]
       security:
         - AuthorizationBearerToken: []

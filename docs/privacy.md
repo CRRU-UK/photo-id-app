@@ -12,7 +12,7 @@ All project data, photos, and settings remain on your computer. The app does not
 - **Project files** (`.photoid`) and thumbnails are stored in the folders you choose.
 - **Recent projects** are stored locally for quick access.
 - **Settings** are stored in your system application data directory.
-- **Machine learning models** are stored in your system application data directory, and API tokens are encrypted ([more info](./user-guide/machine-learning.md#api-tokens])).
+- **Analysis providers** are stored in your system application data directory, and API tokens are encrypted ([more info](./user-guide/analysis.md#api-tokens])).
 
 ## Optional telemetry (error reporting)
 

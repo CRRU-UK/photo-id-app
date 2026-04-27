@@ -2,50 +2,59 @@ import type { IpcMainInvokeEvent } from "electron";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { DEFAULT_PHOTO_EDITS, DEFAULT_SETTINGS } from "@/constants";
-import type { MLMatchResponse, MLModelDraft, PhotoBody, SettingsData } from "@/types";
+import type {
+  AnalysisMatchResponse,
+  AnalysisProviderDraft,
+  PhotoBody,
+  SettingsData,
+} from "@/types";
 
 vi.mock("electron", () => ({}));
 
 const MOCK_UUID = "a0b1c2d3-e4f5-6789-abcd-ef0123456789";
 
-const mockAnalyseStack =
+const mockAnalyseMatches =
   vi.fn<
     (options: {
       photos: PhotoBody[];
       settings: { endpoint: string; token: string };
-    }) => Promise<MLMatchResponse | null>
+    }) => Promise<AnalysisMatchResponse | null>
   >();
-const mockCancelAnalyseStack = vi.fn<() => void>();
+const mockCancelAnalyseMatches = vi.fn<() => void>();
 
-vi.mock("@/backend/model", () => ({
-  analyseStack: (...args: Parameters<typeof mockAnalyseStack>) => mockAnalyseStack(...args),
-  cancelAnalyseStack: () => mockCancelAnalyseStack(),
+vi.mock("@/backend/analysis", () => ({
+  analyseMatches: (...args: Parameters<typeof mockAnalyseMatches>) => mockAnalyseMatches(...args),
+  cancelAnalyseMatches: () => mockCancelAnalyseMatches(),
 }));
 
 const mockGetSettings = vi.fn<() => Promise<SettingsData>>();
 const mockUpdateSettings = vi.fn<(settings: SettingsData) => Promise<void>>();
-const mockUpsertModel =
-  vi.fn<(settings: SettingsData, modelId: string, model: unknown) => SettingsData>();
-const mockRemoveModel = vi.fn<(settings: SettingsData, modelId: string) => SettingsData>();
+const mockUpsertAnalysisProvider =
+  vi.fn<(settings: SettingsData, providerId: string, provider: unknown) => SettingsData>();
+const mockRemoveAnalysisProvider =
+  vi.fn<(settings: SettingsData, providerId: string) => SettingsData>();
 const mockGetSettingsForRenderer = vi.fn<() => Promise<SettingsData>>();
 
 vi.mock("@/backend/settings", () => ({
   getSettings: () => mockGetSettings(),
   updateSettings: (settings: SettingsData) => mockUpdateSettings(settings),
-  upsertModel: (settings: SettingsData, modelId: string, model: unknown) =>
-    mockUpsertModel(settings, modelId, model),
-  removeModel: (settings: SettingsData, modelId: string) => mockRemoveModel(settings, modelId),
+  upsertAnalysisProvider: (settings: SettingsData, providerId: string, provider: unknown) =>
+    mockUpsertAnalysisProvider(settings, providerId, provider),
+  removeAnalysisProvider: (settings: SettingsData, providerId: string) =>
+    mockRemoveAnalysisProvider(settings, providerId),
   getSettingsForRenderer: () => mockGetSettingsForRenderer(),
 }));
 
 const mockSaveToken = vi.fn<(id: string, token: string) => Promise<void>>();
 const mockGetToken = vi.fn<(id: string) => Promise<string | null>>();
 const mockDeleteToken = vi.fn<(id: string) => Promise<void>>();
+const mockIsEncryptionAvailable = vi.fn<() => boolean>();
 
 vi.mock("@/backend/tokens", () => ({
   saveToken: (...args: Parameters<typeof mockSaveToken>) => mockSaveToken(...args),
   getToken: (...args: Parameters<typeof mockGetToken>) => mockGetToken(...args),
   deleteToken: (...args: Parameters<typeof mockDeleteToken>) => mockDeleteToken(...args),
+  isEncryptionAvailable: () => mockIsEncryptionAvailable(),
 }));
 
 const mockBroadcastToAllWindows = vi.fn<(channel: string, data: unknown) => void>();
@@ -55,7 +64,12 @@ vi.mock("./shared", () => ({
     mockBroadcastToAllWindows(...args),
 }));
 
-const { handleSaveModel, handleDeleteModel, handleAnalyseStack } = await import("./modelHandlers");
+const {
+  handleSaveAnalysisProvider,
+  handleDeleteAnalysisProvider,
+  handleAnalyseMatches,
+  handleGetEncryptionAvailability,
+} = await import("./analysisHandlers");
 
 const mockEvent = {} as IpcMainInvokeEvent;
 
@@ -69,7 +83,7 @@ const createMockPhotoBody = (overrides: Partial<PhotoBody> = {}): PhotoBody =>
     ...overrides,
   }) as PhotoBody;
 
-describe("model IPC handlers", () => {
+describe("analysis IPC handlers", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockUpdateSettings.mockResolvedValue(undefined);
@@ -77,26 +91,26 @@ describe("model IPC handlers", () => {
     mockDeleteToken.mockResolvedValue(undefined);
   });
 
-  describe(handleSaveModel, () => {
-    it("creates a new model with a generated ID when no ID is provided", async () => {
-      const draft: MLModelDraft = {
-        name: "Test Model",
+  describe(handleSaveAnalysisProvider, () => {
+    it("creates a new provider with a generated ID when no ID is provided", async () => {
+      const draft: AnalysisProviderDraft = {
+        name: "Test Provider",
         endpoint: "https://api.example.com",
         token: "secret-token",
       };
       const settings = { ...DEFAULT_SETTINGS } as SettingsData;
       const updatedSettings = { ...settings } as SettingsData;
       mockGetSettings.mockResolvedValue(settings);
-      mockUpsertModel.mockReturnValue(updatedSettings);
+      mockUpsertAnalysisProvider.mockReturnValue(updatedSettings);
       mockGetSettingsForRenderer.mockResolvedValue(updatedSettings);
 
-      await handleSaveModel(mockEvent, draft);
+      await handleSaveAnalysisProvider(mockEvent, draft);
 
-      expect(mockUpsertModel).toHaveBeenCalledWith(
+      expect(mockUpsertAnalysisProvider).toHaveBeenCalledWith(
         settings,
         expect.any(String),
         expect.objectContaining({
-          name: "Test Model",
+          name: "Test Provider",
           endpoint: "https://api.example.com",
         }),
       );
@@ -105,21 +119,21 @@ describe("model IPC handlers", () => {
       expect(mockBroadcastToAllWindows).toHaveBeenCalledWith("ui:settingsUpdated", updatedSettings);
     });
 
-    it("uses the provided ID when updating an existing model", async () => {
-      const draft: MLModelDraft = {
+    it("uses the provided ID when updating an existing provider", async () => {
+      const draft: AnalysisProviderDraft = {
         id: MOCK_UUID,
-        name: "Updated Model",
+        name: "Updated Provider",
         endpoint: "https://api.example.com",
         token: "new-token",
       };
       const settings = { ...DEFAULT_SETTINGS } as SettingsData;
       mockGetSettings.mockResolvedValue(settings);
-      mockUpsertModel.mockReturnValue(settings);
+      mockUpsertAnalysisProvider.mockReturnValue(settings);
       mockGetSettingsForRenderer.mockResolvedValue(settings);
 
-      await handleSaveModel(mockEvent, draft);
+      await handleSaveAnalysisProvider(mockEvent, draft);
 
-      expect(mockUpsertModel).toHaveBeenCalledWith(
+      expect(mockUpsertAnalysisProvider).toHaveBeenCalledWith(
         settings,
         MOCK_UUID,
         expect.objectContaining({ id: MOCK_UUID }),
@@ -127,33 +141,33 @@ describe("model IPC handlers", () => {
     });
 
     it("does not save a token when none is provided", async () => {
-      const draft: MLModelDraft = {
-        name: "No Token Model",
+      const draft: AnalysisProviderDraft = {
+        name: "No Token Provider",
         endpoint: "https://api.example.com",
       };
       const settings = { ...DEFAULT_SETTINGS } as SettingsData;
       mockGetSettings.mockResolvedValue(settings);
-      mockUpsertModel.mockReturnValue(settings);
+      mockUpsertAnalysisProvider.mockReturnValue(settings);
       mockGetSettingsForRenderer.mockResolvedValue(settings);
 
-      await handleSaveModel(mockEvent, draft);
+      await handleSaveAnalysisProvider(mockEvent, draft);
 
       expect(mockSaveToken).not.toHaveBeenCalled();
     });
   });
 
-  describe(handleDeleteModel, () => {
-    it("deletes the model token, updates settings, and broadcasts", async () => {
+  describe(handleDeleteAnalysisProvider, () => {
+    it("deletes the provider token, updates settings, and broadcasts", async () => {
       const settings = {
         ...DEFAULT_SETTINGS,
-        mlModels: [{ id: MOCK_UUID, name: "Test", endpoint: "https://api.com" }],
+        analysisProviders: [{ id: MOCK_UUID, name: "Test", endpoint: "https://api.com" }],
       } as SettingsData;
       const updatedSettings = { ...DEFAULT_SETTINGS } as SettingsData;
       mockGetSettings.mockResolvedValue(settings);
-      mockRemoveModel.mockReturnValue(updatedSettings);
+      mockRemoveAnalysisProvider.mockReturnValue(updatedSettings);
       mockGetSettingsForRenderer.mockResolvedValue(updatedSettings);
 
-      await handleDeleteModel(mockEvent, MOCK_UUID);
+      await handleDeleteAnalysisProvider(mockEvent, MOCK_UUID);
 
       expect(mockDeleteToken).toHaveBeenCalledWith(MOCK_UUID);
       expect(mockUpdateSettings).toHaveBeenCalledWith(updatedSettings);
@@ -161,63 +175,80 @@ describe("model IPC handlers", () => {
     });
   });
 
-  describe(handleAnalyseStack, () => {
-    it("throws when no model is configured", async () => {
-      const settings = { ...DEFAULT_SETTINGS, selectedModelId: null } as SettingsData;
-      mockGetSettings.mockResolvedValue(settings);
-
-      await expect(handleAnalyseStack(mockEvent, [createMockPhotoBody()])).rejects.toThrow(
-        "Machine Learning integration is not configured.",
-      );
-    });
-
-    it("throws when the selected model has no endpoint", async () => {
+  describe(handleAnalyseMatches, () => {
+    it("throws when no provider is configured", async () => {
       const settings = {
         ...DEFAULT_SETTINGS,
-        selectedModelId: "model-1",
-        mlModels: [{ id: MOCK_UUID, name: "Test", endpoint: "" }],
+        selectedAnalysisProviderId: null,
       } as SettingsData;
       mockGetSettings.mockResolvedValue(settings);
 
-      await expect(handleAnalyseStack(mockEvent, [createMockPhotoBody()])).rejects.toThrow(
-        "Machine Learning integration is not configured.",
+      await expect(handleAnalyseMatches(mockEvent, [createMockPhotoBody()])).rejects.toThrow(
+        "Analysis provider is not configured.",
+      );
+    });
+
+    it("throws when the selected provider has no endpoint", async () => {
+      const settings = {
+        ...DEFAULT_SETTINGS,
+        selectedAnalysisProviderId: "provider-1",
+        analysisProviders: [{ id: MOCK_UUID, name: "Test", endpoint: "" }],
+      } as SettingsData;
+      mockGetSettings.mockResolvedValue(settings);
+
+      await expect(handleAnalyseMatches(mockEvent, [createMockPhotoBody()])).rejects.toThrow(
+        "Analysis provider is not configured.",
       );
     });
 
     it("throws when the token is not available", async () => {
       const settings = {
         ...DEFAULT_SETTINGS,
-        selectedModelId: MOCK_UUID,
-        mlModels: [{ id: MOCK_UUID, name: "Test", endpoint: "https://api.com" }],
+        selectedAnalysisProviderId: MOCK_UUID,
+        analysisProviders: [{ id: MOCK_UUID, name: "Test", endpoint: "https://api.com" }],
       } as SettingsData;
       mockGetSettings.mockResolvedValue(settings);
       mockGetToken.mockResolvedValue(null);
 
-      await expect(handleAnalyseStack(mockEvent, [createMockPhotoBody()])).rejects.toThrow(
-        "Machine Learning API token is not configured or could not be decrypted.",
+      await expect(handleAnalyseMatches(mockEvent, [createMockPhotoBody()])).rejects.toThrow(
+        "Analysis API token is not configured or could not be decrypted.",
       );
     });
 
-    it("calls analyseStack with validated photos and settings", async () => {
+    it("calls analyseMatches with validated photos and settings", async () => {
       const settings = {
         ...DEFAULT_SETTINGS,
-        selectedModelId: MOCK_UUID,
-        mlModels: [{ id: MOCK_UUID, name: "Test", endpoint: "https://api.com" }],
+        selectedAnalysisProviderId: MOCK_UUID,
+        analysisProviders: [{ id: MOCK_UUID, name: "Test", endpoint: "https://api.com" }],
       } as SettingsData;
       const photo = createMockPhotoBody();
-      const mockResponse: MLMatchResponse = { matches: [] };
+      const mockResponse: AnalysisMatchResponse = { matches: [] };
 
       mockGetSettings.mockResolvedValue(settings);
       mockGetToken.mockResolvedValue("api-token");
-      mockAnalyseStack.mockResolvedValue(mockResponse);
+      mockAnalyseMatches.mockResolvedValue(mockResponse);
 
-      const result = await handleAnalyseStack(mockEvent, [photo]);
+      const result = await handleAnalyseMatches(mockEvent, [photo]);
 
-      expect(mockAnalyseStack).toHaveBeenCalledWith({
+      expect(mockAnalyseMatches).toHaveBeenCalledWith({
         photos: [expect.objectContaining({ name: "photo.jpg" })],
         settings: { endpoint: "https://api.com", token: "api-token" },
       });
       expect(result).toBe(mockResponse);
+    });
+  });
+
+  describe(handleGetEncryptionAvailability, () => {
+    it("returns true when encryption is available", () => {
+      mockIsEncryptionAvailable.mockReturnValue(true);
+
+      expect(handleGetEncryptionAvailability()).toBe(true);
+    });
+
+    it("returns false when encryption is not available", () => {
+      mockIsEncryptionAvailable.mockReturnValue(false);
+
+      expect(handleGetEncryptionAvailability()).toBe(false);
     });
   });
 });

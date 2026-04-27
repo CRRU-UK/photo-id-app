@@ -9,29 +9,33 @@ import {
 import { Dialog, FormControl, Stack, TextInput } from "@primer/react";
 import { useEffect, useState } from "react";
 
-import type { MLModel, MLModelDraft } from "@/types";
+import type { AnalysisProvider, AnalysisProviderDraft } from "@/types";
 
-interface ModelOverlayProps {
-  editingModel?: MLModel | null;
+interface AnalysisProviderOverlayProps {
+  editingProvider?: AnalysisProvider | null;
   onClose: () => void;
   open: boolean;
 }
 
-type ModelFields = {
+type ProviderFields = {
   name: string;
   endpoint: string;
   token: string;
 };
 
-const emptyFields = (): ModelFields => ({ name: "", endpoint: "", token: "" });
+const emptyFields = (): ProviderFields => ({ name: "", endpoint: "", token: "" });
 
-const ModelOverlay = ({ open, onClose, editingModel }: ModelOverlayProps) => {
-  const [draft, setDraft] = useState<ModelFields>(emptyFields);
+const AnalysisProviderOverlay = ({
+  open,
+  onClose,
+  editingProvider,
+}: AnalysisProviderOverlayProps) => {
+  const [draft, setDraft] = useState<ProviderFields>(emptyFields);
   const [showToken, setShowToken] = useState(false);
   const [isEditingToken, setIsEditingToken] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  const isEditing = !!editingModel;
+  const isEditing = !!editingProvider;
   const tokenLocked = isEditing && !isEditingToken;
   const fieldsValid = tokenLocked
     ? Boolean(draft.name.trim() && draft.endpoint.trim())
@@ -40,14 +44,14 @@ const ModelOverlay = ({ open, onClose, editingModel }: ModelOverlayProps) => {
   useEffect(() => {
     if (open) {
       setDraft({
-        name: editingModel?.name ?? "",
-        endpoint: editingModel?.endpoint ?? "",
+        name: editingProvider?.name ?? "",
+        endpoint: editingProvider?.endpoint ?? "",
         token: "",
       });
       setShowToken(false);
       setIsEditingToken(false);
     }
-  }, [open, editingModel]);
+  }, [open, editingProvider]);
 
   if (!open) {
     return null;
@@ -56,18 +60,18 @@ const ModelOverlay = ({ open, onClose, editingModel }: ModelOverlayProps) => {
   const handleSave = async () => {
     setIsSaving(true);
 
-    const modelDraft: MLModelDraft = {
-      ...(editingModel ? { id: editingModel.id } : {}),
+    const providerDraft: AnalysisProviderDraft = {
+      ...(editingProvider ? { id: editingProvider.id } : {}),
       name: draft.name.trim(),
       endpoint: draft.endpoint.trim(),
       token: tokenLocked ? undefined : draft.token.trim() || undefined,
     };
 
     try {
-      await window.electronAPI.saveModel(modelDraft);
+      await window.electronAPI.saveAnalysisProvider(providerDraft);
       onClose();
     } catch (error) {
-      console.error("Error saving model:", error);
+      console.error("Error saving analysis provider:", error);
     } finally {
       setIsSaving(false);
     }
@@ -87,20 +91,22 @@ const ModelOverlay = ({ open, onClose, editingModel }: ModelOverlayProps) => {
       ]}
       onClose={onClose}
       position="right"
-      title={isEditing ? "Edit Model" : "Add Model"}
+      title={isEditing ? "Edit Provider" : "Add Provider"}
     >
       <Stack direction="vertical" gap="spacious" padding="spacious">
         <FormControl required>
-          <FormControl.Label>Model name</FormControl.Label>
+          <FormControl.Label>Provider name</FormControl.Label>
           <TextInput
             block
             leadingVisual={AiModelIcon}
             onChange={(event) => setDraft((prev) => ({ ...prev, name: event.target.value }))}
-            placeholder="e.g. MiewID"
+            placeholder="e.g. Analysis Provider v1"
             size="large"
             value={draft.name}
           />
-          <FormControl.Caption>Label shown in the app to identify this model.</FormControl.Caption>
+          <FormControl.Caption>
+            Label shown in the app to identify this provider.
+          </FormControl.Caption>
         </FormControl>
 
         <FormControl required>
@@ -113,7 +119,7 @@ const ModelOverlay = ({ open, onClose, editingModel }: ModelOverlayProps) => {
             size="large"
             value={draft.endpoint}
           />
-          <FormControl.Caption>Base URL of your model API.</FormControl.Caption>
+          <FormControl.Caption>Base URL of your provider API.</FormControl.Caption>
         </FormControl>
 
         <FormControl required={!tokenLocked}>
@@ -163,4 +169,4 @@ const ModelOverlay = ({ open, onClose, editingModel }: ModelOverlayProps) => {
   );
 };
 
-export default ModelOverlay;
+export default AnalysisProviderOverlay;

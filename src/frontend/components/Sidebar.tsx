@@ -36,53 +36,56 @@ const Sidebar = observer(({ onCloseProject }: SidebarProps) => {
 
   const [actionsOpen, setActionsOpen] = useState<boolean>(false);
   const [exporting, setExporting] = useState<boolean>(false);
-  const [modelPanelOpen, setModelPanelOpen] = useState<boolean>(false);
-  const [modelFilter, setModelFilter] = useState<string>("");
+  const [providerPanelOpen, setProviderPanelOpen] = useState<boolean>(false);
+  const [providerFilter, setProviderFilter] = useState<string>("");
 
-  type ModelItem = ItemInput & { id: string; text: string };
+  type ProviderItem = ItemInput & { id: string; text: string };
 
-  const mlModels = useMemo(() => contextSettings?.mlModels ?? [], [contextSettings?.mlModels]);
-  const selectedModelId = contextSettings?.selectedModelId ?? null;
-  const selectedModel = mlModels.find(({ id }) => id === selectedModelId) ?? null;
+  const analysisProviders = useMemo(
+    () => contextSettings?.analysisProviders ?? [],
+    [contextSettings?.analysisProviders],
+  );
+  const selectedProviderId = contextSettings?.selectedAnalysisProviderId ?? null;
+  const selectedProvider = analysisProviders.find(({ id }) => id === selectedProviderId) ?? null;
 
-  const modelItems = useMemo<ModelItem[]>(
+  const providerItems = useMemo<ProviderItem[]>(
     () =>
-      mlModels.map((model) => ({
-        id: model.id,
-        text: model.name,
-        description: model.endpoint,
+      analysisProviders.map((provider) => ({
+        id: provider.id,
+        text: provider.name,
+        description: provider.endpoint,
         descriptionVariant: "block" as const,
       })),
-    [mlModels],
+    [analysisProviders],
   );
 
   const filteredItems = useMemo(
     () =>
-      modelItems.filter(
+      providerItems.filter(
         (item) =>
-          item.id === selectedModelId ||
-          item.text.toLowerCase().includes(modelFilter.toLowerCase()),
+          item.id === selectedProviderId ||
+          item.text.toLowerCase().includes(providerFilter.toLowerCase()),
       ),
-    [modelItems, modelFilter, selectedModelId],
+    [providerItems, providerFilter, selectedProviderId],
   );
 
-  const selectedItem = modelItems.find(({ id }) => id === selectedModelId) ?? undefined;
+  const selectedItem = providerItems.find(({ id }) => id === selectedProviderId) ?? undefined;
 
   if (project === null) {
     return null;
   }
 
-  const handleModelChange = async (item: ItemInput | undefined) => {
+  const handleProviderChange = async (item: ItemInput | undefined) => {
     if (!contextSettings) {
       return;
     }
 
-    const itemId = item ? (item as ModelItem).id : null;
+    const itemId = item ? (item as ProviderItem).id : null;
 
     try {
-      await updateSettings({ ...contextSettings, selectedModelId: itemId });
+      await updateSettings({ ...contextSettings, selectedAnalysisProviderId: itemId });
     } catch (error) {
-      console.error("Error updating selected model:", error);
+      console.error("Error updating selected analysis provider:", error);
     }
   };
 
@@ -115,36 +118,36 @@ const Sidebar = observer(({ onCloseProject }: SidebarProps) => {
         <DiscardedSelection collection={project.discarded} />
 
         <FormControl style={{ marginLeft: "auto", marginTop: "auto" }}>
-          <FormControl.Label visuallyHidden>Select analysis ML model</FormControl.Label>
+          <FormControl.Label visuallyHidden>Select analysis provider</FormControl.Label>
           <SelectPanel
             items={filteredItems}
             message={
-              modelItems.length === 0
+              providerItems.length === 0
                 ? {
-                    title: "No models configured",
+                    title: "No providers configured",
                     variant: "empty",
-                    body: "Add a model in settings.",
+                    body: "Add a provider in settings.",
                   }
                 : undefined
             }
-            onFilterChange={setModelFilter}
-            onOpenChange={setModelPanelOpen}
-            onSelectedChange={(item: ItemInput | undefined) => void handleModelChange(item)}
-            open={modelPanelOpen}
-            placeholderText="Filter models"
+            onFilterChange={setProviderFilter}
+            onOpenChange={setProviderPanelOpen}
+            onSelectedChange={(item: ItemInput | undefined) => void handleProviderChange(item)}
+            open={providerPanelOpen}
+            placeholderText="Filter providers"
             renderAnchor={(anchorProps) => (
               <Button
                 {...anchorProps}
                 leadingVisual={AiModelIcon}
                 trailingAction={TriangleDownIcon}
-                variant={selectedModel ? "primary" : "default"}
+                variant={selectedProvider ? "primary" : "default"}
               >
-                {selectedModel?.name ?? "ML Model"}
+                {selectedProvider?.name ?? "Analysis Provider"}
               </Button>
             )}
             selected={selectedItem}
-            subtitle="Select which ML model to use for stack analysis."
-            title="Analysis ML Model"
+            subtitle="Select which analysis provider to use."
+            title="Analysis Provider"
           />
         </FormControl>
 

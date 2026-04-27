@@ -118,7 +118,7 @@ body.copying *:hover {
   padding: 0;
 }
 
-.ml-list-row {
+.analysis-provider-list-row {
   display: flex;
   gap: var(--stack-gap-normal);
   align-items: center;
@@ -126,7 +126,7 @@ body.copying *:hover {
   border-bottom: 1px solid var(--borderColor-muted);
 }
 
-.ml-list-row:first-child {
+.analysis-provider-list-row:first-child {
   border-top: 1px solid var(--borderColor-muted);
 }
 

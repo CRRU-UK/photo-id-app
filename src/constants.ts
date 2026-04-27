@@ -1,4 +1,4 @@
-import type { MLModel } from "@/types";
+import type { AnalysisProvider } from "@/types";
 
 export enum IPC_EVENTS {
   // Projects
@@ -34,12 +34,12 @@ export enum IPC_EVENTS {
   // Save
   FLUSH_SAVE_PROJECT = "project:flushSaveProject",
 
-  // Machine Learning
-  SAVE_MODEL = "ml:saveModel",
-  DELETE_MODEL = "ml:deleteModel",
-  ANALYSE_STACK = "ml:analyseStack",
-  CANCEL_ANALYSE_STACK = "ml:cancelAnalyseStack",
-  GET_ENCRYPTION_AVAILABILITY = "ml:getEncryptionAvailability",
+  // Analysis
+  SAVE_ANALYSIS_PROVIDER = "analysis:saveProvider",
+  DELETE_ANALYSIS_PROVIDER = "analysis:deleteProvider",
+  ANALYSE_MATCHES = "analysis:analyseMatches",
+  CANCEL_ANALYSE_MATCHES = "analysis:cancelAnalyseMatches",
+  GET_ENCRYPTION_AVAILABILITY = "analysis:getEncryptionAvailability",
 }
 
 export const ROUTES = {
@@ -105,7 +105,7 @@ export const PROJECT_TOOLTIPS = {
   NEXT_PHOTO: "Next photo",
   MORE_OPTIONS: "More options",
   REVERT_PHOTO: "Revert to original",
-  ANALYSE_PHOTOS: "Analyse photos",
+  ANALYSIS_MATCH_STACK: "Analyse matches",
 };
 
 export const EDITOR_TOOLTIPS = {
@@ -206,8 +206,8 @@ export const INITIAL_MATCHED_STACKS = 56;
 export enum EXTERNAL_LINKS {
   WEBSITE = "https://crru.org.uk",
   USER_GUIDE = "https://photoidapp.crru.org.uk/user-guide/usage/",
-  USER_GUIDE_ML = "https://photoidapp.crru.org.uk/user-guide/machine-learning/",
-  USER_GUIDE_ML_TOKENS = "https://photoidapp.crru.org.uk/user-guide/machine-learning/#api-tokens",
+  USER_GUIDE_ANALYSIS = "https://photoidapp.crru.org.uk/user-guide/analysis/",
+  USER_GUIDE_ANALYSIS_TOKENS = "https://photoidapp.crru.org.uk/user-guide/analysis/#api-tokens",
   KEYBOARD_SHORTCUTS = "https://photoidapp.crru.org.uk/user-guide/keyboard-shortcuts/",
   CHANGELOG = "https://github.com/CRRU-UK/photo-id-app/releases/$VERSION",
   PRIVACY = "https://photoidapp.crru.org.uk/privacy/",
@@ -270,11 +270,11 @@ export const DEFAULT_SETTINGS = {
   version: "v1" as const,
   themeMode: "dark" as const,
   telemetry: "disabled" as const,
-  mlModels: [] as MLModel[],
-  selectedModelId: null,
+  analysisProviders: [] as AnalysisProvider[],
+  selectedAnalysisProviderId: null,
 };
 
-// Machine Learning
+// Analysis
 
 export const ANALYSIS_API_IMAGE_SIZE = 1000;
 

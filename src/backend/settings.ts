@@ -5,7 +5,7 @@ import { app } from "electron";
 
 import { DEFAULT_SETTINGS, SETTINGS_FILE_NAME } from "@/constants";
 import { settingsDataSchema } from "@/schemas";
-import type { MLModel, SettingsData, Telemetry } from "@/types";
+import type { AnalysisProvider, SettingsData, Telemetry } from "@/types";
 
 const getSettingsFilePath = (): string => path.join(app.getPath("userData"), SETTINGS_FILE_NAME);
 
@@ -88,30 +88,39 @@ const initSentry = (): void => {
 };
 
 /**
- * Returns updated settings with the given model added or replaced (matched by ID).
+ * Returns updated settings with the given analysis provider added or replaced (matched by ID).
  */
-const upsertModel = (settings: SettingsData, modelId: string, metadata: MLModel): SettingsData => {
-  const updatedModels = [...settings.mlModels];
-  const existingIndex = updatedModels.findIndex(({ id }) => id === modelId);
+const upsertAnalysisProvider = (
+  settings: SettingsData,
+  providerId: string,
+  metadata: AnalysisProvider,
+): SettingsData => {
+  const updatedProviders = [...settings.analysisProviders];
+  const existingIndex = updatedProviders.findIndex(({ id }) => id === providerId);
 
   if (existingIndex >= 0) {
-    updatedModels[existingIndex] = metadata;
+    updatedProviders[existingIndex] = metadata;
   } else {
-    updatedModels.push(metadata);
+    updatedProviders.push(metadata);
   }
 
-  return { ...settings, mlModels: updatedModels };
+  return { ...settings, analysisProviders: updatedProviders };
 };
 
 /**
- * Returns updated settings with the given model removed. Clears selectedModelId if it matches.
+ * Returns updated settings with the given analysis provider removed. Clears
+ * selectedAnalysisProviderId if it matches.
  */
-const removeModel = (settings: SettingsData, modelId: string): SettingsData => {
-  const updatedModels = settings.mlModels.filter(({ id }) => id !== modelId);
-  const updatedSelectedModelId =
-    settings.selectedModelId === modelId ? null : settings.selectedModelId;
+const removeAnalysisProvider = (settings: SettingsData, providerId: string): SettingsData => {
+  const updatedProviders = settings.analysisProviders.filter(({ id }) => id !== providerId);
+  const updatedSelectedProviderId =
+    settings.selectedAnalysisProviderId === providerId ? null : settings.selectedAnalysisProviderId;
 
-  return { ...settings, mlModels: updatedModels, selectedModelId: updatedSelectedModelId };
+  return {
+    ...settings,
+    analysisProviders: updatedProviders,
+    selectedAnalysisProviderId: updatedSelectedProviderId,
+  };
 };
 
 /**
@@ -126,7 +135,7 @@ export {
   getSettingsForRenderer,
   getTelemetrySync,
   initSentry,
-  removeModel,
+  removeAnalysisProvider,
   updateSettings,
-  upsertModel,
+  upsertAnalysisProvider,
 };

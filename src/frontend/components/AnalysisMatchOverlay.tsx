@@ -20,7 +20,7 @@ import {
 } from "@/constants";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { useSettings } from "@/contexts/SettingsContext";
-import type { MLMatch, MLMatchResponse } from "@/types";
+import type { AnalysisMatch, AnalysisMatchResponse } from "@/types";
 
 const CopyDetailsButton = ({ details }: { details: string }) => {
   const [copied, setCopied] = useState(false);
@@ -69,10 +69,10 @@ const CopyDetailsButton = ({ details }: { details: string }) => {
 
 const Loading = ({
   inputLabel,
-  modelLabel,
+  providerLabel,
 }: {
   inputLabel: string | null;
-  modelLabel: string | null;
+  providerLabel: string | null;
 }) => {
   const subtitleId = useId();
 
@@ -82,8 +82,10 @@ const Loading = ({
         <PrimerStack align="start" direction="horizontal" gap="condensed">
           <Spinner size="small" />
           <span>
-            Processing for {inputLabel !== null && <Label variant="accent">{inputLabel}</Label>}{" "}
-            with model {modelLabel !== null && <Label variant="done">{modelLabel}</Label>}...
+            Processing matches for{" "}
+            {inputLabel !== null && <Label variant="accent">{inputLabel}</Label>} with analysis
+            provider {providerLabel !== null && <Label variant="done">{providerLabel}</Label>}
+            ...
           </span>
         </PrimerStack>
       </Table.Subtitle>
@@ -120,11 +122,11 @@ const Loading = ({
 const Results = ({
   data,
   inputLabel,
-  modelLabel,
+  providerLabel,
 }: {
-  data: MLMatchResponse;
+  data: AnalysisMatchResponse;
   inputLabel: string | null;
-  modelLabel: string | null;
+  providerLabel: string | null;
 }) => {
   const [pageIndex, setPageIndex] = useState(0);
 
@@ -143,7 +145,7 @@ const Results = ({
   const subtitleId = useId();
 
   const tableContent = (
-    <DataTable<MLMatch>
+    <DataTable<AnalysisMatch>
       cellPadding="spacious"
       columns={[
         {
@@ -162,7 +164,7 @@ const Results = ({
           header: "Rating",
           field: "rating",
           width: "grow",
-          renderCell: (row: MLMatch) => {
+          renderCell: (row: AnalysisMatch) => {
             const rating = Math.round(row.rating * 100);
 
             let progressBarColor = "success.emphasis";
@@ -192,7 +194,7 @@ const Results = ({
           header: "",
           field: "details",
           width: "auto",
-          renderCell: (row: MLMatch) => {
+          renderCell: (row: AnalysisMatch) => {
             return <CopyDetailsButton details={row.details} />;
           },
         },
@@ -204,8 +206,8 @@ const Results = ({
   return (
     <Table.Container>
       <Table.Subtitle as="p" id={subtitleId}>
-        Matches for {inputLabel !== null && <Label variant="accent">{inputLabel}</Label>} with model{" "}
-        {modelLabel !== null && <Label variant="done">{modelLabel}</Label>}:
+        Match results for {inputLabel !== null && <Label variant="accent">{inputLabel}</Label>} with
+        analysis provider {providerLabel !== null && <Label variant="done">{providerLabel}</Label>}:
       </Table.Subtitle>
 
       {tableContent}
@@ -220,13 +222,14 @@ const Results = ({
   );
 };
 
-const AnalysisOverlay = () => {
+const AnalysisMatchOverlay = () => {
   const { isAnalysing, result, error, inputLabel, handleClose } = useAnalysis();
   const { settings } = useSettings();
 
-  const selectedModel =
-    settings?.mlModels.find(({ id }) => id === settings.selectedModelId) ?? null;
-  const modelLabel = selectedModel?.name ?? null;
+  const selectedProvider =
+    settings?.analysisProviders.find(({ id }) => id === settings.selectedAnalysisProviderId) ??
+    null;
+  const providerLabel = selectedProvider?.name ?? null;
 
   const open = isAnalysing || result !== null || error !== null;
 
@@ -242,11 +245,13 @@ const AnalysisOverlay = () => {
           : [{ buttonType: "default", content: "Close", onClick: handleClose }]
       }
       onClose={handleClose}
-      title="Machine Learning Analysis"
+      title="Match Analysis"
     >
-      {isAnalysing && <Loading inputLabel={inputLabel} modelLabel={modelLabel} />}
+      {isAnalysing && <Loading inputLabel={inputLabel} providerLabel={providerLabel} />}
 
-      {result !== null && <Results data={result} inputLabel={inputLabel} modelLabel={modelLabel} />}
+      {result !== null && (
+        <Results data={result} inputLabel={inputLabel} providerLabel={providerLabel} />
+      )}
 
       {error !== null && (
         <Banner title="Error" variant="critical">
@@ -257,4 +262,4 @@ const AnalysisOverlay = () => {
   );
 };
 
-export default AnalysisOverlay;
+export default AnalysisMatchOverlay;
