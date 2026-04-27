@@ -9,7 +9,7 @@ import {
   updateSettings,
   upsertAnalysisProvider,
 } from "@/backend/settings";
-import { deleteToken, getToken, saveToken } from "@/backend/tokens";
+import { deleteToken, getToken, isEncryptionAvailable, saveToken } from "@/backend/tokens";
 import { IPC_EVENTS } from "@/constants";
 import { analysisProviderDraftSchema, analysisProviderSchema, photoBodySchema } from "@/schemas";
 import type {
@@ -95,9 +95,12 @@ export const handleAnalyseStack = async (
   });
 };
 
+export const handleGetEncryptionAvailability = (): boolean => isEncryptionAvailable();
+
 export const registerAnalysisHandlers = (ipcMain: Electron.IpcMain): void => {
   ipcMain.handle(IPC_EVENTS.SAVE_ANALYSIS_PROVIDER, handleSaveAnalysisProvider);
   ipcMain.handle(IPC_EVENTS.DELETE_ANALYSIS_PROVIDER, handleDeleteAnalysisProvider);
   ipcMain.handle(IPC_EVENTS.ANALYSE_STACK, handleAnalyseStack);
+  ipcMain.handle(IPC_EVENTS.GET_ENCRYPTION_AVAILABILITY, handleGetEncryptionAvailability);
   ipcMain.on(IPC_EVENTS.CANCEL_ANALYSE_STACK, () => cancelAnalyseStack());
 };

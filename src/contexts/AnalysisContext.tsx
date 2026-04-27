@@ -12,7 +12,7 @@ import type { AnalysisMatchResponse, PhotoBody } from "@/types";
 
 interface AnalysisContextValue {
   error: string | null;
-  handleAnalyse: (photos: PhotoBody[], inputLabel: string) => Promise<void>;
+  handleAnalyseMatches: (photos: PhotoBody[], inputLabel: string) => Promise<void>;
   handleClose: () => void;
   inputLabel: string | null;
   isAnalysing: boolean;
@@ -39,7 +39,7 @@ export const AnalysisContextProvider = ({ children }: AnalysisContextProviderPro
     };
   }, [isAnalysing]);
 
-  const handleAnalyse = useCallback(
+  const handleAnalyseMatches = useCallback(
     async (photos: PhotoBody[], label: string) => {
       if (isAnalysing) {
         return;
@@ -75,8 +75,8 @@ export const AnalysisContextProvider = ({ children }: AnalysisContextProviderPro
   }, [isAnalysing]);
 
   const value = useMemo<AnalysisContextValue>(
-    () => ({ isAnalysing, result, error, inputLabel, handleAnalyse, handleClose }),
-    [isAnalysing, result, error, inputLabel, handleAnalyse, handleClose],
+    () => ({ isAnalysing, result, error, inputLabel, handleAnalyseMatches, handleClose }),
+    [isAnalysing, result, error, inputLabel, handleAnalyseMatches, handleClose],
   );
 
   return <AnalysisContext.Provider value={value}>{children}</AnalysisContext.Provider>;

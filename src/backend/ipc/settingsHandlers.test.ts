@@ -20,12 +20,6 @@ vi.mock("@/backend/settings", () => ({
   updateSettings: (...args: Parameters<typeof mockUpdateSettings>) => mockUpdateSettings(...args),
 }));
 
-const mockIsEncryptionAvailable = vi.fn<() => boolean>();
-
-vi.mock("@/backend/tokens", () => ({
-  isEncryptionAvailable: () => mockIsEncryptionAvailable(),
-}));
-
 const mockGetMainWindow = vi.fn<() => BrowserWindow | null>();
 
 vi.mock("@/backend/WindowManager", () => ({
@@ -44,13 +38,8 @@ vi.mock("./shared", () => ({
     mockResolveExternalLinkUrl(...args),
 }));
 
-const {
-  handleGetSettings,
-  handleGetEncryptionAvailability,
-  handleUpdateSettings,
-  handleOpenSettings,
-  handleOpenExternalLink,
-} = await import("./settingsHandlers");
+const { handleGetSettings, handleUpdateSettings, handleOpenSettings, handleOpenExternalLink } =
+  await import("./settingsHandlers");
 
 const createMockWindow = (): BrowserWindow =>
   ({
@@ -71,20 +60,6 @@ describe("settings IPC handlers", () => {
       const result = await handleGetSettings();
 
       expect(result).toBe(mockSettings);
-    });
-  });
-
-  describe(handleGetEncryptionAvailability, () => {
-    it("returns true when encryption is available", () => {
-      mockIsEncryptionAvailable.mockReturnValue(true);
-
-      expect(handleGetEncryptionAvailability()).toBe(true);
-    });
-
-    it("returns false when encryption is not available", () => {
-      mockIsEncryptionAvailable.mockReturnValue(false);
-
-      expect(handleGetEncryptionAvailability()).toBe(false);
     });
   });
 

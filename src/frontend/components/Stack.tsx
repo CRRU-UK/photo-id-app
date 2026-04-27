@@ -52,7 +52,7 @@ interface StackProps {
 
 const Stack = observer(({ collection, showAnalysisButton = true, stackLabel }: StackProps) => {
   const { settings } = useSettings();
-  const { isAnalysing, handleAnalyse } = useAnalysis();
+  const { isAnalysing, handleAnalyseMatches } = useAnalysis();
   const [revertingPhoto, setRevertingPhoto] = useState<boolean>(false);
 
   const selectedProvider = settings?.analysisProviders?.find(
@@ -64,7 +64,7 @@ const Stack = observer(({ collection, showAnalysisButton = true, stackLabel }: S
       return;
     }
 
-    void handleAnalyse(
+    void handleAnalyseMatches(
       collection.photos.map((photo) => photo.toBody()),
       stackLabel ?? "",
     );

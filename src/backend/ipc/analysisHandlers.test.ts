@@ -48,11 +48,13 @@ vi.mock("@/backend/settings", () => ({
 const mockSaveToken = vi.fn<(id: string, token: string) => Promise<void>>();
 const mockGetToken = vi.fn<(id: string) => Promise<string | null>>();
 const mockDeleteToken = vi.fn<(id: string) => Promise<void>>();
+const mockIsEncryptionAvailable = vi.fn<() => boolean>();
 
 vi.mock("@/backend/tokens", () => ({
   saveToken: (...args: Parameters<typeof mockSaveToken>) => mockSaveToken(...args),
   getToken: (...args: Parameters<typeof mockGetToken>) => mockGetToken(...args),
   deleteToken: (...args: Parameters<typeof mockDeleteToken>) => mockDeleteToken(...args),
+  isEncryptionAvailable: () => mockIsEncryptionAvailable(),
 }));
 
 const mockBroadcastToAllWindows = vi.fn<(channel: string, data: unknown) => void>();
@@ -62,8 +64,12 @@ vi.mock("./shared", () => ({
     mockBroadcastToAllWindows(...args),
 }));
 
-const { handleSaveAnalysisProvider, handleDeleteAnalysisProvider, handleAnalyseStack } =
-  await import("./analysisHandlers");
+const {
+  handleSaveAnalysisProvider,
+  handleDeleteAnalysisProvider,
+  handleAnalyseStack,
+  handleGetEncryptionAvailability,
+} = await import("./analysisHandlers");
 
 const mockEvent = {} as IpcMainInvokeEvent;
 
@@ -229,6 +235,20 @@ describe("analysis IPC handlers", () => {
         settings: { endpoint: "https://api.com", token: "api-token" },
       });
       expect(result).toBe(mockResponse);
+    });
+  });
+
+  describe(handleGetEncryptionAvailability, () => {
+    it("returns true when encryption is available", () => {
+      mockIsEncryptionAvailable.mockReturnValue(true);
+
+      expect(handleGetEncryptionAvailability()).toBe(true);
+    });
+
+    it("returns false when encryption is not available", () => {
+      mockIsEncryptionAvailable.mockReturnValue(false);
+
+      expect(handleGetEncryptionAvailability()).toBe(false);
     });
   });
 });

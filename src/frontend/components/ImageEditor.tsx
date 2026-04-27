@@ -101,7 +101,7 @@ const ImageEditor = ({
   );
 
   const {
-    handleAnalyse,
+    handleAnalyseMatches,
     handleClose: handleCloseAnalysis,
     isAnalysing,
     result,
@@ -224,11 +224,11 @@ const ImageEditor = ({
       pan: transform.pan,
     };
 
-    void handleAnalyse(
+    void handleAnalyseMatches(
       [{ ...data, edits: currentEdits, isEdited: computeIsEdited(currentEdits) }],
       data.name,
     );
-  }, [data, getters, handleAnalyse, selectedProvider]);
+  }, [data, getters, handleAnalyseMatches, selectedProvider]);
 
   /**
    * Ref ensures the dirty check always reads the latest getters without re-subscribing on every

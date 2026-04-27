@@ -246,9 +246,9 @@ The project view is accessed when opening a project. It allows the user to:
   - Selecting the current provider should unselect it and result in a state where analysis is disabled
   - Re-selecting any provider should re-enable analysis
 - The unassigned and discarded stacks should NOT show the analysis button as this would not be useful
-- Clicking the stack analysis button sends all photos in that stack to the selected provider's match API endpoint with the token
+- Clicking the stack analysis button sends all photos in that stack to the selected provider's `/match` endpoint with the token
 - Clicking the stack analysis button opens an overlay with a data table loading state while the request is being sent and the response is being received
-- Clicking the image editor analysis button should send ONLY the currently displayed photo to the selected provider's match API endpoint, including any pending edits (even if they have not yet been saved)
+- Clicking the image editor analysis button should send ONLY the currently displayed photo to the selected provider's `/match` endpoint, including any pending edits (even if they have not yet been saved)
 - Once the response has been received, the overlay content should update the data table with the data received
 - The data table contains the following columns:
   - Rank of the match (1-indexed, best first)
