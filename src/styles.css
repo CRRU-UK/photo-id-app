@@ -33,12 +33,13 @@ html[data-color-mode="dark"] .theme-icon-dark {
   justify-content: center;
   width: 100vw;
   min-height: 100vh;
+  padding: var(--stack-padding-spacious);
   background-color: var(--bgColor-default);
 }
 
 .index > .content {
   width: 100%;
-  max-width: 600px;
+  max-width: 700px;
   margin-top: auto;
   margin-bottom: var(--stack-gap-spacious);
 }
@@ -76,13 +77,13 @@ html[data-color-mode="dark"] .theme-icon-dark {
 
 @media (max-width: 1280px) {
   .project {
-    --project-sidebar-width: 280px;
+    --project-sidebar-width: 260px;
   }
 }
 
 @media (max-width: 1080px) {
   .project {
-    --project-sidebar-width: 260px;
+    --project-sidebar-width: 300px;
   }
 }
 

@@ -103,7 +103,7 @@ export const PROJECT_TOOLTIPS = {
   EDIT_PHOTO: "Edit photo",
   PREVIOUS_PHOTO: "Previous photo",
   NEXT_PHOTO: "Next photo",
-  MORE_OPTIONS: "More options",
+  STACK_ACTIONS: "Actions",
   REVERT_PHOTO: "Revert to original",
   ANALYSIS_MATCH_STACK: "Analyse matches",
 };
@@ -119,7 +119,7 @@ export const EDITOR_TOOLTIPS = {
   PAN_RIGHT: "Pan right",
   ZOOM_OUT: "Zoom out",
   ZOOM_IN: "Zoom in",
-  ANALYSE: "Analyse photo",
+  ANALYSE: "Analyse matches",
   PREVIOUS_PHOTO: "Previous photo",
   NEXT_PHOTO: "Next photo",
   RESET: "Reset",
