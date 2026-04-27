@@ -1,5 +1,14 @@
 # photo-id
 
+## 0.7.4
+
+### Patch Changes
+
+- f427877: New pages can now be added to a project
+- 97eef12: Fix error when closing analysis overlay before results were displayed
+- 2e4d9c2: The filename of the currently displayed photo in a stack can now be viewed by hovering over the info button
+- 7e30696: Improved layout on smaller screen sizes
+
 ## 0.7.3
 
 ### Patch Changes
