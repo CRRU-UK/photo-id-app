@@ -13,10 +13,6 @@ textarea,
   outline: none;
 }
 
-:root {
-  --editor-toolbar-height: 60px;
-}
-
 .theme-icon-light,
 .theme-icon-dark {
   display: none;
@@ -214,9 +210,28 @@ html[data-color-mode="light"] .project .photo-stack {
 }
 
 .edit {
+  --editor-toolbar-height: 60px;
+  --editor-spacing: var(--stack-gap-normal);
+  --editor-spacing-large: var(--stack-gap-spacious);
+  --editor-slider-width: 140px;
+
   position: relative;
   width: 100vw;
   height: 100vh;
+}
+
+@media (max-width: 1280px) {
+  .edit {
+    --editor-spacing: var(--stack-gap-condensed);
+    --editor-spacing-large: var(--stack-gap-normal);
+    --editor-slider-width: 120px;
+  }
+}
+
+@media (max-width: 1080px) {
+  .edit {
+    --editor-toolbar-height: 110px;
+  }
 }
 
 .edit > .toolbar {
@@ -226,42 +241,32 @@ html[data-color-mode="light"] .project .photo-stack {
   z-index: 10;
   display: flex;
   flex-direction: row;
+  gap: var(--editor-spacing-large);
   align-items: center;
   justify-content: space-between;
   width: 100%;
   height: var(--editor-toolbar-height);
-  padding: 0 var(--stack-gap-normal);
+  padding: 0 var(--editor-spacing);
   background: var(--bgColor-muted);
   border-top: var(--borderWidth-default) var(--borderColor-muted) solid;
 }
 
-.edit > .toolbar .colour-picker {
-  position: relative;
+.edit > .toolbar > .toolbar-actions {
+  margin-left: auto;
 }
 
-.edit > .toolbar .colour-picker > label {
-  display: block;
-  width: 30px;
-  height: 30px;
-  border: var(--borderWidth-thick) var(--borderColor-muted) solid;
-  border-radius: 50%;
+.edit > .toolbar .slider {
+  width: var(--editor-slider-width);
 }
 
-.edit > .toolbar .colour-picker > input {
-  position: absolute;
-  top: 0;
-  left: 0;
-  visibility: hidden;
+.edit > .toolbar .slider input[type="range"] {
   width: 100%;
-  height: 100%;
-  pointer-events: none;
-  opacity: 0;
 }
 
 .edit > .edge-toggle {
   position: absolute;
-  bottom: calc(var(--stack-gap-normal) + var(--editor-toolbar-height));
-  left: var(--stack-gap-normal);
+  bottom: calc(var(--editor-spacing) + var(--editor-toolbar-height));
+  left: var(--editor-spacing);
   z-index: 10;
   padding: var(--stack-gap-condensed);
   background: var(--bgColor-muted);
@@ -318,6 +323,27 @@ html[data-color-mode="light"] .project .photo-stack {
   cursor:
     url("./frontend/img/loupe-cursor.svg") 40 40,
     crosshair;
+}
+
+@media (max-width: 1080px) {
+  .edit {
+    --editor-toolbar-height: 100px;
+  }
+
+  .edit > .toolbar {
+    flex-wrap: wrap;
+    gap: 0;
+    padding: var(--stack-padding-condensed);
+  }
+
+  .edit > .toolbar > .toolbar-sliders {
+    flex-basis: 100%;
+  }
+
+  .edit > .toolbar > .toolbar-actions {
+    margin-right: auto;
+    margin-left: 0;
+  }
 }
 
 .loading {

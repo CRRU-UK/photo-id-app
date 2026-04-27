@@ -27,7 +27,7 @@ const Slider = ({
   }, [initial]);
 
   return (
-    <FormControl disabled={disabled}>
+    <FormControl className="slider" disabled={disabled}>
       <FormControl.Label style={{ width: "100%" }} visuallyHidden={simple}>
         <Stack align="center" direction="horizontal" justify="space-between">
           {name}

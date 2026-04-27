@@ -10,7 +10,7 @@ import {
   ZoomInIcon,
   ZoomOutIcon,
 } from "@primer/octicons-react";
-import { Button, ButtonGroup, IconButton, Stack } from "@primer/react";
+import { ActionBar, Button, ButtonGroup, IconButton, Stack } from "@primer/react";
 import { KeybindingHint } from "@primer/react/experimental";
 import { memo, useCallback } from "react";
 import { EDITOR_KEYS, EDITOR_TOOLTIPS, EditorPanDirection, IMAGE_FILTERS } from "@/constants";
@@ -82,7 +82,7 @@ const Toolbar = ({
 
   return (
     <div className="toolbar">
-      <Stack align="center" direction="horizontal" gap="condensed">
+      <Stack align="center" className="toolbar-sliders" direction="horizontal" gap="condensed">
         <Slider
           callback={onSetBrightness}
           disabled={edgeDetectionEnabled}
@@ -112,116 +112,115 @@ const Toolbar = ({
         />
       </Stack>
 
-      <ButtonGroup style={{ marginLeft: "auto", marginRight: "var(--stack-gap-spacious)" }}>
-        <IconButton
-          aria-label={EDITOR_TOOLTIPS.PAN_LEFT}
-          icon={ArrowLeftIcon}
-          keybindingHint={EDITOR_KEYS.PAN_LEFT.hint}
-          onClick={handlePanLeft}
-          size="large"
-        />
-        <IconButton
-          aria-label={EDITOR_TOOLTIPS.PAN_UP}
-          icon={ArrowUpIcon}
-          keybindingHint={EDITOR_KEYS.PAN_UP.hint}
-          onClick={handlePanUp}
-          size="large"
-        />
-        <IconButton
-          aria-label={EDITOR_TOOLTIPS.PAN_DOWN}
-          icon={ArrowDownIcon}
-          keybindingHint={EDITOR_KEYS.PAN_DOWN.hint}
-          onClick={handlePanDown}
-          size="large"
-        />
-        <IconButton
-          aria-label={EDITOR_TOOLTIPS.PAN_RIGHT}
-          icon={ArrowRightIcon}
-          keybindingHint={EDITOR_KEYS.PAN_RIGHT.hint}
-          onClick={handlePanRight}
-          size="large"
-        />
-      </ButtonGroup>
-
-      <ButtonGroup style={{ marginRight: "var(--stack-gap-spacious)" }}>
-        <IconButton
-          aria-label={EDITOR_TOOLTIPS.ZOOM_OUT}
-          icon={ZoomOutIcon}
-          keybindingHint={EDITOR_KEYS.ZOOM_OUT.hint}
-          onClick={onZoomOut}
-          size="large"
-        />
-        <IconButton
-          aria-label={EDITOR_TOOLTIPS.ZOOM_IN}
-          icon={ZoomInIcon}
-          keybindingHint={EDITOR_KEYS.ZOOM_IN.hint}
-          onClick={onZoomIn}
-          size="large"
-        />
-      </ButtonGroup>
-
-      <ButtonGroup style={{ marginRight: "auto" }}>
-        <IconButton
-          aria-label={loupeEnabled ? EDITOR_TOOLTIPS.DISABLE_LOUPE : EDITOR_TOOLTIPS.ENABLE_LOUPE}
-          icon={CodescanIcon}
-          keybindingHint={EDITOR_KEYS.TOGGLE_LOUPE.hint}
-          onClick={onToggleLoupe}
-          size="large"
-          variant={loupeEnabled ? "primary" : "default"}
-        />
-      </ButtonGroup>
-
-      {selectedModel !== undefined && (
-        <ButtonGroup style={{ marginRight: "auto" }}>
-          <IconButton
-            aria-label={EDITOR_TOOLTIPS.ANALYSE}
-            icon={AiModelIcon}
-            keybindingHint={EDITOR_KEYS.ANALYSE.hint}
-            onClick={onAnalyse}
-            size="large"
+      <ActionBar aria-label="Image controls" className="toolbar-actions" flush>
+        <ActionBar.Group>
+          <ActionBar.IconButton
+            aria-label={EDITOR_TOOLTIPS.PAN_LEFT}
+            icon={ArrowLeftIcon}
+            keybindingHint={EDITOR_KEYS.PAN_LEFT.hint}
+            onClick={handlePanLeft}
           />
-        </ButtonGroup>
-      )}
+          <ActionBar.IconButton
+            aria-label={EDITOR_TOOLTIPS.PAN_UP}
+            icon={ArrowUpIcon}
+            keybindingHint={EDITOR_KEYS.PAN_UP.hint}
+            onClick={handlePanUp}
+          />
+          <ActionBar.IconButton
+            aria-label={EDITOR_TOOLTIPS.PAN_DOWN}
+            icon={ArrowDownIcon}
+            keybindingHint={EDITOR_KEYS.PAN_DOWN.hint}
+            onClick={handlePanDown}
+          />
+          <ActionBar.IconButton
+            aria-label={EDITOR_TOOLTIPS.PAN_RIGHT}
+            icon={ArrowRightIcon}
+            keybindingHint={EDITOR_KEYS.PAN_RIGHT.hint}
+            onClick={handlePanRight}
+          />
+        </ActionBar.Group>
+        <ActionBar.Divider />
+        <ActionBar.Group>
+          <ActionBar.IconButton
+            aria-label={EDITOR_TOOLTIPS.ZOOM_OUT}
+            icon={ZoomOutIcon}
+            keybindingHint={EDITOR_KEYS.ZOOM_OUT.hint}
+            onClick={onZoomOut}
+          />
+          <ActionBar.IconButton
+            aria-label={EDITOR_TOOLTIPS.ZOOM_IN}
+            icon={ZoomInIcon}
+            keybindingHint={EDITOR_KEYS.ZOOM_IN.hint}
+            onClick={onZoomIn}
+          />
+        </ActionBar.Group>
+        <ActionBar.Divider />
+        <ActionBar.Group>
+          <ActionBar.IconButton
+            aria-label={loupeEnabled ? EDITOR_TOOLTIPS.DISABLE_LOUPE : EDITOR_TOOLTIPS.ENABLE_LOUPE}
+            icon={CodescanIcon}
+            keybindingHint={EDITOR_KEYS.TOGGLE_LOUPE.hint}
+            onClick={onToggleLoupe}
+            variant={loupeEnabled ? "primary" : "default"}
+          />
+        </ActionBar.Group>
+        {selectedModel !== undefined && <ActionBar.Divider />}
+        {selectedModel !== undefined && (
+          <ActionBar.Group>
+            <ActionBar.IconButton
+              aria-label={EDITOR_TOOLTIPS.ANALYSE}
+              icon={AiModelIcon}
+              keybindingHint={EDITOR_KEYS.ANALYSE.hint}
+              onClick={onAnalyse}
+            />
+          </ActionBar.Group>
+        )}
+      </ActionBar>
 
-      <ButtonGroup style={{ marginRight: "var(--stack-gap-spacious)" }}>
+      <ButtonGroup style={{ marginLeft: "auto" }}>
         <IconButton
           aria-label={EDITOR_TOOLTIPS.PREVIOUS_PHOTO}
           icon={ChevronLeftIcon}
           keybindingHint={EDITOR_KEYS.PREVIOUS_PHOTO.hint}
           onClick={handleNavigatePrev}
-          size="large"
-          variant="invisible"
+          size="medium"
         />
         <IconButton
           aria-label={EDITOR_TOOLTIPS.NEXT_PHOTO}
           icon={ChevronRightIcon}
           keybindingHint={EDITOR_KEYS.NEXT_PHOTO.hint}
           onClick={handleNavigateNext}
-          size="large"
-          variant="invisible"
+          size="medium"
         />
       </ButtonGroup>
 
-      <Button
-        onClick={onReset}
-        size="large"
-        style={{ marginRight: "var(--stack-gap-normal)" }}
-        trailingVisual={<KeybindingHint keys={EDITOR_KEYS.RESET.hint} />}
-        variant="danger"
+      <Stack
+        direction="horizontal"
+        gap="normal"
+        style={{
+          marginLeft: "var(--editor-spacing-large)",
+        }}
       >
-        {EDITOR_TOOLTIPS.RESET}
-      </Button>
+        <Button
+          onClick={onReset}
+          size="medium"
+          trailingVisual={<KeybindingHint keys={EDITOR_KEYS.RESET.hint} />}
+          variant="danger"
+        >
+          {EDITOR_TOOLTIPS.RESET}
+        </Button>
 
-      <Button
-        disabled={saving}
-        loading={saving}
-        onClick={onSave}
-        size="large"
-        trailingVisual={<KeybindingHint keys={EDITOR_KEYS.SAVE.hint} />}
-        variant="primary"
-      >
-        {EDITOR_TOOLTIPS.SAVE}
-      </Button>
+        <Button
+          disabled={saving}
+          loading={saving}
+          onClick={onSave}
+          size="medium"
+          trailingVisual={<KeybindingHint keys={EDITOR_KEYS.SAVE.hint} />}
+          variant="primary"
+        >
+          {EDITOR_TOOLTIPS.SAVE}
+        </Button>
+      </Stack>
     </div>
   );
 };
