@@ -47,10 +47,20 @@ html[data-color-mode="dark"] .theme-icon-dark {
   margin-top: auto;
 }
 
+:root {
+  --app-spacing: var(--stack-gap-normal);
+  --app-spacing-large: var(--stack-gap-spacious);
+}
+
+@media (max-width: 1280px) {
+  :root {
+    --app-spacing: var(--stack-gap-condensed);
+    --app-spacing-large: var(--stack-gap-normal);
+  }
+}
+
 .project {
   --project-sidebar-width: 380px;
-  --project-spacing: var(--stack-gap-normal);
-  --project-spacing-large: var(--stack-gap-spacious);
 
   position: relative;
   width: 100vw;
@@ -67,8 +77,6 @@ html[data-color-mode="dark"] .theme-icon-dark {
 @media (max-width: 1280px) {
   .project {
     --project-sidebar-width: 280px;
-    --project-spacing: var(--stack-gap-condensed);
-    --project-spacing-large: var(--stack-gap-normal);
   }
 }
 
@@ -141,7 +149,7 @@ body.copying *:hover {
 .project > .pages > .add-page,
 .project > .pages > .columns {
   min-height: var(--control-xlarge-size, 48px);
-  padding: 0 var(--project-spacing);
+  padding: 0 var(--app-spacing);
   box-shadow: inset 0 -1px var(--borderColor-muted, var(--color-border-muted));
 }
 
@@ -161,9 +169,9 @@ body.copying *:hover {
 }
 
 .project > .content > .grid {
-  padding: var(--project-spacing);
+  padding: var(--app-spacing);
   column-count: 2;
-  column-gap: var(--project-spacing-large);
+  column-gap: var(--app-spacing-large);
 }
 
 .project > .content > .grid[data-columns="1"] {
@@ -211,8 +219,6 @@ html[data-color-mode="light"] .project .photo-stack {
 
 .edit {
   --editor-toolbar-height: 60px;
-  --editor-spacing: var(--stack-gap-normal);
-  --editor-spacing-large: var(--stack-gap-spacious);
   --editor-slider-width: 140px;
 
   position: relative;
@@ -222,8 +228,6 @@ html[data-color-mode="light"] .project .photo-stack {
 
 @media (max-width: 1280px) {
   .edit {
-    --editor-spacing: var(--stack-gap-condensed);
-    --editor-spacing-large: var(--stack-gap-normal);
     --editor-slider-width: 120px;
   }
 }
@@ -241,12 +245,12 @@ html[data-color-mode="light"] .project .photo-stack {
   z-index: 10;
   display: flex;
   flex-direction: row;
-  gap: var(--editor-spacing-large);
+  gap: var(--app-spacing-large);
   align-items: center;
   justify-content: space-between;
   width: 100%;
   height: var(--editor-toolbar-height);
-  padding: 0 var(--editor-spacing);
+  padding: 0 var(--app-spacing);
   background: var(--bgColor-muted);
   border-top: var(--borderWidth-default) var(--borderColor-muted) solid;
 }
@@ -265,8 +269,8 @@ html[data-color-mode="light"] .project .photo-stack {
 
 .edit > .edge-toggle {
   position: absolute;
-  bottom: calc(var(--editor-spacing) + var(--editor-toolbar-height));
-  left: var(--editor-spacing);
+  bottom: calc(var(--app-spacing) + var(--editor-toolbar-height));
+  left: var(--app-spacing);
   z-index: 10;
   padding: var(--stack-gap-condensed);
   background: var(--bgColor-muted);

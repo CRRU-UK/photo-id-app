@@ -106,8 +106,8 @@ const Sidebar = observer(({ onCloseProject }: SidebarProps) => {
         direction="vertical"
         justify="space-between"
         style={{
-          gap: "var(--project-spacing)",
-          padding: "var(--project-spacing)",
+          gap: "var(--app-spacing)",
+          padding: "var(--app-spacing)",
           minHeight: "100%",
         }}
       >

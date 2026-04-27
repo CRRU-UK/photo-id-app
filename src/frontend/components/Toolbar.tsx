@@ -198,7 +198,7 @@ const Toolbar = ({
         direction="horizontal"
         gap="normal"
         style={{
-          marginLeft: "var(--editor-spacing-large)",
+          marginLeft: "var(--app-spacing-large)",
         }}
       >
         <Button

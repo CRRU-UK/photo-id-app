@@ -16,7 +16,7 @@ const ProgressElements = ({ progress, total }: ProgressElementsProps) => (
     align="center"
     direction="horizontal"
     gap="condensed"
-    style={{ marginTop: "var(--project-spacing)" }}
+    style={{ marginTop: "var(--app-spacing)" }}
   >
     <Text
       size="small"
@@ -51,7 +51,7 @@ const MainSelection = observer(({ collection, total }: MainSelectionProps) => {
       ref={setDroppableNodeRef}
       style={{
         width: "100%",
-        padding: "var(--project-spacing)",
+        padding: "var(--app-spacing)",
         borderColor: "var(--borderColor-default)",
         borderWidth: "var(--borderWidth-default)",
         borderStyle: "solid",

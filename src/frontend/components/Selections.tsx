@@ -30,7 +30,7 @@ const SelectionStack = observer(({ id, side, collection }: SelectionStackProps) 
       style={{
         flex: 1,
         minWidth: 0,
-        padding: "var(--project-spacing)",
+        padding: "var(--app-spacing)",
         borderColor: "var(--borderColor-default)",
         borderWidth: "var(--borderWidth-default)",
         borderStyle: "solid",
@@ -80,8 +80,8 @@ const Selections = observer(({ matches }: SelectionsProps) =>
       direction="horizontal"
       key={match.id}
       style={{
-        gap: "var(--project-spacing)",
-        marginBottom: "var(--project-spacing)",
+        gap: "var(--app-spacing)",
+        marginBottom: "var(--app-spacing)",
       }}
     >
       <SelectionStack collection={match.left} id={match.id} side="Left" />
