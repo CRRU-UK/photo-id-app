@@ -85,7 +85,7 @@ Technical information, specifications, requirements, and user journeys.
 - `src/contexts/` - React Context providers:
   - **ProjectContext** - Holds the current open project (MobX Project instance or null). Subscribes to `onLoadProject` IPC; when a project is loaded, sets the project and triggers navigation to the project route.
   - **SettingsContext** - App settings (theme, telemetry, analysis providers). Fetches via `getSettings` and subscribes to `onSettingsUpdated` IPC so all windows receive live updates when settings change.
-  - **AnalysisContext** - In-flight analysis state (in progress, results, errors, input label) and handlers (`handleAnalyse`, `handleClose`). Wraps both the project and edit routes. Consumed by Stack and ImageEditor (Analyse actions) and AnalysisMatchOverlay (loading/results/errors). Provider selection itself is held in SettingsContext.
+  - **AnalysisContext** - In-flight analysis state (in progress, results, errors, input label) and handlers (`handleAnalyseMatches`, `handleClose`). Wraps both the project and edit routes. Consumed by Stack and ImageEditor (Analyse actions) and AnalysisMatchOverlay (loading/results/errors). Provider selection itself is held in SettingsContext.
 - `docs/` - User and technical documentation
 - Tests: `*.test.ts` files co-located with source files
 - Configuration: `tsconfig.json`, `vite.*.mts`, `forge.config.ts`, `vitest.config.ts`
