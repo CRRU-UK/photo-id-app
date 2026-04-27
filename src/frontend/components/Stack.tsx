@@ -4,13 +4,12 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   InfoIcon,
+  KebabHorizontalIcon,
   PencilIcon,
-  TriangleDownIcon,
   UndoIcon,
 } from "@primer/octicons-react";
 import {
-  ActionList,
-  ActionMenu,
+  ActionBar,
   ButtonGroup,
   CounterLabel,
   IconButton,
@@ -54,7 +53,6 @@ interface StackProps {
 const Stack = observer(({ collection, showAnalysisButton = true, stackLabel }: StackProps) => {
   const { settings } = useSettings();
   const { isAnalysing, handleAnalyse } = useAnalysis();
-  const [actionsOpen, setActionsOpen] = useState<boolean>(false);
   const [revertingPhoto, setRevertingPhoto] = useState<boolean>(false);
 
   const selectedModel = settings?.mlModels?.find(({ id }) => id === settings?.selectedModelId);
@@ -102,7 +100,6 @@ const Stack = observer(({ collection, showAnalysisButton = true, stackLabel }: S
     const newData = await window.electronAPI.revertPhotoFile(currentPhoto.toBody());
     currentPhoto.updatePhoto(newData);
 
-    setActionsOpen(false);
     setRevertingPhoto(false);
   };
 
@@ -128,14 +125,25 @@ const Stack = observer(({ collection, showAnalysisButton = true, stackLabel }: S
             draggableOnKeyDown?.(event);
           }}
         >
-          {currentPhoto && (
-            <IconButton
-              aria-label={currentPhoto.fileName}
-              className="photo-info"
-              icon={InfoIcon}
-              size="small"
-            />
-          )}
+          <PrimerStack
+            align="center"
+            className="stack-info"
+            direction="horizontal"
+            justify="space-between"
+            style={{
+              padding: "var(--stack-padding-condensed)",
+            }}
+          >
+            {collection.photos.length > 0 && (
+              <CounterLabel style={{ whiteSpace: "nowrap" }} variant="primary">
+                {collection.index + 1} / {collection.photos.length}
+              </CounterLabel>
+            )}
+            {currentPhoto && (
+              <IconButton aria-label={currentPhoto.fileName} icon={InfoIcon} size="small" />
+            )}
+          </PrimerStack>
+
           {currentPhoto && <StackImage photo={currentPhoto} />}
         </div>
       </div>
@@ -144,14 +152,13 @@ const Stack = observer(({ collection, showAnalysisButton = true, stackLabel }: S
         align="center"
         direction="horizontal"
         justify="end"
-        style={{ marginTop: "var(--stack-gap-normal)" }}
+        style={{
+          flexWrap: "wrap",
+          gap: "var(--app-spacing)",
+          marginTop: "var(--app-spacing)",
+        }}
       >
-        <PrimerStack
-          align="center"
-          direction="horizontal"
-          justify="space-between"
-          style={{ marginRight: "auto" }}
-        >
+        <div style={{ flexShrink: 0, marginRight: "auto" }}>
           <ButtonGroup>
             <IconButton
               aria-label={PROJECT_TOOLTIPS.PREVIOUS_PHOTO}
@@ -168,26 +175,18 @@ const Stack = observer(({ collection, showAnalysisButton = true, stackLabel }: S
               size="small"
             />
           </ButtonGroup>
+        </div>
 
-          {collection.photos.length > 0 && (
-            <CounterLabel variant="secondary">
-              {collection.index + 1} / {collection.photos.length}
-            </CounterLabel>
+        <ActionBar aria-label={PROJECT_TOOLTIPS.MORE_OPTIONS} flush gap="none" size="small">
+          {showAnalysisButton && !!selectedModel && (
+            <ActionBar.IconButton
+              aria-label={PROJECT_TOOLTIPS.ANALYSE_PHOTOS}
+              disabled={collection.photos.length === 0 || isAnalysing}
+              icon={AiModelIcon}
+              onClick={handleAnalyseClick}
+            />
           )}
-        </PrimerStack>
-
-        {showAnalysisButton && !!selectedModel && (
-          <IconButton
-            aria-label={PROJECT_TOOLTIPS.ANALYSE_PHOTOS}
-            disabled={collection.photos.length === 0 || isAnalysing}
-            icon={AiModelIcon}
-            onClick={handleAnalyseClick}
-            size="small"
-          />
-        )}
-
-        <ButtonGroup>
-          <IconButton
+          <ActionBar.IconButton
             aria-label={PROJECT_TOOLTIPS.EDIT_PHOTO}
             disabled={collection.photos.length <= 0 || revertingPhoto}
             icon={PencilIcon}
@@ -195,38 +194,23 @@ const Stack = observer(({ collection, showAnalysisButton = true, stackLabel }: S
               event.preventDefault();
               return handleOpenEdit();
             }}
-            size="small"
-          >
-            Edit
-          </IconButton>
-          <ActionMenu onOpenChange={setActionsOpen} open={actionsOpen}>
-            <ActionMenu.Button
-              aria-label={PROJECT_TOOLTIPS.MORE_OPTIONS}
-              disabled={collection.photos.length <= 0}
-              icon={TriangleDownIcon}
-              size="small"
-            />
-            <ActionMenu.Overlay>
-              <ActionList>
-                <ActionList.Item
-                  disabled={
-                    collection.photos.length <= 0 || revertingPhoto || !currentPhoto?.isEdited
-                  }
-                  loading={revertingPhoto}
-                  onSelect={handleRevertPhoto}
-                  variant="danger"
-                >
-                  <ActionList.LeadingVisual>
-                    <UndoIcon />
-                  </ActionList.LeadingVisual>
-                  {revertingPhoto
-                    ? PROJECT_TOOLTIPS.REVERTING_PHOTO
-                    : PROJECT_TOOLTIPS.REVERT_PHOTO}
-                </ActionList.Item>
-              </ActionList>
-            </ActionMenu.Overlay>
-          </ActionMenu>
-        </ButtonGroup>
+          />
+          <ActionBar.Divider />
+          <ActionBar.Menu
+            aria-label={PROJECT_TOOLTIPS.MORE_OPTIONS}
+            icon={KebabHorizontalIcon}
+            items={[
+              {
+                label: PROJECT_TOOLTIPS.REVERT_PHOTO,
+                leadingVisual: UndoIcon,
+                variant: "danger",
+                disabled:
+                  collection.photos.length <= 0 || revertingPhoto || !currentPhoto?.isEdited,
+                onClick: handleRevertPhoto,
+              },
+            ]}
+          />
+        </ActionBar>
       </PrimerStack>
     </>
   );

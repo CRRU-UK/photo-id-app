@@ -105,8 +105,11 @@ const Sidebar = observer(({ onCloseProject }: SidebarProps) => {
         align="start"
         direction="vertical"
         justify="space-between"
-        padding="normal"
-        style={{ minHeight: "100%" }}
+        style={{
+          gap: "var(--app-spacing)",
+          padding: "var(--app-spacing)",
+          minHeight: "100%",
+        }}
       >
         <MainSelection collection={project.unassigned} total={project.photoCount} />
         <DiscardedSelection collection={project.discarded} />
@@ -162,9 +165,7 @@ const Sidebar = observer(({ onCloseProject }: SidebarProps) => {
           />
 
           <ActionMenu onOpenChange={setActionsOpen} open={actionsOpen}>
-            <ActionMenu.Button leadingVisual={ThreeBarsIcon} size="large">
-              Actions
-            </ActionMenu.Button>
+            <ActionMenu.Button leadingVisual={ThreeBarsIcon}>Actions</ActionMenu.Button>
             <ActionMenu.Overlay>
               <ActionList>
                 <ActionList.Group>

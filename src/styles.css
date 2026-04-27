@@ -13,10 +13,6 @@ textarea,
   outline: none;
 }
 
-:root {
-  --toolbar-height: 60px;
-}
-
 .theme-icon-light,
 .theme-icon-dark {
   display: none;
@@ -51,11 +47,43 @@ html[data-color-mode="dark"] .theme-icon-dark {
   margin-top: auto;
 }
 
+:root {
+  --app-spacing: var(--stack-gap-normal);
+  --app-spacing-large: var(--stack-gap-spacious);
+}
+
+@media (max-width: 1280px) {
+  :root {
+    --app-spacing: var(--stack-gap-condensed);
+    --app-spacing-large: var(--stack-gap-normal);
+  }
+}
+
 .project {
+  --project-sidebar-width: 380px;
+
   position: relative;
   width: 100vw;
   height: 100vh;
   background: var(--bgColor-default);
+}
+
+@media (max-width: 1600px) {
+  .project {
+    --project-sidebar-width: 320px;
+  }
+}
+
+@media (max-width: 1280px) {
+  .project {
+    --project-sidebar-width: 280px;
+  }
+}
+
+@media (max-width: 1080px) {
+  .project {
+    --project-sidebar-width: 260px;
+  }
 }
 
 body.copying *:hover {
@@ -67,7 +95,7 @@ body.copying *:hover {
   position: fixed;
   top: 0;
   left: 0;
-  width: 380px;
+  width: var(--project-sidebar-width);
   height: 100%;
   overflow: hidden;
   overflow-y: scroll;
@@ -107,7 +135,7 @@ body.copying *:hover {
   top: 0;
   right: 0;
   z-index: 10;
-  width: calc(100% - 380px);
+  width: calc(100% - var(--project-sidebar-width));
   background: var(--bgColor-default);
 }
 
@@ -121,7 +149,7 @@ body.copying *:hover {
 .project > .pages > .add-page,
 .project > .pages > .columns {
   min-height: var(--control-xlarge-size, 48px);
-  padding: 0 var(--stack-gap-normal);
+  padding: 0 var(--app-spacing);
   box-shadow: inset 0 -1px var(--borderColor-muted, var(--color-border-muted));
 }
 
@@ -133,7 +161,7 @@ body.copying *:hover {
   position: fixed;
   top: 0;
   right: 0;
-  width: calc(100% - 380px);
+  width: calc(100% - var(--project-sidebar-width));
   height: 100%;
   padding-top: 50px;
   overflow: hidden;
@@ -141,9 +169,9 @@ body.copying *:hover {
 }
 
 .project > .content > .grid {
-  padding: var(--stack-gap-normal);
+  padding: var(--app-spacing);
   column-count: 2;
-  column-gap: var(--stack-gap-spacious);
+  column-gap: var(--app-spacing-large);
 }
 
 .project > .content > .grid[data-columns="1"] {
@@ -152,6 +180,16 @@ body.copying *:hover {
 
 .project > .content > .grid[data-columns="2"] {
   column-count: 2;
+}
+
+@media (max-width: 1080px) {
+  .project > .pages > .columns {
+    display: none;
+  }
+
+  .project > .content > .grid[data-columns="2"] {
+    column-count: 1;
+  }
 }
 
 .project .photo-stack {
@@ -165,12 +203,12 @@ html[data-color-mode="light"] .project .photo-stack {
   background: var(--bgColor-neutral-muted);
 }
 
-.project .photo-stack .photo-info {
+.project .photo-stack .stack-info {
   position: absolute;
-  right: 10px;
-  bottom: 10px;
+  right: 0;
+  bottom: 0;
   z-index: 10;
-  opacity: 0.8;
+  width: 100%;
 }
 
 .project .photo-stack img {
@@ -180,9 +218,24 @@ html[data-color-mode="light"] .project .photo-stack {
 }
 
 .edit {
+  --editor-toolbar-height: 60px;
+  --editor-slider-width: 140px;
+
   position: relative;
   width: 100vw;
   height: 100vh;
+}
+
+@media (max-width: 1280px) {
+  .edit {
+    --editor-slider-width: 120px;
+  }
+}
+
+@media (max-width: 1080px) {
+  .edit {
+    --editor-toolbar-height: 110px;
+  }
 }
 
 .edit > .toolbar {
@@ -192,42 +245,32 @@ html[data-color-mode="light"] .project .photo-stack {
   z-index: 10;
   display: flex;
   flex-direction: row;
+  gap: var(--app-spacing-large);
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  height: var(--toolbar-height);
-  padding: 0 var(--stack-gap-normal);
+  height: var(--editor-toolbar-height);
+  padding: 0 var(--app-spacing);
   background: var(--bgColor-muted);
   border-top: var(--borderWidth-default) var(--borderColor-muted) solid;
 }
 
-.edit > .toolbar .colour-picker {
-  position: relative;
+.edit > .toolbar > .toolbar-actions {
+  margin-left: auto;
 }
 
-.edit > .toolbar .colour-picker > label {
-  display: block;
-  width: 30px;
-  height: 30px;
-  border: var(--borderWidth-thick) var(--borderColor-muted) solid;
-  border-radius: 50%;
+.edit > .toolbar .slider {
+  width: var(--editor-slider-width);
 }
 
-.edit > .toolbar .colour-picker > input {
-  position: absolute;
-  top: 0;
-  left: 0;
-  visibility: hidden;
+.edit > .toolbar .slider input[type="range"] {
   width: 100%;
-  height: 100%;
-  pointer-events: none;
-  opacity: 0;
 }
 
 .edit > .edge-toggle {
   position: absolute;
-  bottom: calc(var(--stack-gap-normal) + var(--toolbar-height));
-  left: var(--stack-gap-normal);
+  bottom: calc(var(--app-spacing) + var(--editor-toolbar-height));
+  left: var(--app-spacing);
   z-index: 10;
   padding: var(--stack-gap-condensed);
   background: var(--bgColor-muted);
@@ -266,7 +309,7 @@ html[data-color-mode="light"] .project .photo-stack {
   left: 0;
   z-index: 0;
   width: 100%;
-  height: calc(100% - var(--toolbar-height));
+  height: calc(100% - var(--editor-toolbar-height));
 }
 
 .edit > .canvas-photo,
@@ -284,6 +327,27 @@ html[data-color-mode="light"] .project .photo-stack {
   cursor:
     url("./frontend/img/loupe-cursor.svg") 40 40,
     crosshair;
+}
+
+@media (max-width: 1080px) {
+  .edit {
+    --editor-toolbar-height: 100px;
+  }
+
+  .edit > .toolbar {
+    flex-wrap: wrap;
+    gap: 0;
+    padding: var(--stack-padding-condensed);
+  }
+
+  .edit > .toolbar > .toolbar-sliders {
+    flex-basis: 100%;
+  }
+
+  .edit > .toolbar > .toolbar-actions {
+    margin-right: auto;
+    margin-left: 0;
+  }
 }
 
 .loading {

@@ -28,8 +28,9 @@ const SelectionStack = observer(({ id, side, collection }: SelectionStackProps) 
       data-testid={`match-${id}-${side.toLowerCase()}`}
       ref={setDroppableNodeRef}
       style={{
-        width: "100%",
-        padding: "var(--stack-gap-normal)",
+        flex: 1,
+        minWidth: 0,
+        padding: "var(--app-spacing)",
         borderColor: "var(--borderColor-default)",
         borderWidth: "var(--borderWidth-default)",
         borderStyle: "solid",
@@ -49,6 +50,8 @@ const SelectionStack = observer(({ id, side, collection }: SelectionStackProps) 
           size="medium"
           style={{
             display: "block",
+            flexShrink: 0,
+            whiteSpace: "nowrap",
             color: "var(--fgColor-default)",
           }}
           weight="semibold"
@@ -59,7 +62,7 @@ const SelectionStack = observer(({ id, side, collection }: SelectionStackProps) 
           defaultValue={collection.name || ""}
           onBlur={(event) => collection.setName(event.target.value)}
           size="small"
-          style={{ maxWidth: "160px" }}
+          style={{ flex: 1, minWidth: 0, maxWidth: "160px" }}
         />
       </PrimerStack>
       <Stack collection={collection} stackLabel={stackLabel} />
@@ -76,7 +79,10 @@ const Selections = observer(({ matches }: SelectionsProps) =>
     <PrimerStack
       direction="horizontal"
       key={match.id}
-      style={{ marginBottom: "var(--stack-gap-normal)" }}
+      style={{
+        gap: "var(--app-spacing)",
+        marginBottom: "var(--app-spacing)",
+      }}
     >
       <SelectionStack collection={match.left} id={match.id} side="Left" />
       <SelectionStack collection={match.right} id={match.id} side="Right" />
