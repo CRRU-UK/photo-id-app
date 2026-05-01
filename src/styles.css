@@ -6,10 +6,7 @@
   user-select: none;
 }
 
-input,
-button,
-textarea,
-:focus {
+:focus:not(:focus-visible) {
   outline: none;
 }
 
@@ -230,12 +227,6 @@ html[data-color-mode="light"] .project .photo-stack {
 @media (max-width: 1280px) {
   .edit {
     --editor-slider-width: 120px;
-  }
-}
-
-@media (max-width: 1080px) {
-  .edit {
-    --editor-toolbar-height: 110px;
   }
 }
 
