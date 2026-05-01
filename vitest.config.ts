@@ -25,6 +25,7 @@ export default defineConfig({
         "src/index.tsx",
         "src/main.ts",
         "src/preload.ts",
+        "src/preload-editor.ts",
         "src/types.ts",
         "src/contexts/**",
         "src/routes/**",
