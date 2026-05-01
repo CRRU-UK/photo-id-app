@@ -6,7 +6,6 @@ import {
   EDITOR_KEYS,
   EDITOR_TOOLTIPS,
   IMAGE_FILTERS,
-  KEYBOARD_CODE_TO_PAN_DIRECTION,
   LOUPE,
   UNSAVED_EDITS_MESSAGE,
 } from "@/constants";
@@ -15,15 +14,10 @@ import { useSettings } from "@/contexts/SettingsContext";
 import LoadingOverlay from "@/frontend/components/LoadingOverlay";
 import Slider from "@/frontend/components/Slider";
 import Toolbar from "@/frontend/components/Toolbar";
+import { useEditorKeyboard } from "@/frontend/hooks/imageEditor/useEditorKeyboard";
 import useImageEditor from "@/frontend/hooks/useImageEditor";
 import { computeIsEdited } from "@/helpers";
 import type { EditorNavigation, PhotoBody } from "@/types";
-
-const isInteractiveTarget = (target: EventTarget | null): boolean =>
-  target instanceof HTMLButtonElement ||
-  target instanceof HTMLInputElement ||
-  target instanceof HTMLTextAreaElement ||
-  target instanceof HTMLSelectElement;
 
 interface CanvasImageProps {
   handlePointerDown: (event: React.PointerEvent<HTMLCanvasElement>) => void;
@@ -70,8 +64,6 @@ const ImageEditor = ({
   onImageLoaded,
   onError,
 }: ImageEditorProps) => {
-  console.debug("Loaded photo edit data:", data);
-
   const [saving, setSaving] = useState<boolean>(false);
   const [navigating, setNavigating] = useState<boolean>(false);
   const [loupeEnabled, setLoupeEnabled] = useState<boolean>(false);
@@ -82,18 +74,18 @@ const ImageEditor = ({
 
   /**
    * Tracks the last saved edits so hasUnsavedEdits can compare against them. Updated on save
-   * because the edit window does not receive UPDATE_PHOTO (only the main window does). Only reset
-   * from props when the photo changes (navigation), not on every render.
+   * because the edit window does not receive UPDATE_PHOTO (only the main window does). Reset from
+   * props in an effect when the photo changes (navigation), so the dirty check resets to the new
+   * photo's persisted edits.
    */
   const savedEditsRef = useRef(edits);
 
   const photoId = `${data.directory}/${data.name}`;
-  const previousPhotoIdForEditsRef = useRef(photoId);
 
-  if (previousPhotoIdForEditsRef.current !== photoId) {
-    previousPhotoIdForEditsRef.current = photoId;
+  // biome-ignore lint/correctness/useExhaustiveDependencies: edits intentionally captured at the moment of the photo change
+  useEffect(() => {
     savedEditsRef.current = edits;
-  }
+  }, [photoId]);
 
   const [sliderInitials, setSliderInitials] = useState({
     brightness: edits.brightness,
@@ -185,20 +177,24 @@ const ImageEditor = ({
     });
   }, [actions, resetEdgeDetection]);
 
+  const getCurrentEdits = useCallback(() => {
+    const currentFilters = getters.getFilters();
+    const transform = getters.getTransform();
+
+    return {
+      brightness: currentFilters.brightness,
+      contrast: currentFilters.contrast,
+      saturate: currentFilters.saturate,
+      zoom: transform.zoom,
+      pan: transform.pan,
+    };
+  }, [getters]);
+
   const handleSave = useCallback(async () => {
     setSaving(true);
 
     try {
-      const currentFilters = getters.getFilters();
-      const transform = getters.getTransform();
-
-      const edits = {
-        brightness: currentFilters.brightness,
-        contrast: currentFilters.contrast,
-        saturate: currentFilters.saturate,
-        zoom: transform.zoom,
-        pan: transform.pan,
-      };
+      const edits = getCurrentEdits();
 
       await window.electronAPI.savePhotoFile({
         ...data,
@@ -212,29 +208,20 @@ const ImageEditor = ({
     } finally {
       setSaving(false);
     }
-  }, [data, getters]);
+  }, [data, getCurrentEdits]);
 
   const handleAnalysis = useCallback(() => {
     if (!selectedProvider) {
       return;
     }
 
-    const currentFilters = getters.getFilters();
-    const transform = getters.getTransform();
-
-    const currentEdits = {
-      brightness: currentFilters.brightness,
-      contrast: currentFilters.contrast,
-      saturate: currentFilters.saturate,
-      zoom: transform.zoom,
-      pan: transform.pan,
-    };
+    const currentEdits = getCurrentEdits();
 
     void handleAnalyseMatches(
       [{ ...data, edits: currentEdits, isEdited: computeIsEdited(currentEdits) }],
       data.name,
     );
-  }, [data, getters, handleAnalyseMatches, selectedProvider]);
+  }, [data, getCurrentEdits, handleAnalyseMatches, selectedProvider]);
 
   /**
    * Ref ensures the dirty check always reads the latest getters without re-subscribing on every
@@ -276,102 +263,54 @@ const ImageEditor = ({
       navigatingRef.current = true;
       setNavigating(true);
 
-      const result = await window.electronAPI.navigateEditorPhoto(data, direction);
-
-      navigatingRef.current = false;
-      setNavigating(false);
-
-      if (result) {
-        setQueryCallback(result);
+      try {
+        const result = await window.electronAPI.navigateEditorPhoto(data, direction);
+        if (result) {
+          setQueryCallback(result);
+        }
+      } catch (error) {
+        console.error("Failed to navigate editor photo:", error);
+      } finally {
+        navigatingRef.current = false;
+        setNavigating(false);
       }
     },
     [data, setQueryCallback, hasUnsavedEdits, handleCloseAnalysis],
   );
 
-  const handleModifierShortcut = useCallback(
-    (key: string): boolean => {
-      const modifierActions: Record<string, () => void> = {
-        [EDITOR_KEYS.RESET.code]: handleReset,
-        [EDITOR_KEYS.SAVE.code]: handleSave,
-        [EDITOR_KEYS.ZOOM_OUT.code]: handlers.handleZoomOut,
-        [EDITOR_KEYS.ZOOM_IN.code]: handlers.handleZoomIn,
-        [EDITOR_KEYS.ANALYSE.code]: handleAnalysis,
-      };
-
-      const action = modifierActions[key];
-      if (!action) {
-        return false;
-      }
-
-      action();
-      return true;
+  const handleNavigateAsync = useCallback(
+    (direction: EditorNavigation) => {
+      void handleEditorNavigation(direction);
     },
-    [handleReset, handleSave, handlers.handleZoomOut, handlers.handleZoomIn, handleAnalysis],
+    [handleEditorNavigation],
   );
 
-  const handlePlainShortcut = useCallback(
-    (event: KeyboardEvent): boolean => {
-      const key = event.key.toLowerCase();
-
-      const panDirection = KEYBOARD_CODE_TO_PAN_DIRECTION?.[event.code];
-      if (panDirection) {
-        handlers.handleDirectionalPan(panDirection);
-        return true;
-      }
-
-      if (key === EDITOR_KEYS.PREVIOUS_PHOTO.code) {
-        void handleEditorNavigation("prev");
-        return true;
-      }
-
-      if (key === EDITOR_KEYS.NEXT_PHOTO.code) {
-        void handleEditorNavigation("next");
-        return true;
-      }
-
-      if (event.code === EDITOR_KEYS.TOGGLE_LOUPE.code && !isInteractiveTarget(event.target)) {
-        handleToggleLoupe();
-        return true;
-      }
-
-      if (key === EDITOR_KEYS.TOGGLE_EDGE_DETECTION.code) {
-        handleToggleEdgeDetection();
-        return true;
-      }
-
-      return false;
-    },
-    [
-      handlers.handleDirectionalPan,
-      handleEditorNavigation,
-      handleToggleLoupe,
-      handleToggleEdgeDetection,
-    ],
-  );
-
-  const handleKeyDown = useCallback(
-    (event: KeyboardEvent) => {
-      const modifierKey = event.ctrlKey || event.metaKey;
-      const handled = modifierKey
-        ? handleModifierShortcut(event.key.toLowerCase())
-        : handlePlainShortcut(event);
-
-      if (handled) {
-        event.preventDefault();
-      }
-    },
-    [handleModifierShortcut, handlePlainShortcut],
-  );
+  useEditorKeyboard({
+    analysisOverlayOpen,
+    onAnalyse: handleAnalysis,
+    onCloseAnalysis: handleCloseAnalysis,
+    onDirectionalPan: handlers.handleDirectionalPan,
+    onNavigate: handleNavigateAsync,
+    onReset: handleReset,
+    onSave: handleSave,
+    onToggleEdgeDetection: handleToggleEdgeDetection,
+    onToggleLoupe: handleToggleLoupe,
+    onZoomIn: handlers.handleZoomIn,
+    onZoomOut: handlers.handleZoomOut,
+  });
 
   const previousPhotoIdRef = useRef<string>(`${data.directory}/${data.name}`);
   const loadedPhotoIdRef = useRef<string | null>(null);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: log fires once per photo id change; data is intentionally captured at that moment
   useEffect(() => {
     const currentPhotoId = `${data.directory}/${data.name}`;
 
     if (previousPhotoIdRef.current !== currentPhotoId) {
       previousPhotoIdRef.current = currentPhotoId;
     }
+
+    console.debug("Loaded photo edit data:", data);
   }, [data.directory, data.name]);
 
   useEffect(() => {
@@ -414,7 +353,7 @@ const ImageEditor = ({
     onImageLoaded,
   ]);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentionally omit refs.canvasRef so this effect only re-runs when handleWheel or handleKeyDown change
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentionally omit refs.canvasRef so this effect only re-runs when handleWheel changes
   useEffect(() => {
     const canvas = refs.canvasRef.current;
 
@@ -423,34 +362,11 @@ const ImageEditor = ({
     }
 
     canvas.addEventListener("wheel", handlers.handleWheel, { passive: false });
-    document.addEventListener("keydown", handleKeyDown);
 
     return () => {
       canvas.removeEventListener("wheel", handlers.handleWheel);
-      document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [handlers.handleWheel, handleKeyDown]);
-
-  // Close the analysis overlay when it is open instead of closing the window
-  useEffect(() => {
-    const handleCloseShortcut = (event: KeyboardEvent) => {
-      const modifierKey = event.ctrlKey || event.metaKey;
-      if (!modifierKey || event.key.toLowerCase() !== "w") {
-        return;
-      }
-
-      if (analysisOverlayOpen) {
-        event.preventDefault();
-        handleCloseAnalysis();
-      }
-    };
-
-    document.addEventListener("keydown", handleCloseShortcut);
-
-    return () => {
-      document.removeEventListener("keydown", handleCloseShortcut);
-    };
-  }, [analysisOverlayOpen, handleCloseAnalysis]);
+  }, [handlers.handleWheel]);
 
   // Warn the user before closing the edit window when there are unsaved changes
   useEffect(() => {

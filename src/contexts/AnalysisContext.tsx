@@ -29,7 +29,7 @@ export const AnalysisContextProvider = ({ children }: AnalysisContextProviderPro
   const [isAnalysing, setIsAnalysing] = useState(false);
   const [result, setResult] = useState<AnalysisMatchResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [inputLabel, setinputLabel] = useState<string | null>(null);
+  const [inputLabel, setInputLabel] = useState<string | null>(null);
 
   useEffect(() => {
     return () => {
@@ -48,7 +48,7 @@ export const AnalysisContextProvider = ({ children }: AnalysisContextProviderPro
       setIsAnalysing(true);
       setResult(null);
       setError(null);
-      setinputLabel(label);
+      setInputLabel(label);
 
       try {
         const response = await window.electronAPI.analyseMatches(photos);
@@ -71,7 +71,7 @@ export const AnalysisContextProvider = ({ children }: AnalysisContextProviderPro
 
     setResult(null);
     setError(null);
-    setinputLabel(null);
+    setInputLabel(null);
   }, [isAnalysing]);
 
   const value = useMemo<AnalysisContextValue>(

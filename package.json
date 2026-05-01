@@ -9,6 +9,9 @@
     "url": "git+https://github.com/crru-uk/photo-id-app.git"
   },
   "main": ".vite/build/main.js",
+  "engines": {
+    "node": ">=24"
+  },
   "author": {
     "name": "Cetacean Research & Rescue Unit (CRRU)",
     "email": "info@crru.org.uk"

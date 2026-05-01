@@ -92,6 +92,9 @@ const config: ForgeConfig = {
         },
       ],
     },
+    osxUniversal: {
+      x64ArchFiles: "**/@napi-rs/canvas*/**",
+    },
     ...signingConfig,
     ...(windowsSignConfig ? { windowsSign: windowsSignConfig } : {}),
   },
@@ -113,6 +116,11 @@ const config: ForgeConfig = {
         },
         {
           entry: "src/preload.ts",
+          config: "vite.preload.config.mts",
+          target: "preload",
+        },
+        {
+          entry: "src/preload-editor.ts",
           config: "vite.preload.config.mts",
           target: "preload",
         },

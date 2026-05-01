@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useRef } from "react";
+import { CANVAS_DRAW_DEBOUNCE_MS } from "@/constants";
 import { getCanvasFilters } from "@/helpers";
 import type { ImageFilters, ImageTransformations } from "@/types";
-
-const TRAILING_DRAW_DEBOUNCE_MS = 100;
 
 interface RenderOptions {
   clamp: (canvas: HTMLCanvasElement | null) => void;
@@ -98,7 +97,7 @@ export const useCanvasRenderer = ({ imageRef, getFilters, getTransform, clamp }:
   }, [imageRef, getFilters, getTransform, clamp]);
 
   /**
-   * Schedules a single draw after `TRAILING_DRAW_DEBOUNCE_MS` of no further calls. Ensures a final
+   * Schedules a single draw after `CANVAS_DRAW_DEBOUNCE_MS` of no further calls. Ensures a final
    * render after interactions stop (e.g. slider release).
    */
   const drawDebounced = useCallback(() => {
@@ -110,7 +109,7 @@ export const useCanvasRenderer = ({ imageRef, getFilters, getTransform, clamp }:
     debounceTimeoutRef.current = setTimeout(() => {
       draw();
       debounceTimeoutRef.current = null;
-    }, TRAILING_DRAW_DEBOUNCE_MS);
+    }, CANVAS_DRAW_DEBOUNCE_MS);
   }, [draw]);
 
   const drawThrottled = useCallback(() => {

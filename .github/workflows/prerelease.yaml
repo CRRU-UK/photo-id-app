@@ -33,7 +33,13 @@ jobs:
         run: npm ci
 
       - name: Build app
-        run: npm run make
+        run: |
+          if [ "${{ inputs.platform }}" = "macos-latest" ]; then
+            npm run make -- --arch=universal
+          else
+            npm run make
+          fi
+        shell: bash
         env:
           CI: true
           NODE_ENV: production

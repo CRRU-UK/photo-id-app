@@ -15,7 +15,7 @@ import {
   Stack as PrimerStack,
 } from "@primer/react";
 import { observer } from "mobx-react-lite";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { ASPECT_RATIO, PROJECT_TOOLTIPS } from "@/constants";
 import { useAnalysis } from "@/contexts/AnalysisContext";
@@ -53,6 +53,13 @@ const Stack = observer(({ collection, showAnalysisButton = true, stackLabel }: S
   const { settings } = useSettings();
   const { isAnalysing, handleAnalyseMatches } = useAnalysis();
   const [revertingPhoto, setRevertingPhoto] = useState<boolean>(false);
+  const isMountedRef = useRef<boolean>(true);
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   const selectedProvider = settings?.analysisProviders?.find(
     ({ id }) => id === settings?.selectedAnalysisProviderId,
@@ -98,10 +105,19 @@ const Stack = observer(({ collection, showAnalysisButton = true, stackLabel }: S
 
     setRevertingPhoto(true);
 
-    const newData = await window.electronAPI.revertPhotoFile(currentPhoto.toBody());
-    currentPhoto.updatePhoto(newData);
+    try {
+      const newData = await window.electronAPI.revertPhotoFile(currentPhoto.toBody());
 
-    setRevertingPhoto(false);
+      if (!isMountedRef.current) {
+        return;
+      }
+
+      currentPhoto.updatePhoto(newData);
+    } finally {
+      if (isMountedRef.current) {
+        setRevertingPhoto(false);
+      }
+    }
   };
 
   const handlePrev = () => collection.setPreviousPhoto();

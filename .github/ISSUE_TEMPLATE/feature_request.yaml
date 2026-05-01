@@ -1,0 +1,36 @@
+name: Feature request
+description: Suggest a new feature or improvement.
+
+title: "[Feature]: "
+labels: ["enhancement"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting an improvement. Please check the [feature roadmap](https://github.com/CRRU-UK/photo-id-app/issues/283) and [existing requests](https://github.com/CRRU-UK/photo-id-app/issues?q=is%3Aissue+label%3Aenhancement) first to see if it has already been raised.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: Describe the workflow or pain point that prompted this request.
+      placeholder: When I'm working with X, I find it difficult to...
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: How would you like the app to behave?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Other approaches you have thought about, or workarounds you currently use.
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Mock-ups, screenshots, references to similar tools, or anything else useful.

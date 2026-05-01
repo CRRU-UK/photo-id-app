@@ -1,3 +1,4 @@
+import path from "node:path";
 import url from "node:url";
 import { BrowserWindow, dialog, type IpcMainEvent, type IpcMainInvokeEvent } from "electron";
 
@@ -13,13 +14,23 @@ export type EditorConfig = {
   basePath: string;
 };
 
+/**
+ * Build the edit-window preferences. Edit windows use a narrowed preload (`preload-editor.js`)
+ * that only exposes the IPC the editor renderer actually needs, so anything that mutates project
+ * data, opens new windows, or interacts with the home/project screens is intentionally absent.
+ */
+const buildEditorWebPreferences = (base: Electron.WebPreferences): Electron.WebPreferences => ({
+  ...base,
+  preload: path.join(path.dirname(base.preload ?? ""), "preload-editor.js"),
+});
+
 export const handleOpenEditWindow = (config: EditorConfig) => {
   return (_event: IpcMainEvent, data: PhotoBody): void => {
     const editWindow = new BrowserWindow({
       show: false,
       width: 1200,
       height: 800,
-      webPreferences: config.defaultWebPreferences,
+      webPreferences: buildEditorWebPreferences(config.defaultWebPreferences),
       backgroundColor: "black",
       fullscreenable: false,
     });

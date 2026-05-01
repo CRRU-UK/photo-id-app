@@ -1,0 +1,82 @@
+name: Bug report
+description: Something is broken or not behaving as expected.
+
+title: "[Bug]: "
+labels: ["bug"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug. Please fill in as much detail as you can, it helps us reproduce and fix the issue faster.
+
+        Before submitting, please check the [known issues](https://photoidapp.crru.org.uk/known-issues/) page and search [existing issues](https://github.com/CRRU-UK/photo-id-app/issues?q=is%3Aissue) to see if this has already been reported.
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: A clear description of what the bug is.
+      placeholder: When I do X, the app does Y instead of Z.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: How can we reproduce the issue?
+      placeholder: |
+        1. Open the app
+        2. Create a new project from folder '...'
+        3. Click '...'
+        4. See error
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+      description: What did you expect to happen?
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behaviour
+      description: What actually happened? Include any error messages exactly as they appeared.
+    validations:
+      required: true
+  - type: input
+    id: app-version
+    attributes:
+      label: App version
+      description: Found under the app's About menu, or in the title bar of the project window.
+      placeholder: e.g. 0.7.4
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - macOS
+        - Windows
+        - Linux
+    validations:
+      required: true
+  - type: input
+    id: os-version
+    attributes:
+      label: OS version
+      placeholder: e.g. macOS 14.4, Windows 11 23H2, Ubuntu 22.04
+    validations:
+      required: true
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots or screen recording
+      description: (Optional) Drag and drop images or videos to attach. A short recording often makes UI bugs much easier to diagnose.
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Anything else that might be relevant, such as project size, photo formats, hardware specs, etc.
