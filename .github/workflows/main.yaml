@@ -31,6 +31,9 @@ jobs:
       - name: Audit dependencies
         run: npm audit --omit=dev
 
+      - name: Audit production licenses
+        run: npx --yes license-checker --production --failOn 'GPL;LGPL;AGPL'
+
       - name: Test linting
         run: npm run test:linting
 

@@ -1,5 +1,5 @@
 import { FormControl, Label, Stack } from "@primer/react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 interface SliderProps {
   callback: (value: number) => void;
@@ -11,6 +11,12 @@ interface SliderProps {
   simple?: boolean;
 }
 
+/**
+ * Callers reset the slider by bumping a `key` prop (via the editor's `resetKey`), which remounts
+ * the component and re-initialises `value` from `initial`. So no `useEffect` is needed to sync
+ * `initial` into local state, and skipping it avoids interrupting the user's drag if `initial`
+ * happens to change mid-interaction.
+ */
 const Slider = ({
   name,
   min,
@@ -21,10 +27,6 @@ const Slider = ({
   callback,
 }: SliderProps) => {
   const [value, setValue] = useState<number>(initial);
-
-  useEffect(() => {
-    setValue(initial);
-  }, [initial]);
 
   return (
     <FormControl className="slider" disabled={disabled}>

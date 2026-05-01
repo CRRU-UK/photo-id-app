@@ -97,7 +97,10 @@ describe("editor IPC handlers", () => {
           show: false,
           width: 1200,
           height: 800,
-          webPreferences: config.defaultWebPreferences,
+          webPreferences: expect.objectContaining({
+            ...config.defaultWebPreferences,
+            preload: "/preload-editor.js",
+          }),
           backgroundColor: "black",
           fullscreenable: false,
         }),

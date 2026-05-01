@@ -149,7 +149,7 @@ jobs:
 
       - name: Build app and add to release (macOS)
         if: matrix.os == 'macos-latest'
-        run: npm run publish
+        run: npm run publish -- --arch=universal
         env:
           CI: true
           NODE_ENV: production

@@ -1,0 +1,23 @@
+name: Question
+description: Ask a question about using the app or its workflow.
+
+title: "[Question]: "
+labels: ["question"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before asking, please check the [documentation](https://photoidapp.crru.org.uk), especially the [usage guide](https://photoidapp.crru.org.uk/user-guide/usage/) and [known issues](https://photoidapp.crru.org.uk/known-issues/) page.
+  - type: textarea
+    id: question
+    attributes:
+      label: Your question
+      description: What would you like to know?
+    validations:
+      required: true
+  - type: textarea
+    id: tried
+    attributes:
+      label: What you have tried
+      description: Steps you have already taken, or documentation you have already read.

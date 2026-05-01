@@ -21,7 +21,6 @@ class Photo {
   constructor({ directory, name, thumbnail, edits }: PhotoOptions, project: Project) {
     makeObservable(this, {
       edits: observable,
-      fileName: computed,
       thumbnail: observable,
       thumbnailFullPath: computed,
       isEdited: computed,

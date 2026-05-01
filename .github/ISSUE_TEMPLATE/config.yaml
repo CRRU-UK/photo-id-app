@@ -1,0 +1,9 @@
+blank_issues_enabled: false
+
+contact_links:
+  - name: Documentation
+    url: https://photoidapp.crru.org.uk
+    about: Check the documentation first - it covers installation, usage, known issues, and the analysis guide.
+  - name: CRRU website
+    url: https://crru.org.uk
+    about: For questions about CRRU's wider work.

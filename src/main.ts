@@ -48,7 +48,7 @@ if (!started) {
     dialog.showErrorBox("Unexpected Error", String(reason));
   });
 
-  updateElectronApp();
+  updateElectronApp({ repo: "CRRU-UK/photo-id-app" });
 }
 
 protocol.registerSchemesAsPrivileged([
@@ -229,6 +229,11 @@ void app.whenReady().then(async () => {
         "Document-Policy": ["js-profiling"],
       },
     });
+  });
+
+  // Reject all renderer permission requests
+  session.defaultSession.setPermissionRequestHandler((_webContents, _permission, callback) => {
+    callback(false);
   });
 
   protocol.handle(PHOTO_PROTOCOL_SCHEME, (request) => {

@@ -4,7 +4,7 @@ This document describes the security model of the Photo ID app.
 
 ## Renderer Isolation
 
-The renderer process has no direct access to Node.js APIs. All system access is mediated through the preload script (`src/preload.ts`), which exposes a limited API via `contextBridge.exposeInMainWorld()`.
+The renderer process has no direct access to Node.js APIs. All system access is mediated through the preload scripts, which expose a limited API via `contextBridge.exposeInMainWorld()`. The main window uses `src/preload.ts` (full API surface). Edit windows use the narrower `src/preload-editor.ts`, which only exposes the IPC the editor actually needs (project/settings bootstrap, photo save/navigation, analysis) — anything that mutates project data, opens new windows, or interacts with the home/project screens is intentionally absent so a compromised editor renderer cannot reach those handlers.
 
 - `nodeIntegration: false` - Node.js APIs are not available in the renderer
 - `contextIsolation: true` - The preload script runs in an isolated context
@@ -13,6 +13,7 @@ The renderer process has no direct access to Node.js APIs. All system access is 
 - `allowRunningInsecureContent: false` - Mixed content is blocked
 - `setWindowOpenHandler(() => ({ action: "deny" }))` - Prevents arbitrary window creation
 - `will-navigate` handler - Blocks navigation to arbitrary URLs from the renderer
+- `setPermissionRequestHandler` - Denies all renderer permission requests (camera, geolocation, notifications, media). The app does not use these capabilities
 
 ## Content Security Policy
 

@@ -47,7 +47,7 @@ class Project {
     this.lastModified = new Date();
 
     if (data) {
-      console.log("Loading data from json:", data);
+      console.debug("Loading data from json:", data);
       this.loadFromJSON(data);
     }
   }
@@ -180,7 +180,6 @@ class Project {
     from.removePhoto(photo);
     to.addPhoto(photo);
 
-    this.save();
     return this;
   }
 
