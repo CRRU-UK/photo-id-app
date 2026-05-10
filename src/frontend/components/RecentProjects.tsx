@@ -10,6 +10,7 @@ import {
 } from "@primer/react";
 import { useEffect, useState } from "react";
 
+import { getRecentProjectDisplayPath } from "@/helpers";
 import type { RecentProject } from "@/types";
 
 const RecentProjects = () => {
@@ -94,7 +95,7 @@ const RecentProjectsList = ({ projects, onRemove }: RecentProjectsListProps) => 
                   style={{ display: "block", fontFamily: "var(--fontStack-monospace)" }}
                   weight="semibold"
                 >
-                  {item.path}
+                  {getRecentProjectDisplayPath(item.path)}
                 </Text>
               </div>
 

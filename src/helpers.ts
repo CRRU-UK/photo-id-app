@@ -158,6 +158,22 @@ export const isEditWindow = (hash: string): boolean => hash.startsWith(`#${ROUTE
 export const stripWhitespace = (value: string): string => value.replaceAll(/\s+/g, "");
 
 /**
+ * Returns the parent directory of a recent project's `.photoid` file (i.e. drops both the project
+ * file name and the project folder name) for display in the recent projects list. Handles POSIX
+ * and Windows separators. Falls back to the input if there are fewer than two segments to drop.
+ */
+export const getRecentProjectDisplayPath = (projectFilePath: string): string => {
+  const separator = projectFilePath.includes("\\") ? "\\" : "/";
+  const segments = projectFilePath.split(/[/\\]/);
+
+  if (segments.length <= 2) {
+    return projectFilePath;
+  }
+
+  return segments.slice(0, -2).join(separator);
+};
+
+/**
  * Builds a valid photo:// URL from a directory path and file name. Normalizes to forward slashes
  * and encodes each path segment so spaces, #, ? etc. are safe. Always produces photo:/// (three
  * slashes) followed by encoded path segments, mirroring the file:// URL format so the main process
