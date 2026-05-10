@@ -95,7 +95,7 @@ test.describe
       ).toHaveCount(0);
 
       // Canvas is drawn only after image.onload fires, so non-zero dimensions prove the bytes
-      // reached the renderer (this is exactly what the photo:// fetch regression broke).
+      // reached the renderer
       const canvas = editorPage.locator("canvas.canvas-photo");
       await expect(canvas).toBeVisible({ timeout: 15_000 });
 
