@@ -74,12 +74,48 @@ test.describe
       await mainPage.getByRole("button", { name: "Start New Project" }).click();
       await expect(mainPage.getByTestId("project-page")).toBeVisible({ timeout: 30_000 });
 
-      const photo = mainPage.getByTestId("unassigned-section").getByTestId("photo-draggable");
-      await expect(photo).toBeVisible();
+      const editButton = mainPage
+        .getByTestId("unassigned-section")
+        .getByTestId("edit-photo-button");
+      await expect(editButton).toBeEnabled();
 
-      const editorPagePromise = app.waitForEvent("window");
-      await photo.dblclick();
-      const editorPage = await editorPagePromise;
+      // Diagnostic: capture what `waitForEvent("window")` returns so we can compare against the
+      // polled result below. Failing CI on Windows/macOS showed `editorPage` ending up with main
+      // window content, but we never confirmed what URL waitForEvent actually resolved with.
+      const waitForEventResult = app
+        .waitForEvent("window", { timeout: 15_000 })
+        .then((page) => `resolved url=${page.url()}`)
+        .catch((error: Error) => `rejected: ${error.message}`);
+
+      await editButton.click();
+
+      console.log(`[diagnostic] waitForEvent("window") ${await waitForEventResult}`);
+      console.log(
+        `[diagnostic] all windows after click: ${app
+          .windows()
+          .map((page) => page.url())
+          .join(" | ")}`,
+      );
+
+      /**
+       * Edit windows are created with `show: false` and shown when ready, which makes
+       * `electronApp.waitForEvent("window")` flaky on macOS/Windows (it can resolve with the main
+       * window before the editor is registered). Poll `app.windows()` for the URL instead.
+       */
+      let editorPage: Page | undefined;
+      await expect
+        .poll(
+          () => {
+            editorPage = app.windows().find((page) => page.url().includes("#/edit"));
+            return editorPage !== undefined;
+          },
+          { timeout: 15_000 },
+        )
+        .toBe(true);
+
+      if (!editorPage) {
+        throw new Error("Editor window did not open");
+      }
 
       const errors: string[] = [];
       editorPage.on("pageerror", (error) => errors.push(error.message));

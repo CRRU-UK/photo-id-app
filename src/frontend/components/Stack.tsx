@@ -198,6 +198,7 @@ const Stack = observer(({ collection, showAnalysisButton = true, stackLabel }: S
           <ActionBar.Group>
             <ActionBar.IconButton
               aria-label={PROJECT_TOOLTIPS.EDIT_PHOTO}
+              data-testid="edit-photo-button"
               disabled={collection.photos.length <= 0 || revertingPhoto}
               icon={PencilIcon}
               onClick={(event) => {
