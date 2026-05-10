@@ -316,19 +316,21 @@ describe(computeIsEdited, () => {
 });
 
 describe(encodeEditPayload, () => {
-  it("encodes photo body to base64 string", () => {
+  it("encodes the edit payload (directory + photo) to a base64 string", () => {
     const data = {
       directory: "/path/to/project",
-      name: "photo.jpg",
-      thumbnail: ".thumbnails/photo.jpg",
-      edits: {
-        brightness: 100,
-        contrast: 100,
-        saturate: 100,
-        zoom: 1,
-        pan: { x: 0, y: 0 },
+      photo: {
+        name: "photo.jpg",
+        thumbnail: ".thumbnails/photo.jpg",
+        edits: {
+          brightness: 100,
+          contrast: 100,
+          saturate: 100,
+          zoom: 1,
+          pan: { x: 0, y: 0 },
+        },
+        isEdited: false,
       },
-      isEdited: false,
     };
 
     const encoded = encodeEditPayload(data);
@@ -340,19 +342,21 @@ describe(encodeEditPayload, () => {
 });
 
 describe(decodeEditPayload, () => {
-  it("decodes base64 string back to photo body", () => {
+  it("decodes a base64 string back to the edit payload", () => {
     const data = {
       directory: "/path/to/project",
-      name: "photo.jpg",
-      thumbnail: ".thumbnails/photo.jpg",
-      edits: {
-        brightness: 100,
-        contrast: 100,
-        saturate: 100,
-        zoom: 1,
-        pan: { x: 0, y: 0 },
+      photo: {
+        name: "photo.jpg",
+        thumbnail: ".thumbnails/photo.jpg",
+        edits: {
+          brightness: 100,
+          contrast: 100,
+          saturate: 100,
+          zoom: 1,
+          pan: { x: 0, y: 0 },
+        },
+        isEdited: false,
       },
-      isEdited: false,
     };
 
     const encoded = encodeEditPayload(data);
@@ -361,7 +365,7 @@ describe(decodeEditPayload, () => {
     expect(decoded).toStrictEqual(data);
   });
 
-  it("throws when decoded payload does not match photo body schema", () => {
+  it("throws when decoded payload does not match the edit payload schema", () => {
     const invalidPayload = Buffer.from(JSON.stringify({ wrong: "shape" }), "utf8").toString(
       "base64",
     );
@@ -372,7 +376,6 @@ describe(decodeEditPayload, () => {
 
 describe("encodeEditPayload and decodeEditPayload round-trip", () => {
   const defaultPhotoBody = {
-    directory: "/path/to/project",
     name: "photo.jpg",
     thumbnail: ".thumbnails/photo.jpg",
     edits: {
@@ -386,17 +389,27 @@ describe("encodeEditPayload and decodeEditPayload round-trip", () => {
   };
 
   it.each([
-    { label: "basic photo body", name: "photo.jpg" },
+    { label: "basic photo body", name: "photo.jpg", directory: "/path/to/project" },
     { label: "unicode in directory path", name: "photo.jpg", directory: "/Users/foo/émoji/项目" },
-    { label: "unicode in filename", name: "テスト画像.png" },
-    { label: "special characters in filename", name: "photo (1) [final].jpg" },
-    { label: "spaces and apostrophe in filename", name: "O'la.jpg" },
+    { label: "unicode in filename", name: "テスト画像.png", directory: "/path/to/project" },
+    {
+      label: "special characters in filename",
+      name: "photo (1) [final].jpg",
+      directory: "/path/to/project",
+    },
+    {
+      label: "spaces and apostrophe in filename",
+      name: "O'la.jpg",
+      directory: "/path/to/project",
+    },
   ])("round-trips $label", ({ name, directory }) => {
     const data = {
-      ...defaultPhotoBody,
-      directory: directory ?? defaultPhotoBody.directory,
-      name,
-      thumbnail: `.thumbnails/${name}`,
+      directory,
+      photo: {
+        ...defaultPhotoBody,
+        name,
+        thumbnail: `.thumbnails/${name}`,
+      },
     };
 
     const decoded = decodeEditPayload(encodeEditPayload(data));

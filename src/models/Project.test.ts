@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { DEFAULT_PHOTO_EDITS } from "@/constants";
-import type { ExportTypes, PhotoBody, ProjectBody } from "@/types";
+import type { ExportTypes, PhotoBody, ProjectBody, ProjectPayload } from "@/types";
 
 import Collection from "./Collection";
 import Photo from "./Photo";
@@ -22,11 +22,11 @@ const projectDirectory = "/project";
 
 // Helper project for constructing Photo instances in test data
 const helperProject = new Project();
+helperProject.directory = projectDirectory;
 
 const createPhoto = (name: string): Photo =>
   new Photo(
     {
-      directory: projectDirectory,
       name,
       thumbnail: `.thumbnails/${name}`,
       edits: { ...DEFAULT_PHOTO_EDITS, pan: { x: 0, y: 0 } },
@@ -37,7 +37,6 @@ const createPhoto = (name: string): Photo =>
 const createProjectBody = (overrides?: Partial<ProjectBody>): ProjectBody => ({
   version: "v1",
   id: projectId,
-  directory: projectDirectory,
   unassigned: {
     photos: [createPhoto("photo1.jpg").toBody(), createPhoto("photo2.jpg").toBody()],
     index: 0,
@@ -56,6 +55,11 @@ const createProjectBody = (overrides?: Partial<ProjectBody>): ProjectBody => ({
   created: "2025-01-01T00:00:00.000Z",
   lastModified: "2025-01-15T12:00:00.000Z",
   ...overrides,
+});
+
+const createPayload = (overrides?: Partial<ProjectBody>): ProjectPayload => ({
+  body: createProjectBody(overrides),
+  directory: projectDirectory,
 });
 
 describe(Project, () => {
@@ -87,8 +91,7 @@ describe(Project, () => {
     });
 
     it("loads from data when provided to constructor", () => {
-      const data = createProjectBody();
-      const project = new Project(data);
+      const project = new Project(createPayload());
 
       expect(project.id).toBe(projectId);
       expect(project.directory).toBe(projectDirectory);
@@ -97,11 +100,11 @@ describe(Project, () => {
   });
 
   describe("loadFromJSON", () => {
-    it("loads project state from a ProjectBody object", () => {
+    it("loads project state from a ProjectBody object and stores the runtime directory", () => {
       const project = new Project();
       const data = createProjectBody();
 
-      project.loadFromJSON(data);
+      project.loadFromJSON(data, projectDirectory);
 
       expect(project.id).toBe(projectId);
       expect(project.directory).toBe(projectDirectory);
@@ -112,9 +115,8 @@ describe(Project, () => {
 
     it("populates allPhotos with all photos from all collections", () => {
       const project = new Project();
-      const data = createProjectBody();
 
-      project.loadFromJSON(data);
+      project.loadFromJSON(createProjectBody(), projectDirectory);
 
       // 2 unassigned + 1 left matched = 3
       expect(project.allPhotos.size).toBe(3);
@@ -122,9 +124,8 @@ describe(Project, () => {
 
     it("correctly parses dates", () => {
       const project = new Project();
-      const data = createProjectBody();
 
-      project.loadFromJSON(data);
+      project.loadFromJSON(createProjectBody(), projectDirectory);
 
       expect(project.created).toStrictEqual(new Date("2025-01-01T00:00:00.000Z"));
       expect(project.lastModified).toStrictEqual(new Date("2025-01-15T12:00:00.000Z"));
@@ -132,7 +133,7 @@ describe(Project, () => {
 
     it("creates Collection instances for unassigned and discarded", () => {
       const project = new Project();
-      project.loadFromJSON(createProjectBody());
+      project.loadFromJSON(createProjectBody(), projectDirectory);
 
       expect(project.unassigned).toBeInstanceOf(Collection);
       expect(project.discarded).toBeInstanceOf(Collection);
@@ -140,7 +141,7 @@ describe(Project, () => {
 
     it("creates Collection instances for matched left and right", () => {
       const project = new Project();
-      project.loadFromJSON(createProjectBody());
+      project.loadFromJSON(createProjectBody(), projectDirectory);
 
       expect(project.matched[0].left).toBeInstanceOf(Collection);
       expect(project.matched[0].right).toBeInstanceOf(Collection);
@@ -148,7 +149,7 @@ describe(Project, () => {
 
     it("populates photos as Photo instances", () => {
       const project = new Project();
-      project.loadFromJSON(createProjectBody());
+      project.loadFromJSON(createProjectBody(), projectDirectory);
 
       const firstPhoto = [...project.allPhotos.values()][0];
 
@@ -172,7 +173,7 @@ describe(Project, () => {
         ],
       });
 
-      project.loadFromJSON(data);
+      project.loadFromJSON(data, projectDirectory);
 
       expect(project.matched[0].id).toBe(5);
       expect(project.matched[1].id).toBe(10);
@@ -186,7 +187,7 @@ describe(Project, () => {
         matched: [],
       });
 
-      project.loadFromJSON(data);
+      project.loadFromJSON(data, projectDirectory);
 
       expect(project.allPhotos.size).toBe(0);
       expect(project.unassigned.photos).toHaveLength(0);
@@ -196,7 +197,7 @@ describe(Project, () => {
 
     it("returns the project for chaining", () => {
       const project = new Project();
-      const result = project.loadFromJSON(createProjectBody());
+      const result = project.loadFromJSON(createProjectBody(), projectDirectory);
 
       expect(result).toBe(project);
     });
@@ -213,7 +214,7 @@ describe(Project, () => {
         ],
       });
 
-      project.loadFromJSON(data);
+      project.loadFromJSON(data, projectDirectory);
 
       expect(project.matched[0].left.name).toBe("001");
       expect(project.matched[0].right.name).toBe("002");
@@ -222,7 +223,7 @@ describe(Project, () => {
 
   describe("photoCount", () => {
     it("returns total photo count across all collections", () => {
-      const project = new Project(createProjectBody());
+      const project = new Project(createPayload());
 
       // 2 unassigned + 0 discarded + 1 left matched + 0 right matched = 3
       expect(project.photoCount).toBe(3);
@@ -230,7 +231,7 @@ describe(Project, () => {
 
     it("returns zero for an empty project", () => {
       const project = new Project(
-        createProjectBody({
+        createPayload({
           unassigned: { photos: [], index: 0 },
           discarded: { photos: [], index: 0 },
           matched: [],
@@ -242,7 +243,7 @@ describe(Project, () => {
 
     it("includes photos from both sides of matched sets", () => {
       const project = new Project(
-        createProjectBody({
+        createPayload({
           unassigned: { photos: [], index: 0 },
           discarded: { photos: [], index: 0 },
           matched: [
@@ -263,7 +264,7 @@ describe(Project, () => {
 
     it("includes discarded photos in the count", () => {
       const project = new Project(
-        createProjectBody({
+        createPayload({
           unassigned: { photos: [], index: 0 },
           discarded: { photos: [createPhoto("d1.jpg").toBody()], index: 0 },
           matched: [],
@@ -276,10 +277,9 @@ describe(Project, () => {
 
   describe("updatePhoto", () => {
     it("updates an existing photo by name", () => {
-      const project = new Project(createProjectBody());
+      const project = new Project(createPayload());
 
       const updatedData: PhotoBody = {
-        directory: projectDirectory,
         name: "photo1.jpg",
         thumbnail: ".thumbnails/photo1_edited.jpg",
         edits: {
@@ -303,7 +303,7 @@ describe(Project, () => {
     });
 
     it("logs error when photo is not found", () => {
-      const project = new Project(createProjectBody());
+      const project = new Project(createPayload());
       const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
 
       project.updatePhoto(createPhoto("nonexistent.jpg").toBody());
@@ -319,7 +319,7 @@ describe(Project, () => {
 
   describe("addPhotoToStack", () => {
     it("moves a photo from one collection to another", () => {
-      const project = new Project(createProjectBody());
+      const project = new Project(createPayload());
       const from = project.unassigned;
       const to = project.discarded;
       const photo = from.currentPhoto as Photo;
@@ -331,7 +331,7 @@ describe(Project, () => {
     });
 
     it("does not add photo if it already exists in the target collection", () => {
-      const project = new Project(createProjectBody());
+      const project = new Project(createPayload());
       const from = project.unassigned;
       const photo = from.currentPhoto as Photo;
 
@@ -342,7 +342,7 @@ describe(Project, () => {
     });
 
     it("calls save after moving", () => {
-      const project = new Project(createProjectBody());
+      const project = new Project(createPayload());
       const from = project.unassigned;
       const to = project.matched[0].left;
       const photo = from.currentPhoto as Photo;
@@ -357,7 +357,7 @@ describe(Project, () => {
     });
 
     it("returns the project for chaining", () => {
-      const project = new Project(createProjectBody());
+      const project = new Project(createPayload());
       const from = project.unassigned;
       const to = project.discarded;
       const photo = from.currentPhoto as Photo;
@@ -370,7 +370,7 @@ describe(Project, () => {
 
   describe("duplicatePhotoToStack", () => {
     it("creates a new photo from the duplicated file and adds it to the target collection", async () => {
-      const project = new Project(createProjectBody());
+      const project = new Project(createPayload());
       const to = project.matched[0].left;
       const photo = to.currentPhoto as Photo;
       const sizeBefore = to.photos.length;
@@ -387,7 +387,7 @@ describe(Project, () => {
     });
 
     it("adds the new photo to allPhotos", async () => {
-      const project = new Project(createProjectBody());
+      const project = new Project(createPayload());
       const to = project.unassigned;
       const photo = to.currentPhoto as Photo;
       const allPhotosBefore = project.allPhotos.size;
@@ -404,7 +404,7 @@ describe(Project, () => {
     });
 
     it("calls duplicatePhotoFile with the photo body", async () => {
-      const project = new Project(createProjectBody());
+      const project = new Project(createPayload());
       const to = project.unassigned;
       const photo = to.currentPhoto as Photo;
 
@@ -422,7 +422,7 @@ describe(Project, () => {
     });
 
     it("saves the project after duplicating", async () => {
-      const project = new Project(createProjectBody());
+      const project = new Project(createPayload());
       const to = project.discarded;
       const photo = project.unassigned.currentPhoto as Photo;
 
@@ -441,7 +441,7 @@ describe(Project, () => {
     });
 
     it("returns the project for chaining", async () => {
-      const project = new Project(createProjectBody());
+      const project = new Project(createPayload());
       const to = project.unassigned;
       const photo = to.currentPhoto as Photo;
 
@@ -459,7 +459,7 @@ describe(Project, () => {
 
   describe("addPage", () => {
     it("appends MATCHED_STACKS_PER_PAGE empty stacks to matched", () => {
-      const project = new Project(createProjectBody());
+      const project = new Project(createPayload());
       const sizeBefore = project.matched.length;
 
       project.addPage();
@@ -468,7 +468,7 @@ describe(Project, () => {
     });
 
     it("assigns incrementing ids continuing from the largest existing id", () => {
-      const project = new Project(createProjectBody());
+      const project = new Project(createPayload());
       const lastIdBefore = project.matched[project.matched.length - 1].id;
 
       project.addPage();
@@ -487,7 +487,7 @@ describe(Project, () => {
     });
 
     it("creates empty Collection instances for left and right", () => {
-      const project = new Project(createProjectBody());
+      const project = new Project(createPayload());
 
       project.addPage();
 
@@ -500,7 +500,7 @@ describe(Project, () => {
     });
 
     it("calls save after adding the page", () => {
-      const project = new Project(createProjectBody());
+      const project = new Project(createPayload());
       vi.mocked(window.electronAPI.saveProject).mockClear();
 
       project.addPage();
@@ -511,7 +511,7 @@ describe(Project, () => {
     });
 
     it("returns the project for chaining", () => {
-      const project = new Project(createProjectBody());
+      const project = new Project(createPayload());
 
       const result = project.addPage();
 
@@ -519,7 +519,7 @@ describe(Project, () => {
     });
 
     it("starts ids at 1 when matched is empty", () => {
-      const project = new Project(createProjectBody({ matched: [] }));
+      const project = new Project(createPayload({ matched: [] }));
 
       project.addPage();
 
@@ -529,7 +529,7 @@ describe(Project, () => {
 
   describe("exportMatches", () => {
     it("calls window.electronAPI.exportMatches with the project JSON and type", async () => {
-      const project = new Project(createProjectBody());
+      const project = new Project(createPayload());
       vi.mocked(window.electronAPI.exportMatches).mockResolvedValue(undefined);
 
       await project.exportMatches("edited");
@@ -538,7 +538,7 @@ describe(Project, () => {
     });
 
     it("passes valid JSON to exportMatches", async () => {
-      const project = new Project(createProjectBody());
+      const project = new Project(createPayload());
       vi.mocked(window.electronAPI.exportMatches).mockResolvedValue(undefined);
 
       await project.exportMatches("edited");
@@ -547,11 +547,11 @@ describe(Project, () => {
       const parsed = JSON.parse(data) as ProjectBody;
 
       expect(parsed.version).toBe("v1");
-      expect(parsed.directory).toBe(projectDirectory);
+      expect(parsed.unassigned.photos).toHaveLength(2);
     });
 
     it("returns the project for chaining", async () => {
-      const project = new Project(createProjectBody());
+      const project = new Project(createPayload());
       vi.mocked(window.electronAPI.exportMatches).mockResolvedValue(undefined);
 
       const result = await project.exportMatches("edited");
@@ -562,7 +562,7 @@ describe(Project, () => {
 
   describe("save", () => {
     it("calls window.electronAPI.saveProject with JSON string after debounce", () => {
-      const project = new Project(createProjectBody());
+      const project = new Project(createPayload());
 
       project.save();
 
@@ -572,7 +572,7 @@ describe(Project, () => {
     });
 
     it("debounces rapid save calls into a single write", () => {
-      const project = new Project(createProjectBody());
+      const project = new Project(createPayload());
 
       project.save();
       project.save();
@@ -584,7 +584,7 @@ describe(Project, () => {
     });
 
     it("produces valid JSON when saving", () => {
-      const project = new Project(createProjectBody());
+      const project = new Project(createPayload());
 
       project.save();
 
@@ -594,12 +594,27 @@ describe(Project, () => {
       const parsed = JSON.parse(savedData) as ProjectBody;
 
       expect(parsed.version).toBe("v1");
-      expect(parsed.directory).toBe(projectDirectory);
       expect(parsed.unassigned.photos).toHaveLength(2);
     });
 
+    it("does not persist the runtime directory in the JSON", () => {
+      const project = new Project(createPayload());
+
+      project.save();
+
+      vi.runAllTimers();
+
+      const savedData = vi.mocked(window.electronAPI.saveProject).mock.calls[0][0];
+      const parsed = JSON.parse(savedData) as Record<string, unknown>;
+
+      expect(parsed.directory).toBeUndefined();
+      // Photos must also not carry a directory field
+      const photos = (parsed.unassigned as { photos: Record<string, unknown>[] }).photos;
+      expect(photos[0].directory).toBeUndefined();
+    });
+
     it("updates lastModified when saving", () => {
-      const project = new Project(createProjectBody());
+      const project = new Project(createPayload());
       const originalLastModified = project.lastModified;
 
       project.save();
@@ -608,7 +623,7 @@ describe(Project, () => {
     });
 
     it("serialises matched arrays correctly", () => {
-      const project = new Project(createProjectBody());
+      const project = new Project(createPayload());
 
       project.save();
 
@@ -626,7 +641,7 @@ describe(Project, () => {
 
   describe("flushSave", () => {
     it("does nothing when there is no pending debounced save", () => {
-      const project = new Project(createProjectBody());
+      const project = new Project(createPayload());
 
       project.flushSave();
 
@@ -634,7 +649,7 @@ describe(Project, () => {
     });
 
     it("immediately calls flushSaveProject when a save is pending", () => {
-      const project = new Project(createProjectBody());
+      const project = new Project(createPayload());
 
       project.save();
       project.flushSave();
@@ -643,7 +658,7 @@ describe(Project, () => {
     });
 
     it("cancels the debounced save so it does not fire again", () => {
-      const project = new Project(createProjectBody());
+      const project = new Project(createPayload());
 
       project.save();
       project.flushSave();
@@ -656,7 +671,7 @@ describe(Project, () => {
     });
 
     it("produces valid JSON when flushing", () => {
-      const project = new Project(createProjectBody());
+      const project = new Project(createPayload());
 
       project.save();
       project.flushSave();
@@ -665,14 +680,13 @@ describe(Project, () => {
       const parsed = JSON.parse(savedData) as ProjectBody;
 
       expect(parsed.version).toBe("v1");
-      expect(parsed.directory).toBe(projectDirectory);
     });
   });
 
   describe("round-trip serialisation", () => {
     it("preserves data through load and save cycle", () => {
       const originalData = createProjectBody();
-      const project = new Project(originalData);
+      const project = new Project({ body: originalData, directory: projectDirectory });
 
       project.save();
 
@@ -682,7 +696,6 @@ describe(Project, () => {
       const restored = JSON.parse(savedJSON) as ProjectBody;
 
       expect(restored.version).toBe(originalData.version);
-      expect(restored.directory).toBe(originalData.directory);
       expect(restored.unassigned.photos).toHaveLength(originalData.unassigned.photos.length);
       expect(restored.discarded.photos).toHaveLength(originalData.discarded.photos.length);
       expect(restored.matched).toHaveLength(originalData.matched.length);
@@ -693,7 +706,6 @@ describe(Project, () => {
         unassigned: {
           photos: [
             {
-              directory: projectDirectory,
               name: "edited.jpg",
               thumbnail: ".thumbnails/edited.jpg",
               edits: {
@@ -710,7 +722,7 @@ describe(Project, () => {
         },
       });
 
-      const project = new Project(originalData);
+      const project = new Project({ body: originalData, directory: projectDirectory });
       project.save();
 
       vi.runAllTimers();

@@ -47,14 +47,17 @@ vi.mock("@/backend/WindowManager", () => ({
 const mockHandleEditorNavigate =
   vi.fn<(data: PhotoBody, direction: EditorNavigation) => Promise<PhotoBody | null>>();
 
+const mockGetCurrentProjectDirectory = vi.fn<() => string | null>();
+
 vi.mock("@/backend/projects", () => ({
   handleEditorNavigate: (data: PhotoBody, direction: EditorNavigation) =>
     mockHandleEditorNavigate(data, direction),
+  getCurrentProjectDirectory: () => mockGetCurrentProjectDirectory(),
 }));
 
 vi.mock("@/helpers", () => ({
-  encodeEditPayload: vi.fn<(data: PhotoBody) => string>(
-    (data: PhotoBody) => `encoded:${JSON.stringify(data)}`,
+  encodeEditPayload: vi.fn<(data: { directory: string; photo: PhotoBody }) => string>(
+    (data) => `encoded:${JSON.stringify(data)}`,
   ),
 }));
 
@@ -66,7 +69,6 @@ const { handleOpenEditWindow, handleNavigateEditorPhoto } = await import("./edit
 
 const createMockPhotoBody = (overrides: Partial<PhotoBody> = {}): PhotoBody =>
   ({
-    directory: "/photos",
     name: "photo.jpg",
     thumbnail: null,
     edits: null,
@@ -77,6 +79,7 @@ const createMockPhotoBody = (overrides: Partial<PhotoBody> = {}): PhotoBody =>
 describe("editor IPC handlers", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockGetCurrentProjectDirectory.mockReturnValue("/project");
   });
 
   describe(handleOpenEditWindow, () => {
@@ -246,14 +249,14 @@ describe("editor IPC handlers", () => {
   });
 
   describe(handleNavigateEditorPhoto, () => {
-    it("returns the encoded payload for the next photo", async () => {
+    it("returns the encoded payload (directory + next photo)", async () => {
       const photo = createMockPhotoBody();
       const nextPhoto = createMockPhotoBody({ name: "next.jpg" });
       mockHandleEditorNavigate.mockResolvedValue(nextPhoto);
 
       const result = await handleNavigateEditorPhoto({} as IpcMainInvokeEvent, photo, "next");
 
-      expect(result).toBe(`encoded:${JSON.stringify(nextPhoto)}`);
+      expect(result).toBe(`encoded:${JSON.stringify({ directory: "/project", photo: nextPhoto })}`);
     });
 
     it("returns null when the photo is not found", async () => {
@@ -263,6 +266,14 @@ describe("editor IPC handlers", () => {
       const result = await handleNavigateEditorPhoto({} as IpcMainInvokeEvent, photo, "prev");
 
       expect(result).toBeNull();
+    });
+
+    it("throws when no project is open", async () => {
+      mockGetCurrentProjectDirectory.mockReturnValue(null);
+
+      await expect(
+        handleNavigateEditorPhoto({} as IpcMainInvokeEvent, createMockPhotoBody(), "next"),
+      ).rejects.toThrow("No project open");
     });
   });
 });

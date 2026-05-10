@@ -8,17 +8,17 @@ import ErrorBoundary from "@/frontend/components/ErrorBoundary";
 import ImageEditor from "@/frontend/components/ImageEditor";
 import LoadingOverlay from "@/frontend/components/LoadingOverlay";
 import { buildPhotoUrl, decodeEditPayload } from "@/helpers";
-import type { LoadingData, PhotoBody } from "@/types";
+import type { EditPayload, LoadingData } from "@/types";
 
-const fetchLocalFile = async (data: PhotoBody) => {
-  const response = await fetch(buildPhotoUrl(data.directory, data.name));
+const fetchLocalFile = async (directory: string, photo: EditPayload["photo"]) => {
+  const response = await fetch(buildPhotoUrl(directory, photo.name));
 
   if (!response.ok) {
     throw new Error(`Photo load failed: ${response.status}`);
   }
 
   const blob = await response.blob();
-  return new File([blob], data.name, { type: blob.type || "image/*" });
+  return new File([blob], photo.name, { type: blob.type || "image/*" });
 };
 
 const getDataParamFromSearch = (): string | null =>
@@ -34,7 +34,7 @@ const getInitialError = (): string | null =>
 const EditPage = () => {
   const [query, setQuery] = useState<string | null>(getDataParamFromSearch);
   const [loading, setLoading] = useState<LoadingData>(getInitialLoading);
-  const [data, setData] = useState<PhotoBody | null>(null);
+  const [payload, setPayload] = useState<EditPayload | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(getInitialError);
 
@@ -66,12 +66,12 @@ const EditPage = () => {
       setFile(null);
 
       try {
-        const parsedData = decodeEditPayload(encoded);
-        document.title = `${DEFAULT_WINDOW_TITLE} - ${parsedData.directory}/${parsedData.name}`;
+        const parsedPayload = decodeEditPayload(encoded);
+        document.title = `${DEFAULT_WINDOW_TITLE} - ${parsedPayload.directory}/${parsedPayload.photo.name}`;
 
-        const response = await fetchLocalFile(parsedData);
+        const response = await fetchLocalFile(parsedPayload.directory, parsedPayload.photo);
 
-        setData(parsedData);
+        setPayload(parsedPayload);
         setFile(response);
       } catch (err) {
         console.error("Error loading edit data:", err);
@@ -105,10 +105,11 @@ const EditPage = () => {
     <AnalysisContextProvider>
       <LoadingOverlay data={loading} />
       <AnalysisMatchOverlay />
-      {data && file && (
+      {payload && file && (
         <ErrorBoundary recovery={{ label: "Reload photo", onClick: () => setError(null) }}>
           <ImageEditor
-            data={data}
+            data={payload.photo}
+            directory={payload.directory}
             image={file}
             onError={handleImageError}
             onImageLoaded={handleImageLoaded}

@@ -12,6 +12,7 @@ vi.mock("@/backend/imageRenderer", () => ({
 
 vi.mock("@/backend/projects", () => ({
   resolvePhotoPath: (_directory: string, fileName: string) => `/project/${fileName}`,
+  getCurrentProjectDirectory: () => "/project",
 }));
 
 const mockFetch = vi.fn<typeof fetch>();
@@ -25,7 +26,6 @@ const defaultSettings = {
 };
 
 const defaultPhoto: PhotoBody = {
-  directory: "/project",
   name: "photo.jpg",
   thumbnail: "thumbnails/photo.jpg",
   edits: { brightness: 100, contrast: 100, saturate: 100, zoom: 1, pan: { x: 0, y: 0 } },

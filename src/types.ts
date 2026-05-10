@@ -8,10 +8,12 @@ import type {
   analysisProviderDraftSchema,
   analysisProviderSchema,
   collectionBodySchema,
+  editPayloadSchema,
   matchedBodySchema,
   photoBodySchema,
   photoEditsSchema,
   projectBodySchema,
+  projectPayloadSchema,
   settingsDataSchema,
   telemetrySchema,
   themeModeSchema,
@@ -40,6 +42,10 @@ export type CollectionBody = z.infer<typeof collectionBodySchema>;
 export type MatchedBody = z.infer<typeof matchedBodySchema>;
 
 export type ProjectBody = z.infer<typeof projectBodySchema>;
+
+export type ProjectPayload = z.infer<typeof projectPayloadSchema>;
+
+export type EditPayload = z.infer<typeof editPayloadSchema>;
 
 export type RecentProject = {
   name: string;

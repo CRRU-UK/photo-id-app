@@ -50,7 +50,6 @@ vi.mock("@/backend/projects", () => ({
 const { handleExportMatches } = await import("./exports");
 
 const createPhoto = (name: string, overrides?: Partial<PhotoBody>): PhotoBody => ({
-  directory: "/project",
   name,
   thumbnail: `thumbnails/${name}`,
   edits: DEFAULT_PHOTO_EDITS,
@@ -66,7 +65,6 @@ const createEmptyCollection = (): CollectionBody => ({
 const createProject = (overrides?: Partial<ProjectBody>): ProjectBody => ({
   version: "v1",
   id: "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d",
-  directory: "/project",
   unassigned: createEmptyCollection(),
   discarded: createEmptyCollection(),
   matched: [],
@@ -285,9 +283,8 @@ describe(handleExportMatches, () => {
 
   it("writes exported files to the project export directory", async () => {
     const mainWindow = createMockMainWindow();
-    const photo = createPhoto("photo.jpg", { isEdited: false, directory: "/my/project" });
+    const photo = createPhoto("photo.jpg", { isEdited: false });
     const project = createProject({
-      directory: "/my/project",
       matched: [
         {
           id: 1,
@@ -296,7 +293,7 @@ describe(handleExportMatches, () => {
         },
       ],
     });
-    mockGetCurrentProjectDirectory.mockReturnValue(project.directory);
+    mockGetCurrentProjectDirectory.mockReturnValue("/my/project");
     mockExistsSync.mockReturnValue(false);
 
     await handleExportMatches(mainWindow, JSON.stringify(project), "edited");
@@ -309,8 +306,8 @@ describe(handleExportMatches, () => {
 
   it("returns the project directory", async () => {
     const mainWindow = createMockMainWindow();
-    const project = createProject({ directory: "/my/project", matched: [] });
-    mockGetCurrentProjectDirectory.mockReturnValue(project.directory);
+    const project = createProject({ matched: [] });
+    mockGetCurrentProjectDirectory.mockReturnValue("/my/project");
     mockExistsSync.mockReturnValue(false);
 
     const directory = await handleExportMatches(mainWindow, JSON.stringify(project), "edited");
@@ -339,7 +336,7 @@ describe(handleExportMatches, () => {
 
   it("throws when data does not match project schema", async () => {
     const mainWindow = createMockMainWindow();
-    const invalidPayload = JSON.stringify({ directory: "/path", version: "v1" });
+    const invalidPayload = JSON.stringify({ version: "v1" });
 
     await expect(handleExportMatches(mainWindow, invalidPayload, "edited")).rejects.toThrow(
       /invalid_type|required/,
@@ -351,7 +348,6 @@ describe(handleExportMatches, () => {
     const photo1 = createPhoto("left.jpg", { isEdited: false });
     const photo2 = createPhoto("right.png", { isEdited: false });
     const project = createProject({
-      directory: "/my/project",
       matched: [
         {
           id: 1,
@@ -360,7 +356,7 @@ describe(handleExportMatches, () => {
         },
       ],
     });
-    mockGetCurrentProjectDirectory.mockReturnValue(project.directory);
+    mockGetCurrentProjectDirectory.mockReturnValue("/my/project");
 
     await handleExportMatches(mainWindow, JSON.stringify(project), "csv");
 
@@ -380,7 +376,6 @@ describe(handleExportMatches, () => {
     const photo1 = createPhoto("left.jpg", { isEdited: false });
     const photo2 = createPhoto("right.png", { isEdited: false });
     const project = createProject({
-      directory: "/my/project",
       matched: [
         {
           id: 1,
@@ -389,7 +384,7 @@ describe(handleExportMatches, () => {
         },
       ],
     });
-    mockGetCurrentProjectDirectory.mockReturnValue(project.directory);
+    mockGetCurrentProjectDirectory.mockReturnValue("/my/project");
 
     await handleExportMatches(mainWindow, JSON.stringify(project), "csv");
 
@@ -403,7 +398,6 @@ describe(handleExportMatches, () => {
     const mainWindow = createMockMainWindow();
     const photo = createPhoto("photo.jpg", { isEdited: false });
     const project = createProject({
-      directory: "/project",
       matched: [
         {
           id: 1,
@@ -422,7 +416,7 @@ describe(handleExportMatches, () => {
 
   it("csv export with no matches writes header only", async () => {
     const mainWindow = createMockMainWindow();
-    const project = createProject({ directory: "/project", matched: [] });
+    const project = createProject({ matched: [] });
 
     await handleExportMatches(mainWindow, JSON.stringify(project), "csv");
 

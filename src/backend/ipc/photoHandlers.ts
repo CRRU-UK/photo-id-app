@@ -1,7 +1,7 @@
 import type { IpcMainInvokeEvent } from "electron";
 
 import { createPhotoThumbnail, revertPhotoToOriginal } from "@/backend/photos";
-import { handleDuplicatePhotoFile } from "@/backend/projects";
+import { getCurrentProjectDirectory, handleDuplicatePhotoFile } from "@/backend/projects";
 import { windowManager } from "@/backend/WindowManager";
 import { IPC_EVENTS } from "@/constants";
 import type { PhotoBody } from "@/types";
@@ -10,7 +10,13 @@ export const handleSavePhotoFile = async (
   _event: IpcMainInvokeEvent,
   data: PhotoBody,
 ): Promise<void> => {
-  const thumbnail = await createPhotoThumbnail(data);
+  const directory = getCurrentProjectDirectory();
+
+  if (directory === null) {
+    throw new Error("No project open");
+  }
+
+  const thumbnail = await createPhotoThumbnail(directory, data);
 
   const photoData: PhotoBody = {
     ...data,
@@ -27,7 +33,13 @@ export const handleRevertPhotoFile = async (
   _event: IpcMainInvokeEvent,
   data: PhotoBody,
 ): Promise<PhotoBody> => {
-  const result = await revertPhotoToOriginal(data);
+  const directory = getCurrentProjectDirectory();
+
+  if (directory === null) {
+    throw new Error("No project open");
+  }
+
+  const result = await revertPhotoToOriginal(directory, data);
   return result;
 };
 

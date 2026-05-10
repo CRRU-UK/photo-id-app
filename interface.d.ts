@@ -4,9 +4,9 @@ import type {
   EditorNavigation,
   ExportTypes,
   ExternalLinks,
+  ProjectPayload,
   LoadingData,
   PhotoBody,
-  ProjectBody,
   RecentProject,
   SettingsData,
 } from "./src/types";
@@ -19,13 +19,13 @@ export interface IElectronAPI {
   duplicatePhotoFile: (data: PhotoBody) => Promise<PhotoBody>;
   exportMatches: (data: string, type: ExportTypes) => Promise<void>;
   flushSaveProject: (data: string) => boolean;
-  getCurrentProject: () => Promise<ProjectBody | null>;
+  getCurrentProject: () => Promise<ProjectPayload | null>;
   getEncryptionAvailability: () => Promise<boolean>;
   getRecentProjects: () => Promise<RecentProject[]>;
   getSettings: () => Promise<SettingsData>;
   navigateEditorPhoto: (data: PhotoBody, direction: EditorNavigation) => Promise<string | null>;
   onLoading: (callback: (data: LoadingData) => void) => () => void;
-  onLoadProject: (callback: (value: ProjectBody) => void) => () => void;
+  onLoadProject: (callback: (value: ProjectPayload) => void) => () => void;
   onOpenSettings: (callback: () => void) => () => void;
   onSettingsUpdated: (callback: (data: SettingsData) => void) => () => void;
   onUpdatePhoto: (callback: (data: PhotoBody) => void) => () => void;

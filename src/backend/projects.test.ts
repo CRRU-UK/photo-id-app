@@ -78,7 +78,6 @@ const {
 } = await import("./projects");
 
 const createPhoto = (name: string, overrides?: Partial<PhotoBody>): PhotoBody => ({
-  directory: "/project",
   name,
   thumbnail: `thumbnails/${name}`,
   edits: DEFAULT_PHOTO_EDITS,
@@ -94,7 +93,6 @@ const createEmptyCollection = (): CollectionBody => ({
 const createProject = (overrides?: Partial<ProjectBody>): ProjectBody => ({
   version: "v1",
   id: "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d",
-  directory: "/project",
   unassigned: createEmptyCollection(),
   discarded: createEmptyCollection(),
   matched: [],
@@ -206,12 +204,12 @@ describe(findPhotoInProject, () => {
   it("matches by photo name only", () => {
     const project = createProject({
       unassigned: {
-        photos: [createPhoto("target.jpg", { directory: "/different" })],
+        photos: [createPhoto("target.jpg")],
         index: 0,
       },
     });
 
-    const result = findPhotoInProject(project, createPhoto("target.jpg", { directory: "/other" }));
+    const result = findPhotoInProject(project, createPhoto("target.jpg"));
 
     expect(result).not.toBeNull();
   });
@@ -247,7 +245,7 @@ describe(handleSaveProject, () => {
   it("writes the project data to the correct file path", async () => {
     setCurrentProject("/my/project");
 
-    const project = createProject({ directory: "/my/project" });
+    const project = createProject();
     const data = JSON.stringify(project);
 
     await handleSaveProject(data);
@@ -284,7 +282,7 @@ describe(handleSaveProject, () => {
   it("throws when data does not match project schema", async () => {
     setCurrentProject("/my/project");
 
-    const invalidPayload = JSON.stringify({ directory: "/path", version: "v1" });
+    const invalidPayload = JSON.stringify({ version: "v1" });
 
     await expect(handleSaveProject(invalidPayload)).rejects.toThrow(/invalid_type|required/);
   });
@@ -298,7 +296,7 @@ describe(handleFlushSaveProject, () => {
   it("writes synchronously to the correct file path", () => {
     setCurrentProject("/my/project");
 
-    const project = createProject({ directory: "/my/project" });
+    const project = createProject();
     const data = JSON.stringify(project);
 
     handleFlushSaveProject(data);
@@ -338,7 +336,7 @@ describe(handleFlushSaveProject, () => {
 
     const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
 
-    const invalidPayload = JSON.stringify({ directory: "/path", version: "v1" });
+    const invalidPayload = JSON.stringify({ version: "v1" });
 
     handleFlushSaveProject(invalidPayload);
 
@@ -356,6 +354,7 @@ describe(handleDuplicatePhotoFile, () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockCopyFile.mockResolvedValue(undefined);
+    setCurrentProject("/project");
     vi.spyOn(Date, "now").mockReturnValue(1700000000000);
   });
 
@@ -397,12 +396,11 @@ describe(handleDuplicatePhotoFile, () => {
     expect(result.thumbnail).toContain("_duplicate_1700000000000");
   });
 
-  it("preserves the photo directory", async () => {
-    const photo = createPhoto("photo.jpg", { directory: "/my/dir" });
+  it("throws when no project is open", async () => {
+    setCurrentProject(null);
+    const photo = createPhoto("photo.jpg");
 
-    const result = await handleDuplicatePhotoFile(photo);
-
-    expect(result.directory).toBe("/my/dir");
+    await expect(handleDuplicatePhotoFile(photo)).rejects.toThrow("No project open");
   });
 
   it("preserves edits and isEdited state", async () => {
@@ -419,6 +417,7 @@ describe(handleDuplicatePhotoFile, () => {
 describe(handleEditorNavigate, () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    setCurrentProject("/project");
   });
 
   it("returns null when the collection has only one photo", async () => {
@@ -521,6 +520,13 @@ describe(handleEditorNavigate, () => {
 
     expect(result?.name).toBe("m2.jpg");
   });
+
+  it("throws when no project is open", async () => {
+    setCurrentProject(null);
+    const photo = createPhoto("solo.jpg");
+
+    await expect(handleEditorNavigate(photo, "next")).rejects.toThrow("No project open");
+  });
 });
 
 describe(handleOpenProjectFile, () => {
@@ -567,9 +573,9 @@ describe(handleOpenProjectFile, () => {
     );
   });
 
-  it("loads and sends the project data when the file exists", async () => {
+  it("loads and sends the project payload (body + derived directory) when the file exists", async () => {
     const mainWindow = createMockMainWindow();
-    const project = createProject({ directory: "/my/project" });
+    const project = createProject();
     mockExistsSync.mockReturnValue(true);
     mockReadFile.mockResolvedValue(JSON.stringify(project));
 
@@ -577,13 +583,13 @@ describe(handleOpenProjectFile, () => {
 
     expect(mainWindow.webContents.send).toHaveBeenCalledWith(
       IPC_EVENTS.LOAD_PROJECT,
-      expect.objectContaining({ directory: "/my/project" }),
+      expect.objectContaining({ body: project, directory: "/my/project" }),
     );
   });
 
-  it("sets the window title with the project directory", async () => {
+  it("sets the window title with the derived project directory", async () => {
     const mainWindow = createMockMainWindow();
-    const project = createProject({ directory: "/my/project" });
+    const project = createProject();
     mockExistsSync.mockReturnValue(true);
     mockReadFile.mockResolvedValue(JSON.stringify(project));
 
@@ -633,7 +639,7 @@ describe(handleOpenDirectoryPrompt, () => {
     mockReaddir.mockResolvedValue([PROJECT_FILE_NAME, "photo.jpg"]);
     vi.mocked(dialog.showMessageBox).mockResolvedValue({ response: 1, checkboxChecked: false });
 
-    const project = createProject({ directory: "/my/project" });
+    const project = createProject();
     mockReadFile.mockResolvedValue(JSON.stringify(project));
 
     const mainWindow = createMockMainWindow();
@@ -814,7 +820,7 @@ describe(handleOpenFilePrompt, () => {
       canceled: false,
       filePaths: ["/my/project/project.photoid"],
     });
-    const project = createProject({ directory: "/my/project" });
+    const project = createProject();
     mockReadFile.mockResolvedValue(JSON.stringify(project));
 
     const mainWindow = createMockMainWindow();
@@ -839,7 +845,7 @@ describe(parseProjectFile, () => {
   });
 
   it("returns a valid ProjectBody when the file contains valid data", async () => {
-    const project = createProject({ directory: "/my/project" });
+    const project = createProject();
     mockReadFile.mockResolvedValue(JSON.stringify(project));
 
     const result = await parseProjectFile("/my/project/project.photoid");
@@ -861,19 +867,10 @@ describe(parseProjectFile, () => {
     await expect(parseProjectFile("/bad/project.photoid")).rejects.toThrow("invalid_type");
   });
 
-  it("throws when a field has the wrong type", async () => {
-    const project = createProject();
-    const invalid = { ...project, directory: 123 };
-
-    mockReadFile.mockResolvedValue(JSON.stringify(invalid));
-
-    await expect(parseProjectFile("/bad/project.photoid")).rejects.toThrow("invalid_type");
-  });
-
   it("throws when nested photo data is invalid", async () => {
     const project = createProject({
       unassigned: {
-        photos: [{ directory: "/project", name: "photo.jpg" } as never],
+        photos: [{ name: "photo.jpg" } as never],
         index: 0,
       },
     });

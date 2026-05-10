@@ -10,6 +10,7 @@ import type {
   Matches,
   PhotoBody,
   ProjectBody,
+  ProjectPayload,
 } from "@/types";
 
 class Project {
@@ -26,7 +27,7 @@ class Project {
   private saveDebounceTimer: ReturnType<typeof setTimeout> | null = null;
   private static readonly SAVE_DEBOUNCE_MS = SAVE_PROJECT_DEBOUNCE_MS;
 
-  constructor(data?: ProjectBody) {
+  constructor(payload?: ProjectPayload) {
     makeObservable(this, {
       unassigned: observable,
       discarded: observable,
@@ -46,9 +47,9 @@ class Project {
     this.created = new Date();
     this.lastModified = new Date();
 
-    if (data) {
-      console.debug("Loading data from json:", data);
-      this.loadFromJSON(data);
+    if (payload) {
+      console.debug("Loading project payload:", payload);
+      this.loadFromJSON(payload.body, payload.directory);
     }
   }
 
@@ -76,9 +77,9 @@ class Project {
     photo.updatePhoto(data);
   }
 
-  private mapPhotoBodyToCollection(directory: Directory, collection: CollectionBody): Collection {
+  private mapPhotoBodyToCollection(collection: CollectionBody): Collection {
     const photos = collection.photos.map(({ name, thumbnail, edits }) => {
-      const photo = new Photo({ directory, name, thumbnail, edits }, this);
+      const photo = new Photo({ name, thumbnail, edits }, this);
       this.allPhotos.set(photo.fileName, photo);
       return photo;
     });
@@ -96,8 +97,8 @@ class Project {
    * Loads project state from JSON. `runInAction` batches all observable updates into a single
    * transaction so observers re-run once instead of on every property change.
    */
-  public loadFromJSON(data: ProjectBody): this {
-    const { id, version, directory, unassigned, matched, discarded, created, lastModified } = data;
+  public loadFromJSON(data: ProjectBody, directory: Directory): this {
+    const { id, version, unassigned, matched, discarded, created, lastModified } = data;
 
     runInAction(() => {
       this.allPhotos.clear();
@@ -105,13 +106,13 @@ class Project {
       this.id = id;
       this.version = version;
       this.directory = directory;
-      this.unassigned = this.mapPhotoBodyToCollection(directory, unassigned);
-      this.discarded = this.mapPhotoBodyToCollection(directory, discarded);
+      this.unassigned = this.mapPhotoBodyToCollection(unassigned);
+      this.discarded = this.mapPhotoBodyToCollection(discarded);
 
       this.matched = matched.map(({ id, left, right }) => ({
         id,
-        left: this.mapPhotoBodyToCollection(directory, left),
-        right: this.mapPhotoBodyToCollection(directory, right),
+        left: this.mapPhotoBodyToCollection(left),
+        right: this.mapPhotoBodyToCollection(right),
       }));
 
       this.created = new Date(created);
@@ -126,7 +127,6 @@ class Project {
     const data: ProjectBody = {
       version: this.version,
       id: this.id,
-      directory: this.directory,
       unassigned: this.mapCollectionToBody(this.unassigned),
       discarded: this.mapCollectionToBody(this.discarded),
       matched: this.matched.map((item) => ({
@@ -188,7 +188,6 @@ class Project {
 
     const newPhoto = new Photo(
       {
-        directory: result.directory,
         name: result.name,
         thumbnail: result.thumbnail,
         edits: result.edits,

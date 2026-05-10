@@ -7,7 +7,7 @@ This is a quick reference for the terms used in the app's interface and througho
 
 ## Project
 
-A self-contained working folder for one set of photos. Backed by a `project.photoid` file plus a `thumbnails/` folder, both stored alongside your photos.
+A self-contained working folder for one set of photos. Backed by a `project.photoid` file plus a `thumbnails/` folder, both stored alongside your photos. The folder is portable: you can move, copy, rename, or zip it (including across macOS, Windows, and Linux) and it will still open.
 
 ## Stack
 

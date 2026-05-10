@@ -1,11 +1,11 @@
 import { DEFAULT_PHOTO_EDITS, EDGE_DETECTION, PHOTO_PROTOCOL_SCHEME, ROUTES } from "@/constants";
-import { photoBodySchema } from "@/schemas";
-import type { EdgeDetectionData, PhotoBody, PhotoEdits } from "@/types";
+import { editPayloadSchema } from "@/schemas";
+import type { EdgeDetectionData, EditPayload, PhotoEdits } from "@/types";
 
 /**
- * Encodes photo data for the edit window URL query.
+ * Encodes the edit-window bootstrap payload (photo + active project directory) for the URL query.
  */
-export const encodeEditPayload = (data: PhotoBody): string => {
+export const encodeEditPayload = (data: EditPayload): string => {
   const json = JSON.stringify(data);
   if (typeof Buffer === "undefined") {
     const bytes = new TextEncoder().encode(json);
@@ -15,9 +15,9 @@ export const encodeEditPayload = (data: PhotoBody): string => {
 };
 
 /**
- * Decodes photo data from the edit window URL query.
+ * Decodes the edit-window bootstrap payload from the URL query.
  */
-export const decodeEditPayload = (encoded: string): PhotoBody => {
+export const decodeEditPayload = (encoded: string): EditPayload => {
   let decoded: string;
 
   if (typeof Buffer === "undefined") {
@@ -29,7 +29,7 @@ export const decodeEditPayload = (encoded: string): PhotoBody => {
     decoded = Buffer.from(encoded, "base64").toString("utf8");
   }
 
-  return photoBodySchema.parse(JSON.parse(decoded));
+  return editPayloadSchema.parse(JSON.parse(decoded));
 };
 
 export const getAlphabetLetter = (index: number): string => {

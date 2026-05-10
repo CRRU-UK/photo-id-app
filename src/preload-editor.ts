@@ -4,7 +4,7 @@ import type {
   AnalysisMatchResponse,
   EditorNavigation,
   PhotoBody,
-  ProjectBody,
+  ProjectPayload,
   SettingsData,
 } from "@/types";
 
@@ -22,10 +22,10 @@ const subscribeIpc = <T>(channel: string, callback: (data: T) => void): (() => v
  */
 contextBridge.exposeInMainWorld("electronAPI", {
   // Project bootstrap
-  getCurrentProject: (): Promise<ProjectBody | null> =>
+  getCurrentProject: (): Promise<ProjectPayload | null> =>
     ipcRenderer.invoke(IPC_EVENTS.GET_CURRENT_PROJECT),
-  onLoadProject: (callback: (value: ProjectBody) => void) =>
-    subscribeIpc<ProjectBody>(IPC_EVENTS.LOAD_PROJECT, callback),
+  onLoadProject: (callback: (value: ProjectPayload) => void) =>
+    subscribeIpc<ProjectPayload>(IPC_EVENTS.LOAD_PROJECT, callback),
 
   // Settings (read + observe)
   getSettings: (): Promise<SettingsData> => ipcRenderer.invoke(IPC_EVENTS.GET_SETTINGS),
