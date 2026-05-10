@@ -4,15 +4,17 @@ import type {
   EditorNavigation,
   ExportTypes,
   ExternalLinks,
-  ProjectPayload,
   LoadingData,
   PhotoBody,
+  ProjectPayload,
   RecentProject,
   SettingsData,
 } from "./src/types";
 
 export interface IElectronAPI {
-  analyseMatches: (photos: PhotoBody[]) => Promise<AnalysisMatchResponse | null>;
+  analyseMatches: (
+    photos: PhotoBody[],
+  ) => Promise<AnalysisMatchResponse | null>;
   cancelAnalyseMatches: () => void;
   closeProject: () => void;
   deleteAnalysisProvider: (providerId: string) => Promise<void>;
@@ -23,7 +25,10 @@ export interface IElectronAPI {
   getEncryptionAvailability: () => Promise<boolean>;
   getRecentProjects: () => Promise<RecentProject[]>;
   getSettings: () => Promise<SettingsData>;
-  navigateEditorPhoto: (data: PhotoBody, direction: EditorNavigation) => Promise<string | null>;
+  navigateEditorPhoto: (
+    data: PhotoBody,
+    direction: EditorNavigation,
+  ) => Promise<string | null>;
   onLoading: (callback: (data: LoadingData) => void) => () => void;
   onLoadProject: (callback: (value: ProjectPayload) => void) => () => void;
   onOpenSettings: (callback: () => void) => () => void;
