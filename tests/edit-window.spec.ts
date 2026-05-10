@@ -14,18 +14,20 @@ const FETCH_ERROR_PATTERN = /CORS|ERR_FAILED|Failed to fetch|Photo load failed|F
 let app: ElectronApplication;
 let mainPage: Page;
 let projectDir: string;
+let userDataDir: string;
 
 test.describe
   .serial("Edit window", () => {
     test.beforeAll(async () => {
       projectDir = await fs.promises.mkdtemp(path.join(os.tmpdir(), "photo-id-e2e-"));
+      userDataDir = await fs.promises.mkdtemp(path.join(os.tmpdir(), "photo-id-e2e-userdata-"));
 
       const files = await fs.promises.readdir(TEST_DATA_DIR);
       for (const file of files) {
         await fs.promises.copyFile(path.join(TEST_DATA_DIR, file), path.join(projectDir, file));
       }
 
-      const args = [APP_DIR];
+      const args = [APP_DIR, `--user-data-dir=${userDataDir}`];
       if (process.platform === "linux") {
         args.push("--no-sandbox");
       }
@@ -65,6 +67,7 @@ test.describe
       }
 
       await fs.promises.rm(projectDir, { recursive: true, force: true });
+      await fs.promises.rm(userDataDir, { recursive: true, force: true });
     });
 
     test("opens the edit window and loads the photo successfully", async () => {
