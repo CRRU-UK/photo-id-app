@@ -16,6 +16,7 @@ const PROJECT_EXPORT_DIRECTORY = "matched";
 let app: ElectronApplication;
 let page: Page;
 let projectDir: string;
+let userDataDir: string;
 
 /**
  * Drags from the centre of `source` to the centre of `target` using pointer events. Moves slightly
@@ -47,13 +48,14 @@ test.describe
   .serial("Project lifecycle", () => {
     test.beforeAll(async () => {
       projectDir = await fs.promises.mkdtemp(path.join(os.tmpdir(), "photo-id-e2e-"));
+      userDataDir = await fs.promises.mkdtemp(path.join(os.tmpdir(), "photo-id-e2e-userdata-"));
 
       const files = await fs.promises.readdir(TEST_DATA_DIR);
       for (const file of files) {
         await fs.promises.copyFile(path.join(TEST_DATA_DIR, file), path.join(projectDir, file));
       }
 
-      const args = [APP_DIR];
+      const args = [APP_DIR, `--user-data-dir=${userDataDir}`];
       // Linux CI lacks a properly configured SUID sandbox
       if (process.platform === "linux") {
         args.push("--no-sandbox");
@@ -101,6 +103,7 @@ test.describe
       }
 
       await fs.promises.rm(projectDir, { recursive: true, force: true });
+      await fs.promises.rm(userDataDir, { recursive: true, force: true });
     });
 
     // ── Project creation ──────────────────────────────────────────────────────

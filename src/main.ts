@@ -57,6 +57,7 @@ protocol.registerSchemesAsPrivileged([
     privileges: {
       secure: true,
       supportFetchAPI: true,
+      corsEnabled: true,
     },
   },
 ]);
@@ -236,11 +237,14 @@ void app.whenReady().then(async () => {
     callback(false);
   });
 
-  protocol.handle(PHOTO_PROTOCOL_SCHEME, (request) => {
+  // See: https://github.com/electron/electron/pull/51152
+  const corsHeaders = { "Access-Control-Allow-Origin": "*" };
+
+  protocol.handle(PHOTO_PROTOCOL_SCHEME, async (request) => {
     try {
       const projectDirectory = getCurrentProjectDirectory();
       if (!projectDirectory) {
-        return new Response(null, { status: 403 });
+        return new Response(null, { status: 403, headers: corsHeaders });
       }
 
       const fileUrl = request.url.replace(/^photo:/, "file:");
@@ -248,17 +252,25 @@ void app.whenReady().then(async () => {
 
       const extension = path.extname(filePath).toLowerCase();
       if (!PHOTO_FILE_EXTENSIONS.includes(extension)) {
-        return new Response(null, { status: 403 });
+        return new Response(null, { status: 403, headers: corsHeaders });
       }
 
       const resolvedProjectDirectory = path.resolve(projectDirectory);
       if (!filePath.startsWith(resolvedProjectDirectory + path.sep)) {
-        return new Response(null, { status: 403 });
+        return new Response(null, { status: 403, headers: corsHeaders });
       }
 
-      return net.fetch(url.pathToFileURL(filePath).toString());
+      const upstream = await net.fetch(url.pathToFileURL(filePath).toString());
+      const headers = new Headers(upstream.headers);
+      headers.set("Access-Control-Allow-Origin", "*");
+
+      return new Response(upstream.body, {
+        status: upstream.status,
+        statusText: upstream.statusText,
+        headers,
+      });
     } catch {
-      return new Response(null, { status: 400 });
+      return new Response(null, { status: 400, headers: corsHeaders });
     }
   });
 
