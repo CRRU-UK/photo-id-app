@@ -29,6 +29,8 @@ All image rendering in the renderer uses the custom `photo://` protocol instead 
 2. Validates that the resolved file path is within the current project directory (path traversal protection)
 3. Returns 403 for any request that fails validation
 
+The scheme is registered with `corsEnabled: true` and responses set `Access-Control-Allow-Origin: *` so the edit window can `fetch()` full-size image bytes cross-origin (the renderer is loaded from the Vite dev server in development and `file://` in production - both are cross-origin to `photo://`). Cross-origin access to a custom protocol requires `corsEnabled` since [electron/electron#51152](https://github.com/electron/electron/pull/51152) as the path-traversal and extension checks above continue to gate which files are served.
+
 ## Path Traversal Protection
 
 Backend file operations (duplicate, export, thumbnail generation, analysis) use `resolvePhotoPath()` to validate that constructed file paths do not escape the project directory. This guards against tampered project JSON containing traversal sequences (e.g. `../../`) in photo filenames.
