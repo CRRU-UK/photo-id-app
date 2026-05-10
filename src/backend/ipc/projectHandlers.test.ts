@@ -248,7 +248,7 @@ describe("project IPC handlers", () => {
       expect(result).toBeNull();
     });
 
-    it("parses and returns the current project file", async () => {
+    it("parses and returns the current project payload (body + directory)", async () => {
       mockGetCurrentProjectDirectory.mockReturnValue("/project/dir");
       const mockProject = { version: "v1", id: "test" } as unknown as ProjectBody;
       mockParseProjectFile.mockResolvedValue(mockProject);
@@ -256,7 +256,7 @@ describe("project IPC handlers", () => {
       const result = await handleGetCurrentProject();
 
       expect(mockParseProjectFile).toHaveBeenCalledWith("/project/dir/project.photoid");
-      expect(result).toBe(mockProject);
+      expect(result).toStrictEqual({ body: mockProject, directory: "/project/dir" });
     });
 
     it("returns null when parsing fails", async () => {

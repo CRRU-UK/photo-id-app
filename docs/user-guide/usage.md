@@ -20,6 +20,8 @@ Once the project has been created, you may notice two files have been added in t
 
     You cannot add or remove photos from a project after creation, and the app does not support sub-folders - this will change in the future.
 
+The project folder is portable: you can move it, copy it, rename it, or zip it up and email it to a colleague. The `.photoid` file can be opened from any location and on any platform (macOS, Windows, or Linux).
+
 The project can be opened again on the home screen from either the recent projects list or by selecting ==:octicons-file-16: Open Project File== and selecting the `project.photoid` file in your project folder. You can also double-click a `.photoid` file to open it directly in the app.
 
 !!! tip

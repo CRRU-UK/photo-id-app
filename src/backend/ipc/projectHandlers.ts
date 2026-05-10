@@ -21,7 +21,7 @@ import {
   PROJECT_EXPORT_DIRECTORY,
   PROJECT_FILE_NAME,
 } from "@/constants";
-import type { ExportTypes, ProjectBody, RecentProject } from "@/types";
+import type { ExportTypes, ProjectPayload, RecentProject } from "@/types";
 
 export const handleOpenFolder = async (event: IpcMainEvent): Promise<void> => {
   const window = getWindowFromSender(event.sender);
@@ -81,7 +81,7 @@ export const handleRemoveRecentProject = async (
   return result;
 };
 
-export const handleGetCurrentProject = async (): Promise<ProjectBody | null> => {
+export const handleGetCurrentProject = async (): Promise<ProjectPayload | null> => {
   const directory = getCurrentProjectDirectory();
 
   if (directory === null) {
@@ -89,7 +89,8 @@ export const handleGetCurrentProject = async (): Promise<ProjectBody | null> => 
   }
 
   try {
-    return await parseProjectFile(path.join(directory, PROJECT_FILE_NAME));
+    const body = await parseProjectFile(path.join(directory, PROJECT_FILE_NAME));
+    return { body, directory };
   } catch (error) {
     console.error("Failed to restore current project:", error);
     return null;

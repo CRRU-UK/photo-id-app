@@ -8,7 +8,7 @@ import type {
   ExternalLinks,
   LoadingData,
   PhotoBody,
-  ProjectBody,
+  ProjectPayload,
   RecentProject,
   SettingsData,
 } from "@/types";
@@ -26,7 +26,7 @@ const subscribeIpc = <T>(channel: string, callback: (data: T) => void): (() => v
 
 contextBridge.exposeInMainWorld("electronAPI", {
   // Invocations (main and renderer)
-  getCurrentProject: (): Promise<ProjectBody | null> =>
+  getCurrentProject: (): Promise<ProjectPayload | null> =>
     ipcRenderer.invoke(IPC_EVENTS.GET_CURRENT_PROJECT),
   getRecentProjects: (): Promise<RecentProject[]> =>
     ipcRenderer.invoke(IPC_EVENTS.GET_RECENT_PROJECTS),
@@ -70,8 +70,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
   // Listeners (main-to-renderer)
   onLoading: (callback: (data: LoadingData) => void) =>
     subscribeIpc<LoadingData>(IPC_EVENTS.SET_LOADING, callback),
-  onLoadProject: (callback: (value: ProjectBody) => void) =>
-    subscribeIpc<ProjectBody>(IPC_EVENTS.LOAD_PROJECT, callback),
+  onLoadProject: (callback: (value: ProjectPayload) => void) =>
+    subscribeIpc<ProjectPayload>(IPC_EVENTS.LOAD_PROJECT, callback),
   onOpenSettings: (callback: () => void) =>
     subscribeIpc<undefined>(IPC_EVENTS.OPEN_SETTINGS, () => callback()),
   onUpdatePhoto: (callback: (data: PhotoBody) => void) =>

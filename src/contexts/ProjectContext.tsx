@@ -12,7 +12,7 @@ import {
 import { ROUTES } from "@/constants";
 import { isEditWindow } from "@/helpers";
 import ProjectModel from "@/models/Project";
-import type { ProjectBody } from "@/types";
+import type { ProjectPayload } from "@/types";
 
 interface ProjectContextValue {
   project: ProjectModel | null;
@@ -50,9 +50,9 @@ export const ProjectProvider = ({ children }: ProjectProviderProps) => {
       return;
     }
 
-    const unsubscribeLoadProject = window.electronAPI.onLoadProject((data) => {
+    const unsubscribeLoadProject = window.electronAPI.onLoadProject((payload) => {
       projectLoadedViaListenerRef.current = true;
-      setProject(new ProjectModel(data));
+      setProject(new ProjectModel(payload));
       pendingNavigateToProjectRef.current = true;
     });
 
@@ -68,12 +68,12 @@ export const ProjectProvider = ({ children }: ProjectProviderProps) => {
 
     let cancelled = false;
 
-    void window.electronAPI.getCurrentProject().then((data: ProjectBody | null) => {
-      if (cancelled || data === null || projectLoadedViaListenerRef.current) {
+    void window.electronAPI.getCurrentProject().then((payload: ProjectPayload | null) => {
+      if (cancelled || payload === null || projectLoadedViaListenerRef.current) {
         return;
       }
 
-      setProject(new ProjectModel(data));
+      setProject(new ProjectModel(payload));
 
       pendingNavigateToProjectRef.current = true;
     });

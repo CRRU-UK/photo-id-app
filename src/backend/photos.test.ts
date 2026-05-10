@@ -3,12 +3,16 @@ import { DEFAULT_PHOTO_EDITS, PROJECT_THUMBNAIL_DIRECTORY } from "@/constants";
 import type { PhotoBody, PhotoEdits } from "@/types";
 
 const mockWriteFile = vi.fn<(path: string, data: Buffer) => Promise<void>>();
+const mockMkdir = vi.fn<(path: string, options?: unknown) => Promise<void>>();
+const mockExistsSync = vi.fn<(path: string) => boolean>();
 
 vi.mock("node:fs", () => ({
   default: {
     promises: {
       writeFile: (...args: Parameters<typeof mockWriteFile>) => mockWriteFile(...args),
+      mkdir: (...args: Parameters<typeof mockMkdir>) => mockMkdir(...args),
     },
+    existsSync: (...args: Parameters<typeof mockExistsSync>) => mockExistsSync(...args),
   },
 }));
 
@@ -27,7 +31,6 @@ vi.mock("@/backend/projects", () => ({
 const { createPhotoThumbnail, revertPhotoToOriginal } = await import("./photos");
 
 const createPhoto = (overrides?: Partial<PhotoBody>): PhotoBody => ({
-  directory: "/project",
   name: "photo.jpg",
   thumbnail: `${PROJECT_THUMBNAIL_DIRECTORY}/photo.jpg`,
   edits: { ...DEFAULT_PHOTO_EDITS, brightness: 150 },
@@ -40,12 +43,14 @@ describe(createPhotoThumbnail, () => {
     vi.clearAllMocks();
     mockRenderThumbnailWithEdits.mockResolvedValue(Buffer.from("thumbnail-data"));
     mockWriteFile.mockResolvedValue(undefined);
+    mockMkdir.mockResolvedValue(undefined);
+    mockExistsSync.mockReturnValue(true);
   });
 
   it("calls renderThumbnailWithEdits with the correct source path and edits", async () => {
-    const photo = createPhoto({ directory: "/my/project", name: "image.jpg" });
+    const photo = createPhoto({ name: "image.jpg" });
 
-    await createPhotoThumbnail(photo);
+    await createPhotoThumbnail("/my/project", photo);
 
     expect(mockRenderThumbnailWithEdits).toHaveBeenCalledWith({
       sourcePath: "/my/project/image.jpg",
@@ -54,9 +59,9 @@ describe(createPhotoThumbnail, () => {
   });
 
   it("writes the thumbnail data to the correct path", async () => {
-    const photo = createPhoto({ directory: "/project", name: "photo.jpg" });
+    const photo = createPhoto({ name: "photo.jpg" });
 
-    await createPhotoThumbnail(photo);
+    await createPhotoThumbnail("/project", photo);
 
     expect(mockWriteFile).toHaveBeenCalledWith(
       expect.stringContaining(`${PROJECT_THUMBNAIL_DIRECTORY}/photo.jpg`),
@@ -64,10 +69,10 @@ describe(createPhotoThumbnail, () => {
     );
   });
 
-  it("returns the relative thumbnail path", async () => {
+  it("returns the relative thumbnail path with forward slashes", async () => {
     const photo = createPhoto({ name: "test-image.png" });
 
-    const result = await createPhotoThumbnail(photo);
+    const result = await createPhotoThumbnail("/project", photo);
 
     expect(result).toBe(`${PROJECT_THUMBNAIL_DIRECTORY}/test-image.png`);
   });
@@ -75,9 +80,18 @@ describe(createPhotoThumbnail, () => {
   it("uses the photo name as the thumbnail filename", async () => {
     const photo = createPhoto({ name: "DSC_0001.JPG" });
 
-    const result = await createPhotoThumbnail(photo);
+    const result = await createPhotoThumbnail("/project", photo);
 
     expect(result).toBe(`${PROJECT_THUMBNAIL_DIRECTORY}/DSC_0001.JPG`);
+  });
+
+  it("creates the thumbnails directory if it does not exist", async () => {
+    mockExistsSync.mockReturnValue(false);
+    const photo = createPhoto({ name: "photo.jpg" });
+
+    await createPhotoThumbnail("/project", photo);
+
+    expect(mockMkdir).toHaveBeenCalled();
   });
 });
 
@@ -86,6 +100,8 @@ describe(revertPhotoToOriginal, () => {
     vi.clearAllMocks();
     mockRenderThumbnailWithEdits.mockResolvedValue(Buffer.from("reverted-thumbnail"));
     mockWriteFile.mockResolvedValue(undefined);
+    mockMkdir.mockResolvedValue(undefined);
+    mockExistsSync.mockReturnValue(true);
   });
 
   it("returns photo with default edits", async () => {
@@ -94,7 +110,7 @@ describe(revertPhotoToOriginal, () => {
       isEdited: true,
     });
 
-    const result = await revertPhotoToOriginal(photo);
+    const result = await revertPhotoToOriginal("/project", photo);
 
     expect(result.edits).toStrictEqual(DEFAULT_PHOTO_EDITS);
   });
@@ -102,17 +118,16 @@ describe(revertPhotoToOriginal, () => {
   it("returns photo with isEdited set to false", async () => {
     const photo = createPhoto({ isEdited: true });
 
-    const result = await revertPhotoToOriginal(photo);
+    const result = await revertPhotoToOriginal("/project", photo);
 
     expect(result.isEdited).toBe(false);
   });
 
-  it("preserves the photo directory and name", async () => {
-    const photo = createPhoto({ directory: "/my/dir", name: "my-photo.jpg" });
+  it("preserves the photo name", async () => {
+    const photo = createPhoto({ name: "my-photo.jpg" });
 
-    const result = await revertPhotoToOriginal(photo);
+    const result = await revertPhotoToOriginal("/my/dir", photo);
 
-    expect(result.directory).toBe("/my/dir");
     expect(result.name).toBe("my-photo.jpg");
   });
 
@@ -121,7 +136,7 @@ describe(revertPhotoToOriginal, () => {
       edits: { ...DEFAULT_PHOTO_EDITS, brightness: 200 },
     });
 
-    await revertPhotoToOriginal(photo);
+    await revertPhotoToOriginal("/project", photo);
 
     expect(mockRenderThumbnailWithEdits).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -133,7 +148,7 @@ describe(revertPhotoToOriginal, () => {
   it("returns the new thumbnail path", async () => {
     const photo = createPhoto({ name: "reverted.jpg" });
 
-    const result = await revertPhotoToOriginal(photo);
+    const result = await revertPhotoToOriginal("/project", photo);
 
     expect(result.thumbnail).toBe(`${PROJECT_THUMBNAIL_DIRECTORY}/reverted.jpg`);
   });

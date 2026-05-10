@@ -5,8 +5,9 @@ import type { PhotoBody } from "@/types";
 
 vi.mock("electron", () => ({}));
 
-const mockCreatePhotoThumbnail = vi.fn<(data: PhotoBody) => Promise<string>>();
-const mockRevertPhotoToOriginal = vi.fn<(data: PhotoBody) => Promise<PhotoBody>>();
+const mockCreatePhotoThumbnail = vi.fn<(directory: string, data: PhotoBody) => Promise<string>>();
+const mockRevertPhotoToOriginal =
+  vi.fn<(directory: string, data: PhotoBody) => Promise<PhotoBody>>();
 
 vi.mock("@/backend/photos", () => ({
   createPhotoThumbnail: (...args: Parameters<typeof mockCreatePhotoThumbnail>) =>
@@ -16,10 +17,12 @@ vi.mock("@/backend/photos", () => ({
 }));
 
 const mockHandleDuplicatePhotoFile = vi.fn<(data: PhotoBody) => Promise<PhotoBody>>();
+const mockGetCurrentProjectDirectory = vi.fn<() => string | null>();
 
 vi.mock("@/backend/projects", () => ({
   handleDuplicatePhotoFile: (...args: Parameters<typeof mockHandleDuplicatePhotoFile>) =>
     mockHandleDuplicatePhotoFile(...args),
+  getCurrentProjectDirectory: () => mockGetCurrentProjectDirectory(),
 }));
 
 const mockGetMainWindow = vi.fn<() => BrowserWindow | null>();
@@ -43,7 +46,6 @@ const createMockWindow = (): BrowserWindow =>
 
 const createMockPhotoBody = (overrides: Partial<PhotoBody> = {}): PhotoBody =>
   ({
-    directory: "/photos",
     name: "photo.jpg",
     thumbnail: null,
     edits: null,
@@ -54,6 +56,7 @@ const createMockPhotoBody = (overrides: Partial<PhotoBody> = {}): PhotoBody =>
 describe("photo IPC handlers", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockGetCurrentProjectDirectory.mockReturnValue("/project");
   });
 
   describe(handleSavePhotoFile, () => {
@@ -65,7 +68,7 @@ describe("photo IPC handlers", () => {
 
       await handleSavePhotoFile(mockEvent, photo);
 
-      expect(mockCreatePhotoThumbnail).toHaveBeenCalledWith(photo);
+      expect(mockCreatePhotoThumbnail).toHaveBeenCalledWith("/project", photo);
       expect(mockWindow.webContents.send).toHaveBeenCalledWith(
         "photos:updatePhoto",
         expect.objectContaining({ thumbnail: "thumbnail.jpg" }),
@@ -79,7 +82,15 @@ describe("photo IPC handlers", () => {
 
       await handleSavePhotoFile(mockEvent, photo);
 
-      expect(mockCreatePhotoThumbnail).toHaveBeenCalledWith(photo);
+      expect(mockCreatePhotoThumbnail).toHaveBeenCalledWith("/project", photo);
+    });
+
+    it("throws when no project is open", async () => {
+      mockGetCurrentProjectDirectory.mockReturnValue(null);
+
+      await expect(handleSavePhotoFile(mockEvent, createMockPhotoBody())).rejects.toThrow(
+        "No project open",
+      );
     });
   });
 
@@ -91,8 +102,16 @@ describe("photo IPC handlers", () => {
 
       const result = await handleRevertPhotoFile(mockEvent, photo);
 
-      expect(mockRevertPhotoToOriginal).toHaveBeenCalledWith(photo);
+      expect(mockRevertPhotoToOriginal).toHaveBeenCalledWith("/project", photo);
       expect(result).toBe(revertedPhoto);
+    });
+
+    it("throws when no project is open", async () => {
+      mockGetCurrentProjectDirectory.mockReturnValue(null);
+
+      await expect(handleRevertPhotoFile(mockEvent, createMockPhotoBody())).rejects.toThrow(
+        "No project open",
+      );
     });
   });
 

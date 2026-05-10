@@ -1,7 +1,7 @@
 import path from "node:path";
 
 import { renderApiImage } from "@/backend/imageRenderer";
-import { resolvePhotoPath } from "@/backend/projects";
+import { getCurrentProjectDirectory, resolvePhotoPath } from "@/backend/projects";
 import { ANALYSIS_API_REQUEST_TIMEOUT_MS } from "@/constants";
 import { analysisMatchResponseSchema } from "@/schemas";
 import type { AnalysisMatchResponse, PhotoBody } from "@/types";
@@ -19,10 +19,10 @@ type AnalyseMatchesOptions = {
 let currentAbortController: AbortController | null = null;
 
 /**
- * Generates a blob from a photo.
+ * Generates a blob from a photo. Resolves the source path against the active project directory.
  */
-const generateImageBlob = async (photo: PhotoBody): Promise<Blob> => {
-  const sourcePath = resolvePhotoPath(photo.directory, photo.name);
+const generateImageBlob = async (directory: string, photo: PhotoBody): Promise<Blob> => {
+  const sourcePath = resolvePhotoPath(directory, photo.name);
   const imageBuffer = await renderApiImage({ sourcePath, edits: photo.edits });
 
   const blob = new Blob([new Uint8Array(imageBuffer)], { type: "image/jpeg" });
@@ -39,6 +39,7 @@ const generateImageBlob = async (photo: PhotoBody): Promise<Blob> => {
  * (streaming multipart) would require API support and a more complex implementation.
  */
 const buildFormData = async (
+  directory: string,
   photos: PhotoBody[],
   abortController: AbortController,
 ): Promise<FormData | null> => {
@@ -49,7 +50,7 @@ const buildFormData = async (
       return null;
     }
 
-    const blob = await generateImageBlob(photo);
+    const blob = await generateImageBlob(directory, photo);
     formData.append("images", blob, `${path.basename(photo.name, path.extname(photo.name))}.jpg`);
   }
 
@@ -135,6 +136,12 @@ const analyseMatches = async ({
     throw new Error("No photos to analyse");
   }
 
+  const directory = getCurrentProjectDirectory();
+
+  if (directory === null) {
+    throw new Error("No project open");
+  }
+
   if (currentAbortController) {
     currentAbortController.abort();
   }
@@ -143,7 +150,7 @@ const analyseMatches = async ({
   currentAbortController = abortController;
 
   try {
-    const formData = await buildFormData(photos, abortController);
+    const formData = await buildFormData(directory, photos, abortController);
 
     if (!formData) {
       return null;

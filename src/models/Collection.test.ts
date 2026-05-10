@@ -17,7 +17,6 @@ const project = new Project();
 const createPhoto = (name: string): Photo =>
   new Photo(
     {
-      directory: "/project",
       name,
       thumbnail: `.thumbnails/${name}`,
       edits: { ...DEFAULT_PHOTO_EDITS, pan: { x: 0, y: 0 } },

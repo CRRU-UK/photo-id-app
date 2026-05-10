@@ -51,6 +51,7 @@ CanvasImage.displayName = "CanvasImage";
 
 interface ImageEditorProps {
   data: PhotoBody;
+  directory: string;
   image: File;
   onError?: () => void;
   onImageLoaded?: () => void;
@@ -59,6 +60,7 @@ interface ImageEditorProps {
 
 const ImageEditor = ({
   data,
+  directory,
   image,
   setQueryCallback,
   onImageLoaded,
@@ -80,7 +82,7 @@ const ImageEditor = ({
    */
   const savedEditsRef = useRef(edits);
 
-  const photoId = `${data.directory}/${data.name}`;
+  const photoId = `${directory}/${data.name}`;
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: edits intentionally captured at the moment of the photo change
   useEffect(() => {
@@ -299,22 +301,22 @@ const ImageEditor = ({
     onZoomOut: handlers.handleZoomOut,
   });
 
-  const previousPhotoIdRef = useRef<string>(`${data.directory}/${data.name}`);
+  const previousPhotoIdRef = useRef<string>(`${directory}/${data.name}`);
   const loadedPhotoIdRef = useRef<string | null>(null);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: log fires once per photo id change; data is intentionally captured at that moment
   useEffect(() => {
-    const currentPhotoId = `${data.directory}/${data.name}`;
+    const currentPhotoId = `${directory}/${data.name}`;
 
     if (previousPhotoIdRef.current !== currentPhotoId) {
       previousPhotoIdRef.current = currentPhotoId;
     }
 
     console.debug("Loaded photo edit data:", data);
-  }, [data.directory, data.name]);
+  }, [directory, data.name]);
 
   useEffect(() => {
-    const currentPhotoId = `${data.directory}/${data.name}`;
+    const currentPhotoId = `${directory}/${data.name}`;
     let frameId: number | undefined;
 
     if (state.imageLoaded && loadedPhotoIdRef.current !== currentPhotoId) {
@@ -343,15 +345,7 @@ const ImageEditor = ({
         cancelAnimationFrame(frameId);
       }
     };
-  }, [
-    data.directory,
-    data.name,
-    state.imageLoaded,
-    actions,
-    resetEdgeDetection,
-    edits,
-    onImageLoaded,
-  ]);
+  }, [directory, data.name, state.imageLoaded, actions, resetEdgeDetection, edits, onImageLoaded]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: intentionally omit refs.canvasRef so this effect only re-runs when handleWheel changes
   useEffect(() => {

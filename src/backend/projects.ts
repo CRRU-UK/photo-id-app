@@ -28,6 +28,7 @@ import type {
   LoadingData,
   PhotoBody,
   ProjectBody,
+  ProjectPayload,
 } from "@/types";
 
 /**
@@ -60,6 +61,9 @@ export const setCurrentProject = (directory: string | null): void => {
   currentProjectDirectory = directory;
 };
 
+/**
+ * Reads and validates a `.photoid` file. The directory is derived by callers from the file's path.
+ */
 export const parseProjectFile = async (filePath: string): Promise<ProjectBody> => {
   const raw = await fs.promises.readFile(filePath, "utf8");
   const json: unknown = JSON.parse(raw);
@@ -67,16 +71,17 @@ export const parseProjectFile = async (filePath: string): Promise<ProjectBody> =
   return projectBodySchema.parse(json);
 };
 
-const sendData = (mainWindow: Electron.BrowserWindow, data: ProjectBody) => {
-  setCurrentProject(data.directory);
+const sendData = (mainWindow: Electron.BrowserWindow, body: ProjectBody, directory: string) => {
+  setCurrentProject(directory);
 
-  mainWindow.setTitle(`${DEFAULT_WINDOW_TITLE} - ${data.directory}`);
-  mainWindow.webContents.send(IPC_EVENTS.LOAD_PROJECT, data);
+  mainWindow.setTitle(`${DEFAULT_WINDOW_TITLE} - ${directory}`);
+  const payload: ProjectPayload = { body, directory };
+  mainWindow.webContents.send(IPC_EVENTS.LOAD_PROJECT, payload);
   mainWindow.focus();
 
   void addRecentProject({
-    name: path.basename(data.directory),
-    path: path.join(data.directory, PROJECT_FILE_NAME),
+    name: path.basename(directory),
+    path: path.join(directory, PROJECT_FILE_NAME),
   });
 };
 
@@ -104,8 +109,9 @@ const handleExistingProjectFile = async (
 
   if (response === EXISTING_DATA_RESPONSE.OPEN_EXISTING) {
     try {
-      const data = await parseProjectFile(path.join(directory, PROJECT_FILE_NAME));
-      sendData(mainWindow, data);
+      const filePath = path.join(directory, PROJECT_FILE_NAME);
+      const body = await parseProjectFile(filePath);
+      sendData(mainWindow, body, directory);
     } catch (error) {
       console.error("Failed to load existing project file:", error);
 
@@ -192,14 +198,13 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
     await Promise.all(
       batch.map(async (photoName, batchIndex) => {
         const photo: PhotoBody = {
-          directory,
           name: photoName,
           thumbnail: "",
           edits: DEFAULT_PHOTO_EDITS,
           isEdited: false,
         };
 
-        thumbnails[batchStart + batchIndex] = await createPhotoThumbnail(photo);
+        thumbnails[batchStart + batchIndex] = await createPhotoThumbnail(directory, photo);
 
         processed = processed + 1;
 
@@ -231,10 +236,8 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
   const data: ProjectBody = {
     version: "v1",
     id: crypto.randomUUID(),
-    directory,
     unassigned: {
       photos: photos.map((name, index) => ({
-        directory,
         name,
         thumbnail: thumbnails[index],
         edits: DEFAULT_PHOTO_EDITS,
@@ -257,7 +260,7 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
     "utf8",
   );
 
-  return sendData(mainWindow, data);
+  return sendData(mainWindow, data, directory);
 };
 
 /**
@@ -280,8 +283,8 @@ const handleOpenFilePrompt = async (mainWindow: Electron.BrowserWindow) => {
   const [file] = event.filePaths;
 
   try {
-    const data = await parseProjectFile(file);
-    return sendData(mainWindow, data);
+    const body = await parseProjectFile(file);
+    return sendData(mainWindow, body, path.dirname(file));
   } catch (error) {
     console.error("Failed to open project file:", error);
     dialog.showErrorBox("Invalid project file", String(error));
@@ -312,8 +315,8 @@ const handleOpenProjectFile = async (mainWindow: Electron.BrowserWindow, file: s
   }
 
   try {
-    const data = await parseProjectFile(file);
-    return sendData(mainWindow, data);
+    const body = await parseProjectFile(file);
+    return sendData(mainWindow, body, path.dirname(file));
   } catch (error) {
     console.error("Failed to open project file:", error);
     dialog.showErrorBox("Invalid project file", String(error));
@@ -374,8 +377,14 @@ const handleFlushSaveProject = (data: string): void => {
  * Duplicates the original, edited, and thumbnail versions of a photo a returns the new filenames.
  */
 const handleDuplicatePhotoFile = async (data: PhotoBody): Promise<PhotoBody> => {
-  const originalPath = resolvePhotoPath(data.directory, data.name);
-  const thumbnailPath = resolvePhotoPath(data.directory, data.thumbnail);
+  const directory = getCurrentProjectDirectory();
+
+  if (directory === null) {
+    throw new Error("No project open");
+  }
+
+  const originalPath = resolvePhotoPath(directory, data.name);
+  const thumbnailPath = resolvePhotoPath(directory, data.thumbnail);
 
   const time = Date.now();
 
@@ -387,7 +396,7 @@ const handleDuplicatePhotoFile = async (data: PhotoBody): Promise<PhotoBody> => 
     `${originalBaseName}_duplicate_${time}${originalExtension}`,
   );
 
-  await fs.promises.copyFile(originalPath, path.join(data.directory, newOriginalPath));
+  await fs.promises.copyFile(originalPath, path.join(directory, newOriginalPath));
 
   const thumbnailExtension = path.extname(data.thumbnail);
   const thumbnailBaseName = path.basename(data.thumbnail, thumbnailExtension);
@@ -397,10 +406,9 @@ const handleDuplicatePhotoFile = async (data: PhotoBody): Promise<PhotoBody> => 
     `${thumbnailBaseName}_duplicate_${time}${thumbnailExtension}`,
   );
 
-  await fs.promises.copyFile(thumbnailPath, path.join(data.directory, newThumbnailPath));
+  await fs.promises.copyFile(thumbnailPath, path.join(directory, newThumbnailPath));
 
   return {
-    directory: data.directory,
     name: newOriginalPath,
     thumbnail: newThumbnailPath,
     edits: data.edits,
@@ -444,13 +452,20 @@ const findPhotoInProject = (project: ProjectBody, photo: PhotoBody): CollectionB
 };
 
 /**
- * Returns photo to show in the editor on navigation based on direction.
+ * Returns photo to show in the editor on navigation based on direction. Reads the current project
+ * file from the active project directory.
  */
 const handleEditorNavigate = async (
   data: PhotoBody,
   direction: EditorNavigation,
 ): Promise<PhotoBody | null> => {
-  const projectPath = path.join(data.directory, PROJECT_FILE_NAME);
+  const directory = getCurrentProjectDirectory();
+
+  if (directory === null) {
+    throw new Error("No project open");
+  }
+
+  const projectPath = path.join(directory, PROJECT_FILE_NAME);
   const projectData = await parseProjectFile(projectPath);
 
   const collection = findPhotoInProject(projectData, data);

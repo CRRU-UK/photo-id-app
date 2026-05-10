@@ -54,11 +54,18 @@ export const photoEditsSchema = z.object({
 });
 
 export const photoBodySchema = z.object({
-  directory: z.string(),
   name: z.string(),
   thumbnail: z.string(),
   edits: photoEditsSchema,
   isEdited: z.boolean(),
+});
+
+/**
+ * Runtime-only payload (includes current directory path).
+ */
+export const editPayloadSchema = z.object({
+  directory: z.string(),
+  photo: photoBodySchema,
 });
 
 export const collectionBodySchema = z.object({
@@ -93,12 +100,19 @@ export const analysisMatchResponseSchema = z.object({
 });
 
 export const projectBodySchema = z.object({
-  version: z.enum(["v1"]),
+  version: z.literal("v1"),
   id: z.uuid(),
-  directory: z.string(),
   unassigned: collectionBodySchema,
   discarded: collectionBodySchema,
   matched: z.array(matchedBodySchema),
   created: z.iso.datetime(),
   lastModified: z.iso.datetime(),
+});
+
+/**
+ * Runtime-only payload (includes current directory path).
+ */
+export const projectPayloadSchema = z.object({
+  directory: z.string(),
+  body: projectBodySchema,
 });

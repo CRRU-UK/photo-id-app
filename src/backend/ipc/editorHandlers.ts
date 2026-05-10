@@ -2,7 +2,7 @@ import path from "node:path";
 import url from "node:url";
 import { BrowserWindow, dialog, type IpcMainEvent, type IpcMainInvokeEvent } from "electron";
 
-import { handleEditorNavigate } from "@/backend/projects";
+import { getCurrentProjectDirectory, handleEditorNavigate } from "@/backend/projects";
 import { windowManager } from "@/backend/WindowManager";
 import { IPC_EVENTS, ROUTES, UNSAVED_EDITS_MESSAGE } from "@/constants";
 import { encodeEditPayload } from "@/helpers";
@@ -26,6 +26,13 @@ const buildEditorWebPreferences = (base: Electron.WebPreferences): Electron.WebP
 
 export const handleOpenEditWindow = (config: EditorConfig) => {
   return (_event: IpcMainEvent, data: PhotoBody): void => {
+    const directory = getCurrentProjectDirectory();
+
+    if (directory === null) {
+      console.error("Refused to open edit window: no project open");
+      return;
+    }
+
     const editWindow = new BrowserWindow({
       show: false,
       width: 1200,
@@ -43,7 +50,7 @@ export const handleOpenEditWindow = (config: EditorConfig) => {
       editWindow.webContents.openDevTools();
     }
 
-    const encodedData = encodeEditPayload(data);
+    const encodedData = encodeEditPayload({ directory, photo: data });
     const encodedQuery = encodeURIComponent(encodedData);
 
     if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
@@ -101,6 +108,12 @@ export const handleNavigateEditorPhoto = async (
   data: PhotoBody,
   direction: EditorNavigation,
 ): Promise<string | null> => {
+  const directory = getCurrentProjectDirectory();
+
+  if (directory === null) {
+    throw new Error("No project open");
+  }
+
   const result = await handleEditorNavigate(data, direction);
 
   if (!result) {
@@ -108,7 +121,7 @@ export const handleNavigateEditorPhoto = async (
     return null;
   }
 
-  return encodeEditPayload(result);
+  return encodeEditPayload({ directory, photo: result });
 };
 
 export const registerEditorHandlers = (ipcMain: Electron.IpcMain, config: EditorConfig): void => {

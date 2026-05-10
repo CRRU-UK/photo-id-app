@@ -13,6 +13,7 @@ vi.stubGlobal("window", {
 });
 
 const project = new Project();
+project.directory = "/project";
 
 const defaultEdits: PhotoEdits = {
   brightness: 100,
@@ -25,7 +26,6 @@ const defaultEdits: PhotoEdits = {
 const createPhoto = (overrides?: Partial<{ name: string; edits: PhotoEdits }>): Photo =>
   new Photo(
     {
-      directory: "/project",
       name: overrides?.name ?? "photo.jpg",
       thumbnail: ".thumbnails/photo.jpg",
       edits: overrides?.edits ?? { ...defaultEdits, pan: { ...defaultEdits.pan } },
@@ -49,7 +49,6 @@ describe(Photo, () => {
     it("initialises with provided values", () => {
       const photo = createPhoto();
 
-      expect(photo.directory).toBe("/project");
       expect(photo.fileName).toBe("photo.jpg");
       expect(photo.thumbnail).toBe(".thumbnails/photo.jpg");
       expect(photo.version).toBe(fakeNow.getTime());
@@ -119,7 +118,6 @@ describe(Photo, () => {
       vi.setSystemTime(updatedTimestamp);
 
       photo.updatePhoto({
-        directory: "/project",
         name: "photo.jpg",
         thumbnail: ".thumbnails/photo_edited.jpg",
         edits: { ...defaultEdits, brightness: 120, pan: { x: 0, y: 0 } },
@@ -139,7 +137,6 @@ describe(Photo, () => {
       const body = photo.toBody();
 
       expect(body).toStrictEqual({
-        directory: "/project",
         name: "photo.jpg",
         thumbnail: ".thumbnails/photo.jpg",
         edits: {
@@ -178,7 +175,6 @@ describe(Photo, () => {
       const photo = createPhoto();
 
       const newData: PhotoBody = {
-        directory: "/project",
         name: "photo.jpg",
         thumbnail: ".thumbnails/photo_edited.jpg",
         edits: {
@@ -204,7 +200,6 @@ describe(Photo, () => {
       const photo = createPhoto();
 
       photo.updatePhoto({
-        directory: "/project",
         name: "photo.jpg",
         thumbnail: ".thumbnails/new_thumbnail.jpg",
         edits: { ...defaultEdits, pan: { x: 0, y: 0 } },
@@ -218,7 +213,6 @@ describe(Photo, () => {
       const photo = createPhoto();
 
       photo.updatePhoto({
-        directory: "/project",
         name: "photo.jpg",
         thumbnail: ".thumbnails/photo.jpg",
         edits: { ...defaultEdits, pan: { x: 0, y: 0 } },
@@ -234,7 +228,6 @@ describe(Photo, () => {
       const photo = createPhoto();
 
       const result = photo.updatePhoto({
-        directory: "/project",
         name: "photo.jpg",
         thumbnail: ".thumbnails/photo.jpg",
         edits: { ...defaultEdits, pan: { x: 0, y: 0 } },
@@ -248,7 +241,6 @@ describe(Photo, () => {
       const photo = createPhoto();
 
       const updateData: PhotoBody = {
-        directory: "/project",
         name: "photo.jpg",
         thumbnail: ".thumbnails/photo.jpg",
         edits: { brightness: 120, contrast: 80, saturate: 150, zoom: 1.5, pan: { x: 10, y: 20 } },
