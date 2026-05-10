@@ -150,6 +150,7 @@ The index view is the default view when opening the app. It allows the user to:
 
 - This shows a list of recent projects by last-opened date descending
 - Last-opened is determined by the time when a project was last successfully opened in the project view
+- Each entry shows the project folder name as the title and the parent directory of the project folder as the path (the project file name and project folder name are stripped from display, so e.g. `/Users/admin/foo/bar/project.photoid` is shown as `bar` with path `/Users/admin/foo`)
 - If attempting to load a recent project leads to an error, then it should automatically be removed from the list
 - Recent projects can be removed with the delete button - this only removes the project from the list, not the project file from disk
 - If there are no recent projects, the list is not shown

@@ -12,6 +12,7 @@ import {
   getAlphabetLetter,
   getCanvasFilters,
   getImageCoordinates,
+  getRecentProjectDisplayPath,
   isEditWindow,
   stripWhitespace,
 } from "./helpers";
@@ -469,6 +470,25 @@ describe(buildPhotoUrl, () => {
     const result = url.fileURLToPath(fileUrl);
 
     expect(result).toBe("/Users/admin/Photo ID/photo.jpg");
+  });
+});
+
+describe(getRecentProjectDisplayPath, () => {
+  it("strips the project file and folder name from a POSIX path", () => {
+    const result = getRecentProjectDisplayPath("/Users/admin/foo/bar/project.photoid");
+
+    expect(result).toBe("/Users/admin/foo");
+  });
+
+  it("strips the project file and folder name from a Windows path", () => {
+    const result = getRecentProjectDisplayPath(String.raw`C:\Users\admin\foo\bar\project.photoid`);
+
+    expect(result).toBe(String.raw`C:\Users\admin\foo`);
+  });
+
+  it("returns the input when there are not enough segments to drop", () => {
+    expect(getRecentProjectDisplayPath("project.photoid")).toBe("project.photoid");
+    expect(getRecentProjectDisplayPath("bar/project.photoid")).toBe("bar/project.photoid");
   });
 });
 
