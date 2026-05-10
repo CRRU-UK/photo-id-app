@@ -46,7 +46,7 @@ export const handleOpenEditWindow = (config: EditorConfig) => {
 
     windowManager.addEditWindow(editWindow);
 
-    if (!config.production) {
+    if (!config.production && !process.env.E2E) {
       editWindow.webContents.openDevTools();
     }
 
