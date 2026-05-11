@@ -15,8 +15,8 @@ To add a provider, open the app settings. In the ==:octicons-ai-model-16: Analys
 
 <!-- markdownlint-disable MD033 -->
 <div class="grid cards" markdown>
-- ![Provider list in settings](../assets/images/analysis-provider-list.png?v1){ width="700" }
-- ![Adding a provider](../assets/images/analysis-provider-add.png?v1){ width="700" }
+- ![Provider list in settings](../assets/images/analysis-provider-list.png?v2){ width="700" }
+- ![Adding a provider](../assets/images/analysis-provider-add.png?v2){ width="700" }
 </div>
 <!-- markdownlint-enable MD033 -->
 
@@ -30,7 +30,7 @@ Enter a provider label, your base API URL, and token. Select the ==Save== button
 
 To choose a provider to use for analysis, open the ==Analysis Provider== dropdown in the project view sidebar. Here you can choose from the providers you have added. Select the provider you want to use.
 
-![Selecting a provider](../assets/images/analysis-provider-select.png?v1){ width="300" }
+![Selecting a provider](../assets/images/analysis-provider-select.png?v2){ width="300" }
 
 You can unselect a provider by selecting it again in the list, which will disable analysis integration until a provider is selected again.
 
@@ -48,7 +48,7 @@ When a match analysis is completed, a table will be shown with the corresponding
 - Rating (e.g. confidence, similarity)
 - Details (useful for debugging information)
 
-![Analysis results](../assets/images/analysis-match-results.png?v1){ width="700" }
+![Analysis results](../assets/images/analysis-match-results.png?v2){ width="700" }
 
 Selecting the ==:octicons-copy-16: Copy details to clipboard== button will copy the details of the selected row to your clipboard. Results are paginated for every 10 matches. You can cancel in-progress analysis using the ==Cancel== button in the overlay.
 
