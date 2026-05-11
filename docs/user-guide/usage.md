@@ -3,6 +3,8 @@ title: Usage
 description: How to use the Photo ID app.
 ---
 
+This is a full and detailed usage guide of every feature of the app. If you want a 5-minute walkthrough see the [quickstart](./quickstart.md) guide.
+
 ## Creating your first project
 
 ![Home screen of the app](../assets/images/index.png?v1){ width="700" }
@@ -36,7 +38,7 @@ Projects can be removed from the recent projects list by selecting the button wi
 
 When opening a project you will see the project screen. Here you can start to sort and match photos. This can be done by clicking and dragging a photo from one 'stack' onto another, which will move it from the original stack onto the targeted one. The targeted stack will be highlighted when dragging a photo over it.
 
-A stack is a collection of photos, and can contain any amount of photos - the ==:octicons-chevron-left-16: :octicons-chevron-right-16: arrow buttons== in the bottom-right can be used to navigate between photos in that stack. An indicator on the bottom-left shows the total number of photos in a stack and which photo is currently displayed.
+A stack is a collection of photos, and can contain any amount of photos - the ==:octicons-chevron-left-16::octicons-chevron-right-16: arrow buttons== in the bottom-right can be used to navigate between photos in that stack. An indicator on the bottom-left shows the total number of photos in a stack and which photo is currently displayed.
 
 There are three stacks in the project view:
 
@@ -112,7 +114,7 @@ Edits to a photo can be saved using the ==Save== button. Edits can be reset back
 
 Edits can also be reverted by opening the drop-down menu and selecting ==:octicons-undo-16: Revert to original== in the project screen.
 
-You can load the previous or next photo in the stack the current photo is in using the ==:octicons-chevron-left-16: :octicons-chevron-right-16: arrow buttons==. Moving the current photo to a different stack while it is open in an editor screen will load the previous and next photos in the new stack once clicked.
+You can load the previous or next photo in the stack the current photo is in using the ==:octicons-chevron-left-16::octicons-chevron-right-16: arrow buttons==. Moving the current photo to a different stack while it is open in an editor screen will load the previous and next photos in the new stack once clicked.
 
 Multiple photo editor windows can be open at the same time so you can compare photos side-by-side.
 

@@ -8,7 +8,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Before asking, please check the [documentation](https://photoidapp.crru.org.uk), especially the [usage guide](https://photoidapp.crru.org.uk/user-guide/usage/) and [known issues](https://photoidapp.crru.org.uk/known-issues/) page.
+        Before asking, please check the [documentation](https://photoidapp.crru.org.uk), especially the [usage guide](https://photoidapp.crru.org.uk/user-guide/usage/) and [known issues](https://github.com/CRRU-UK/photo-id-app/issues/355).
   - type: textarea
     id: question
     attributes:
