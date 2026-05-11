@@ -38,7 +38,7 @@ Projects can be removed from the recent projects list by selecting the button wi
 
 When opening a project you will see the project screen. Here you can start to sort and match photos. This can be done by clicking and dragging a photo from one 'stack' onto another, which will move it from the original stack onto the targeted one. The targeted stack will be highlighted when dragging a photo over it.
 
-A stack is a collection of photos, and can contain any amount of photos - the ==:octicons-chevron-left-16::octicons-chevron-right-16: arrow buttons== in the bottom-right can be used to navigate between photos in that stack. An indicator on the bottom-left shows the total number of photos in a stack and which photo is currently displayed.
+A stack is a collection of photos, and can contain any number of photos - the ==:octicons-chevron-left-16::octicons-chevron-right-16: arrow buttons== in the bottom-right can be used to navigate between photos in that stack. An indicator on the bottom-left shows the total number of photos in a stack and which photo is currently displayed.
 
 There are three stacks in the project view:
 
@@ -56,7 +56,7 @@ Below the unassigned stack is the 'discarded' stack. This is for photos that are
 
 In the main area of the screen there are pairs of 'matched' stacks, one stack for each side of the animal (left and right).
 
-When exporting photos (see [exporting](#exporting)) the letter in the matched stacks is used when generating file names, such as `AL`, `AR`, `BL`, `BR`, etc. These can be changed by using the custom ID text field in the top-right of each stack, which will be used in-place of the letter. For example, entering `001` into the text field in the `AL` stack will result in the photo being exported as `001L` instead of `AL`.
+When exporting photos (see [exporting](#exporting)) the letter in the matched stacks is prepended to the original file name, such as `AL_photo_1.jpg`, `AR_photo_2.jpg`, `BL_photo_3.jpg`, etc. The letter can be overridden using the custom ID text field in the top-right of each stack. For example, entering `001` into the text field in the `AL` stack will result in `photo_1.jpg` being exported as `001L_photo_1.jpg` instead of `AL_photo_1.jpg`.
 
 By default there are eight pairs of matched stacks per page. Pages can be navigated between by clicking the tabs on the top of the page, or by using the number keys indicated next to the page name.
 
@@ -138,7 +138,7 @@ Projects are auto-saved whenever changes are made in the project or photo editor
 
 ## Settings
 
-The settings menu can be opened selecting the ==:octicons-gear-16: Settings== button on the home page, using the [keyboard shortcut](./keyboard-shortcuts.md), or by using the menu bar option.
+The settings menu can be opened by selecting the ==:octicons-gear-16: Settings== button on the home page, using the [keyboard shortcut](./keyboard-shortcuts.md), or by using the menu bar option.
 
 These settings are global (i.e. the same for all projects) and per-user on your system.
 
