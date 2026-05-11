@@ -1,5 +1,17 @@
 # photo-id
 
+## 1.0.0
+
+### Major Changes
+
+- 5771599: Projects can now be moved to and opened from any location
+
+### Patch Changes
+
+- 6d1b716: Updated documentation for v1 release
+- 7a3de87: Update how recent project paths are displayed
+- 851eded: Fix image editor not opening images
+
 ## 0.7.4
 
 ### Patch Changes
