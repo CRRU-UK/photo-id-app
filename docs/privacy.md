@@ -16,7 +16,11 @@ All project data, photos, and settings remain on your computer. The app does not
 
 ## Optional telemetry (error reporting)
 
-Telemetry is **disabled by default**. If you enable it in Settings, the app may send the following to _Sentry_ (a third‑party error-reporting service) to help us fix bugs:
+!!! info "Always opt-in"
+
+    Telemetry is **disabled by default** and is **always opt-in**. The app will never enable telemetry automatically, change it to opt-out in a future update, or send any telemetry data without you first turning it on in Settings.
+
+If you enable it in Settings, the app may send the following to _Sentry_ (a third‑party error-reporting service) to help us fix bugs:
 
 - **Crash reports** - When the app crashes, diagnostic information (stack traces, system info) is sent.
 - **Error details** - When unexpected errors occur, we receive error messages and context.
