@@ -20,6 +20,19 @@ theme:
     primary: black
   icon:
     repo: fontawesome/brands/github
+nav:
+  - Introduction: index.md
+  - Quickstart: user-guide/quickstart.md
+  - User Guide:
+    - Installation: user-guide/installation.md
+    - Usage: user-guide/usage.md
+    - Analysis: user-guide/analysis.md
+    - Keyboard Shortcuts: user-guide/keyboard-shortcuts.md
+    - Troubleshooting: troubleshooting.md
+  - Reference:
+    - Glossary: glossary.md
+    - Privacy Policy: privacy.md
+    - Bugs & Feedback: bugs-feedback.md
 plugins:
   - search
 markdown_extensions:

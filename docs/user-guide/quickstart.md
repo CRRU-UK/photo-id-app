@@ -49,11 +49,11 @@ Press ==Save== to keep your edits, ==Reset== to revert any changes, or close the
 
 Open the ==:octicons-three-bars-16: Actions== menu (bottom-left of the project screen) and choose:
 
-- ==:octicons-file-diff-16: Export Matches== writes all matched photos (with edits applied) into a `matched/` folder, renamed by their match ID.
-- ==:octicons-database-16: Export CSV== writes a `matches.csv` to the project's `data/` folder, mapping each photo to its match ID.
+- ==:octicons-file-diff-16: Export Matches== writes all matched photos (with edits applied) into a `matched/` folder, with their match ID prepended to the original file name
+- ==:octicons-database-16: Export CSV== writes a `matches.csv` to the project's `data/` folder, mapping each photo to its match ID
 
 You can use the exported files in your cataloguing tool of choice.
 
 ---
 
-For an in-depth walkthrough of all the features in the app, see the full [usage guide](./usage.md).
+For an in-depth reference for every feature in the app, see the full [usage guide](./usage.md).

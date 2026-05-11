@@ -13,4 +13,4 @@ The present focus of the app is the _organisation_ of photos by sorting, editing
 
 ---
 
-To get started with the Photo ID app, head over to the [user guide](./user-guide/index.md), or jump straight into the [quickstart](./user-guide/quickstart.md). A [glossary](./glossary.md) is also available for unfamiliar terms.
+To get started with the Photo ID app, jump into the [quickstart](./user-guide/quickstart.md), or head over to the [usage guide](./user-guide/usage.md) for a detailed reference. A [glossary](./glossary.md) is also available for unfamiliar terms.

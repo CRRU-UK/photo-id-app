@@ -35,7 +35,7 @@ A group of matched-stack pairs. By default there are eight pairs per page. Tabs 
 
 ## Match ID
 
-The label identifying a matched pair, used when exporting. By default this is the letter (`A`, `B`, `C`, etc.) derived from the pair's position in the project. You can override it per side using the text field at the top of each stack. For example, entering `001` produces exports named `001L` and `001R` instead of `AL` and `AR`.
+The label identifying a matched pair, used when exporting. By default this is the letter (`A`, `B`, `C`, etc.) derived from the pair's position in the project. You can override it per side using the text field in the top-right of each stack. The match ID is prepended to the exported file name — for example, a photo `photo_1.jpg` in stack `A` (left) exports as `AL_photo_1.jpg` by default, or `001L_photo_1.jpg` if the ID is overridden to `001`.
 
 ## Edits
 

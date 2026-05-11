@@ -1,9 +1,9 @@
 ---
 title: Usage
-description: How to use the Photo ID app.
+description: A detailed reference for using every feature in the Photo ID app.
 ---
 
-This is a full and detailed usage guide of every feature of the app. If you want a 5-minute walkthrough see the [quickstart](./quickstart.md) guide.
+This is a detailed reference for using every feature in the app. If you want a five-minute walkthrough instead, see the [quickstart](./quickstart.md) guide.
 
 ## Creating your first project
 
@@ -62,9 +62,7 @@ By default there are eight pairs of matched stacks per page. Pages can be naviga
 
 On the top-right of the page there is a toggle for viewing matched stacks by two or one columns.
 
-!!! note
-
-    There is a set total of 52 matched stacks which cannot be increased or decreased - this will change in the future.
+By default a new project starts with 56 matched stack pairs (seven pages of eight). If you need more, use the ==:octicons-plus-16: add new page== button on the page tab bar to add another page of pairs.
 
 ### Duplication
 
@@ -78,9 +76,9 @@ For more information, check out the [Analysis](./analysis.md) guide.
 
 ### Exporting
 
-Once photos have been sorted and matched, they can be exported by opening the ==:octicons-three-bars-16: Actions== menu in the bottom-left of the project screen. There are three ways to export a project:
+Once photos have been sorted and matched, they can be exported by opening the ==:octicons-three-bars-16: Actions== menu in the bottom-left of the project screen. There are two ways to export a project:
 
-- ==:octicons-file-diff-16: Export Matches== exports all matched photos with any edits applied and renamed with the matched ID
+- ==:octicons-file-diff-16: Export Matches== exports all matched photos with any edits applied, with the matched ID prepended to the original file name.
 - ==:octicons-database-16: Export CSV== generates a comma-separated CSV file (`matches.csv`) in the project `data/` folder, with two columns: match ID and original file name. The file explorer opens with the CSV file selected.
 
 Exporting photos writes photos into a `matched/` folder and clears that folder before each export. Exporting CSV writes a `matches.csv` file into a `data/` folder.
@@ -102,8 +100,8 @@ Photos can be edited to help identify marks. The photo editor can be opened by s
 There are several options that can be used to edit photos in the toolbar on the bottom of the screen:
 
 - **:material-contrast-circle: Brightness, contrast, and saturation** can be controlled with the sliders in the left of the toolbar
-- **:material-magnify: Zooming** can be done by using the mousewheel on the photo (or the ==:octicons-zoom-in-16: :octicons-zoom-out-16:== buttons in the toolbar)
-- **:material-cursor-move: Panning** can be done by clicking and dragging the photo (or the ==:octicons-arrow-left-16: :octicons-arrow-up-16: :octicons-arrow-down-16: :octicons-arrow-right-16:== buttons in the toolbar)
+- **:material-magnify: Zooming** can be done by using the mousewheel on the photo (or the ==:octicons-zoom-in-16::octicons-zoom-out-16:== buttons in the toolbar)
+- **:material-cursor-move: Panning** can be done by clicking and dragging the photo (or the ==:octicons-arrow-left-16::octicons-arrow-up-16::octicons-arrow-down-16::octicons-arrow-right-16:== buttons in the toolbar)
 - **:material-crop: Cropping** is based on the zoom and pan of the photo - what you see in the photo editor is how the photo will be cropped
 
 !!! note
@@ -148,4 +146,4 @@ For information on how we handle data and optional telemetry, see our [privacy p
 
 ## Notes
 
-Original photos are never modified in any way, and every effort has been made to be sure the app never unintentionally affects your original photos. However, please ensure you always have backups of your original photos regardless!
+Original photos are never modified in any way, and every effort has been made to ensure the app never unintentionally affects your original photos. However, please ensure you always have backups of your original photos regardless!
