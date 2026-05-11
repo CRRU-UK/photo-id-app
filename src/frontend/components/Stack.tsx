@@ -194,7 +194,13 @@ const Stack = observer(({ collection, showAnalysisButton = true, stackLabel }: S
           </ButtonGroup>
         </div>
 
-        <ActionBar aria-label={PROJECT_TOOLTIPS.STACK_ACTIONS} flush gap="condensed" size="small">
+        <ActionBar
+          aria-label={PROJECT_TOOLTIPS.STACK_ACTIONS}
+          flush
+          gap="condensed"
+          key={showAnalysisButton && selectedProvider ? "with-analysis" : "without-analysis"}
+          size="small"
+        >
           <ActionBar.Group>
             <ActionBar.IconButton
               aria-label={PROJECT_TOOLTIPS.EDIT_PHOTO}
