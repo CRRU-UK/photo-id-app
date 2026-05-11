@@ -1,6 +1,6 @@
 {
   "private": true,
-  "version": "1.0.0",
+  "version": "0.7.4",
   "name": "photo-id",
   "description": "Research tool for photo identification studies.",
   "productName": "Photo ID",
