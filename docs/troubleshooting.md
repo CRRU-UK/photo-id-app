@@ -3,7 +3,7 @@ title: Troubleshooting
 description: Common problems and how to resolve them.
 ---
 
-This page lists issues that occasionally come up using the app and what you can do about them. For known platform-specific limitations, see the [known issues](./known-issues.md) page.
+This page lists issues that occasionally come up using the app and what you can do about them. For known platform-specific limitations, see [known issues](https://github.com/CRRU-UK/photo-id-app/issues/355).
 
 ## The app will not open
 

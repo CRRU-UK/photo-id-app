@@ -1,6 +1,6 @@
 # Overview
 
-- The Photo ID app is a research tool that can be used for photo-identification methodologies for longitudinal mark-recapture studies. It allows for the organisation and matching of photographs containing unique identification markings (such as cetacean dorsal fins). It includes tools for editing and visually filtering photographs to help with identification of marks.
+- The Photo ID app is a research tool that can be used for photo identification studies, such as in longitudinal mark-recapture research. It allows for the organisation and matching of photographs containing unique identification markings (such as cetacean dorsal fins). It includes tools for editing and visually filtering photographs to help with identification of marks.
 - It is NOT a cataloguing tool, but a tool to group photos and edit them to more easily see identifiable marks. These photos can then be exported and used in external cataloguing software.
 - ALWAYS read `ARCHITECTURE.md` and `SECURITY.md` for specifications and requirements of user journeys and flows. These are technical documentation and MUST be kept in sync with any architectural, behavioural, or security-relevant change you make in the same PR — do not defer doc updates to a follow-up.
 - ALWAYS read `docs/` (user-facing documentation, published via MkDocs) for further context. The contents of `docs/` MUST be kept in sync with any user-visible change in the same PR — same rule as above. Concretely:
@@ -9,7 +9,6 @@
   - `docs/user-guide/keyboard-shortcuts.md` — update for any change to `EDITOR_KEYS` / `GLOBAL_KEYBOARD_HINTS` / `PROJECT_KEYBOARD_HINTS` in `src/constants.ts`.
   - `docs/user-guide/analysis.md` — update for any change to the analysis-provider configuration UI, the analysis IPC, or response handling.
   - `docs/glossary.md` — add an entry whenever a new user-facing term is introduced in the UI or other docs (e.g. a new stack type, a new export mode, a new toggle).
-  - `docs/known-issues.md` — add an entry when shipping a known limitation; remove the entry when the limitation is fixed.
   - `docs/troubleshooting.md` — update when a new common-case failure mode is introduced (new error dialog, new fallback behaviour, new contributor setup gotcha).
   - `docs/privacy.md` — update for any change to telemetry, what is captured by Sentry, or analysis-provider data flow.
 - `README.md` is for developers/contributors only. End-user documentation lives in `docs/` and is published via MkDocs.

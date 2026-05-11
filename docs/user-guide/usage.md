@@ -1,11 +1,13 @@
 ---
 title: Usage
-description: How to use the Photo ID app.
+description: A detailed reference for using every feature in the Photo ID app.
 ---
+
+This is a detailed reference for using every feature in the app. If you want a five-minute walkthrough instead, see the [quickstart](./quickstart.md) guide.
 
 ## Creating your first project
 
-![Home screen of the app](../assets/images/index.png?v1){ width="700" }
+![Home screen of the app](../assets/images/index.png?v2){ width="700" }
 
 Before using the app, first prepare a folder on your computer containing the photos you want to use. When a project is created, the app will automatically import all photos (JPG/JPEG or PNG) in that folder.
 
@@ -36,7 +38,7 @@ Projects can be removed from the recent projects list by selecting the button wi
 
 When opening a project you will see the project screen. Here you can start to sort and match photos. This can be done by clicking and dragging a photo from one 'stack' onto another, which will move it from the original stack onto the targeted one. The targeted stack will be highlighted when dragging a photo over it.
 
-A stack is a collection of photos, and can contain any amount of photos - the ==:octicons-chevron-left-16: :octicons-chevron-right-16: arrow buttons== in the bottom-right can be used to navigate between photos in that stack. An indicator on the bottom-left shows the total number of photos in a stack and which photo is currently displayed.
+A stack is a collection of photos, and can contain any number of photos - the ==:octicons-chevron-left-16::octicons-chevron-right-16: arrow buttons== in the bottom-right can be used to navigate between photos in that stack. An indicator on the bottom-left shows the total number of photos in a stack and which photo is currently displayed.
 
 There are three stacks in the project view:
 
@@ -54,15 +56,13 @@ Below the unassigned stack is the 'discarded' stack. This is for photos that are
 
 In the main area of the screen there are pairs of 'matched' stacks, one stack for each side of the animal (left and right).
 
-When exporting photos (see [exporting](#exporting)) the letter in the matched stacks is used when generating file names, such as `AL`, `AR`, `BL`, `BR`, etc. These can be changed by using the custom ID text field in the top-right of each stack, which will be used in-place of the letter. For example, entering `001` into the text field in the `AL` stack will result in the photo being exported as `001L` instead of `AL`.
+When exporting photos (see [exporting](#exporting)) the letter in the matched stacks is prepended to the original file name, such as `AL_photo_1.jpg`, `AR_photo_2.jpg`, `BL_photo_3.jpg`, etc. The letter can be overridden using the custom ID text field in the top-right of each stack. For example, entering `001` into the text field in the `AL` stack will result in `photo_1.jpg` being exported as `001L_photo_1.jpg` instead of `AL_photo_1.jpg`.
 
 By default there are eight pairs of matched stacks per page. Pages can be navigated between by clicking the tabs on the top of the page, or by using the number keys indicated next to the page name.
 
 On the top-right of the page there is a toggle for viewing matched stacks by two or one columns.
 
-!!! note
-
-    There is a set total of 52 matched stacks which cannot be increased or decreased - this will change in the future.
+By default a new project starts with 56 matched stack pairs (seven pages of eight). If you need more, use the ==:octicons-plus-16: add new page== button on the page tab bar to add another page of pairs.
 
 ### Duplication
 
@@ -76,9 +76,9 @@ For more information, check out the [Analysis](./analysis.md) guide.
 
 ### Exporting
 
-Once photos have been sorted and matched, they can be exported by opening the ==:octicons-three-bars-16: Actions== menu in the bottom-left of the project screen. There are three ways to export a project:
+Once photos have been sorted and matched, they can be exported by opening the ==:octicons-three-bars-16: Actions== menu in the bottom-left of the project screen. There are two ways to export a project:
 
-- ==:octicons-file-diff-16: Export Matches== exports all matched photos with any edits applied and renamed with the matched ID
+- ==:octicons-file-diff-16: Export Matches== exports all matched photos with any edits applied, with the matched ID prepended to the original file name.
 - ==:octicons-database-16: Export CSV== generates a comma-separated CSV file (`matches.csv`) in the project `data/` folder, with two columns: match ID and original file name. The file explorer opens with the CSV file selected.
 
 Exporting photos writes photos into a `matched/` folder and clears that folder before each export. Exporting CSV writes a `matches.csv` file into a `data/` folder.
@@ -93,15 +93,15 @@ Only photos in matched stacks are used in exports - photos in the unassigned or 
 
 ## Editing photos
 
-![Edit screen of the app](../assets/images/editor.png?v1){ width="700" }
+![Edit screen of the app](../assets/images/editor.png?v2){ width="700" }
 
 Photos can be edited to help identify marks. The photo editor can be opened by selecting the ==:octicons-pencil-16: Edit Photo== button below the photo in the project screen or by double-clicking the photo. The photo editor will open in a new window.
 
 There are several options that can be used to edit photos in the toolbar on the bottom of the screen:
 
 - **:material-contrast-circle: Brightness, contrast, and saturation** can be controlled with the sliders in the left of the toolbar
-- **:material-magnify: Zooming** can be done by using the mousewheel on the photo (or the ==:octicons-zoom-in-16: :octicons-zoom-out-16:== buttons in the toolbar)
-- **:material-cursor-move: Panning** can be done by clicking and dragging the photo (or the ==:octicons-arrow-left-16: :octicons-arrow-up-16: :octicons-arrow-down-16: :octicons-arrow-right-16:== buttons in the toolbar)
+- **:material-magnify: Zooming** can be done by using the mousewheel on the photo (or the ==:octicons-zoom-in-16::octicons-zoom-out-16:== buttons in the toolbar)
+- **:material-cursor-move: Panning** can be done by clicking and dragging the photo (or the ==:octicons-arrow-left-16::octicons-arrow-up-16::octicons-arrow-down-16::octicons-arrow-right-16:== buttons in the toolbar)
 - **:material-crop: Cropping** is based on the zoom and pan of the photo - what you see in the photo editor is how the photo will be cropped
 
 !!! note
@@ -112,19 +112,19 @@ Edits to a photo can be saved using the ==Save== button. Edits can be reset back
 
 Edits can also be reverted by opening the drop-down menu and selecting ==:octicons-undo-16: Revert to original== in the project screen.
 
-You can load the previous or next photo in the stack the current photo is in using the ==:octicons-chevron-left-16: :octicons-chevron-right-16: arrow buttons==. Moving the current photo to a different stack while it is open in an editor screen will load the previous and next photos in the new stack once clicked.
+You can load the previous or next photo in the stack the current photo is in using the ==:octicons-chevron-left-16::octicons-chevron-right-16: arrow buttons==. Moving the current photo to a different stack while it is open in an editor screen will load the previous and next photos in the new stack once clicked.
 
 Multiple photo editor windows can be open at the same time so you can compare photos side-by-side.
 
 ### Loupe
 
-![Edit screen of the app with the loupe enabled](../assets/images/editor-loupe.png?v1){ width="700" }
+![Edit screen of the app with the loupe enabled](../assets/images/editor-loupe.png?v2){ width="700" }
 
 A loupe can be toggled using the ==:octicons-codescan-16: loupe toggle button== in the toolbar. It will follow your cursor and allow you to see more details in the photo without having to zoom in and out.
 
 ### Edge detection
 
-![Edit screen of the app with edge detection enabled](../assets/images/editor-edge-detection.png?v1){ width="700" }
+![Edit screen of the app with edge detection enabled](../assets/images/editor-edge-detection.png?v2){ width="700" }
 
 Edge detection can be enabled to more easily identify marks in photos.
 
@@ -138,7 +138,7 @@ Projects are auto-saved whenever changes are made in the project or photo editor
 
 ## Settings
 
-The settings menu can be opened selecting the ==:octicons-gear-16: Settings== button on the home page, using the [keyboard shortcut](./keyboard-shortcuts.md), or by using the menu bar option.
+The settings menu can be opened by selecting the ==:octicons-gear-16: Settings== button on the home page, using the [keyboard shortcut](./keyboard-shortcuts.md), or by using the menu bar option.
 
 These settings are global (i.e. the same for all projects) and per-user on your system.
 
@@ -146,4 +146,4 @@ For information on how we handle data and optional telemetry, see our [privacy p
 
 ## Notes
 
-Original photos are never modified in any way, and every effort has been made to be sure the app never unintentionally affects your original photos. However, please ensure you always have backups of your original photos regardless!
+Original photos are never modified in any way, and every effort has been made to ensure the app never unintentionally affects your original photos. However, please ensure you always have backups of your original photos regardless!

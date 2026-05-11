@@ -7,11 +7,11 @@ This is a quick reference for the terms used in the app's interface and througho
 
 ## Project
 
-A self-contained working folder for one set of photos. Backed by a `project.photoid` file plus a `thumbnails/` folder, both stored alongside your photos. The folder is portable: you can move, copy, rename, or zip it (including across macOS, Windows, and Linux) and it will still open.
+A self-contained working folder for one set of photos. Made up of a `project.photoid` file and a `thumbnails/` folder, both stored alongside your photos. The folder is portable: you can move, copy, rename, or zip it (including across macOS, Windows, and Linux) and it will still open.
 
 ## Stack
 
-A collection of photos. Each stack shows one photo at a time, with arrow buttons to navigate. The total count of photos in the stack and the index of the currently displayed photo are shown in the bottom corners.
+A collection of photos. Each stack shows one photo at a time and can contain any number of photos, with arrow buttons to navigate. The total count of photos in the stack and the index of the currently displayed photo are shown in the bottom corners.
 
 ## Unassigned
 
@@ -31,15 +31,15 @@ The two sides of a matched pair, corresponding to the two sides of the animal be
 
 ## Page
 
-A group of matched-stack pairs. By default there are eight pairs per page. Tabs at the top of the project screen switch between pages. Number keys jump directly to a specific page.
+A group of matched-stack pairs. By default there are eight pairs per page. Tabs at the top of the project screen switch between pages. Number keys jump directly to a specific page. There is also a button to add more pages if needed.
 
 ## Match ID
 
-The label identifying a matched pair, used when exporting. By default this is a letter (`A`, `B`, `C`, etc.) derived from the pair's position. You can override it per side using the text field at the top of each stack. For example, entering `001` produces exports named `001L` and `001R` instead of `AL` and `AR`.
+The label identifying a matched pair, used when exporting. By default this is the letter (`A`, `B`, `C`, etc.) derived from the pair's position in the project. You can override it per side using the text field in the top-right of each stack. The match ID is prepended to the exported file name — for example, a photo `photo_1.jpg` in stack `A` (left) exports as `AL_photo_1.jpg` by default, or `001L_photo_1.jpg` if the ID is overridden to `001`.
 
 ## Edits
 
-Per-photo adjustments - brightness, contrast, saturation, zoom, and pan - applied in the editor. Edits are stored in the project file and applied when matched photos are exported. Original photos on disk are never modified.
+Per-photo adjustments - brightness, contrast, saturation, zoom, and pan - applied in the editor. Edits are stored in the project file and applied when matched photos are exported. Original photos are never modified.
 
 ## Loupe
 
@@ -55,4 +55,4 @@ An external service (e.g. a machine-learning model) configured in the app's sett
 
 ## Export
 
-The process of writing matched photos (and/or a CSV index) out to disk for use in another tool. Exports go into a `matched/` folder (photos) or a `data/matches.csv` file (CSV) inside the project folder.
+The process of writing matched photos (and/or a CSV index) for use in a catalogue or another tool. Exports go into a `matched/` folder (photos) or a `data/matches.csv` file (CSV) inside the project folder.

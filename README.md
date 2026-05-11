@@ -1,6 +1,6 @@
 # Photo ID App
 
-![Screenshots of the Photo ID app.](./docs/assets/images/banner.png?v3)
+![Screenshots of the Photo ID app.](./docs/assets/images/banner.png?v4)
 
 [![Test](https://github.com/CRRU-UK/photo-id-app/actions/workflows/main.yaml/badge.svg?branch=main)](https://github.com/CRRU-UK/photo-id-app/actions/workflows/main.yaml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=CRRU-UK_photo-id-app&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=CRRU-UK_photo-id-app)
@@ -20,9 +20,9 @@
 
 ## Introduction
 
-The Photo ID app is a multi-platform research tool that can be used for photo-identification methodologies such as in longitudinal mark-recapture studies. It allows for the grouping of photographs containing unique identification markings (such as the dorsal fins of cetaceans), includes tools for editing and visually filtering photographs to help with the identification of marks, and can be integrated with an analysis provider (such as a machine learning model) for convenient catalogue matching.
+The Photo ID app is a research tool that can be used for photo identification studies, such as in longitudinal mark-recapture research. It allows for the grouping of photographs containing unique identification markings (such as the dorsal fins of cetaceans), includes tools for editing and visually filtering photographs to help with the identification of marks, and can be integrated with an analysis provider (such as a machine learning model) for convenient catalogue matching.
 
-It supports Windows, macOS, and Linux.
+The app is cross-platform and supports Windows, macOS, and Linux.
 
 > [!TIP]
 > 📚 [Check out the documentation](https://photoidapp.crru.org.uk) for guides on how to install and use the app!
