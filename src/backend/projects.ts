@@ -118,15 +118,21 @@ const promptForProjectFile = async (): Promise<string | null> => {
   return event.filePaths[0];
 };
 
+export type ExistingProjectChoice = "new" | "existing" | "cancel";
+
 /**
- * Prompts the user when a project file already exists in the chosen directory. Returns `true` if
- * the caller should proceed to create a new project (user chose to overwrite), or `false` if the
- * existing project was opened or the user cancelled.
+ * Inspects a directory for a `.photoid` file. If found, prompts the user to open the existing
+ * project, replace it, or cancel. Returns "new" if the directory has no existing project file
+ * (no dialog needed). Run this BEFORE creating a target window so the user can cancel without
+ * leaving an empty window behind.
  */
-const handleExistingProjectFile = async (
-  projectWindow: Electron.BrowserWindow,
-  directory: string,
-): Promise<boolean> => {
+const checkExistingProjectChoice = async (directory: string): Promise<ExistingProjectChoice> => {
+  const files = await fs.promises.readdir(directory);
+
+  if (!files.includes(PROJECT_FILE_NAME)) {
+    return "new";
+  }
+
   const { response } = await dialog.showMessageBox({
     message: EXISTING_DATA_MESSAGE,
     type: "question",
@@ -134,46 +140,49 @@ const handleExistingProjectFile = async (
   });
 
   if (response === EXISTING_DATA_RESPONSE.CANCEL) {
-    return false;
+    return "cancel";
   }
 
   if (response === EXISTING_DATA_RESPONSE.OPEN_EXISTING) {
-    try {
-      const filePath = path.join(directory, PROJECT_FILE_NAME);
-      const body = await parseProjectFile(filePath);
-      sendData(projectWindow, body, directory);
-    } catch (error) {
-      console.error("Failed to load existing project file:", error);
-
-      const message =
-        error instanceof ZodError || error instanceof SyntaxError
-          ? CORRUPTED_DATA_MESSAGE
-          : String(error);
-
-      dialog.showErrorBox("Invalid project file", message);
-    }
-
-    return false;
+    return "existing";
   }
 
-  return true;
+  return "new";
 };
 
 /**
- * Processes a chosen project directory: handles the existing-project-file dialog, generates
- * thumbnails for new directories, writes the project file, and notifies the renderer. The caller
- * is responsible for choosing the directory (see `promptForProjectFolder`) and the window into
- * which the project should be loaded.
+ * Loads an existing project file from a directory (assumes `<directory>/project.photoid` exists
+ * and is valid) into the given window. Shows a user-friendly error dialog if the file is
+ * corrupted.
+ */
+const loadExistingProject = async (
+  projectWindow: Electron.BrowserWindow,
+  directory: string,
+): Promise<void> => {
+  try {
+    const filePath = path.join(directory, PROJECT_FILE_NAME);
+    const body = await parseProjectFile(filePath);
+    sendData(projectWindow, body, directory);
+  } catch (error) {
+    console.error("Failed to load existing project file:", error);
+
+    const message =
+      error instanceof ZodError || error instanceof SyntaxError
+        ? CORRUPTED_DATA_MESSAGE
+        : String(error);
+
+    dialog.showErrorBox("Invalid project file", message);
+  }
+};
+
+/**
+ * Creates a new project in a directory: scans for image files, generates thumbnails, writes the
+ * `.photoid` file, and notifies the renderer. The caller is responsible for choosing the
+ * directory and the target window, and for resolving the existing-project-file choice up-front
+ * via `checkExistingProjectChoice`.
  */
 const processProjectFolder = async (projectWindow: Electron.BrowserWindow, directory: string) => {
   const files = await fs.promises.readdir(directory);
-
-  if (files.includes(PROJECT_FILE_NAME)) {
-    const shouldCreateNew = await handleExistingProjectFile(projectWindow, directory);
-    if (!shouldCreateNew) {
-      return;
-    }
-  }
 
   projectWindow.webContents.send(IPC_EVENTS.SET_LOADING, {
     show: true,
@@ -464,12 +473,14 @@ const handleEditorNavigate = async (
 };
 
 export {
+  checkExistingProjectChoice,
   findPhotoInProject,
   handleDuplicatePhotoFile,
   handleEditorNavigate,
   handleFlushSaveProject,
   handleOpenProjectFile,
   handleSaveProject,
+  loadExistingProject,
   processProjectFolder,
   promptForProjectFile,
   promptForProjectFolder,

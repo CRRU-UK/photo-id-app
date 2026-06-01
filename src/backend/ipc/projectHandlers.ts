@@ -10,9 +10,11 @@ import {
 import { handleExportMatches } from "@/backend/exports";
 import { focusExistingWindow, getWindowFromSender } from "@/backend/ipc/shared";
 import {
+  checkExistingProjectChoice,
   handleFlushSaveProject,
   handleOpenProjectFile,
   handleSaveProject,
+  loadExistingProject,
   parseProjectFile,
   processProjectFolder,
   promptForProjectFile,
@@ -76,8 +78,19 @@ export const openProjectFolderForWindow = async (senderWindow: BrowserWindow): P
       return;
     }
 
+    // Resolve the existing-data choice BEFORE creating a target window
+    const choice = await checkExistingProjectChoice(directory);
+    if (choice === "cancel") {
+      return;
+    }
+
     const targetWindow = await resolveTargetWindow(senderWindow);
-    await processProjectFolder(targetWindow, directory);
+
+    if (choice === "existing") {
+      return await loadExistingProject(targetWindow, directory);
+    }
+
+    return await processProjectFolder(targetWindow, directory);
   } catch (error) {
     console.error("Failed to open folder:", error);
     dialog.showErrorBox("Failed to open folder", String(error));

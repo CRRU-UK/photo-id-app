@@ -21,6 +21,10 @@ vi.mock("electron", () => ({
 
 const mockProcessProjectFolder =
   vi.fn<(window: BrowserWindow, directory: string) => Promise<void>>();
+const mockCheckExistingProjectChoice =
+  vi.fn<(directory: string) => Promise<"new" | "existing" | "cancel">>();
+const mockLoadExistingProject =
+  vi.fn<(window: BrowserWindow, directory: string) => Promise<void>>();
 const mockPromptForProjectFolder = vi.fn<() => Promise<string | null>>();
 const mockPromptForProjectFile = vi.fn<() => Promise<string | null>>();
 const mockHandleOpenProjectFile =
@@ -41,6 +45,10 @@ vi.mock("@/backend/exports", () => ({
 vi.mock("@/backend/projects", () => ({
   processProjectFolder: (...args: Parameters<typeof mockProcessProjectFolder>) =>
     mockProcessProjectFolder(...args),
+  checkExistingProjectChoice: (...args: Parameters<typeof mockCheckExistingProjectChoice>) =>
+    mockCheckExistingProjectChoice(...args),
+  loadExistingProject: (...args: Parameters<typeof mockLoadExistingProject>) =>
+    mockLoadExistingProject(...args),
   promptForProjectFolder: () => mockPromptForProjectFolder(),
   promptForProjectFile: () => mockPromptForProjectFile(),
   handleOpenProjectFile: (...args: Parameters<typeof mockHandleOpenProjectFile>) =>
@@ -138,6 +146,8 @@ describe("project IPC handlers", () => {
     // No project is "already open" by default; tests that exercise the focus-existing path
     // override this explicitly.
     mockFindWindowForProject.mockReturnValue(null);
+    // Default behaviour: the chosen folder has no pre-existing project file.
+    mockCheckExistingProjectChoice.mockResolvedValue("new");
   });
 
   describe(handleOpenFolder, () => {
@@ -212,6 +222,35 @@ describe("project IPC handlers", () => {
       expect(mockFocusExistingWindow).toHaveBeenCalledWith(existingWindow);
       expect(mockProcessProjectFolder).not.toHaveBeenCalled();
       expect(mockCreateProjectWindow).not.toHaveBeenCalled();
+    });
+
+    it("loads the existing project when the folder already has a project file", async () => {
+      const senderWindow = createMockWindow();
+      const newWindow = createMockWindow();
+      mockGetProjectWindowForSender.mockReturnValue(senderWindow);
+      mockGetDirectoryForWindow.mockReturnValue("/existing/project");
+      mockCreateProjectWindow.mockResolvedValue(newWindow);
+      mockPromptForProjectFolder.mockResolvedValue("/my/project");
+      mockCheckExistingProjectChoice.mockResolvedValue("existing");
+
+      await handleOpenFolder(createMockEvent(senderWindow));
+
+      expect(mockLoadExistingProject).toHaveBeenCalledWith(newWindow, "/my/project");
+      expect(mockProcessProjectFolder).not.toHaveBeenCalled();
+    });
+
+    it("does not create a window when the user cancels the existing-data dialog", async () => {
+      const senderWindow = createMockWindow();
+      mockGetProjectWindowForSender.mockReturnValue(senderWindow);
+      mockGetDirectoryForWindow.mockReturnValue("/existing/project");
+      mockPromptForProjectFolder.mockResolvedValue("/my/project");
+      mockCheckExistingProjectChoice.mockResolvedValue("cancel");
+
+      await handleOpenFolder(createMockEvent(senderWindow));
+
+      expect(mockCreateProjectWindow).not.toHaveBeenCalled();
+      expect(mockProcessProjectFolder).not.toHaveBeenCalled();
+      expect(mockLoadExistingProject).not.toHaveBeenCalled();
     });
   });
 

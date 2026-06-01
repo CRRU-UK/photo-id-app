@@ -70,12 +70,14 @@ vi.mock("@/backend/WindowManager", () => ({
 }));
 
 const {
+  checkExistingProjectChoice,
   findPhotoInProject,
   handleDuplicatePhotoFile,
   handleEditorNavigate,
   handleFlushSaveProject,
   handleOpenProjectFile,
   handleSaveProject,
+  loadExistingProject,
   parseProjectFile,
   processProjectFolder,
   promptForProjectFile,
@@ -610,24 +612,62 @@ describe(promptForProjectFile, () => {
   });
 });
 
-describe(processProjectFolder, () => {
+describe(checkExistingProjectChoice, () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockWriteFile.mockResolvedValue(undefined);
-    mockLstat.mockResolvedValue({ isFile: () => true });
   });
 
-  it("loads existing project when user chooses to open existing data", async () => {
+  it("returns 'new' when the directory has no existing project file", async () => {
+    mockReaddir.mockResolvedValue(["photo1.jpg", "photo2.png"]);
+
+    const result = await checkExistingProjectChoice("/my/project");
+
+    expect(result).toBe("new");
+  });
+
+  it("returns 'existing' when the user chooses to open existing data", async () => {
     const { dialog } = await import("electron");
     mockReaddir.mockResolvedValue([PROJECT_FILE_NAME, "photo.jpg"]);
     vi.mocked(dialog.showMessageBox).mockResolvedValue({ response: 1, checkboxChecked: false });
 
+    const result = await checkExistingProjectChoice("/my/project");
+
+    expect(result).toBe("existing");
+  });
+
+  it("returns 'new' when the user chooses to replace existing data", async () => {
+    const { dialog } = await import("electron");
+    mockReaddir.mockResolvedValue([PROJECT_FILE_NAME, "photo.jpg"]);
+    vi.mocked(dialog.showMessageBox).mockResolvedValue({ response: 2, checkboxChecked: false });
+
+    const result = await checkExistingProjectChoice("/my/project");
+
+    expect(result).toBe("new");
+  });
+
+  it("returns 'cancel' when the user cancels the dialog", async () => {
+    const { dialog } = await import("electron");
+    mockReaddir.mockResolvedValue([PROJECT_FILE_NAME, "photo.jpg"]);
+    vi.mocked(dialog.showMessageBox).mockResolvedValue({ response: 0, checkboxChecked: false });
+
+    const result = await checkExistingProjectChoice("/my/project");
+
+    expect(result).toBe("cancel");
+  });
+});
+
+describe(loadExistingProject, () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("parses the project file and sends it to the window", async () => {
     const project = createProject();
     mockReadFile.mockResolvedValue(JSON.stringify(project));
 
     const mainWindow = createMockMainWindow();
 
-    await processProjectFolder(mainWindow, "/my/project");
+    await loadExistingProject(mainWindow, "/my/project");
 
     expect(mainWindow.webContents.send).toHaveBeenCalledWith(
       IPC_EVENTS.LOAD_PROJECT,
@@ -635,19 +675,26 @@ describe(processProjectFolder, () => {
     );
   });
 
-  it("cancels when user dismisses the existing data dialog", async () => {
+  it("shows a corrupted-data error dialog when the project file is invalid JSON", async () => {
     const { dialog } = await import("electron");
-    mockReaddir.mockResolvedValue([PROJECT_FILE_NAME, "photo.jpg"]);
-    vi.mocked(dialog.showMessageBox).mockResolvedValue({ response: 0, checkboxChecked: false });
+    mockReadFile.mockResolvedValue("not valid json {{{");
 
     const mainWindow = createMockMainWindow();
 
-    await processProjectFolder(mainWindow, "/my/project");
+    await loadExistingProject(mainWindow, "/my/project");
 
-    expect(mainWindow.webContents.send).not.toHaveBeenCalledWith(
-      IPC_EVENTS.LOAD_PROJECT,
-      expect.anything(),
+    expect(dialog.showErrorBox).toHaveBeenCalledWith(
+      "Invalid project file",
+      expect.stringContaining("corrupted"),
     );
+  });
+});
+
+describe(processProjectFolder, () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockWriteFile.mockResolvedValue(undefined);
+    mockLstat.mockResolvedValue({ isFile: () => true });
   });
 
   it("creates a new project when the directory has no existing data file", async () => {
@@ -669,27 +716,6 @@ describe(processProjectFolder, () => {
       "utf8",
     );
 
-    expect(mainWindow.webContents.send).toHaveBeenCalledWith(
-      IPC_EVENTS.LOAD_PROJECT,
-      expect.objectContaining({ directory: "/my/project" }),
-    );
-  });
-
-  it("creates a new project when user chooses to overwrite existing data", async () => {
-    const { dialog } = await import("electron");
-    mockReaddir.mockResolvedValue([PROJECT_FILE_NAME, "photo.jpg"]);
-    vi.mocked(dialog.showMessageBox).mockResolvedValue({ response: 2, checkboxChecked: false });
-    mockExistsSync.mockReturnValue(false);
-
-    const mainWindow = createMockMainWindow();
-
-    await processProjectFolder(mainWindow, "/my/project");
-
-    expect(mockWriteFile).toHaveBeenCalledWith(
-      expect.stringContaining(PROJECT_FILE_NAME),
-      expect.any(String),
-      "utf8",
-    );
     expect(mainWindow.webContents.send).toHaveBeenCalledWith(
       IPC_EVENTS.LOAD_PROJECT,
       expect.objectContaining({ directory: "/my/project" }),

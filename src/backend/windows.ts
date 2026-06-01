@@ -43,12 +43,17 @@ export const createProjectWindow = async (
     width: 1200,
     height: 800,
     title: DEFAULT_WINDOW_TITLE,
+    show: false,
     webPreferences: defaultWebPreferences,
   });
 
-  if (options.maximize) {
-    window.maximize();
-  }
+  window.once("ready-to-show", () => {
+    if (options.maximize) {
+      window.maximize();
+    }
+
+    window.show();
+  });
 
   windowManager.registerProjectWindow(window);
 
