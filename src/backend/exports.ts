@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { stringify } from "csv-stringify/sync";
 import { renderFullImageWithEdits } from "@/backend/imageRenderer";
-import { getCurrentProjectDirectory, resolvePhotoPath } from "@/backend/projects";
+import { resolvePhotoPath } from "@/backend/projects";
 import {
   IPC_EVENTS,
   PROJECT_EXPORT_CSV_FILE_NAME,
@@ -146,21 +146,17 @@ const exportMatchesAsPhotos = async (
 };
 
 /**
- * Handles exporting matches.
+ * Handles exporting matches. The caller supplies the directory (resolved from the sender's
+ * project window) so this module does not need to read global state.
  */
 export const handleExportMatches = async (
   mainWindow: Electron.BrowserWindow,
+  directory: string,
   data: string,
   type: ExportTypes,
 ): Promise<string> => {
   const json: unknown = JSON.parse(data);
   const project = projectBodySchema.parse(json);
-
-  const directory = getCurrentProjectDirectory();
-
-  if (directory === null) {
-    throw new Error("No project open");
-  }
 
   if (type === "csv") {
     return exportMatchesAsCSV(mainWindow, project, directory);

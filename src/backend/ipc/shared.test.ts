@@ -16,27 +16,27 @@ vi.mock("electron", () => ({
   },
 }));
 
-const mockSetCurrentProject = vi.fn<(directory: string | null) => void>();
-const mockGetCurrentProjectDirectory = vi.fn<() => string | null>();
 const mockHandleOpenProjectFile =
   vi.fn<(window: BrowserWindow, filePath: string) => Promise<void>>();
 
 vi.mock("@/backend/projects", () => ({
-  setCurrentProject: (...args: Parameters<typeof mockSetCurrentProject>) =>
-    mockSetCurrentProject(...args),
-  getCurrentProjectDirectory: () => mockGetCurrentProjectDirectory(),
   handleOpenProjectFile: (...args: Parameters<typeof mockHandleOpenProjectFile>) =>
     mockHandleOpenProjectFile(...args),
 }));
 
-const mockCloseAllEditWindows = vi.fn<() => void>();
-const mockGetMainWindow = vi.fn<() => BrowserWindow | null>();
+const mockFindIdleProjectWindow = vi.fn<() => BrowserWindow | null>();
 
 vi.mock("@/backend/WindowManager", () => ({
   windowManager: {
-    closeAllEditWindows: () => mockCloseAllEditWindows(),
-    getMainWindow: () => mockGetMainWindow(),
+    findIdleProjectWindow: () => mockFindIdleProjectWindow(),
   },
+}));
+
+const mockCreateProjectWindow = vi.fn<() => Promise<BrowserWindow>>();
+
+vi.mock("@/backend/windows", () => ({
+  createProjectWindow: (...args: Parameters<typeof mockCreateProjectWindow>) =>
+    mockCreateProjectWindow(...args),
 }));
 
 const createMockWindow = (): BrowserWindow =>
@@ -50,9 +50,8 @@ const createMockWindow = (): BrowserWindow =>
 
 const {
   getWindowFromSender,
-  closeCurrentProject,
   broadcastToAllWindows,
-  findPhotoidArg,
+  findProjectFileArg,
   openProjectFromPath,
   resolveExternalLinkUrl,
   withErrorDialog,
@@ -84,39 +83,6 @@ describe("shared IPC utilities", () => {
     });
   });
 
-  describe(closeCurrentProject, () => {
-    it("resets the current project to null", () => {
-      mockGetMainWindow.mockReturnValue(null);
-
-      closeCurrentProject();
-
-      expect(mockSetCurrentProject).toHaveBeenCalledWith(null);
-    });
-
-    it("closes all edit windows", () => {
-      mockGetMainWindow.mockReturnValue(null);
-
-      closeCurrentProject();
-
-      expect(mockCloseAllEditWindows).toHaveBeenCalledWith();
-    });
-
-    it("resets the main window title when a main window exists", () => {
-      const mockWindow = createMockWindow();
-      mockGetMainWindow.mockReturnValue(mockWindow);
-
-      closeCurrentProject();
-
-      expect(mockWindow.setTitle).toHaveBeenCalledWith("Photo ID");
-    });
-
-    it("does not throw when there is no main window", () => {
-      mockGetMainWindow.mockReturnValue(null);
-
-      expect(() => closeCurrentProject()).not.toThrow();
-    });
-  });
-
   describe(broadcastToAllWindows, () => {
     it("sends the event to all open windows", () => {
       const window1 = createMockWindow();
@@ -136,11 +102,11 @@ describe("shared IPC utilities", () => {
     });
   });
 
-  describe(findPhotoidArg, () => {
+  describe(findProjectFileArg, () => {
     it("returns the .photoid argument from argv", () => {
       const argv = ["/usr/bin/app", "--flag", "/path/to/project.photoid"];
 
-      const result = findPhotoidArg(argv);
+      const result = findProjectFileArg(argv);
 
       expect(result).toBe("/path/to/project.photoid");
     });
@@ -148,7 +114,7 @@ describe("shared IPC utilities", () => {
     it("returns undefined when no .photoid argument is present", () => {
       const argv = ["/usr/bin/app", "--flag", "other-file.txt"];
 
-      const result = findPhotoidArg(argv);
+      const result = findProjectFileArg(argv);
 
       expect(result).toBeUndefined();
     });
@@ -156,56 +122,39 @@ describe("shared IPC utilities", () => {
     it("returns the first .photoid match when multiple exist", () => {
       const argv = ["first.photoid", "second.photoid"];
 
-      const result = findPhotoidArg(argv);
+      const result = findProjectFileArg(argv);
 
       expect(result).toBe("first.photoid");
     });
   });
 
   describe(openProjectFromPath, () => {
-    it("does nothing when there is no main window", async () => {
-      mockGetMainWindow.mockReturnValue(null);
-
-      await openProjectFromPath("/path/to/project.photoid");
-
-      expect(mockHandleOpenProjectFile).not.toHaveBeenCalled();
-    });
-
-    it("opens the project file in the main window", async () => {
-      const mockWindow = createMockWindow();
-      mockGetMainWindow.mockReturnValue(mockWindow);
-      mockGetCurrentProjectDirectory.mockReturnValue(null);
+    it("reuses an idle project window when one exists", async () => {
+      const idleWindow = createMockWindow();
+      mockFindIdleProjectWindow.mockReturnValue(idleWindow);
       mockHandleOpenProjectFile.mockResolvedValue(undefined);
 
       await openProjectFromPath("/path/to/project.photoid");
 
+      expect(mockCreateProjectWindow).not.toHaveBeenCalled();
       expect(mockHandleOpenProjectFile).toHaveBeenCalledWith(
-        mockWindow,
+        idleWindow,
         "/path/to/project.photoid",
       );
+      expect(idleWindow.focus).toHaveBeenCalledWith();
     });
 
-    it("closes the current project before opening a new one", async () => {
-      const mockWindow = createMockWindow();
-      mockGetMainWindow.mockReturnValue(mockWindow);
-      mockGetCurrentProjectDirectory.mockReturnValue("/existing/project");
-      mockHandleOpenProjectFile.mockResolvedValue(undefined);
-
-      await openProjectFromPath("/new/project.photoid");
-
-      expect(mockSetCurrentProject).toHaveBeenCalledWith(null);
-      expect(mockCloseAllEditWindows).toHaveBeenCalledWith();
-    });
-
-    it("focuses the main window after opening the project", async () => {
-      const mockWindow = createMockWindow();
-      mockGetMainWindow.mockReturnValue(mockWindow);
-      mockGetCurrentProjectDirectory.mockReturnValue(null);
+    it("creates a new window when no idle window exists", async () => {
+      const newWindow = createMockWindow();
+      mockFindIdleProjectWindow.mockReturnValue(null);
+      mockCreateProjectWindow.mockResolvedValue(newWindow);
       mockHandleOpenProjectFile.mockResolvedValue(undefined);
 
       await openProjectFromPath("/path/to/project.photoid");
 
-      expect(mockWindow.focus).toHaveBeenCalledWith();
+      expect(mockCreateProjectWindow).toHaveBeenCalledWith();
+      expect(mockHandleOpenProjectFile).toHaveBeenCalledWith(newWindow, "/path/to/project.photoid");
+      expect(newWindow.focus).toHaveBeenCalledWith();
     });
   });
 

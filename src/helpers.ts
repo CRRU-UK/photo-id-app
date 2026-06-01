@@ -158,6 +158,15 @@ export const isEditWindow = (hash: string): boolean => hash.startsWith(`#${ROUTE
 export const stripWhitespace = (value: string): string => value.replaceAll(/\s+/g, "");
 
 /**
+ * Returns the last path segment of a project directory (the user-visible project name). Works in
+ * the renderer (no `node:path` available) by splitting on POSIX and Windows separators.
+ */
+export const getProjectDirectoryName = (directory: string): string => {
+  const segments = directory.split(/[/\\]/).filter(Boolean);
+  return segments.at(-1) ?? directory;
+};
+
+/**
  * Returns the parent directory of a recent project's `.photoid` file (i.e. drops both the project
  * file name and the project folder name) for display in the recent projects list. Handles POSIX
  * and Windows separators. Falls back to the input if there are fewer than two segments to drop.

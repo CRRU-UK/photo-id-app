@@ -10,6 +10,7 @@ import {
   upsertAnalysisProvider,
 } from "@/backend/settings";
 import { deleteToken, getToken, isEncryptionAvailable, saveToken } from "@/backend/tokens";
+import { windowManager } from "@/backend/WindowManager";
 import { IPC_EVENTS } from "@/constants";
 import { analysisProviderDraftSchema, analysisProviderSchema, photoBodySchema } from "@/schemas";
 import type {
@@ -68,9 +69,14 @@ export const handleDeleteAnalysisProvider = async (
 };
 
 export const handleAnalyseMatches = async (
-  _event: IpcMainInvokeEvent,
+  event: IpcMainInvokeEvent,
   photos: PhotoBody[],
 ): Promise<AnalysisMatchResponse | null> => {
+  const directory = windowManager.getDirectoryForSender(event.sender);
+  if (directory === null) {
+    throw new Error("No project open");
+  }
+
   const validatedPhotos = photos.map((photo) => photoBodySchema.parse(photo));
 
   const settings = await getSettings();
@@ -90,6 +96,7 @@ export const handleAnalyseMatches = async (
   }
 
   return analyseMatches({
+    directory,
     photos: validatedPhotos,
     settings: { endpoint: selectedProvider.endpoint, token },
   });

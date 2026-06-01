@@ -17,11 +17,11 @@ import { registerEditorHandlers } from "@/backend/ipc/editorHandlers";
 import { registerPhotoHandlers } from "@/backend/ipc/photoHandlers";
 import { registerProjectHandlers } from "@/backend/ipc/projectHandlers";
 import { registerSettingsHandlers } from "@/backend/ipc/settingsHandlers";
-import { findPhotoidArg, openProjectFromPath } from "@/backend/ipc/shared";
+import { findProjectFileArg, openProjectFromPath } from "@/backend/ipc/shared";
 import { getMenu } from "@/backend/menu";
-import { getCurrentProjectDirectory } from "@/backend/projects";
 import { initSentry } from "@/backend/settings";
 import { windowManager } from "@/backend/WindowManager";
+import { basePath, createProjectWindow, defaultWebPreferences } from "@/backend/windows";
 import { CSP_HEADERS, PHOTO_FILE_EXTENSIONS, PHOTO_PROTOCOL_SCHEME } from "@/constants";
 
 /**
@@ -69,75 +69,8 @@ if (!gotTheLock) {
   app.quit();
 }
 
-// Stores .photoid file paths received before the main window is ready (macOS open-file or argv)
+// Stores .photoid file paths received before any window is ready (macOS open-file or argv)
 const pendingFilePaths: string[] = [];
-
-const defaultWebPreferences = {
-  preload: path.join(__dirname, "preload.js"),
-  nodeIntegration: false,
-  contextIsolation: true,
-  webSecurity: true,
-  sandbox: true,
-  allowRunningInsecureContent: false,
-};
-
-const basePath = path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`);
-
-const createMainWindow = async () => {
-  const mainWindow = new BrowserWindow({
-    width: 1200,
-    height: 800,
-    webPreferences: defaultWebPreferences,
-  });
-
-  mainWindow.maximize();
-
-  mainWindow.on("closed", () => app.quit());
-  windowManager.setMainWindow(mainWindow);
-
-  if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
-    await mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
-  } else {
-    await mainWindow.loadURL(
-      url.format({
-        protocol: "file",
-        slashes: true,
-        pathname: basePath,
-      }),
-    );
-  }
-
-  mainWindow.webContents.on("did-create-window", (window) => {
-    window.webContents.once("dom-ready", () => {
-      if (!production && !process.env.E2E) {
-        window.webContents.openDevTools();
-      }
-    });
-  });
-
-  mainWindow.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
-
-  // Block navigation to arbitrary URLs so a compromised renderer cannot leave the app origin
-  mainWindow.webContents.on("will-navigate", (event, navigationUrl) => {
-    if (
-      MAIN_WINDOW_VITE_DEV_SERVER_URL &&
-      navigationUrl.startsWith(MAIN_WINDOW_VITE_DEV_SERVER_URL)
-    ) {
-      return;
-    }
-
-    if (!navigationUrl.startsWith("file:")) {
-      event.preventDefault();
-    }
-  });
-
-  const menu = Menu.buildFromTemplate(getMenu(mainWindow));
-  Menu.setApplicationMenu(menu);
-
-  if (!production && !process.env.E2E) {
-    mainWindow.webContents.openDevTools();
-  }
-};
 
 /**
  * macOS: fires when a `.photoid` file is opened (may fire before `whenReady`).
@@ -145,8 +78,7 @@ const createMainWindow = async () => {
 app.on("open-file", async (event, filePath) => {
   event.preventDefault();
 
-  const mainWindow = windowManager.getMainWindow();
-  if (mainWindow) {
+  if (windowManager.hasOpenProjectWindows()) {
     try {
       await openProjectFromPath(filePath);
     } catch (error) {
@@ -164,7 +96,7 @@ app.on("open-file", async (event, filePath) => {
  * Windows/Linux: fires when a second instance is launched with a file argument.
  */
 app.on("second-instance", async (_event, argv) => {
-  const filePath = findPhotoidArg(argv);
+  const filePath = findProjectFileArg(argv);
 
   if (filePath) {
     try {
@@ -184,7 +116,7 @@ app.on("window-all-closed", () => {
 
 app.on("activate", async () => {
   if (BrowserWindow.getAllWindows().length === 0) {
-    await createMainWindow();
+    await createProjectWindow({ maximize: true });
   }
 });
 
@@ -240,10 +172,16 @@ void app.whenReady().then(async () => {
   // See: https://github.com/electron/electron/pull/51152
   const corsHeaders = { "Access-Control-Allow-Origin": "*" };
 
+  /**
+   * `photo://` protocol handler. Validates that the requested file path lies inside one of the
+   * currently-open project directories (any window's project, under the existing trust model all
+   * open projects are equally user-authorised) and that the extension is on the allow-list. See
+   * SECURITY.md for the rationale behind the "any open project" validation model.
+   */
   protocol.handle(PHOTO_PROTOCOL_SCHEME, async (request) => {
     try {
-      const projectDirectory = getCurrentProjectDirectory();
-      if (!projectDirectory) {
+      const openDirectories = windowManager.getAllProjectDirectories();
+      if (openDirectories.size === 0) {
         return new Response(null, { status: 403, headers: corsHeaders });
       }
 
@@ -255,8 +193,12 @@ void app.whenReady().then(async () => {
         return new Response(null, { status: 403, headers: corsHeaders });
       }
 
-      const resolvedProjectDirectory = path.resolve(projectDirectory);
-      if (!filePath.startsWith(resolvedProjectDirectory + path.sep)) {
+      const isInsideOpenProject = Array.from(openDirectories).some((directory) => {
+        const resolved = path.resolve(directory);
+        return filePath.startsWith(resolved + path.sep);
+      });
+
+      if (!isInsideOpenProject) {
         return new Response(null, { status: 403, headers: corsHeaders });
       }
 
@@ -285,22 +227,27 @@ void app.whenReady().then(async () => {
   registerSettingsHandlers(ipcMain);
   registerAnalysisHandlers(ipcMain);
 
-  await createMainWindow();
+  // Install the application menu once at app ready. Click handlers resolve the focused window at
+  // click time, so the same menu serves every window.
+  Menu.setApplicationMenu(Menu.buildFromTemplate(getMenu()));
+
+  await createProjectWindow({ maximize: true });
 
   /**
-   * Handle file path from macOS open-file event that fired before the window was ready (only the
-   * last path is opened if multiple events fired before the window was ready)
+   * Handle file paths queued before any window was ready (macOS open-file event firing before
+   * `whenReady`, plus the file path that the OS passed via argv on Windows/Linux). The first
+   * pending path loads into the initial empty window; any additional paths get their own windows.
+   * `openProjectFromPath` reuses an idle window when one exists, so order matters.
    */
-  const pendingFilePath = pendingFilePaths.pop();
+  const queuedPaths = [...pendingFilePaths];
   pendingFilePaths.length = 0;
 
-  if (pendingFilePath) {
-    await openProjectFromPath(pendingFilePath);
+  const argvFilePath = findProjectFileArg(process.argv);
+  if (argvFilePath && !queuedPaths.includes(argvFilePath)) {
+    queuedPaths.push(argvFilePath);
   }
 
-  // Handle file path from argv (Windows/Linux: app launched via file association)
-  const argvFilePath = findPhotoidArg(process.argv);
-  if (argvFilePath) {
-    await openProjectFromPath(argvFilePath);
+  for (const queuedPath of queuedPaths) {
+    await openProjectFromPath(queuedPath);
   }
 });

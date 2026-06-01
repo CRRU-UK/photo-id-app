@@ -1,7 +1,7 @@
 import path from "node:path";
 
 import { renderApiImage } from "@/backend/imageRenderer";
-import { getCurrentProjectDirectory, resolvePhotoPath } from "@/backend/projects";
+import { resolvePhotoPath } from "@/backend/projects";
 import { ANALYSIS_API_REQUEST_TIMEOUT_MS } from "@/constants";
 import { analysisMatchResponseSchema } from "@/schemas";
 import type { AnalysisMatchResponse, PhotoBody } from "@/types";
@@ -12,6 +12,7 @@ type AnalyseMatchesSettings = {
 };
 
 type AnalyseMatchesOptions = {
+  directory: string;
   photos: PhotoBody[];
   settings: AnalyseMatchesSettings;
 };
@@ -129,17 +130,12 @@ const normaliseRequestError = (
  * via cancelAnalyseMatches.
  */
 const analyseMatches = async ({
+  directory,
   photos,
   settings,
 }: AnalyseMatchesOptions): Promise<AnalysisMatchResponse | null> => {
   if (photos.length === 0) {
     throw new Error("No photos to analyse");
-  }
-
-  const directory = getCurrentProjectDirectory();
-
-  if (directory === null) {
-    throw new Error("No project open");
   }
 
   if (currentAbortController) {

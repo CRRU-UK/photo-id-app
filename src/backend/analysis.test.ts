@@ -12,7 +12,6 @@ vi.mock("@/backend/imageRenderer", () => ({
 
 vi.mock("@/backend/projects", () => ({
   resolvePhotoPath: (_directory: string, fileName: string) => `/project/${fileName}`,
-  getCurrentProjectDirectory: () => "/project",
 }));
 
 const mockFetch = vi.fn<typeof fetch>();
@@ -48,7 +47,11 @@ describe(analyseMatches, () => {
   it("returns ranked matches on a successful response", async () => {
     mockFetch.mockResolvedValue(new Response(JSON.stringify(successResponse), { status: 200 }));
 
-    const result = await analyseMatches({ photos: [defaultPhoto], settings: defaultSettings });
+    const result = await analyseMatches({
+      directory: "/project",
+      photos: [defaultPhoto],
+      settings: defaultSettings,
+    });
 
     expect(result).toStrictEqual(successResponse);
   });
@@ -63,7 +66,11 @@ describe(analyseMatches, () => {
     };
     mockFetch.mockResolvedValue(new Response(JSON.stringify(unorderedResponse), { status: 200 }));
 
-    const result = await analyseMatches({ photos: [defaultPhoto], settings: defaultSettings });
+    const result = await analyseMatches({
+      directory: "/project",
+      photos: [defaultPhoto],
+      settings: defaultSettings,
+    });
 
     expect(result?.matches.map(({ rank }) => rank)).toStrictEqual([1, 2, 3]);
   });
@@ -71,7 +78,11 @@ describe(analyseMatches, () => {
   it("sends a POST to the endpoint /match URL", async () => {
     mockFetch.mockResolvedValue(new Response(JSON.stringify(successResponse), { status: 200 }));
 
-    await analyseMatches({ photos: [defaultPhoto], settings: defaultSettings });
+    await analyseMatches({
+      directory: "/project",
+      photos: [defaultPhoto],
+      settings: defaultSettings,
+    });
 
     expect(mockFetch).toHaveBeenCalledWith(
       "https://api.example.com/match",
@@ -83,7 +94,11 @@ describe(analyseMatches, () => {
     mockFetch.mockResolvedValue(new Response(JSON.stringify(successResponse), { status: 200 }));
 
     const settingsWithTrailingSlash = { ...defaultSettings, endpoint: "https://api.example.com/" };
-    await analyseMatches({ photos: [defaultPhoto], settings: settingsWithTrailingSlash });
+    await analyseMatches({
+      directory: "/project",
+      photos: [defaultPhoto],
+      settings: settingsWithTrailingSlash,
+    });
 
     const [url] = mockFetch.mock.calls[0];
 
@@ -93,7 +108,11 @@ describe(analyseMatches, () => {
   it("sends the Authorization bearer token header", async () => {
     mockFetch.mockResolvedValue(new Response(JSON.stringify(successResponse), { status: 200 }));
 
-    await analyseMatches({ photos: [defaultPhoto], settings: defaultSettings });
+    await analyseMatches({
+      directory: "/project",
+      photos: [defaultPhoto],
+      settings: defaultSettings,
+    });
 
     const [, callInit] = mockFetch.mock.calls[0] as unknown as [string, RequestInit];
     const headers = callInit.headers as Record<string, string>;
@@ -109,7 +128,11 @@ describe(analyseMatches, () => {
       edits: { brightness: 150, contrast: 80, saturate: 120, zoom: 2, pan: { x: 10, y: -5 } },
     };
 
-    await analyseMatches({ photos: [editedPhoto], settings: defaultSettings });
+    await analyseMatches({
+      directory: "/project",
+      photos: [editedPhoto],
+      settings: defaultSettings,
+    });
 
     expect(mockRenderApiImage).toHaveBeenCalledWith({
       sourcePath: "/project/photo.jpg",
@@ -121,7 +144,11 @@ describe(analyseMatches, () => {
     mockFetch.mockResolvedValue(new Response(JSON.stringify(successResponse), { status: 200 }));
 
     const secondPhoto: PhotoBody = { ...defaultPhoto, name: "photo2.jpg" };
-    await analyseMatches({ photos: [defaultPhoto, secondPhoto], settings: defaultSettings });
+    await analyseMatches({
+      directory: "/project",
+      photos: [defaultPhoto, secondPhoto],
+      settings: defaultSettings,
+    });
 
     expect(mockRenderApiImage).toHaveBeenCalledTimes(2);
   });
@@ -132,7 +159,7 @@ describe(analyseMatches, () => {
     );
 
     await expect(
-      analyseMatches({ photos: [defaultPhoto], settings: defaultSettings }),
+      analyseMatches({ directory: "/project", photos: [defaultPhoto], settings: defaultSettings }),
     ).rejects.toThrow("Invalid or missing token");
   });
 
@@ -144,7 +171,7 @@ describe(analyseMatches, () => {
     );
 
     await expect(
-      analyseMatches({ photos: [defaultPhoto], settings: defaultSettings }),
+      analyseMatches({ directory: "/project", photos: [defaultPhoto], settings: defaultSettings }),
     ).rejects.toThrow("could not be decoded as an image");
   });
 
@@ -152,7 +179,7 @@ describe(analyseMatches, () => {
     mockFetch.mockResolvedValue(new Response("Internal Server Error", { status: 503 }));
 
     await expect(
-      analyseMatches({ photos: [defaultPhoto], settings: defaultSettings }),
+      analyseMatches({ directory: "/project", photos: [defaultPhoto], settings: defaultSettings }),
     ).rejects.toThrow("HTTP 503");
   });
 
@@ -176,7 +203,11 @@ describe(analyseMatches, () => {
       });
     });
 
-    const promise = analyseMatches({ photos: [defaultPhoto], settings: defaultSettings });
+    const promise = analyseMatches({
+      directory: "/project",
+      photos: [defaultPhoto],
+      settings: defaultSettings,
+    });
     cancelAnalyseMatches();
 
     const result = await promise;
@@ -203,7 +234,11 @@ describe(analyseMatches, () => {
       });
     });
 
-    const promise = analyseMatches({ photos: [defaultPhoto], settings: defaultSettings });
+    const promise = analyseMatches({
+      directory: "/project",
+      photos: [defaultPhoto],
+      settings: defaultSettings,
+    });
     cancelAnalyseMatches();
 
     const result = await promise;
@@ -215,7 +250,7 @@ describe(analyseMatches, () => {
     mockFetch.mockRejectedValue(new Error("Network connection failed"));
 
     await expect(
-      analyseMatches({ photos: [defaultPhoto], settings: defaultSettings }),
+      analyseMatches({ directory: "/project", photos: [defaultPhoto], settings: defaultSettings }),
     ).rejects.toThrow("Network connection failed");
   });
 
@@ -223,16 +258,16 @@ describe(analyseMatches, () => {
     mockRenderApiImage.mockRejectedValue(new Error("Could not load image: file not found"));
 
     await expect(
-      analyseMatches({ photos: [defaultPhoto], settings: defaultSettings }),
+      analyseMatches({ directory: "/project", photos: [defaultPhoto], settings: defaultSettings }),
     ).rejects.toThrow("Could not load image: file not found");
 
     expect(mockFetch).not.toHaveBeenCalled();
   });
 
   it("throws when called with an empty photos array", async () => {
-    await expect(analyseMatches({ photos: [], settings: defaultSettings })).rejects.toThrow(
-      "No photos to analyse",
-    );
+    await expect(
+      analyseMatches({ directory: "/project", photos: [], settings: defaultSettings }),
+    ).rejects.toThrow("No photos to analyse");
 
     expect(mockFetch).not.toHaveBeenCalled();
   });
@@ -251,6 +286,7 @@ describe(analyseMatches, () => {
 
     const secondPhoto: PhotoBody = { ...defaultPhoto, name: "photo2.jpg" };
     const result = await analyseMatches({
+      directory: "/project",
       photos: [defaultPhoto, secondPhoto],
       settings: defaultSettings,
     });
@@ -269,7 +305,7 @@ describe(analyseMatches, () => {
     );
 
     await expect(
-      analyseMatches({ photos: [defaultPhoto], settings: defaultSettings }),
+      analyseMatches({ directory: "/project", photos: [defaultPhoto], settings: defaultSettings }),
     ).rejects.toThrow("The request timed out. The API took too long to respond.");
   });
 
@@ -278,7 +314,11 @@ describe(analyseMatches, () => {
 
     mockFetch.mockResolvedValue(new Response(JSON.stringify(successResponse), { status: 200 }));
 
-    await analyseMatches({ photos: [defaultPhoto], settings: defaultSettings });
+    await analyseMatches({
+      directory: "/project",
+      photos: [defaultPhoto],
+      settings: defaultSettings,
+    });
 
     const debugOutput = JSON.stringify(debugSpy.mock.calls);
 

@@ -1,19 +1,26 @@
 import path from "node:path";
-import { dialog, type IpcMainEvent, type IpcMainInvokeEvent, shell } from "electron";
+import {
+  type BrowserWindow,
+  dialog,
+  type IpcMainEvent,
+  type IpcMainInvokeEvent,
+  shell,
+} from "electron";
 
 import { handleExportMatches } from "@/backend/exports";
-import { closeCurrentProject, getWindowFromSender } from "@/backend/ipc/shared";
+import { getWindowFromSender } from "@/backend/ipc/shared";
 import {
-  getCurrentProjectDirectory,
   handleFlushSaveProject,
-  handleOpenDirectoryPrompt,
-  handleOpenFilePrompt,
   handleOpenProjectFile,
   handleSaveProject,
   parseProjectFile,
+  processProjectFolder,
+  promptForProjectFile,
+  promptForProjectFolder,
 } from "@/backend/projects";
 import { getRecentProjects, removeRecentProject } from "@/backend/recents";
 import { windowManager } from "@/backend/WindowManager";
+import { createProjectWindow } from "@/backend/windows";
 import {
   IPC_EVENTS,
   PROJECT_EXPORT_CSV_FILE_NAME,
@@ -23,45 +30,87 @@ import {
 } from "@/constants";
 import type { ExportTypes, ProjectPayload, RecentProject } from "@/types";
 
-export const handleOpenFolder = async (event: IpcMainEvent): Promise<void> => {
-  const window = getWindowFromSender(event.sender);
-  if (!window) {
-    return;
+/**
+ * Returns the window into which a newly-chosen project should load. If the sender already has a
+ * project loaded, a fresh window is created so the existing project isn't replaced. Otherwise the
+ * sender window itself is reused (it's on the index page).
+ */
+const resolveTargetWindow = async (senderWindow: BrowserWindow): Promise<BrowserWindow> => {
+  const senderHasProject = windowManager.getDirectoryForWindow(senderWindow) !== null;
+
+  if (senderHasProject) {
+    return createProjectWindow();
   }
 
+  return senderWindow;
+};
+
+/**
+ * Shows the folder picker and loads the chosen folder into either the sender window (if it has no
+ * project loaded) or a new window. Used by both the IPC handler and the application menu so
+ * behaviour stays in lockstep.
+ */
+export const openProjectFolderForWindow = async (senderWindow: BrowserWindow): Promise<void> => {
   try {
-    await handleOpenDirectoryPrompt(window);
+    const directory = await promptForProjectFolder();
+    if (!directory) {
+      return;
+    }
+
+    const targetWindow = await resolveTargetWindow(senderWindow);
+    await processProjectFolder(targetWindow, directory);
   } catch (error) {
     console.error("Failed to open folder:", error);
     dialog.showErrorBox("Failed to open folder", String(error));
   }
 };
 
-export const handleOpenFile = async (event: IpcMainEvent): Promise<void> => {
-  const window = getWindowFromSender(event.sender);
-  if (!window) {
-    return;
-  }
-
+/**
+ * Shows the file picker and loads the chosen file into either the sender window or a new window.
+ */
+export const openProjectFileForWindow = async (senderWindow: BrowserWindow): Promise<void> => {
   try {
-    await handleOpenFilePrompt(window);
+    const filePath = await promptForProjectFile();
+    if (!filePath) {
+      return;
+    }
+
+    const targetWindow = await resolveTargetWindow(senderWindow);
+    await handleOpenProjectFile(targetWindow, filePath);
   } catch (error) {
     console.error("Failed to open file:", error);
     dialog.showErrorBox("Failed to open file", String(error));
   }
 };
 
+export const handleOpenFolder = async (event: IpcMainEvent): Promise<void> => {
+  const senderWindow = windowManager.getProjectWindowForSender(event.sender);
+  if (!senderWindow) {
+    return;
+  }
+  await openProjectFolderForWindow(senderWindow);
+};
+
+export const handleOpenFile = async (event: IpcMainEvent): Promise<void> => {
+  const senderWindow = windowManager.getProjectWindowForSender(event.sender);
+  if (!senderWindow) {
+    return;
+  }
+  await openProjectFileForWindow(senderWindow);
+};
+
 export const handleOpenProjectFileInvoke = async (
-  _event: IpcMainInvokeEvent,
+  event: IpcMainInvokeEvent,
   file: string,
 ): Promise<void> => {
-  const mainWindow = windowManager.getMainWindow();
-  if (!mainWindow) {
-    throw new Error("Main window not available");
+  const senderWindow = windowManager.getProjectWindowForSender(event.sender);
+  if (!senderWindow) {
+    throw new Error("Sender window not found");
   }
 
   try {
-    await handleOpenProjectFile(mainWindow, file);
+    const targetWindow = await resolveTargetWindow(senderWindow);
+    await handleOpenProjectFile(targetWindow, file);
   } catch (error) {
     console.error("Failed to open project file:", error);
     throw error;
@@ -81,8 +130,10 @@ export const handleRemoveRecentProject = async (
   return result;
 };
 
-export const handleGetCurrentProject = async (): Promise<ProjectPayload | null> => {
-  const directory = getCurrentProjectDirectory();
+export const handleGetCurrentProject = async (
+  event: IpcMainInvokeEvent,
+): Promise<ProjectPayload | null> => {
+  const directory = windowManager.getDirectoryForSender(event.sender);
 
   if (directory === null) {
     return null;
@@ -98,11 +149,16 @@ export const handleGetCurrentProject = async (): Promise<ProjectPayload | null> 
 };
 
 export const handleSaveProjectInvoke = async (
-  _event: IpcMainInvokeEvent,
+  event: IpcMainInvokeEvent,
   data: string,
 ): Promise<void> => {
+  const directory = windowManager.getDirectoryForSender(event.sender);
+  if (directory === null) {
+    throw new Error("No project open");
+  }
+
   try {
-    await handleSaveProject(data);
+    await handleSaveProject(directory, data);
   } catch (error) {
     console.error("Failed to save project:", error);
     throw error;
@@ -119,7 +175,12 @@ export const handleExportMatchesInvoke = async (
     return;
   }
 
-  const directory = await handleExportMatches(window, data, type);
+  const directory = windowManager.getDirectoryForSender(event.sender);
+  if (directory === null) {
+    throw new Error("No project open");
+  }
+
+  await handleExportMatches(window, directory, data, type);
 
   if (type === "csv") {
     const csvPath = path.join(
@@ -135,8 +196,14 @@ export const handleExportMatchesInvoke = async (
 };
 
 export const handleFlushSaveProjectSync = (event: IpcMainEvent, data: string): void => {
+  const directory = windowManager.getDirectoryForSender(event.sender);
+  if (directory === null) {
+    event.returnValue = false;
+    return;
+  }
+
   try {
-    handleFlushSaveProject(data);
+    handleFlushSaveProject(directory, data);
     event.returnValue = true;
   } catch (error) {
     console.error("Failed to flush save project:", error);
@@ -144,10 +211,24 @@ export const handleFlushSaveProjectSync = (event: IpcMainEvent, data: string): v
   }
 };
 
+/**
+ * Closes the project window for the sender. The window's `closed` event handler (registered in
+ * `windowManager.registerProjectWindow`) takes care of closing any associated edit windows and
+ * clearing registry state.
+ */
+export const handleCloseProject = (event: IpcMainEvent): void => {
+  const senderWindow = windowManager.getProjectWindowForSender(event.sender);
+  if (!senderWindow || senderWindow.isDestroyed()) {
+    return;
+  }
+
+  senderWindow.close();
+};
+
 export const registerProjectHandlers = (ipcMain: Electron.IpcMain): void => {
   ipcMain.on(IPC_EVENTS.OPEN_FOLDER, (event) => void handleOpenFolder(event));
   ipcMain.on(IPC_EVENTS.OPEN_FILE, (event) => void handleOpenFile(event));
-  ipcMain.on(IPC_EVENTS.CLOSE_PROJECT, () => closeCurrentProject());
+  ipcMain.on(IPC_EVENTS.CLOSE_PROJECT, handleCloseProject);
   ipcMain.handle(IPC_EVENTS.OPEN_PROJECT_FILE, handleOpenProjectFileInvoke);
   ipcMain.handle(IPC_EVENTS.GET_RECENT_PROJECTS, handleGetRecentProjects);
   ipcMain.handle(IPC_EVENTS.REMOVE_RECENT_PROJECT, handleRemoveRecentProject);

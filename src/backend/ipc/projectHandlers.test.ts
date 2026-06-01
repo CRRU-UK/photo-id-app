@@ -19,15 +19,18 @@ vi.mock("electron", () => ({
   },
 }));
 
-const mockHandleOpenDirectoryPrompt = vi.fn<(window: BrowserWindow) => Promise<void>>();
-const mockHandleOpenFilePrompt = vi.fn<(window: BrowserWindow) => Promise<void>>();
+const mockProcessProjectFolder =
+  vi.fn<(window: BrowserWindow, directory: string) => Promise<void>>();
+const mockPromptForProjectFolder = vi.fn<() => Promise<string | null>>();
+const mockPromptForProjectFile = vi.fn<() => Promise<string | null>>();
 const mockHandleOpenProjectFile =
   vi.fn<(window: BrowserWindow, filePath: string) => Promise<void>>();
-const mockHandleSaveProject = vi.fn<(data: string) => Promise<void>>();
-const mockHandleFlushSaveProject = vi.fn<(data: string) => void>();
+const mockHandleSaveProject = vi.fn<(directory: string, data: string) => Promise<void>>();
+const mockHandleFlushSaveProject = vi.fn<(directory: string, data: string) => void>();
 const mockHandleExportMatches =
-  vi.fn<(window: BrowserWindow, data: string, type: string) => Promise<string>>();
-const mockGetCurrentProjectDirectory = vi.fn<() => string | null>();
+  vi.fn<
+    (window: BrowserWindow, directory: string, data: string, type: string) => Promise<string>
+  >();
 const mockParseProjectFile = vi.fn<(filePath: string) => Promise<ProjectBody>>();
 
 vi.mock("@/backend/exports", () => ({
@@ -36,21 +39,19 @@ vi.mock("@/backend/exports", () => ({
 }));
 
 vi.mock("@/backend/projects", () => ({
-  handleOpenDirectoryPrompt: (...args: Parameters<typeof mockHandleOpenDirectoryPrompt>) =>
-    mockHandleOpenDirectoryPrompt(...args),
-  handleOpenFilePrompt: (...args: Parameters<typeof mockHandleOpenFilePrompt>) =>
-    mockHandleOpenFilePrompt(...args),
+  processProjectFolder: (...args: Parameters<typeof mockProcessProjectFolder>) =>
+    mockProcessProjectFolder(...args),
+  promptForProjectFolder: () => mockPromptForProjectFolder(),
+  promptForProjectFile: () => mockPromptForProjectFile(),
   handleOpenProjectFile: (...args: Parameters<typeof mockHandleOpenProjectFile>) =>
     mockHandleOpenProjectFile(...args),
   handleSaveProject: (...args: Parameters<typeof mockHandleSaveProject>) =>
     mockHandleSaveProject(...args),
   handleFlushSaveProject: (...args: Parameters<typeof mockHandleFlushSaveProject>) =>
     mockHandleFlushSaveProject(...args),
-  getCurrentProjectDirectory: () => mockGetCurrentProjectDirectory(),
   parseProjectFile: (...args: Parameters<typeof mockParseProjectFile>) =>
     mockParseProjectFile(...args),
   handleDuplicatePhotoFile: vi.fn<() => void>(),
-  setCurrentProject: vi.fn<() => void>(),
 }));
 
 const mockGetRecentProjects = vi.fn<() => Promise<RecentProject[]>>();
@@ -62,23 +63,35 @@ vi.mock("@/backend/recents", () => ({
     mockRemoveRecentProject(...args),
 }));
 
-const mockGetMainWindow = vi.fn<() => BrowserWindow | null>();
+const mockGetProjectWindowForSender =
+  vi.fn<(webContents: Electron.WebContents) => BrowserWindow | null>();
+const mockGetDirectoryForSender = vi.fn<(webContents: Electron.WebContents) => string | null>();
+const mockGetDirectoryForWindow = vi.fn<(window: BrowserWindow) => string | null>();
 
 vi.mock("@/backend/WindowManager", () => ({
   windowManager: {
-    getMainWindow: () => mockGetMainWindow(),
-    closeAllEditWindows: vi.fn<() => void>(),
+    getProjectWindowForSender: (...args: Parameters<typeof mockGetProjectWindowForSender>) =>
+      mockGetProjectWindowForSender(...args),
+    getDirectoryForSender: (...args: Parameters<typeof mockGetDirectoryForSender>) =>
+      mockGetDirectoryForSender(...args),
+    getDirectoryForWindow: (...args: Parameters<typeof mockGetDirectoryForWindow>) =>
+      mockGetDirectoryForWindow(...args),
   },
+}));
+
+const mockCreateProjectWindow = vi.fn<() => Promise<BrowserWindow>>();
+
+vi.mock("@/backend/windows", () => ({
+  createProjectWindow: (...args: Parameters<typeof mockCreateProjectWindow>) =>
+    mockCreateProjectWindow(...args),
 }));
 
 const mockGetWindowFromSender =
   vi.fn<(webContents: Electron.WebContents) => BrowserWindow | null>();
-const mockCloseCurrentProject = vi.fn<() => void>();
 
 vi.mock("./shared", () => ({
   getWindowFromSender: (...args: Parameters<typeof mockGetWindowFromSender>) =>
     mockGetWindowFromSender(...args),
-  closeCurrentProject: () => mockCloseCurrentProject(),
 }));
 
 const {
@@ -91,12 +104,15 @@ const {
   handleSaveProjectInvoke,
   handleExportMatchesInvoke,
   handleFlushSaveProjectSync,
+  handleCloseProject,
 } = await import("./projectHandlers");
 
-const createMockWindow = (): BrowserWindow =>
+const createMockWindow = (overrides?: Partial<{ isDestroyed: boolean }>): BrowserWindow =>
   ({
     setTitle: vi.fn<(title: string) => void>(),
     focus: vi.fn<() => void>(),
+    close: vi.fn<() => void>(),
+    isDestroyed: vi.fn<() => boolean>(() => overrides?.isDestroyed ?? false),
     webContents: { send: vi.fn<(channel: string, ...args: unknown[]) => void>() },
   }) as unknown as BrowserWindow;
 
@@ -116,98 +132,145 @@ describe("project IPC handlers", () => {
   });
 
   describe(handleOpenFolder, () => {
-    it("does nothing when the sender window is not found", async () => {
-      mockGetWindowFromSender.mockReturnValue(null);
+    it("does nothing when the sender is not a project window", async () => {
+      mockGetProjectWindowForSender.mockReturnValue(null);
 
       await handleOpenFolder(createMockEvent(null));
 
-      expect(mockHandleOpenDirectoryPrompt).not.toHaveBeenCalled();
+      expect(mockProcessProjectFolder).not.toHaveBeenCalled();
     });
 
-    it("calls handleOpenDirectoryPrompt with the sender window", async () => {
-      const mockWindow = createMockWindow();
-      mockGetWindowFromSender.mockReturnValue(mockWindow);
-      mockHandleOpenDirectoryPrompt.mockResolvedValue(undefined);
+    it("loads the folder into the sender window when it has no project", async () => {
+      const senderWindow = createMockWindow();
+      mockGetProjectWindowForSender.mockReturnValue(senderWindow);
+      mockGetDirectoryForWindow.mockReturnValue(null);
+      mockPromptForProjectFolder.mockResolvedValue("/my/project");
 
-      await handleOpenFolder(createMockEvent(mockWindow));
+      await handleOpenFolder(createMockEvent(senderWindow));
 
-      expect(mockHandleOpenDirectoryPrompt).toHaveBeenCalledWith(mockWindow);
+      expect(mockCreateProjectWindow).not.toHaveBeenCalled();
+      expect(mockProcessProjectFolder).toHaveBeenCalledWith(senderWindow, "/my/project");
     });
 
-    it("shows an error dialog when handleOpenDirectoryPrompt throws", async () => {
-      const mockWindow = createMockWindow();
-      mockGetWindowFromSender.mockReturnValue(mockWindow);
-      mockHandleOpenDirectoryPrompt.mockRejectedValue(new Error("disk error"));
+    it("spawns a new window and loads into it when the sender already has a project", async () => {
+      const senderWindow = createMockWindow();
+      const newWindow = createMockWindow();
+      mockGetProjectWindowForSender.mockReturnValue(senderWindow);
+      mockGetDirectoryForWindow.mockReturnValue("/existing/project");
+      mockCreateProjectWindow.mockResolvedValue(newWindow);
+      mockPromptForProjectFolder.mockResolvedValue("/new/project");
 
-      await handleOpenFolder(createMockEvent(mockWindow));
+      await handleOpenFolder(createMockEvent(senderWindow));
+
+      expect(mockCreateProjectWindow).toHaveBeenCalledWith();
+      expect(mockProcessProjectFolder).toHaveBeenCalledWith(newWindow, "/new/project");
+    });
+
+    it("does nothing further when the user cancels the dialog", async () => {
+      const senderWindow = createMockWindow();
+      mockGetProjectWindowForSender.mockReturnValue(senderWindow);
+      mockGetDirectoryForWindow.mockReturnValue(null);
+      mockPromptForProjectFolder.mockResolvedValue(null);
+
+      await handleOpenFolder(createMockEvent(senderWindow));
+
+      expect(mockProcessProjectFolder).not.toHaveBeenCalled();
+      expect(mockCreateProjectWindow).not.toHaveBeenCalled();
+    });
+
+    it("shows an error dialog when processProjectFolder throws", async () => {
+      const senderWindow = createMockWindow();
+      mockGetProjectWindowForSender.mockReturnValue(senderWindow);
+      mockGetDirectoryForWindow.mockReturnValue(null);
+      mockPromptForProjectFolder.mockResolvedValue("/my/project");
+      mockProcessProjectFolder.mockRejectedValue(new Error("disk error"));
+
+      await handleOpenFolder(createMockEvent(senderWindow));
 
       expect(mockShowErrorBox).toHaveBeenCalledWith("Failed to open folder", "Error: disk error");
     });
   });
 
   describe(handleOpenFile, () => {
-    it("does nothing when the sender window is not found", async () => {
-      mockGetWindowFromSender.mockReturnValue(null);
+    it("does nothing when the sender is not a project window", async () => {
+      mockGetProjectWindowForSender.mockReturnValue(null);
 
       await handleOpenFile(createMockEvent(null));
 
-      expect(mockHandleOpenFilePrompt).not.toHaveBeenCalled();
+      expect(mockHandleOpenProjectFile).not.toHaveBeenCalled();
     });
 
-    it("calls handleOpenFilePrompt with the sender window", async () => {
-      const mockWindow = createMockWindow();
-      mockGetWindowFromSender.mockReturnValue(mockWindow);
-      mockHandleOpenFilePrompt.mockResolvedValue(undefined);
+    it("loads the file into the sender window when it has no project", async () => {
+      const senderWindow = createMockWindow();
+      mockGetProjectWindowForSender.mockReturnValue(senderWindow);
+      mockGetDirectoryForWindow.mockReturnValue(null);
+      mockPromptForProjectFile.mockResolvedValue("/my/project/project.photoid");
 
-      await handleOpenFile(createMockEvent(mockWindow));
+      await handleOpenFile(createMockEvent(senderWindow));
 
-      expect(mockHandleOpenFilePrompt).toHaveBeenCalledWith(mockWindow);
+      expect(mockHandleOpenProjectFile).toHaveBeenCalledWith(
+        senderWindow,
+        "/my/project/project.photoid",
+      );
     });
 
-    it("shows an error dialog when handleOpenFilePrompt throws", async () => {
-      const mockWindow = createMockWindow();
-      mockGetWindowFromSender.mockReturnValue(mockWindow);
-      mockHandleOpenFilePrompt.mockRejectedValue(new Error("file error"));
+    it("spawns a new window when the sender already has a project", async () => {
+      const senderWindow = createMockWindow();
+      const newWindow = createMockWindow();
+      mockGetProjectWindowForSender.mockReturnValue(senderWindow);
+      mockGetDirectoryForWindow.mockReturnValue("/existing/project");
+      mockCreateProjectWindow.mockResolvedValue(newWindow);
+      mockPromptForProjectFile.mockResolvedValue("/new/project/project.photoid");
 
-      await handleOpenFile(createMockEvent(mockWindow));
+      await handleOpenFile(createMockEvent(senderWindow));
 
-      expect(mockShowErrorBox).toHaveBeenCalledWith("Failed to open file", "Error: file error");
+      expect(mockHandleOpenProjectFile).toHaveBeenCalledWith(
+        newWindow,
+        "/new/project/project.photoid",
+      );
     });
   });
 
   describe(handleOpenProjectFileInvoke, () => {
-    it("throws when the main window is not available", async () => {
-      mockGetMainWindow.mockReturnValue(null);
+    it("throws when the sender is not a project window", async () => {
+      mockGetProjectWindowForSender.mockReturnValue(null);
 
       await expect(
         handleOpenProjectFileInvoke(createMockInvokeEvent(null), "/path/to/project.photoid"),
-      ).rejects.toThrow("Main window not available");
+      ).rejects.toThrow("Sender window not found");
     });
 
-    it("opens the project file in the main window", async () => {
-      const mockWindow = createMockWindow();
-      mockGetMainWindow.mockReturnValue(mockWindow);
+    it("loads the file into the sender window when it has no project", async () => {
+      const senderWindow = createMockWindow();
+      mockGetProjectWindowForSender.mockReturnValue(senderWindow);
+      mockGetDirectoryForWindow.mockReturnValue(null);
       mockHandleOpenProjectFile.mockResolvedValue(undefined);
 
       await handleOpenProjectFileInvoke(
-        createMockInvokeEvent(mockWindow),
+        createMockInvokeEvent(senderWindow),
         "/path/to/project.photoid",
       );
 
       expect(mockHandleOpenProjectFile).toHaveBeenCalledWith(
-        mockWindow,
+        senderWindow,
         "/path/to/project.photoid",
       );
     });
 
-    it("re-throws when handleOpenProjectFile fails", async () => {
-      const mockWindow = createMockWindow();
-      mockGetMainWindow.mockReturnValue(mockWindow);
-      mockHandleOpenProjectFile.mockRejectedValue(new Error("parse error"));
+    it("spawns a new window when the sender already has a project", async () => {
+      const senderWindow = createMockWindow();
+      const newWindow = createMockWindow();
+      mockGetProjectWindowForSender.mockReturnValue(senderWindow);
+      mockGetDirectoryForWindow.mockReturnValue("/existing/project");
+      mockCreateProjectWindow.mockResolvedValue(newWindow);
+      mockHandleOpenProjectFile.mockResolvedValue(undefined);
 
-      await expect(
-        handleOpenProjectFileInvoke(createMockInvokeEvent(mockWindow), "/path/to/project.photoid"),
-      ).rejects.toThrow("parse error");
+      await handleOpenProjectFileInvoke(
+        createMockInvokeEvent(senderWindow),
+        "/new/project.photoid",
+      );
+
+      expect(mockHandleOpenProjectFile).toHaveBeenCalledWith(newWindow, "/new/project.photoid");
     });
   });
 
@@ -240,46 +303,56 @@ describe("project IPC handlers", () => {
   });
 
   describe(handleGetCurrentProject, () => {
-    it("returns null when no project is open", async () => {
-      mockGetCurrentProjectDirectory.mockReturnValue(null);
+    it("returns null when the sender has no project", async () => {
+      mockGetDirectoryForSender.mockReturnValue(null);
 
-      const result = await handleGetCurrentProject();
+      const result = await handleGetCurrentProject(createMockInvokeEvent(null));
 
       expect(result).toBeNull();
     });
 
-    it("parses and returns the current project payload (body + directory)", async () => {
-      mockGetCurrentProjectDirectory.mockReturnValue("/project/dir");
+    it("parses and returns the current project for the sender", async () => {
+      mockGetDirectoryForSender.mockReturnValue("/project/dir");
       const mockProject = { version: "v1", id: "test" } as unknown as ProjectBody;
       mockParseProjectFile.mockResolvedValue(mockProject);
 
-      const result = await handleGetCurrentProject();
+      const result = await handleGetCurrentProject(createMockInvokeEvent(null));
 
       expect(mockParseProjectFile).toHaveBeenCalledWith("/project/dir/project.photoid");
       expect(result).toStrictEqual({ body: mockProject, directory: "/project/dir" });
     });
 
     it("returns null when parsing fails", async () => {
-      mockGetCurrentProjectDirectory.mockReturnValue("/project/dir");
+      mockGetDirectoryForSender.mockReturnValue("/project/dir");
       mockParseProjectFile.mockRejectedValue(new Error("invalid JSON"));
 
-      const result = await handleGetCurrentProject();
+      const result = await handleGetCurrentProject(createMockInvokeEvent(null));
 
       expect(result).toBeNull();
     });
   });
 
   describe(handleSaveProjectInvoke, () => {
-    it("saves the project data", async () => {
+    it("throws when no project is open for the sender", async () => {
+      mockGetDirectoryForSender.mockReturnValue(null);
+
+      await expect(handleSaveProjectInvoke(createMockInvokeEvent(null), "{}")).rejects.toThrow(
+        "No project open",
+      );
+    });
+
+    it("saves the project data using the sender's directory", async () => {
+      mockGetDirectoryForSender.mockReturnValue("/project");
       mockHandleSaveProject.mockResolvedValue(undefined);
       const data = JSON.stringify({ version: "v1" });
 
       await handleSaveProjectInvoke(createMockInvokeEvent(null), data);
 
-      expect(mockHandleSaveProject).toHaveBeenCalledWith(data);
+      expect(mockHandleSaveProject).toHaveBeenCalledWith("/project", data);
     });
 
     it("re-throws when save fails", async () => {
+      mockGetDirectoryForSender.mockReturnValue("/project");
       mockHandleSaveProject.mockRejectedValue(new Error("write error"));
 
       await expect(handleSaveProjectInvoke(createMockInvokeEvent(null), "{}")).rejects.toThrow(
@@ -290,16 +363,28 @@ describe("project IPC handlers", () => {
 
   describe(handleFlushSaveProjectSync, () => {
     it("calls handleFlushSaveProject and sets returnValue to true on success", () => {
+      mockGetDirectoryForSender.mockReturnValue("/project");
       const event = createMockEvent(null);
       const data = JSON.stringify({ version: "v1" });
 
       handleFlushSaveProjectSync(event, data);
 
-      expect(mockHandleFlushSaveProject).toHaveBeenCalledWith(data);
+      expect(mockHandleFlushSaveProject).toHaveBeenCalledWith("/project", data);
       expect(event.returnValue).toBe(true);
     });
 
+    it("sets returnValue to false when no project is open for the sender", () => {
+      mockGetDirectoryForSender.mockReturnValue(null);
+      const event = createMockEvent(null);
+
+      handleFlushSaveProjectSync(event, "{}");
+
+      expect(event.returnValue).toBe(false);
+      expect(mockHandleFlushSaveProject).not.toHaveBeenCalled();
+    });
+
     it("sets returnValue to false when handleFlushSaveProject throws", () => {
+      mockGetDirectoryForSender.mockReturnValue("/project");
       const event = createMockEvent(null);
       mockHandleFlushSaveProject.mockImplementation(() => {
         throw new Error("write error");
@@ -320,29 +405,72 @@ describe("project IPC handlers", () => {
       expect(mockHandleExportMatches).not.toHaveBeenCalled();
     });
 
+    it("throws when no project is open for the sender", async () => {
+      const mockWindow = createMockWindow();
+      mockGetWindowFromSender.mockReturnValue(mockWindow);
+      mockGetDirectoryForSender.mockReturnValue(null);
+
+      await expect(
+        handleExportMatchesInvoke(createMockInvokeEvent(mockWindow), "{}", "edited"),
+      ).rejects.toThrow("No project open");
+    });
+
     it("exports matches and opens the matched folder for edited export", async () => {
       const mockWindow = createMockWindow();
       mockGetWindowFromSender.mockReturnValue(mockWindow);
+      mockGetDirectoryForSender.mockReturnValue("/project/dir");
       mockHandleExportMatches.mockResolvedValue("/project/dir");
 
       await handleExportMatchesInvoke(createMockInvokeEvent(mockWindow), "{}", "edited");
 
-      expect(mockHandleExportMatches).toHaveBeenCalledWith(mockWindow, "{}", "edited");
+      expect(mockHandleExportMatches).toHaveBeenCalledWith(
+        mockWindow,
+        "/project/dir",
+        "{}",
+        "edited",
+      );
       expect(mockOpenPath).toHaveBeenCalledWith("/project/dir/matched");
     });
 
     it("exports matches and shows CSV file selected in folder for csv export", async () => {
       const mockWindow = createMockWindow();
       mockGetWindowFromSender.mockReturnValue(mockWindow);
+      mockGetDirectoryForSender.mockReturnValue("/project/dir");
       mockHandleExportMatches.mockResolvedValue("/project/dir");
 
       await handleExportMatchesInvoke(createMockInvokeEvent(mockWindow), "{}", "csv");
 
-      expect(mockHandleExportMatches).toHaveBeenCalledWith(mockWindow, "{}", "csv");
+      expect(mockHandleExportMatches).toHaveBeenCalledWith(mockWindow, "/project/dir", "{}", "csv");
       expect(mockShowItemInFolder).toHaveBeenCalledWith(
         `/project/dir/${PROJECT_EXPORT_DATA_DIRECTORY}/${PROJECT_EXPORT_CSV_FILE_NAME}`,
       );
       expect(mockOpenPath).not.toHaveBeenCalled();
+    });
+  });
+
+  describe(handleCloseProject, () => {
+    it("closes the sender's project window", () => {
+      const mockWindow = createMockWindow();
+      mockGetProjectWindowForSender.mockReturnValue(mockWindow);
+
+      handleCloseProject(createMockEvent(mockWindow));
+
+      expect(mockWindow.close).toHaveBeenCalledWith();
+    });
+
+    it("does nothing when the sender window is not found", () => {
+      mockGetProjectWindowForSender.mockReturnValue(null);
+
+      expect(() => handleCloseProject(createMockEvent(null))).not.toThrow();
+    });
+
+    it("does not call close when the window is already destroyed", () => {
+      const mockWindow = createMockWindow({ isDestroyed: true });
+      mockGetProjectWindowForSender.mockReturnValue(mockWindow);
+
+      handleCloseProject(createMockEvent(mockWindow));
+
+      expect(mockWindow.close).not.toHaveBeenCalled();
     });
   });
 });

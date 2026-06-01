@@ -5,6 +5,7 @@ import { app, dialog } from "electron";
 import { ZodError } from "zod";
 import { createPhotoThumbnail } from "@/backend/photos";
 import { addRecentProject } from "@/backend/recents";
+import { windowManager } from "@/backend/WindowManager";
 import {
   CORRUPTED_DATA_MESSAGE,
   DEFAULT_PHOTO_EDITS,
@@ -32,6 +33,12 @@ import type {
 } from "@/types";
 
 /**
+ * Builds the window title for a window with a project loaded.
+ */
+export const buildProjectWindowTitle = (directory: string): string =>
+  `${path.basename(directory)} - ${DEFAULT_WINDOW_TITLE}`;
+
+/**
  * Validates that a filename does not escape the given directory via path traversal sequences.
  * Returns the resolved absolute path if valid, otherwise throws.
  */
@@ -46,21 +53,6 @@ export const resolvePhotoPath = (directory: string, fileName: string): string =>
   return resolved;
 };
 
-let currentProjectDirectory: string | null = null;
-
-/**
- * Returns the directory of the currently open project, or null if none. Used by `getCurrentProject`
- * to restore the project view after hot-reload (development).
- */
-export const getCurrentProjectDirectory = (): string | null => currentProjectDirectory;
-
-/**
- * Sets the current project directory (when a project is loaded or closed).
- */
-export const setCurrentProject = (directory: string | null): void => {
-  currentProjectDirectory = directory;
-};
-
 /**
  * Reads and validates a `.photoid` file. The directory is derived by callers from the file's path.
  */
@@ -71,13 +63,13 @@ export const parseProjectFile = async (filePath: string): Promise<ProjectBody> =
   return projectBodySchema.parse(json);
 };
 
-const sendData = (mainWindow: Electron.BrowserWindow, body: ProjectBody, directory: string) => {
-  setCurrentProject(directory);
+const sendData = (projectWindow: Electron.BrowserWindow, body: ProjectBody, directory: string) => {
+  windowManager.setProject(projectWindow, directory);
 
-  mainWindow.setTitle(`${DEFAULT_WINDOW_TITLE} - ${directory}`);
+  projectWindow.setTitle(buildProjectWindowTitle(directory));
   const payload: ProjectPayload = { body, directory };
-  mainWindow.webContents.send(IPC_EVENTS.LOAD_PROJECT, payload);
-  mainWindow.focus();
+  projectWindow.webContents.send(IPC_EVENTS.LOAD_PROJECT, payload);
+  projectWindow.focus();
 
   void addRecentProject({
     name: path.basename(directory),
@@ -89,12 +81,50 @@ const homePath = app.getPath("home");
 const desktopPath = path.resolve(homePath, "Desktop");
 
 /**
+ * Shows the folder-picker dialog and returns the chosen directory, or null if the dialog was
+ * cancelled. Kept separate from the project-processing flow so the caller can decide which window
+ * the project should load into after a directory is chosen.
+ */
+const promptForProjectFolder = async (): Promise<string | null> => {
+  const event = await dialog.showOpenDialog({
+    title: "Open Project Folder",
+    properties: ["openDirectory"],
+    defaultPath: desktopPath,
+  });
+
+  if (event.canceled) {
+    return null;
+  }
+
+  return event.filePaths[0];
+};
+
+/**
+ * Shows the project-file picker dialog and returns the chosen file path, or null if the dialog
+ * was cancelled.
+ */
+const promptForProjectFile = async (): Promise<string | null> => {
+  const event = await dialog.showOpenDialog({
+    title: "Open Project File",
+    properties: ["openFile"],
+    filters: [{ name: "Photo ID Projects", extensions: [PROJECT_FILE_EXTENSION] }],
+    defaultPath: desktopPath,
+  });
+
+  if (event.canceled) {
+    return null;
+  }
+
+  return event.filePaths[0];
+};
+
+/**
  * Prompts the user when a project file already exists in the chosen directory. Returns `true` if
  * the caller should proceed to create a new project (user chose to overwrite), or `false` if the
  * existing project was opened or the user cancelled.
  */
 const handleExistingProjectFile = async (
-  mainWindow: Electron.BrowserWindow,
+  projectWindow: Electron.BrowserWindow,
   directory: string,
 ): Promise<boolean> => {
   const { response } = await dialog.showMessageBox({
@@ -111,7 +141,7 @@ const handleExistingProjectFile = async (
     try {
       const filePath = path.join(directory, PROJECT_FILE_NAME);
       const body = await parseProjectFile(filePath);
-      sendData(mainWindow, body, directory);
+      sendData(projectWindow, body, directory);
     } catch (error) {
       console.error("Failed to load existing project file:", error);
 
@@ -130,35 +160,26 @@ const handleExistingProjectFile = async (
 };
 
 /**
- * Handles opening, filtering, and processing a project folder.
+ * Processes a chosen project directory: handles the existing-project-file dialog, generates
+ * thumbnails for new directories, writes the project file, and notifies the renderer. The caller
+ * is responsible for choosing the directory (see `promptForProjectFolder`) and the window into
+ * which the project should be loaded.
  */
-const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => {
-  const event = await dialog.showOpenDialog({
-    title: "Open Project Folder",
-    properties: ["openDirectory"],
-    defaultPath: desktopPath,
-  });
-
-  if (event.canceled) {
-    return;
-  }
-
-  const [directory] = event.filePaths;
-
+const processProjectFolder = async (projectWindow: Electron.BrowserWindow, directory: string) => {
   const files = await fs.promises.readdir(directory);
 
   if (files.includes(PROJECT_FILE_NAME)) {
-    const shouldCreateNew = await handleExistingProjectFile(mainWindow, directory);
+    const shouldCreateNew = await handleExistingProjectFile(projectWindow, directory);
     if (!shouldCreateNew) {
       return;
     }
   }
 
-  mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, {
+  projectWindow.webContents.send(IPC_EVENTS.SET_LOADING, {
     show: true,
     text: "Preparing project",
     progressValue: 0,
-  } as LoadingData);
+  });
 
   const photoChecks = await Promise.all(
     files.map(async (fileName) => {
@@ -208,12 +229,12 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
 
         processed = processed + 1;
 
-        mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, {
+        projectWindow.webContents.send(IPC_EVENTS.SET_LOADING, {
           show: true,
           text: "Preparing project",
           progressValue: (processed / photos.length) * 100,
           progressText: `Processing photo ${processed} of ${photos.length}`,
-        } as LoadingData);
+        });
       }),
     );
   }
@@ -260,44 +281,14 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
     "utf8",
   );
 
-  return sendData(mainWindow, data, directory);
+  return sendData(projectWindow, data, directory);
 };
 
 /**
- * Handles opening a project file.
+ * Loads a project from a `.photoid` file path into the given window. Validates the path has a
+ * `.photoid` extension before attempting to open, to guard the IPC boundary.
  */
-const handleOpenFilePrompt = async (mainWindow: Electron.BrowserWindow) => {
-  const event = await dialog.showOpenDialog({
-    title: "Open Project File",
-    properties: ["openFile"],
-    filters: [{ name: "Photo ID Projects", extensions: [PROJECT_FILE_EXTENSION] }],
-    defaultPath: desktopPath,
-  });
-
-  if (event.canceled) {
-    return;
-  }
-
-  mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, { show: true, text: "Opening project" });
-
-  const [file] = event.filePaths;
-
-  try {
-    const body = await parseProjectFile(file);
-    return sendData(mainWindow, body, path.dirname(file));
-  } catch (error) {
-    console.error("Failed to open project file:", error);
-    dialog.showErrorBox("Invalid project file", String(error));
-
-    mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, { show: false } as LoadingData);
-  }
-};
-
-/**
- * Handles opening a recent project file. Validates the path has a .photoid extension before
- * attempting to open, to guard the IPC boundary.
- */
-const handleOpenProjectFile = async (mainWindow: Electron.BrowserWindow, file: string) => {
+const handleOpenProjectFile = async (projectWindow: Electron.BrowserWindow, file: string) => {
   if (path.extname(file).toLowerCase() !== `.${PROJECT_FILE_EXTENSION}`) {
     console.error("Refused to open non-.photoid file path:", file);
     dialog.showErrorBox("Invalid file", "Only .photoid project files can be opened.");
@@ -305,38 +296,31 @@ const handleOpenProjectFile = async (mainWindow: Electron.BrowserWindow, file: s
     return;
   }
 
-  mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, { show: true, text: "Opening project" });
+  projectWindow.webContents.send(IPC_EVENTS.SET_LOADING, { show: true, text: "Opening project" });
 
   if (!fs.existsSync(file)) {
     dialog.showErrorBox(MISSING_RECENT_PROJECT_MESSAGE, file);
-    mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, { show: false } as LoadingData);
+    projectWindow.webContents.send(IPC_EVENTS.SET_LOADING, { show: false } as LoadingData);
 
     return;
   }
 
   try {
     const body = await parseProjectFile(file);
-    return sendData(mainWindow, body, path.dirname(file));
+    return sendData(projectWindow, body, path.dirname(file));
   } catch (error) {
     console.error("Failed to open project file:", error);
     dialog.showErrorBox("Invalid project file", String(error));
 
-    mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, { show: false } as LoadingData);
+    projectWindow.webContents.send(IPC_EVENTS.SET_LOADING, { show: false });
   }
 };
 
 /**
- * Handles saving a project file. Uses the currently open project directory (tracked when the
- * project is loaded) so the write path is authoritative; the payload is only validated, not used
- * for the file path.
+ * Handles saving a project file. Writes to the supplied directory and the directory is
+ * authoritative (resolved from the sender's project window), and the payload is only validated.
  */
-const handleSaveProject = async (data: string) => {
-  const directory = getCurrentProjectDirectory();
-
-  if (directory === null) {
-    throw new Error("No project open");
-  }
-
+const handleSaveProject = async (directory: string, data: string): Promise<void> => {
   const json: unknown = JSON.parse(data);
   const result = projectBodySchema.safeParse(json);
 
@@ -351,13 +335,7 @@ const handleSaveProject = async (data: string) => {
  * Synchronous version of `handleSaveProject` for use during app shutdown (`beforeunload`). Uses
  * `writeFileSync` to guarantee the write completes before the process exits.
  */
-const handleFlushSaveProject = (data: string): void => {
-  const directory = getCurrentProjectDirectory();
-
-  if (directory === null) {
-    return;
-  }
-
+const handleFlushSaveProject = (directory: string, data: string): void => {
   try {
     const json: unknown = JSON.parse(data);
     const result = projectBodySchema.safeParse(json);
@@ -376,13 +354,7 @@ const handleFlushSaveProject = (data: string): void => {
 /**
  * Duplicates the original, edited, and thumbnail versions of a photo a returns the new filenames.
  */
-const handleDuplicatePhotoFile = async (data: PhotoBody): Promise<PhotoBody> => {
-  const directory = getCurrentProjectDirectory();
-
-  if (directory === null) {
-    throw new Error("No project open");
-  }
-
+const handleDuplicatePhotoFile = async (directory: string, data: PhotoBody): Promise<PhotoBody> => {
   const originalPath = resolvePhotoPath(directory, data.name);
   const thumbnailPath = resolvePhotoPath(directory, data.thumbnail);
 
@@ -453,18 +425,13 @@ const findPhotoInProject = (project: ProjectBody, photo: PhotoBody): CollectionB
 
 /**
  * Returns photo to show in the editor on navigation based on direction. Reads the current project
- * file from the active project directory.
+ * file from the supplied project directory.
  */
 const handleEditorNavigate = async (
+  directory: string,
   data: PhotoBody,
   direction: EditorNavigation,
 ): Promise<PhotoBody | null> => {
-  const directory = getCurrentProjectDirectory();
-
-  if (directory === null) {
-    throw new Error("No project open");
-  }
-
   const projectPath = path.join(directory, PROJECT_FILE_NAME);
   const projectData = await parseProjectFile(projectPath);
 
@@ -501,8 +468,9 @@ export {
   handleDuplicatePhotoFile,
   handleEditorNavigate,
   handleFlushSaveProject,
-  handleOpenDirectoryPrompt,
-  handleOpenFilePrompt,
   handleOpenProjectFile,
   handleSaveProject,
+  processProjectFolder,
+  promptForProjectFile,
+  promptForProjectFolder,
 };

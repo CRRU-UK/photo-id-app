@@ -16,6 +16,7 @@ const MOCK_UUID = "a0b1c2d3-e4f5-6789-abcd-ef0123456789";
 const mockAnalyseMatches =
   vi.fn<
     (options: {
+      directory: string;
       photos: PhotoBody[];
       settings: { endpoint: string; token: string };
     }) => Promise<AnalysisMatchResponse | null>
@@ -25,6 +26,15 @@ const mockCancelAnalyseMatches = vi.fn<() => void>();
 vi.mock("@/backend/analysis", () => ({
   analyseMatches: (...args: Parameters<typeof mockAnalyseMatches>) => mockAnalyseMatches(...args),
   cancelAnalyseMatches: () => mockCancelAnalyseMatches(),
+}));
+
+const mockGetDirectoryForSender = vi.fn<(webContents: Electron.WebContents) => string | null>();
+
+vi.mock("@/backend/WindowManager", () => ({
+  windowManager: {
+    getDirectoryForSender: (...args: Parameters<typeof mockGetDirectoryForSender>) =>
+      mockGetDirectoryForSender(...args),
+  },
 }));
 
 const mockGetSettings = vi.fn<() => Promise<SettingsData>>();
@@ -89,6 +99,7 @@ describe("analysis IPC handlers", () => {
     mockUpdateSettings.mockResolvedValue(undefined);
     mockSaveToken.mockResolvedValue(undefined);
     mockDeleteToken.mockResolvedValue(undefined);
+    mockGetDirectoryForSender.mockReturnValue("/project");
   });
 
   describe(handleSaveAnalysisProvider, () => {
@@ -231,10 +242,19 @@ describe("analysis IPC handlers", () => {
       const result = await handleAnalyseMatches(mockEvent, [photo]);
 
       expect(mockAnalyseMatches).toHaveBeenCalledWith({
+        directory: "/project",
         photos: [expect.objectContaining({ name: "photo.jpg" })],
         settings: { endpoint: "https://api.com", token: "api-token" },
       });
       expect(result).toBe(mockResponse);
+    });
+
+    it("throws when no project is open for the sender", async () => {
+      mockGetDirectoryForSender.mockReturnValue(null);
+
+      await expect(handleAnalyseMatches(mockEvent, [createMockPhotoBody()])).rejects.toThrow(
+        "No project open",
+      );
     });
   });
 

@@ -60,17 +60,13 @@ const ProjectPage = observer(() => {
 
   const navigate = useNavigate();
 
-  const { project, setProject } = useProject();
+  const { project } = useProject();
   const { isAnalysing, result, error, handleClose: handleCloseAnalysis } = useAnalysis();
 
   const handleCloseProject = useCallback(() => {
     project?.flushSave();
-    setProject(null);
-
     window.electronAPI.closeProject();
-
-    void navigate({ to: ROUTES.INDEX });
-  }, [project, navigate, setProject]);
+  }, [project]);
 
   const analysisOverlayOpen = isAnalysing || result !== null || error !== null;
 

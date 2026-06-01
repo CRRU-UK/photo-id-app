@@ -2,7 +2,7 @@ import path from "node:path";
 import url from "node:url";
 import { BrowserWindow, dialog, type IpcMainEvent, type IpcMainInvokeEvent } from "electron";
 
-import { getCurrentProjectDirectory, handleEditorNavigate } from "@/backend/projects";
+import { handleEditorNavigate } from "@/backend/projects";
 import { windowManager } from "@/backend/WindowManager";
 import { IPC_EVENTS, ROUTES, UNSAVED_EDITS_MESSAGE } from "@/constants";
 import { encodeEditPayload } from "@/helpers";
@@ -25,9 +25,14 @@ const buildEditorWebPreferences = (base: Electron.WebPreferences): Electron.WebP
 });
 
 export const handleOpenEditWindow = (config: EditorConfig) => {
-  return (_event: IpcMainEvent, data: PhotoBody): void => {
-    const directory = getCurrentProjectDirectory();
+  return (event: IpcMainEvent, data: PhotoBody): void => {
+    const parentWindow = windowManager.getProjectWindowForSender(event.sender);
+    if (!parentWindow) {
+      console.error("Refused to open edit window: sender is not a project window");
+      return;
+    }
 
+    const directory = windowManager.getDirectoryForWindow(parentWindow);
     if (directory === null) {
       console.error("Refused to open edit window: no project open");
       return;
@@ -44,7 +49,7 @@ export const handleOpenEditWindow = (config: EditorConfig) => {
 
     editWindow.removeMenu();
 
-    windowManager.addEditWindow(editWindow);
+    windowManager.addEditWindow(editWindow, parentWindow);
 
     if (!config.production && !process.env.E2E) {
       editWindow.webContents.openDevTools();
@@ -104,17 +109,16 @@ export const handleOpenEditWindow = (config: EditorConfig) => {
 };
 
 export const handleNavigateEditorPhoto = async (
-  _event: IpcMainInvokeEvent,
+  event: IpcMainInvokeEvent,
   data: PhotoBody,
   direction: EditorNavigation,
 ): Promise<string | null> => {
-  const directory = getCurrentProjectDirectory();
-
+  const directory = windowManager.getDirectoryForSender(event.sender);
   if (directory === null) {
     throw new Error("No project open");
   }
 
-  const result = await handleEditorNavigate(data, direction);
+  const result = await handleEditorNavigate(directory, data, direction);
 
   if (!result) {
     console.warn("Photo not found in project for navigation");

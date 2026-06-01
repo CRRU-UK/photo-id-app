@@ -4,7 +4,7 @@ This document describes the security model of the Photo ID app.
 
 ## Renderer Isolation
 
-The renderer process has no direct access to Node.js APIs. All system access is mediated through the preload scripts, which expose a limited API via `contextBridge.exposeInMainWorld()`. The main window uses `src/preload.ts` (full API surface). Edit windows use the narrower `src/preload-editor.ts`, which only exposes the IPC the editor actually needs (project/settings bootstrap, photo save/navigation, analysis) — anything that mutates project data, opens new windows, or interacts with the home/project screens is intentionally absent so a compromised editor renderer cannot reach those handlers.
+The renderer process has no direct access to Node.js APIs. All system access is mediated through the preload scripts, which expose a limited API via `contextBridge.exposeInMainWorld()`. Project windows use `src/preload.ts` (full API surface). Edit windows use the narrower `src/preload-editor.ts`, which only exposes the IPC the editor actually needs (project/settings bootstrap, photo save/navigation, analysis) — anything that mutates project data, opens new windows, or interacts with the home/project screens is intentionally absent so a compromised editor renderer cannot reach those handlers.
 
 - `nodeIntegration: false` - Node.js APIs are not available in the renderer
 - `contextIsolation: true` - The preload script runs in an isolated context
@@ -26,10 +26,14 @@ The `style-src` directive includes `'unsafe-inline'` because the Primer React co
 All image rendering in the renderer uses the custom `photo://` protocol instead of `file://`. The protocol handler in the main process:
 
 1. Validates that the requested file extension is in the allowlist (`PHOTO_FILE_EXTENSIONS`)
-2. Validates that the resolved file path is within the current project directory (path traversal protection)
+2. Validates that the resolved file path is within **at least one currently-open project directory** (path traversal protection)
 3. Returns 403 for any request that fails validation
 
 The scheme is registered with `corsEnabled: true` and responses set `Access-Control-Allow-Origin: *` so the edit window can `fetch()` full-size image bytes cross-origin (the renderer is loaded from the Vite dev server in development and `file://` in production - both are cross-origin to `photo://`). Cross-origin access to a custom protocol requires `corsEnabled` since [electron/electron#51152](https://github.com/electron/electron/pull/51152) as the path-traversal and extension checks above continue to gate which files are served.
+
+### Multi-window validation model
+
+Because the app can have multiple project windows open simultaneously, the protocol handler validates the requested path against the **union** of all open project directories (via `windowManager.getAllProjectDirectories()`). Electron's `protocol.handle` callback does not expose the requesting `webContents`, so the handler cannot scope the check to "the requesting window's project." This loosening is acceptable under the existing trust model as every open project was opened by the user via the OS file picker, file association, or the recent-projects list, so the user has authorised every directory in the set. A renderer for project A could in principle request a thumbnail from project B's directory, but both projects are equally user-trusted, so this is not a confidentiality boundary. If we later add per-project secrets that require stronger isolation, the alternative is per-session `partition`s with per-session protocol handlers.
 
 ## Path Traversal Protection
 

@@ -2,18 +2,10 @@ import path from "node:path";
 import { BrowserWindow, dialog } from "electron";
 import { ZodError } from "zod";
 
-import {
-  getCurrentProjectDirectory,
-  handleOpenProjectFile,
-  setCurrentProject,
-} from "@/backend/projects";
+import { handleOpenProjectFile } from "@/backend/projects";
 import { windowManager } from "@/backend/WindowManager";
-import {
-  CORRUPTED_DATA_MESSAGE,
-  DEFAULT_WINDOW_TITLE,
-  EXTERNAL_LINKS,
-  PROJECT_FILE_EXTENSION,
-} from "@/constants";
+import { createProjectWindow } from "@/backend/windows";
+import { CORRUPTED_DATA_MESSAGE, EXTERNAL_LINKS, PROJECT_FILE_EXTENSION } from "@/constants";
 import type { ExternalLinks } from "@/types";
 
 import { version } from "../../../package.json";
@@ -23,21 +15,6 @@ import { version } from "../../../package.json";
  */
 export const getWindowFromSender = (webContents: Electron.WebContents): BrowserWindow | null =>
   BrowserWindow.fromWebContents(webContents);
-
-/**
- * Closes the current project by resetting state, closing any and all edit windows, and resetting
- * the window title.
- */
-export const closeCurrentProject = (): void => {
-  setCurrentProject(null);
-
-  windowManager.closeAllEditWindows();
-
-  const mainWindow = windowManager.getMainWindow();
-  if (mainWindow) {
-    mainWindow.setTitle(DEFAULT_WINDOW_TITLE);
-  }
-};
 
 /**
  * Sends an IPC event with data to all open BrowserWindows.
@@ -54,26 +31,21 @@ export const broadcastToAllWindows = (channel: string, data: unknown): void => {
  * Finds a .photoid file path in an argv array. Checks the full extension rather than just the
  * suffix to avoid matching non-file arguments.
  */
-export const findPhotoidArg = (argv: string[]): string | undefined =>
+export const findProjectFileArg = (argv: string[]): string | undefined =>
   argv.find((arg) => path.extname(arg).toLowerCase() === `.${PROJECT_FILE_EXTENSION}`);
 
 /**
- * Opens a project file from a file path. Closes the current project and any edit windows first if a
- * project is already open.
+ * Opens a project file from a file path. If an existing project window is idle (no project
+ * loaded), the project is loaded there, otherwise a new project window is created. Used for
+ * file associations, second-instance argv, and macOS open-file events.
  */
 export const openProjectFromPath = async (filePath: string): Promise<void> => {
-  const mainWindow = windowManager.getMainWindow();
-  if (!mainWindow) {
-    return;
-  }
+  const idleWindow = windowManager.findIdleProjectWindow();
+  const targetWindow = idleWindow ?? (await createProjectWindow());
 
-  if (getCurrentProjectDirectory() !== null) {
-    closeCurrentProject();
-  }
+  await handleOpenProjectFile(targetWindow, filePath);
 
-  await handleOpenProjectFile(mainWindow, filePath);
-
-  mainWindow.focus();
+  targetWindow.focus();
 };
 
 const EXTERNAL_LINK_MAP: Record<string, string> = {
