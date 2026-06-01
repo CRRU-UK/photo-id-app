@@ -5,7 +5,12 @@ import { ZodError } from "zod";
 import { handleOpenProjectFile } from "@/backend/projects";
 import { windowManager } from "@/backend/WindowManager";
 import { createProjectWindow } from "@/backend/windows";
-import { CORRUPTED_DATA_MESSAGE, EXTERNAL_LINKS, PROJECT_FILE_EXTENSION } from "@/constants";
+import {
+  CORRUPTED_DATA_MESSAGE,
+  EXTERNAL_LINKS,
+  PROJECT_FILE_EXTENSION,
+  ROUTES,
+} from "@/constants";
 import type { ExternalLinks } from "@/types";
 
 import { version } from "../../../package.json";
@@ -52,8 +57,9 @@ export const focusExistingWindow = (window: BrowserWindow): void => {
 
 /**
  * Opens a project file from a file path. If the project is already open in a window, that window
- * is focused instead. Otherwise, an idle (empty) window is reused if available, or a new project
- * window is created. Used for file associations, second-instance argv, and macOS open-file events.
+ * is focused instead. Otherwise, an idle (empty) window is reused if available, or a fresh window
+ * is spawned mounted directly at the project route. Used for file associations, second-instance
+ * argv, and macOS open-file events.
  */
 export const openProjectFromPath = async (filePath: string): Promise<void> => {
   const directory = path.dirname(filePath);
@@ -65,7 +71,7 @@ export const openProjectFromPath = async (filePath: string): Promise<void> => {
   }
 
   const idleWindow = windowManager.findIdleProjectWindow();
-  const targetWindow = idleWindow ?? (await createProjectWindow());
+  const targetWindow = idleWindow ?? (await createProjectWindow({ initialRoute: ROUTES.PROJECT }));
 
   await handleOpenProjectFile(targetWindow, filePath);
 

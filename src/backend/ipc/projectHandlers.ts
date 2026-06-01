@@ -24,28 +24,15 @@ import { getRecentProjects, removeRecentProject } from "@/backend/recents";
 import { windowManager } from "@/backend/WindowManager";
 import { createProjectWindow } from "@/backend/windows";
 import {
+  DEFAULT_WINDOW_TITLE,
   IPC_EVENTS,
   PROJECT_EXPORT_CSV_FILE_NAME,
   PROJECT_EXPORT_DATA_DIRECTORY,
   PROJECT_EXPORT_DIRECTORY,
   PROJECT_FILE_NAME,
+  ROUTES,
 } from "@/constants";
 import type { ExportTypes, ProjectPayload, RecentProject } from "@/types";
-
-/**
- * Returns the window into which a newly-chosen project should load. If the sender already has a
- * project loaded, a fresh window is created so the existing project isn't replaced. Otherwise the
- * sender window itself is reused (it's on the index page).
- */
-const resolveTargetWindow = async (senderWindow: BrowserWindow): Promise<BrowserWindow> => {
-  const senderHasProject = windowManager.getDirectoryForWindow(senderWindow) !== null;
-
-  if (senderHasProject) {
-    return createProjectWindow();
-  }
-
-  return senderWindow;
-};
 
 /**
  * If the project at the given directory is already open in some window, focuses that window and
@@ -60,6 +47,21 @@ const focusIfAlreadyOpen = (directory: string): boolean => {
   focusExistingWindow(existingWindow);
 
   return true;
+};
+
+/**
+ * Returns the window into which the caller should load a project. When the sender already has a
+ * project, spawns a fresh window mounted directly at the project route (so the user never sees
+ * the index page first), otherwise reuses the sender, which is already on the index page.
+ */
+const resolveTargetWindow = async (senderWindow: BrowserWindow): Promise<BrowserWindow> => {
+  const senderHasProject = windowManager.getDirectoryForWindow(senderWindow) !== null;
+
+  if (senderHasProject) {
+    return createProjectWindow({ initialRoute: ROUTES.PROJECT });
+  }
+
+  return senderWindow;
 };
 
 /**
@@ -78,7 +80,10 @@ export const openProjectFolderForWindow = async (senderWindow: BrowserWindow): P
       return;
     }
 
-    // Resolve the existing-data choice BEFORE creating a target window
+    /**
+     * Resolve the existing-data choice BEFORE creating a target window so the user can cancel
+     * without leaving an empty window behind.
+     */
     const choice = await checkExistingProjectChoice(directory);
     if (choice === "cancel") {
       return;
@@ -87,10 +92,11 @@ export const openProjectFolderForWindow = async (senderWindow: BrowserWindow): P
     const targetWindow = await resolveTargetWindow(senderWindow);
 
     if (choice === "existing") {
-      return await loadExistingProject(targetWindow, directory);
+      await loadExistingProject(targetWindow, directory);
+      return;
     }
 
-    return await processProjectFolder(targetWindow, directory);
+    await processProjectFolder(targetWindow, directory);
   } catch (error) {
     console.error("Failed to open folder:", error);
     dialog.showErrorBox("Failed to open folder", String(error));
@@ -252,9 +258,9 @@ export const handleFlushSaveProjectSync = (event: IpcMainEvent, data: string): v
 };
 
 /**
- * Closes the project window for the sender. The window's `closed` event handler (registered in
- * `windowManager.registerProjectWindow`) takes care of closing any associated edit windows and
- * clearing registry state.
+ * Closes the project for the sender's window: closes the project's edit windows, clears the
+ * project state in `WindowManager`, and resets the window title. The window itself stays open;
+ * the renderer is responsible for navigating back to the index page.
  */
 export const handleCloseProject = (event: IpcMainEvent): void => {
   const senderWindow = windowManager.getProjectWindowForSender(event.sender);
@@ -262,7 +268,8 @@ export const handleCloseProject = (event: IpcMainEvent): void => {
     return;
   }
 
-  senderWindow.close();
+  windowManager.clearProject(senderWindow);
+  senderWindow.setTitle(DEFAULT_WINDOW_TITLE);
 };
 
 export const registerProjectHandlers = (ipcMain: Electron.IpcMain): void => {

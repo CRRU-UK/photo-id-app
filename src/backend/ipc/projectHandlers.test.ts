@@ -76,6 +76,7 @@ const mockGetProjectWindowForSender =
 const mockGetDirectoryForSender = vi.fn<(webContents: Electron.WebContents) => string | null>();
 const mockGetDirectoryForWindow = vi.fn<(window: BrowserWindow) => string | null>();
 const mockFindWindowForProject = vi.fn<(directory: string) => BrowserWindow | null>();
+const mockClearProject = vi.fn<(window: BrowserWindow) => void>();
 
 vi.mock("@/backend/WindowManager", () => ({
   windowManager: {
@@ -87,6 +88,7 @@ vi.mock("@/backend/WindowManager", () => ({
       mockGetDirectoryForWindow(...args),
     findWindowForProject: (...args: Parameters<typeof mockFindWindowForProject>) =>
       mockFindWindowForProject(...args),
+    clearProject: (...args: Parameters<typeof mockClearProject>) => mockClearProject(...args),
   },
 }));
 
@@ -171,7 +173,7 @@ describe("project IPC handlers", () => {
       expect(mockProcessProjectFolder).toHaveBeenCalledWith(senderWindow, "/my/project");
     });
 
-    it("spawns a new window and loads into it when the sender already has a project", async () => {
+    it("spawns a project-route window and loads into it when the sender already has a project", async () => {
       const senderWindow = createMockWindow();
       const newWindow = createMockWindow();
       mockGetProjectWindowForSender.mockReturnValue(senderWindow);
@@ -181,7 +183,7 @@ describe("project IPC handlers", () => {
 
       await handleOpenFolder(createMockEvent(senderWindow));
 
-      expect(mockCreateProjectWindow).toHaveBeenCalledWith();
+      expect(mockCreateProjectWindow).toHaveBeenCalledWith({ initialRoute: "/project" });
       expect(mockProcessProjectFolder).toHaveBeenCalledWith(newWindow, "/new/project");
     });
 
@@ -224,7 +226,21 @@ describe("project IPC handlers", () => {
       expect(mockCreateProjectWindow).not.toHaveBeenCalled();
     });
 
-    it("loads the existing project when the folder already has a project file", async () => {
+    it("loads existing project into sender window when sender has no project", async () => {
+      const senderWindow = createMockWindow();
+      mockGetProjectWindowForSender.mockReturnValue(senderWindow);
+      mockGetDirectoryForWindow.mockReturnValue(null);
+      mockPromptForProjectFolder.mockResolvedValue("/my/project");
+      mockCheckExistingProjectChoice.mockResolvedValue("existing");
+
+      await handleOpenFolder(createMockEvent(senderWindow));
+
+      expect(mockLoadExistingProject).toHaveBeenCalledWith(senderWindow, "/my/project");
+      expect(mockCreateProjectWindow).not.toHaveBeenCalled();
+      expect(mockProcessProjectFolder).not.toHaveBeenCalled();
+    });
+
+    it("spawns a project-route window and loads existing project when sender has a project", async () => {
       const senderWindow = createMockWindow();
       const newWindow = createMockWindow();
       mockGetProjectWindowForSender.mockReturnValue(senderWindow);
@@ -235,6 +251,7 @@ describe("project IPC handlers", () => {
 
       await handleOpenFolder(createMockEvent(senderWindow));
 
+      expect(mockCreateProjectWindow).toHaveBeenCalledWith({ initialRoute: "/project" });
       expect(mockLoadExistingProject).toHaveBeenCalledWith(newWindow, "/my/project");
       expect(mockProcessProjectFolder).not.toHaveBeenCalled();
     });
@@ -277,7 +294,7 @@ describe("project IPC handlers", () => {
       );
     });
 
-    it("spawns a new window when the sender already has a project", async () => {
+    it("spawns a project-route window when sender has a project", async () => {
       const senderWindow = createMockWindow();
       const newWindow = createMockWindow();
       mockGetProjectWindowForSender.mockReturnValue(senderWindow);
@@ -287,6 +304,7 @@ describe("project IPC handlers", () => {
 
       await handleOpenFile(createMockEvent(senderWindow));
 
+      expect(mockCreateProjectWindow).toHaveBeenCalledWith({ initialRoute: "/project" });
       expect(mockHandleOpenProjectFile).toHaveBeenCalledWith(
         newWindow,
         "/new/project/project.photoid",
@@ -335,19 +353,19 @@ describe("project IPC handlers", () => {
       );
     });
 
-    it("spawns a new window when the sender already has a project", async () => {
+    it("spawns a project-route window when sender has a project", async () => {
       const senderWindow = createMockWindow();
       const newWindow = createMockWindow();
       mockGetProjectWindowForSender.mockReturnValue(senderWindow);
       mockGetDirectoryForWindow.mockReturnValue("/existing/project");
       mockCreateProjectWindow.mockResolvedValue(newWindow);
-      mockHandleOpenProjectFile.mockResolvedValue(undefined);
 
       await handleOpenProjectFileInvoke(
         createMockInvokeEvent(senderWindow),
         "/new/project.photoid",
       );
 
+      expect(mockCreateProjectWindow).toHaveBeenCalledWith({ initialRoute: "/project" });
       expect(mockHandleOpenProjectFile).toHaveBeenCalledWith(newWindow, "/new/project.photoid");
     });
 
@@ -544,28 +562,32 @@ describe("project IPC handlers", () => {
   });
 
   describe(handleCloseProject, () => {
-    it("closes the sender's project window", () => {
+    it("clears the project state and resets the title (window stays open)", () => {
       const mockWindow = createMockWindow();
       mockGetProjectWindowForSender.mockReturnValue(mockWindow);
 
       handleCloseProject(createMockEvent(mockWindow));
 
-      expect(mockWindow.close).toHaveBeenCalledWith();
+      expect(mockClearProject).toHaveBeenCalledWith(mockWindow);
+      expect(mockWindow.setTitle).toHaveBeenCalledWith("Photo ID");
+      expect(mockWindow.close).not.toHaveBeenCalled();
     });
 
     it("does nothing when the sender window is not found", () => {
       mockGetProjectWindowForSender.mockReturnValue(null);
 
       expect(() => handleCloseProject(createMockEvent(null))).not.toThrow();
+      expect(mockClearProject).not.toHaveBeenCalled();
     });
 
-    it("does not call close when the window is already destroyed", () => {
+    it("does nothing when the window is already destroyed", () => {
       const mockWindow = createMockWindow({ isDestroyed: true });
       mockGetProjectWindowForSender.mockReturnValue(mockWindow);
 
       handleCloseProject(createMockEvent(mockWindow));
 
-      expect(mockWindow.close).not.toHaveBeenCalled();
+      expect(mockClearProject).not.toHaveBeenCalled();
+      expect(mockWindow.setTitle).not.toHaveBeenCalled();
     });
   });
 });

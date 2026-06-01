@@ -3,7 +3,7 @@ import url from "node:url";
 import { app, BrowserWindow } from "electron";
 
 import { windowManager } from "@/backend/WindowManager";
-import { DEFAULT_WINDOW_TITLE } from "@/constants";
+import { DEFAULT_WINDOW_TITLE, ROUTES } from "@/constants";
 
 const production = app.isPackaged;
 
@@ -26,23 +26,44 @@ export const defaultWebPreferences: Electron.WebPreferences = {
  */
 export const basePath = path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`);
 
+type ProjectWindowInitialRoute = typeof ROUTES.INDEX | typeof ROUTES.PROJECT;
+
 interface CreateProjectWindowOptions {
-  /** If true, the new window is maximised after creation. The first/bootstrap window uses this. */
+  initialRoute?: ProjectWindowInitialRoute;
   maximize?: boolean;
 }
 
+const buildWindowUrl = (initialRoute: ProjectWindowInitialRoute): string => {
+  const hash = initialRoute === ROUTES.INDEX ? "" : `#${initialRoute}`;
+
+  if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
+    return `${MAIN_WINDOW_VITE_DEV_SERVER_URL}${hash}`;
+  }
+
+  return url.format({
+    protocol: "file",
+    slashes: true,
+    pathname: basePath,
+    hash: hash || undefined,
+  });
+};
+
 /**
- * Creates a new top-level project window showing the index route. The window is registered with
- * `windowManager` so its project state and edit windows can be tracked. The caller can subsequently
- * load a project into the returned window (e.g. via `handleOpenProjectFile`).
+ * Creates a new top-level project window. The window is registered with `windowManager` so its
+ * project state and edit windows can be tracked. Loading the actual project (via
+ * `loadExistingProject`, `processProjectFolder`, or `handleOpenProjectFile`) is the caller's
+ * responsibility.
  */
 export const createProjectWindow = async (
   options: CreateProjectWindowOptions = {},
 ): Promise<BrowserWindow> => {
+  const initialRoute = options.initialRoute ?? ROUTES.INDEX;
+
   const window = new BrowserWindow({
     width: 1200,
     height: 800,
     title: DEFAULT_WINDOW_TITLE,
+    // Hide until the renderer has its first frame so users don't see a white "loading" flash.
     show: false,
     webPreferences: defaultWebPreferences,
   });
@@ -57,17 +78,7 @@ export const createProjectWindow = async (
 
   windowManager.registerProjectWindow(window);
 
-  if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
-    await window.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
-  } else {
-    await window.loadURL(
-      url.format({
-        protocol: "file",
-        slashes: true,
-        pathname: basePath,
-      }),
-    );
-  }
+  await window.loadURL(buildWindowUrl(initialRoute));
 
   window.webContents.on("did-create-window", (child) => {
     child.webContents.once("dom-ready", () => {

@@ -154,7 +154,7 @@ describe("shared IPC utilities", () => {
       expect(idleWindow.focus).toHaveBeenCalledWith();
     });
 
-    it("creates a new window when no idle window exists", async () => {
+    it("spawns a project-route window when no idle window exists", async () => {
       const newWindow = createMockWindow();
       mockFindWindowForProject.mockReturnValue(null);
       mockFindIdleProjectWindow.mockReturnValue(null);
@@ -163,7 +163,7 @@ describe("shared IPC utilities", () => {
 
       await openProjectFromPath("/path/to/project.photoid");
 
-      expect(mockCreateProjectWindow).toHaveBeenCalledWith();
+      expect(mockCreateProjectWindow).toHaveBeenCalledWith({ initialRoute: "/project" });
       expect(mockHandleOpenProjectFile).toHaveBeenCalledWith(newWindow, "/path/to/project.photoid");
       expect(newWindow.focus).toHaveBeenCalledWith();
     });
