@@ -8,7 +8,7 @@ import {
 } from "electron";
 
 import { handleExportMatches } from "@/backend/exports";
-import { getWindowFromSender } from "@/backend/ipc/shared";
+import { focusExistingWindow, getWindowFromSender } from "@/backend/ipc/shared";
 import {
   handleFlushSaveProject,
   handleOpenProjectFile,
@@ -46,6 +46,21 @@ const resolveTargetWindow = async (senderWindow: BrowserWindow): Promise<Browser
 };
 
 /**
+ * If the project at the given directory is already open in some window, focuses that window and
+ * returns true so the caller can short-circuit. Returns false otherwise.
+ */
+const focusIfAlreadyOpen = (directory: string): boolean => {
+  const existingWindow = windowManager.findWindowForProject(directory);
+  if (!existingWindow) {
+    return false;
+  }
+
+  focusExistingWindow(existingWindow);
+
+  return true;
+};
+
+/**
  * Shows the folder picker and loads the chosen folder into either the sender window (if it has no
  * project loaded) or a new window. Used by both the IPC handler and the application menu so
  * behaviour stays in lockstep.
@@ -54,6 +69,10 @@ export const openProjectFolderForWindow = async (senderWindow: BrowserWindow): P
   try {
     const directory = await promptForProjectFolder();
     if (!directory) {
+      return;
+    }
+
+    if (focusIfAlreadyOpen(directory)) {
       return;
     }
 
@@ -72,6 +91,10 @@ export const openProjectFileForWindow = async (senderWindow: BrowserWindow): Pro
   try {
     const filePath = await promptForProjectFile();
     if (!filePath) {
+      return;
+    }
+
+    if (focusIfAlreadyOpen(path.dirname(filePath))) {
       return;
     }
 
@@ -106,6 +129,10 @@ export const handleOpenProjectFileInvoke = async (
   const senderWindow = windowManager.getProjectWindowForSender(event.sender);
   if (!senderWindow) {
     throw new Error("Sender window not found");
+  }
+
+  if (focusIfAlreadyOpen(path.dirname(file))) {
+    return;
   }
 
   try {

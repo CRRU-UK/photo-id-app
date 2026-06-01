@@ -67,6 +67,7 @@ const mockGetProjectWindowForSender =
   vi.fn<(webContents: Electron.WebContents) => BrowserWindow | null>();
 const mockGetDirectoryForSender = vi.fn<(webContents: Electron.WebContents) => string | null>();
 const mockGetDirectoryForWindow = vi.fn<(window: BrowserWindow) => string | null>();
+const mockFindWindowForProject = vi.fn<(directory: string) => BrowserWindow | null>();
 
 vi.mock("@/backend/WindowManager", () => ({
   windowManager: {
@@ -76,6 +77,8 @@ vi.mock("@/backend/WindowManager", () => ({
       mockGetDirectoryForSender(...args),
     getDirectoryForWindow: (...args: Parameters<typeof mockGetDirectoryForWindow>) =>
       mockGetDirectoryForWindow(...args),
+    findWindowForProject: (...args: Parameters<typeof mockFindWindowForProject>) =>
+      mockFindWindowForProject(...args),
   },
 }));
 
@@ -88,10 +91,13 @@ vi.mock("@/backend/windows", () => ({
 
 const mockGetWindowFromSender =
   vi.fn<(webContents: Electron.WebContents) => BrowserWindow | null>();
+const mockFocusExistingWindow = vi.fn<(window: BrowserWindow) => void>();
 
 vi.mock("./shared", () => ({
   getWindowFromSender: (...args: Parameters<typeof mockGetWindowFromSender>) =>
     mockGetWindowFromSender(...args),
+  focusExistingWindow: (...args: Parameters<typeof mockFocusExistingWindow>) =>
+    mockFocusExistingWindow(...args),
 }));
 
 const {
@@ -129,6 +135,9 @@ const createMockInvokeEvent = (window: BrowserWindow | null): IpcMainInvokeEvent
 describe("project IPC handlers", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // No project is "already open" by default; tests that exercise the focus-existing path
+    // override this explicitly.
+    mockFindWindowForProject.mockReturnValue(null);
   });
 
   describe(handleOpenFolder, () => {
@@ -189,6 +198,21 @@ describe("project IPC handlers", () => {
 
       expect(mockShowErrorBox).toHaveBeenCalledWith("Failed to open folder", "Error: disk error");
     });
+
+    it("focuses the existing window when the project is already open", async () => {
+      const senderWindow = createMockWindow();
+      const existingWindow = createMockWindow();
+      mockGetProjectWindowForSender.mockReturnValue(senderWindow);
+      mockPromptForProjectFolder.mockResolvedValue("/my/project");
+      mockFindWindowForProject.mockReturnValue(existingWindow);
+
+      await handleOpenFolder(createMockEvent(senderWindow));
+
+      expect(mockFindWindowForProject).toHaveBeenCalledWith("/my/project");
+      expect(mockFocusExistingWindow).toHaveBeenCalledWith(existingWindow);
+      expect(mockProcessProjectFolder).not.toHaveBeenCalled();
+      expect(mockCreateProjectWindow).not.toHaveBeenCalled();
+    });
   });
 
   describe(handleOpenFile, () => {
@@ -228,6 +252,21 @@ describe("project IPC handlers", () => {
         newWindow,
         "/new/project/project.photoid",
       );
+    });
+
+    it("focuses the existing window when the project is already open", async () => {
+      const senderWindow = createMockWindow();
+      const existingWindow = createMockWindow();
+      mockGetProjectWindowForSender.mockReturnValue(senderWindow);
+      mockPromptForProjectFile.mockResolvedValue("/my/project/project.photoid");
+      mockFindWindowForProject.mockReturnValue(existingWindow);
+
+      await handleOpenFile(createMockEvent(senderWindow));
+
+      expect(mockFindWindowForProject).toHaveBeenCalledWith("/my/project");
+      expect(mockFocusExistingWindow).toHaveBeenCalledWith(existingWindow);
+      expect(mockHandleOpenProjectFile).not.toHaveBeenCalled();
+      expect(mockCreateProjectWindow).not.toHaveBeenCalled();
     });
   });
 
@@ -271,6 +310,23 @@ describe("project IPC handlers", () => {
       );
 
       expect(mockHandleOpenProjectFile).toHaveBeenCalledWith(newWindow, "/new/project.photoid");
+    });
+
+    it("focuses the existing window when the project is already open", async () => {
+      const senderWindow = createMockWindow();
+      const existingWindow = createMockWindow();
+      mockGetProjectWindowForSender.mockReturnValue(senderWindow);
+      mockFindWindowForProject.mockReturnValue(existingWindow);
+
+      await handleOpenProjectFileInvoke(
+        createMockInvokeEvent(senderWindow),
+        "/my/project/project.photoid",
+      );
+
+      expect(mockFindWindowForProject).toHaveBeenCalledWith("/my/project");
+      expect(mockFocusExistingWindow).toHaveBeenCalledWith(existingWindow);
+      expect(mockHandleOpenProjectFile).not.toHaveBeenCalled();
+      expect(mockCreateProjectWindow).not.toHaveBeenCalled();
     });
   });
 

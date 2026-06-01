@@ -35,11 +35,35 @@ export const findProjectFileArg = (argv: string[]): string | undefined =>
   argv.find((arg) => path.extname(arg).toLowerCase() === `.${PROJECT_FILE_EXTENSION}`);
 
 /**
- * Opens a project file from a file path. If an existing project window is idle (no project
- * loaded), the project is loaded there, otherwise a new project window is created. Used for
- * file associations, second-instance argv, and macOS open-file events.
+ * Brings an existing window to the front. Restores it if minimised, then focuses it. Used when
+ * the user tries to open a project that is already loaded in another window.
+ */
+export const focusExistingWindow = (window: BrowserWindow): void => {
+  if (window.isDestroyed()) {
+    return;
+  }
+
+  if (window.isMinimized()) {
+    window.restore();
+  }
+
+  window.focus();
+};
+
+/**
+ * Opens a project file from a file path. If the project is already open in a window, that window
+ * is focused instead. Otherwise, an idle (empty) window is reused if available, or a new project
+ * window is created. Used for file associations, second-instance argv, and macOS open-file events.
  */
 export const openProjectFromPath = async (filePath: string): Promise<void> => {
+  const directory = path.dirname(filePath);
+
+  const existingWindow = windowManager.findWindowForProject(directory);
+  if (existingWindow) {
+    focusExistingWindow(existingWindow);
+    return;
+  }
+
   const idleWindow = windowManager.findIdleProjectWindow();
   const targetWindow = idleWindow ?? (await createProjectWindow());
 

@@ -30,6 +30,8 @@ The project can be opened again on the home screen from either the recent projec
 
 You can open several projects side by side, each in its own window. Use ==File > New Window== (or ++ctrl+n++ / ++cmd+n++) to create a fresh window showing the home screen, then open a project in it the same way as the first. Opening a project (folder, file, recent project, or a `.photoid` file from your file manager) while another project is already loaded automatically spawns a new window so the current project is left unaffected.
 
+A project can only be open in one window at a time. If you try to open a project that is already loaded in another window, that window is brought to the front instead of opening a duplicate.
+
 Each window's title shows the current project name, and the project name is also displayed at the top of the sidebar to help tell windows apart at a glance. Closing a project (with the ==:octicons-reply-16: Close project== button in the sidebar or ++ctrl+w++ / ++cmd+w++) closes that window (including any editor windows opened from it) but leaves other open projects unaffected.
 
 !!! tip

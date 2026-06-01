@@ -1,3 +1,4 @@
+import path from "node:path";
 import { BrowserWindow } from "electron";
 
 /**
@@ -99,6 +100,33 @@ class WindowManager {
     }
 
     return directories;
+  }
+
+  /**
+   * Returns the project window that has the given directory loaded, or null. Directories are
+   * compared after `path.resolve()` normalisation (handles trailing separators, etc.) so a project
+   * is never opened in more than one window at the same time.
+   */
+  findWindowForProject(directory: string): BrowserWindow | null {
+    const target = path.resolve(directory);
+
+    for (const [id, loadedDirectory] of this.projectDirectories) {
+      if (loadedDirectory === null) {
+        continue;
+      }
+
+      if (path.resolve(loadedDirectory) !== target) {
+        continue;
+      }
+
+      const window = this.projectWindowsById.get(id);
+
+      if (window && !window.isDestroyed()) {
+        return window;
+      }
+    }
+
+    return null;
   }
 
   /**

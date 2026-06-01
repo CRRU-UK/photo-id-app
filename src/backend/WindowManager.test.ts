@@ -153,6 +153,50 @@ describe("windowManager", () => {
     });
   });
 
+  describe("findWindowForProject", () => {
+    it("returns the window that has the given project loaded", () => {
+      const windowA = createMockBrowserWindow();
+      const windowB = createMockBrowserWindow();
+      windowManager.registerProjectWindow(windowA);
+      windowManager.registerProjectWindow(windowB);
+      windowManager.setProject(windowA, "/project/a");
+      windowManager.setProject(windowB, "/project/b");
+
+      expect(windowManager.findWindowForProject("/project/b")).toBe(windowB);
+    });
+
+    it("returns null when no window has the given project loaded", () => {
+      const window = createMockBrowserWindow();
+      windowManager.registerProjectWindow(window);
+      windowManager.setProject(window, "/project/a");
+
+      expect(windowManager.findWindowForProject("/project/b")).toBeNull();
+    });
+
+    it("ignores idle windows (no project loaded)", () => {
+      const window = createMockBrowserWindow();
+      windowManager.registerProjectWindow(window);
+
+      expect(windowManager.findWindowForProject("/project/a")).toBeNull();
+    });
+
+    it("normalises trailing separators", () => {
+      const window = createMockBrowserWindow();
+      windowManager.registerProjectWindow(window);
+      windowManager.setProject(window, "/project/a");
+
+      expect(windowManager.findWindowForProject("/project/a/")).toBe(window);
+    });
+
+    it("normalises `..` segments", () => {
+      const window = createMockBrowserWindow();
+      windowManager.registerProjectWindow(window);
+      windowManager.setProject(window, "/project/a");
+
+      expect(windowManager.findWindowForProject("/project/b/../a")).toBe(window);
+    });
+  });
+
   describe("sender resolution", () => {
     it("resolves the project window for a project-window sender", () => {
       const window = createMockBrowserWindow();

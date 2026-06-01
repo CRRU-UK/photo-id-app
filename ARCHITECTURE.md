@@ -117,6 +117,7 @@ The following describes the specifications and requirements of user journeys and
 - The first project window is created on app start and is maximised; subsequent project windows open at the default size
 - A new empty project window can be created via the File > New Window menu item (CmdOrCtrl+N)
 - Opening a project file or folder from a window that already has a project loaded spawns the new project in a **new** project window, leaving the existing one untouched. Opening from an empty index window loads the project in place
+- A project can only be open in one window at a time. If the user opens (via dialogue, recent projects, or a `.photoid` file from the OS) a project that is already loaded in another window, that window is focused and brought to the front (restored if minimised) instead of loading the project again. Directories are compared after `path.resolve()` normalisation so trailing separators and `..` segments do not cause false negatives
 - Opening a `.photoid` file via the OS (file association, double-click, second instance) always opens it in a new project window unless an idle (empty) window already exists, in which case the idle window is reused
 - Edit windows should ONLY show the edit view (`/edit`) and are created from a project window
 - Each edit window is linked to the project window that spawned it (its "parent"). When a project window closes, its edit windows close with it; closing a project window does NOT affect edit windows belonging to other open projects

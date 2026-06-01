@@ -25,10 +25,13 @@ vi.mock("@/backend/projects", () => ({
 }));
 
 const mockFindIdleProjectWindow = vi.fn<() => BrowserWindow | null>();
+const mockFindWindowForProject = vi.fn<(directory: string) => BrowserWindow | null>();
 
 vi.mock("@/backend/WindowManager", () => ({
   windowManager: {
     findIdleProjectWindow: () => mockFindIdleProjectWindow(),
+    findWindowForProject: (...args: Parameters<typeof mockFindWindowForProject>) =>
+      mockFindWindowForProject(...args),
   },
 }));
 
@@ -39,10 +42,15 @@ vi.mock("@/backend/windows", () => ({
     mockCreateProjectWindow(...args),
 }));
 
-const createMockWindow = (): BrowserWindow =>
+const createMockWindow = (
+  overrides?: Partial<{ isDestroyed: boolean; isMinimized: boolean }>,
+): BrowserWindow =>
   ({
     setTitle: vi.fn<(title: string) => void>(),
     focus: vi.fn<() => void>(),
+    restore: vi.fn<() => void>(),
+    isDestroyed: vi.fn<() => boolean>(() => overrides?.isDestroyed ?? false),
+    isMinimized: vi.fn<() => boolean>(() => overrides?.isMinimized ?? false),
     webContents: {
       send: vi.fn<(channel: string, ...args: unknown[]) => void>(),
     },
@@ -52,6 +60,7 @@ const {
   getWindowFromSender,
   broadcastToAllWindows,
   findProjectFileArg,
+  focusExistingWindow,
   openProjectFromPath,
   resolveExternalLinkUrl,
   withErrorDialog,
@@ -131,6 +140,7 @@ describe("shared IPC utilities", () => {
   describe(openProjectFromPath, () => {
     it("reuses an idle project window when one exists", async () => {
       const idleWindow = createMockWindow();
+      mockFindWindowForProject.mockReturnValue(null);
       mockFindIdleProjectWindow.mockReturnValue(idleWindow);
       mockHandleOpenProjectFile.mockResolvedValue(undefined);
 
@@ -146,6 +156,7 @@ describe("shared IPC utilities", () => {
 
     it("creates a new window when no idle window exists", async () => {
       const newWindow = createMockWindow();
+      mockFindWindowForProject.mockReturnValue(null);
       mockFindIdleProjectWindow.mockReturnValue(null);
       mockCreateProjectWindow.mockResolvedValue(newWindow);
       mockHandleOpenProjectFile.mockResolvedValue(undefined);
@@ -155,6 +166,45 @@ describe("shared IPC utilities", () => {
       expect(mockCreateProjectWindow).toHaveBeenCalledWith();
       expect(mockHandleOpenProjectFile).toHaveBeenCalledWith(newWindow, "/path/to/project.photoid");
       expect(newWindow.focus).toHaveBeenCalledWith();
+    });
+
+    it("focuses an existing window and does not load when the project is already open", async () => {
+      const existingWindow = createMockWindow();
+      mockFindWindowForProject.mockReturnValue(existingWindow);
+
+      await openProjectFromPath("/path/to/project.photoid");
+
+      expect(mockFindWindowForProject).toHaveBeenCalledWith("/path/to");
+      expect(mockHandleOpenProjectFile).not.toHaveBeenCalled();
+      expect(mockCreateProjectWindow).not.toHaveBeenCalled();
+      expect(existingWindow.focus).toHaveBeenCalledWith();
+    });
+  });
+
+  describe(focusExistingWindow, () => {
+    it("focuses a visible window", () => {
+      const window = createMockWindow();
+
+      focusExistingWindow(window);
+
+      expect(window.focus).toHaveBeenCalledWith();
+    });
+
+    it("restores a minimised window before focusing", () => {
+      const window = createMockWindow({ isMinimized: true });
+
+      focusExistingWindow(window);
+
+      expect(window.restore).toHaveBeenCalledWith();
+      expect(window.focus).toHaveBeenCalledWith();
+    });
+
+    it("does nothing when the window is destroyed", () => {
+      const window = createMockWindow({ isDestroyed: true });
+
+      focusExistingWindow(window);
+
+      expect(window.focus).not.toHaveBeenCalled();
     });
   });
 
