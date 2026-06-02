@@ -5,8 +5,8 @@ import { type ElectronApplication, expect, type Locator, type Page, test } from 
 import { _electron as electron } from "playwright";
 
 import { EXISTING_DATA_RESPONSE } from "../src/constants";
+import { getPackagedBinaryPath } from "./electron.fixture";
 
-const APP_DIR = path.join(__dirname, "..");
 const TEST_DATA_DIR = path.join(__dirname, "data");
 
 const PROJECT_EXPORT_DATA_DIRECTORY = "data";
@@ -55,13 +55,14 @@ test.describe
         await fs.promises.copyFile(path.join(TEST_DATA_DIR, file), path.join(projectDir, file));
       }
 
-      const args = [APP_DIR, `--user-data-dir=${userDataDir}`];
+      const args = [`--user-data-dir=${userDataDir}`];
       // Linux CI lacks a properly configured SUID sandbox
       if (process.platform === "linux") {
         args.push("--no-sandbox");
       }
 
       app = await electron.launch({
+        executablePath: getPackagedBinaryPath(),
         args,
         env: { ...process.env, E2E: "true" },
       });

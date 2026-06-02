@@ -18,7 +18,6 @@
   },
   "license": "MIT",
   "scripts": {
-    "postinstall": "node node_modules/electron/install.js && test -f node_modules/electron/path.txt",
     "start": "electron-forge start",
     "package": "electron-forge package",
     "make": "electron-forge make",
@@ -32,7 +31,7 @@
     "test:unit": "vitest run",
     "test:unit:watch": "vitest watch",
     "docs": "mkdocs serve",
-    "test:e2e:build": "electron-forge package",
+    "test:e2e:build": "cross-env E2E=true electron-forge package",
     "test:e2e": "playwright test"
   },
   "dependencies": {
@@ -81,6 +80,7 @@
     "@types/react-dom": "^19.2.3",
     "@vitest/coverage-v8": "^4.1.6",
     "baseline-browser-mapping": "^2.10.29",
+    "cross-env": "^10.1.0",
     "electron": "^42.0.1",
     "electron-devtools-installer": "^4.0.0",
     "jsdom": "^29.1.1",
