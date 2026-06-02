@@ -13,7 +13,9 @@ runs:
   steps:
     - uses: actions/setup-node@v6.3.0
       with:
-        node-version: 24
+        # Pinned: Node 24.16.0 broke @electron/get's binary download (silent
+        # exit 0). Bisected to nodejs/node#63082 in the 24.16.0 release.
+        node-version: 24.15.0
         cache: npm
 
     - name: Install dependencies
