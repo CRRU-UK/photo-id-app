@@ -15,33 +15,28 @@ The renderer process has no direct access to Node.js APIs. All system access is 
 - `will-navigate` handler - Blocks navigation to arbitrary URLs from the renderer
 - `setPermissionRequestHandler` - Denies all renderer permission requests (camera, geolocation, notifications, media). The app does not use these capabilities
 
+## Per-window sessions
+
+Each project window owns its own Electron `Session`, allocated via `session.fromPartition()` when the window is created. CSP, the permission-request handler, and the `photo://` protocol are all registered on that per-window session, scoped to the window's project directory. Edit windows inherit their parent project window's session so editor `fetch()` calls resolve against the same handler.
+
+A renderer in window A cannot resolve `photo://` URLs that point inside window B's project, because A's session does not know about B's directory. This holds even if A's renderer is compromised and crafts URLs by hand.
+
 ## Content Security Policy
 
-A Content Security Policy (CSP) is applied to all renderer responses via `session.defaultSession.webRequest.onHeadersReceived`. The policy restricts script sources to `'self'`, image sources to the app origin and the custom `photo://` protocol, and connections to the app origin and Sentry (when telemetry is enabled).
+A Content Security Policy (CSP) is applied to all renderer responses via each window session's `webRequest.onHeadersReceived` handler. The policy restricts script sources to `'self'`, image sources to the app origin and the custom `photo://` protocol, and connections to the app origin and Sentry (when telemetry is enabled).
 
 The `style-src` directive includes `'unsafe-inline'` because the Primer React component library applies runtime inline styles for layout and theming. This is a known trade-off as removing `'unsafe-inline'` would require a nonce-based approach that Primer does not currently support. The risk is mitigated by the strict `script-src 'self'` policy, which prevents injected inline styles from executing code.
 
 ## Custom Protocol (`photo://`)
 
-All image rendering in the renderer uses the custom `photo://` protocol instead of `file://`. The protocol handler in the main process:
+All image rendering in the renderer uses the custom `photo://` protocol instead of `file://`. The protocol handler is registered on each project window's session and, for every request:
 
-1. Validates that the requested file extension is in the allowlist (`PHOTO_FILE_EXTENSIONS`)
-2. Validates that the resolved file path is within **at least one currently-open project directory** (path traversal protection)
-3. Returns 403 for any request that fails validation
+1. Resolves the requesting window's project directory via `windowManager.getDirectoryForWindow()` and returns 403 if no project is loaded
+2. Validates that the requested file extension is in the allowlist (`PHOTO_FILE_EXTENSIONS`)
+3. Validates that the resolved file path is inside that window's project directory (path traversal protection)
+4. Returns 403 for any request that fails validation
 
-The scheme is registered with `corsEnabled: true` and responses set `Access-Control-Allow-Origin: *` so the edit window can `fetch()` full-size image bytes cross-origin (the renderer is loaded from the Vite dev server in development and `file://` in production - both are cross-origin to `photo://`). Cross-origin access to a custom protocol requires `corsEnabled` since [electron/electron#51152](https://github.com/electron/electron/pull/51152) as the path-traversal and extension checks above continue to gate which files are served.
-
-### Multi-window validation model
-
-The app can have multiple project windows open simultaneously. The protocol handler validates the requested path against the **union** of all open project directories (via `windowManager.getAllProjectDirectories()`). Electron's `protocol.handle` callback does not expose the requesting `webContents`, so the handler cannot scope the check to "the requesting window's project."
-
-**This is a deliberate trade-off**: while projects A and B are simultaneously open, a renderer for A can request a thumbnail from B's directory and the protocol serves it.
-
-**Why this is acceptable**: every open project is opened by the user via the OS file picker, file association, or the recent-projects list, so every directory in the set is equally user-authorised. There is no per-project secret or per-project access control elsewhere in the app - analysis tokens and settings are global, not project-scoped - so cross-project file access does not unlock any data the user has not already opened. The trust boundary is "any file inside any project the user has open right now," and the protocol enforces that.
-
-**What this is NOT defending against**: a compromised renderer in project A's window crafting `photo://` URLs pointing at project B's files. Stricter per-window isolation would require per-session `partition`s (each project window with its own Electron `Session` and a per-session protocol handler bound to that session's project directory), at the cost of re-registering the CSP / permission handlers and re-attaching `installExtension` calls per session. This is only worth implementing if the app gains per-project secrets (encrypted project files, per-project tokens, etc.).
-
-**What this IS defending against and what the validation enforces**: file paths that escape any open project directory (path traversal), file extensions outside the allow-list, and any request when no project is open at all (403).
+The scheme is registered (globally, via `protocol.registerSchemesAsPrivileged`) with `corsEnabled: true` and responses set `Access-Control-Allow-Origin: *` so the edit window can `fetch()` full-size image bytes cross-origin (the renderer is loaded from the Vite dev server in development and `file://` in production - both are cross-origin to `photo://`). Cross-origin access to a custom protocol requires `corsEnabled` since [electron/electron#51152](https://github.com/electron/electron/pull/51152) as the path-traversal and extension checks above continue to gate which files are served.
 
 ## Path Traversal Protection
 

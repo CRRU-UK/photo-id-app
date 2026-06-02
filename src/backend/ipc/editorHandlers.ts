@@ -42,7 +42,11 @@ export const handleOpenEditWindow = (config: EditorConfig) => {
       show: false,
       width: 1200,
       height: 800,
-      webPreferences: buildEditorWebPreferences(config.defaultWebPreferences),
+      // Inherit the parent's session so `photo://` resolves against the parent project directory
+      webPreferences: {
+        ...buildEditorWebPreferences(config.defaultWebPreferences),
+        session: parentWindow.webContents.session,
+      },
       backgroundColor: "black",
       fullscreenable: false,
     });

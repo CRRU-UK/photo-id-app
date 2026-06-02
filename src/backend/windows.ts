@@ -1,11 +1,15 @@
 import path from "node:path";
 import url from "node:url";
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow, session } from "electron";
 
+import { setupProjectSession } from "@/backend/sessions";
 import { windowManager } from "@/backend/WindowManager";
 import { DEFAULT_WINDOW_TITLE, ROUTES } from "@/constants";
 
 const production = app.isPackaged;
+
+// Monotonic suffix for per-window session partition names.
+let projectSessionCounter = 0;
 
 /**
  * Default webPreferences applied to every project window. Edit windows narrow these further (see
@@ -59,13 +63,16 @@ export const createProjectWindow = async (
 ): Promise<BrowserWindow> => {
   const initialRoute = options.initialRoute ?? ROUTES.INDEX;
 
+  // Ephemeral partition (no `persist:` prefix) so per-window state doesn't outlive the window.
+  const projectSession = session.fromPartition(`project-${++projectSessionCounter}`);
+
   const window = new BrowserWindow({
     width: 1200,
     height: 800,
     title: DEFAULT_WINDOW_TITLE,
     // Hide until the renderer has its first frame so users don't see a white "loading" flash.
     show: false,
-    webPreferences: defaultWebPreferences,
+    webPreferences: { ...defaultWebPreferences, session: projectSession },
   });
 
   window.once("ready-to-show", () => {
@@ -77,6 +84,11 @@ export const createProjectWindow = async (
   });
 
   windowManager.registerProjectWindow(window);
+
+  setupProjectSession({
+    session: projectSession,
+    getProjectDirectory: () => windowManager.getDirectoryForWindow(window),
+  });
 
   await window.loadURL(buildWindowUrl(initialRoute));
 

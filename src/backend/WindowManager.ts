@@ -172,21 +172,6 @@ class WindowManager {
   }
 
   /**
-   * All currently-loaded project directories. Used by the `photo://` protocol handler.
-   */
-  getAllProjectDirectories(): Set<string> {
-    const directories = new Set<string>();
-
-    for (const directory of this.projectDirectories.values()) {
-      if (directory !== null) {
-        directories.add(directory);
-      }
-    }
-
-    return directories;
-  }
-
-  /**
    * Returns the project window that has the given directory loaded, or null. Directories are
    * compared after `path.resolve()` normalisation (handles trailing separators, etc.) and, on
    * Windows where the filesystem is case-insensitive by default, after lower-casing, so opening

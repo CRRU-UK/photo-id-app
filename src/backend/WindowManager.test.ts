@@ -136,24 +136,6 @@ describe("windowManager", () => {
       expect(windowManager.getDirectoryForWindow(window)).toBeNull();
     });
 
-    it("returns all open project directories", () => {
-      const windowA = createMockBrowserWindow();
-      const windowB = createMockBrowserWindow();
-      const windowC = createMockBrowserWindow();
-
-      windowManager.registerProjectWindow(windowA);
-      windowManager.registerProjectWindow(windowB);
-      windowManager.registerProjectWindow(windowC);
-
-      windowManager.setProject(windowA, "/project/a");
-      windowManager.setProject(windowB, "/project/b");
-      // windowC stays idle
-
-      expect(windowManager.getAllProjectDirectories()).toStrictEqual(
-        new Set(["/project/a", "/project/b"]),
-      );
-    });
-
     it("finds an idle project window when one exists", () => {
       const windowA = createMockBrowserWindow();
       const windowB = createMockBrowserWindow();

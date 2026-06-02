@@ -85,8 +85,10 @@ const createMockPhotoBody = (overrides: Partial<PhotoBody> = {}): PhotoBody =>
     ...overrides,
   }) as PhotoBody;
 
+const mockParentSession = { id: "parent-session" };
+
 const createMockParentWindow = (): BrowserWindow =>
-  ({ id: 1, webContents: {} }) as unknown as BrowserWindow;
+  ({ id: 1, webContents: { session: mockParentSession } }) as unknown as BrowserWindow;
 
 const createMockEvent = (): IpcMainEvent => ({ sender: {} }) as unknown as IpcMainEvent;
 
@@ -145,6 +147,20 @@ describe("editor IPC handlers", () => {
           }),
           backgroundColor: "black",
           fullscreenable: false,
+        }),
+      );
+    });
+
+    it("inherits the parent project window's session for `photo://` access", () => {
+      const handler = handleOpenEditWindow(config);
+
+      handler(createMockEvent(), createMockPhotoBody());
+
+      expect(mockBrowserWindowConstructor).toHaveBeenCalledWith(
+        expect.objectContaining({
+          webPreferences: expect.objectContaining({
+            session: mockParentSession,
+          }),
         }),
       );
     });
