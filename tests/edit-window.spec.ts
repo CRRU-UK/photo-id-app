@@ -5,8 +5,8 @@ import { type ElectronApplication, expect, type Page, test } from "@playwright/t
 import { _electron as electron } from "playwright";
 
 import { EXISTING_DATA_RESPONSE } from "../src/constants";
+import { getPackagedBinaryPath } from "./electron.fixture";
 
-const APP_DIR = path.join(__dirname, "..");
 const TEST_DATA_DIR = path.join(__dirname, "data");
 
 const FETCH_ERROR_PATTERN = /CORS|ERR_FAILED|Failed to fetch|Photo load failed|Failed to load/i;
@@ -27,12 +27,13 @@ test.describe
         await fs.promises.copyFile(path.join(TEST_DATA_DIR, file), path.join(projectDir, file));
       }
 
-      const args = [APP_DIR, `--user-data-dir=${userDataDir}`];
+      const args = [`--user-data-dir=${userDataDir}`];
       if (process.platform === "linux") {
         args.push("--no-sandbox");
       }
 
       app = await electron.launch({
+        executablePath: getPackagedBinaryPath(),
         args,
         env: { ...process.env, E2E: "true" },
       });
