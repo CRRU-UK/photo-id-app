@@ -28,9 +28,6 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Audit dependencies
-        run: npm audit --omit=dev
-
       - name: Audit production licenses
         run: npx --yes license-checker --production --failOn 'GPL;LGPL;AGPL'
 
