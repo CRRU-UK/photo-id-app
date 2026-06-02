@@ -1,7 +1,7 @@
 import "dotenv/config";
 
 import * as Sentry from "@sentry/electron/main";
-import { app, BrowserWindow, dialog, ipcMain, Menu, protocol } from "electron";
+import { app, BrowserWindow, dialog, ipcMain, Menu, protocol, session } from "electron";
 import started from "electron-squirrel-startup";
 import { updateElectronApp } from "update-electron-app";
 
@@ -118,6 +118,18 @@ app.on("web-contents-created", (_, contents) => {
   contents.on("will-attach-webview", (event) => {
     event.preventDefault();
   });
+});
+
+/**
+ * Catch windows that land on the default session, which has no CSP, permission denial, or
+ * `photo://` handler. Every BrowserWindow must pass an explicit `webPreferences.session`.
+ */
+app.on("browser-window-created", (_event, window) => {
+  if (window.webContents.session === session.defaultSession) {
+    console.error(
+      "BrowserWindow created on the default session — pass `webPreferences.session` explicitly so CSP, permission denial, and the photo:// handler apply.",
+    );
+  }
 });
 
 void app.whenReady().then(async () => {

@@ -23,10 +23,10 @@ interface SetupProjectSessionOptions {
  * Registers CSP, permission denial, the `photo://` protocol, and (in dev) DevTools extensions on
  * a per-window session. See ARCHITECTURE.md "Per-window sessions" for the design.
  */
-export const setupProjectSession = ({
+export const setupProjectSession = async ({
   session,
   getProjectDirectory,
-}: SetupProjectSessionOptions): void => {
+}: SetupProjectSessionOptions): Promise<void> => {
   session.webRequest.onHeadersReceived((details, callback) => {
     callback({
       responseHeaders: {
@@ -76,6 +76,10 @@ export const setupProjectSession = ({
   });
 
   if (!production && !process.env.E2E) {
-    void installExtension([REACT_DEVELOPER_TOOLS, MOBX_DEVTOOLS], { session });
+    try {
+      await installExtension([REACT_DEVELOPER_TOOLS, MOBX_DEVTOOLS], { session });
+    } catch (error) {
+      console.error("Failed to install DevTools extensions:", error);
+    }
   }
 };

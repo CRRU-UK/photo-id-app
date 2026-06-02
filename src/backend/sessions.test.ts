@@ -46,7 +46,7 @@ const createMockSession = (): MockSession => {
 };
 
 const mockNetFetch = vi.fn<(input: string) => Promise<Response>>();
-const mockInstallExtension = vi.fn<() => Promise<unknown>>();
+const mockInstallExtension = vi.fn<() => Promise<unknown>>(() => Promise.resolve());
 
 vi.mock("electron", () => ({
   app: { isPackaged: false },

@@ -63,8 +63,8 @@ export const createProjectWindow = async (
 ): Promise<BrowserWindow> => {
   const initialRoute = options.initialRoute ?? ROUTES.INDEX;
 
-  // Ephemeral partition (no `persist:` prefix) so per-window state doesn't outlive the window.
-  const projectSession = session.fromPartition(`project-${++projectSessionCounter}`);
+  // Persistent partition (the `persist:` prefix is required for DevTools extensions to load)
+  const projectSession = session.fromPartition(`persist:project-${++projectSessionCounter}`);
 
   const window = new BrowserWindow({
     width: 1200,
@@ -85,7 +85,7 @@ export const createProjectWindow = async (
 
   windowManager.registerProjectWindow(window);
 
-  setupProjectSession({
+  await setupProjectSession({
     session: projectSession,
     getProjectDirectory: () => windowManager.getDirectoryForWindow(window),
   });
