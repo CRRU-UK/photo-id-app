@@ -7,6 +7,33 @@ import { _electron as electron } from "playwright";
 const APP_DIR = path.join(__dirname, "..");
 const TEST_DATA_DIR = path.join(__dirname, "data");
 
+/**
+ * Resolves the packaged binary produced by `npm run test:e2e:build` (electron-forge
+ * package). The build sets `E2E=true` so the EnableNodeCliInspectArguments fuse is
+ * enabled — required for Playwright's CDP attach. See forge.config.ts.
+ * @returns The path to the packaged binary.
+ */
+export function getPackagedBinaryPath(): string {
+  const productName = "Photo ID";
+  const executableName = "photo-id";
+
+  const platformDir = path.join(
+    APP_DIR,
+    "out",
+    `${productName}-${process.platform}-${process.arch}`,
+  );
+
+  if (process.platform === "darwin") {
+    return path.join(platformDir, `${productName}.app`, "Contents", "MacOS", executableName);
+  }
+
+  if (process.platform === "win32") {
+    return path.join(platformDir, `${executableName}.exe`);
+  }
+
+  return path.join(platformDir, executableName);
+}
+
 type E2EFixtures = {
   testProjectDir: string;
   electronApp: ElectronApplication;
@@ -29,15 +56,11 @@ export const test = base.extend<E2EFixtures>({
   },
 
   electronApp: async ({ testProjectDir }, use) => {
-    // Launch Electron from the Vite-built output (not the packaged binary). The packaged binary has EnableNodeCliInspectArguments fuse disabled, which blocks Playwright's CDP connection.
-    const args = [APP_DIR];
-
     // Linux CI lacks a properly configured SUID sandbox
-    if (process.platform === "linux") {
-      args.push("--no-sandbox");
-    }
+    const args = process.platform === "linux" ? ["--no-sandbox"] : [];
 
     const app = await electron.launch({
+      executablePath: getPackagedBinaryPath(),
       args,
       env: {
         ...process.env,

@@ -137,7 +137,8 @@ const config: ForgeConfig = {
       [FuseV1Options.RunAsNode]: false,
       [FuseV1Options.EnableCookieEncryption]: true,
       [FuseV1Options.EnableNodeOptionsEnvironmentVariable]: false,
-      [FuseV1Options.EnableNodeCliInspectArguments]: false,
+      // Enabled for E2E builds so Playwright can attach via CDP. Stays false for release builds.
+      [FuseV1Options.EnableNodeCliInspectArguments]: process.env.E2E === "true",
       // Disabled on Windows because code signing modifies the binary after ASAR integrity checksums
       // are embedded, which causes validation errors during Squirrel update events.
       [FuseV1Options.EnableEmbeddedAsarIntegrityValidation]: process.platform !== "win32",
