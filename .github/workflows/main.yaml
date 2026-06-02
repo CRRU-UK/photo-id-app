@@ -22,7 +22,8 @@ jobs:
 
       - uses: actions/setup-node@v6.4.0
         with:
-          node-version: 24
+          # Experiment: bisect which Node patch broke @electron/get.
+          node-version: 24.15.0
           cache: npm
 
       - name: Install dependencies
