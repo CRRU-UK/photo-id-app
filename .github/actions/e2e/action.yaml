@@ -17,7 +17,7 @@ runs:
         cache: npm
 
     - name: Install dependencies
-      run: npm ci
+      run: npm ci --foreground-scripts
       shell: bash
 
     - name: Build app for E2E

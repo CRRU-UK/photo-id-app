@@ -18,7 +18,7 @@
   },
   "license": "MIT",
   "scripts": {
-    "postinstall": "node node_modules/electron/install.js",
+    "postinstall": "node node_modules/electron/install.js && test -f node_modules/electron/path.txt",
     "start": "electron-forge start",
     "package": "electron-forge package",
     "make": "electron-forge make",
