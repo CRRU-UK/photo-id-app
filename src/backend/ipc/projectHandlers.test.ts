@@ -298,7 +298,9 @@ describe("project IPC handlers", () => {
       const senderWindow = createMockWindow();
       const newWindow = createMockWindow();
       mockGetProjectWindowForSender.mockReturnValue(senderWindow);
-      mockGetDirectoryForWindow.mockReturnValue("/existing/project");
+      mockGetDirectoryForWindow.mockImplementation((win) =>
+        win === newWindow ? "/new/project" : "/existing/project",
+      );
       mockCreateProjectWindow.mockResolvedValue(newWindow);
       mockPromptForProjectFile.mockResolvedValue("/new/project/project.photoid");
 
@@ -309,6 +311,36 @@ describe("project IPC handlers", () => {
         newWindow,
         "/new/project/project.photoid",
       );
+      expect(newWindow.close).not.toHaveBeenCalled();
+    });
+
+    it("closes the fresh window when the load fails to register a project", async () => {
+      const senderWindow = createMockWindow();
+      const newWindow = createMockWindow();
+      mockGetProjectWindowForSender.mockReturnValue(senderWindow);
+      // Sender has a project, so a fresh window is spawned. The fresh window never gets a
+      // project registered (mock returns null), simulating a load failure.
+      mockGetDirectoryForWindow.mockImplementation((win) =>
+        win === newWindow ? null : "/existing/project",
+      );
+      mockCreateProjectWindow.mockResolvedValue(newWindow);
+      mockPromptForProjectFile.mockResolvedValue("/broken/project.photoid");
+
+      await handleOpenFile(createMockEvent(senderWindow));
+
+      expect(newWindow.close).toHaveBeenCalledWith();
+    });
+
+    it("does not close the sender window when the load fails on it", async () => {
+      const senderWindow = createMockWindow();
+      mockGetProjectWindowForSender.mockReturnValue(senderWindow);
+      // Sender has no project — load goes into sender. Load fails (no project registered).
+      mockGetDirectoryForWindow.mockReturnValue(null);
+      mockPromptForProjectFile.mockResolvedValue("/broken/project.photoid");
+
+      await handleOpenFile(createMockEvent(senderWindow));
+
+      expect(senderWindow.close).not.toHaveBeenCalled();
     });
 
     it("focuses the existing window when the project is already open", async () => {

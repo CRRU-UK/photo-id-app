@@ -33,7 +33,15 @@ The scheme is registered with `corsEnabled: true` and responses set `Access-Cont
 
 ### Multi-window validation model
 
-Because the app can have multiple project windows open simultaneously, the protocol handler validates the requested path against the **union** of all open project directories (via `windowManager.getAllProjectDirectories()`). Electron's `protocol.handle` callback does not expose the requesting `webContents`, so the handler cannot scope the check to "the requesting window's project." This loosening is acceptable under the existing trust model as every open project was opened by the user via the OS file picker, file association, or the recent-projects list, so the user has authorised every directory in the set. A renderer for project A could in principle request a thumbnail from project B's directory, but both projects are equally user-trusted, so this is not a confidentiality boundary. If we later add per-project secrets that require stronger isolation, the alternative is per-session `partition`s with per-session protocol handlers.
+The app can have multiple project windows open simultaneously. The protocol handler validates the requested path against the **union** of all open project directories (via `windowManager.getAllProjectDirectories()`). Electron's `protocol.handle` callback does not expose the requesting `webContents`, so the handler cannot scope the check to "the requesting window's project."
+
+**This is a deliberate trade-off**: while projects A and B are simultaneously open, a renderer for A can request a thumbnail from B's directory and the protocol serves it.
+
+**Why this is acceptable**: every open project is opened by the user via the OS file picker, file association, or the recent-projects list, so every directory in the set is equally user-authorised. There is no per-project secret or per-project access control elsewhere in the app - analysis tokens and settings are global, not project-scoped - so cross-project file access does not unlock any data the user has not already opened. The trust boundary is "any file inside any project the user has open right now," and the protocol enforces that.
+
+**What this is NOT defending against**: a compromised renderer in project A's window crafting `photo://` URLs pointing at project B's files. Stricter per-window isolation would require per-session `partition`s (each project window with its own Electron `Session` and a per-session protocol handler bound to that session's project directory), at the cost of re-registering the CSP / permission handlers and re-attaching `installExtension` calls per session. This is only worth implementing if the app gains per-project secrets (encrypted project files, per-project tokens, etc.).
+
+**What this IS defending against and what the validation enforces**: file paths that escape any open project directory (path traversal), file extensions outside the allow-list, and any request when no project is open at all (403).
 
 ## Path Traversal Protection
 

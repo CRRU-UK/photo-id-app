@@ -2,6 +2,16 @@ import path from "node:path";
 import { BrowserWindow } from "electron";
 
 /**
+ * Normalises a directory path for comparison: resolves `..`/trailing separators, and on Windows
+ * lower-cases the result (NTFS is case-insensitive by default, so `C:\Foo` and `c:\foo` refer to
+ * the same location). POSIX paths are case-sensitive and returned as-is.
+ */
+const normaliseDirectory = (directory: string): string => {
+  const resolved = path.resolve(directory);
+  return process.platform === "win32" ? resolved.toLowerCase() : resolved;
+};
+
+/**
  * Registry of open project windows and the edit windows linked to each.
  */
 class WindowManager {
@@ -11,19 +21,93 @@ class WindowManager {
   private readonly editWindowsById = new Map<number, BrowserWindow>();
 
   /**
-   * Registers a project window. Auto-cleans state and closes child edit windows on `closed`.
+   * Registers a project window. The `close` listener gives child edit windows a chance to prompt
+   * the user for unsaved changes BEFORE the parent goes away; if any prompt is cancelled, the
+   * parent stays open too. The `closed` listener cleans up registry state and acts as a fallback
+   * for force-destroy paths (where `close` is bypassed).
    */
   registerProjectWindow(window: BrowserWindow): void {
     const id = window.id;
     this.projectWindowsById.set(id, window);
     this.projectDirectories.set(id, null);
 
+    window.on("close", (event) => {
+      const editWindows = this.getEditWindowsForProject(window);
+      if (editWindows.length === 0) {
+        return;
+      }
+
+      event.preventDefault();
+      void this.closeAllWindows(window, editWindows);
+    });
+
     window.on("closed", () => {
+      // Fallback for force-destroy (which bypasses the `close` event). In the normal flow the
+      // edit windows have already been closed in the `close` handler above.
       this.closeEditWindowsForProject(window);
       this.projectWindowsById.delete(id);
       this.projectDirectories.delete(id);
     });
   }
+
+  /**
+   * Closes a parent's edit windows sequentially, then closes the parent. If any edit window's
+   * unsaved-edits prompt is cancelled by the user, the parent is left open so the user can
+   * resolve the prompt before retrying the close.
+   */
+  private readonly closeAllWindows = async (
+    parentWindow: BrowserWindow,
+    editWindows: BrowserWindow[],
+  ): Promise<void> => {
+    for (const editWindow of editWindows) {
+      const closed = await this.tryCloseEditWindow(editWindow);
+      if (!closed) {
+        return;
+      }
+    }
+
+    if (!parentWindow.isDestroyed()) {
+      parentWindow.close();
+    }
+  };
+
+  /**
+   * Asks an edit window to close. Resolves true if it closed (no unsaved edits, or the user
+   * chose Discard); false if the close was cancelled by the user's prompt and the window is
+   * still alive. Electron does not emit an event when a `will-prevent-unload` handler declines
+   * to call `preventDefault`, so cancellation is inferred from a short timeout — comfortably
+   * longer than the gap between `close()` and the `closed` event in the normal flow.
+   */
+  private readonly tryCloseEditWindow = (editWindow: BrowserWindow): Promise<boolean> => {
+    return new Promise((resolve) => {
+      if (editWindow.isDestroyed()) {
+        resolve(true);
+        return;
+      }
+
+      let settled = false;
+
+      const onClosed = () => {
+        if (settled) {
+          return;
+        }
+        settled = true;
+        resolve(true);
+      };
+
+      editWindow.once("closed", onClosed);
+      editWindow.close();
+
+      setTimeout(() => {
+        if (settled || editWindow.isDestroyed()) {
+          return;
+        }
+        editWindow.off("closed", onClosed);
+        settled = true;
+        resolve(false);
+      }, 250);
+    });
+  };
 
   /**
    * Assigns a directory to a registered window. No-op if the window isn't registered.
@@ -104,18 +188,19 @@ class WindowManager {
 
   /**
    * Returns the project window that has the given directory loaded, or null. Directories are
-   * compared after `path.resolve()` normalisation (handles trailing separators, etc.) so a project
-   * is never opened in more than one window at the same time.
+   * compared after `path.resolve()` normalisation (handles trailing separators, etc.) and, on
+   * Windows where the filesystem is case-insensitive by default, after lower-casing, so opening
+   * the same project via `C:\Whales` and `c:\whales` is recognised as the same project.
    */
   findWindowForProject(directory: string): BrowserWindow | null {
-    const target = path.resolve(directory);
+    const target = normaliseDirectory(directory);
 
     for (const [id, loadedDirectory] of this.projectDirectories) {
       if (loadedDirectory === null) {
         continue;
       }
 
-      if (path.resolve(loadedDirectory) !== target) {
+      if (normaliseDirectory(loadedDirectory) !== target) {
         continue;
       }
 

@@ -20,14 +20,26 @@ const focusedProjectWindow = (): BrowserWindow | null => {
   return windowManager.getProjectWindowForSender(focused.webContents);
 };
 
+/**
+ * Returns a project window to operate on for menu-driven actions. Falls back to creating a fresh
+ * index window when no project window is focused (typical on macOS when all windows are closed
+ * but the app is still running in the dock). Without this, menu items like Open Project Folder
+ * would silently no-op.
+ */
+const resolveProjectWindowForMenu = async (): Promise<BrowserWindow> => {
+  const focused = focusedProjectWindow();
+  if (focused) {
+    return focused;
+  }
+
+  return createProjectWindow();
+};
+
 const getMenu = (): Electron.MenuItemConstructorOptions[] => {
   const isMac = process.platform === "darwin";
 
-  const openPreferences = () => {
-    const window = BrowserWindow.getFocusedWindow();
-    if (!window) {
-      return;
-    }
+  const openPreferences = async () => {
+    const window = await resolveProjectWindowForMenu();
     window.focus();
     window.webContents.send(IPC_EVENTS.OPEN_SETTINGS);
   };
@@ -71,23 +83,17 @@ const getMenu = (): Electron.MenuItemConstructorOptions[] => {
         {
           label: "Open Project Folder",
           accelerator: "CmdOrCtrl+O",
-          click() {
-            const window = focusedProjectWindow();
-            if (!window) {
-              return;
-            }
-            void openProjectFolderForWindow(window);
+          async click() {
+            const window = await resolveProjectWindowForMenu();
+            await openProjectFolderForWindow(window);
           },
         },
         {
           label: "Open Project File",
           accelerator: "CmdOrCtrl+Shift+O",
-          click() {
-            const window = focusedProjectWindow();
-            if (!window) {
-              return;
-            }
-            void openProjectFileForWindow(window);
+          async click() {
+            const window = await resolveProjectWindowForMenu();
+            await openProjectFileForWindow(window);
           },
         },
         ...(isMac

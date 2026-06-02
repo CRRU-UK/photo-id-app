@@ -63,9 +63,13 @@ vi.mock("@/backend/recents", () => ({
   removeRecentProject: vi.fn<() => void>(),
 }));
 
+const mockSetProject = vi.fn<(window: Electron.BrowserWindow, directory: string) => void>();
+const mockClearProject = vi.fn<(window: Electron.BrowserWindow) => void>();
+
 vi.mock("@/backend/WindowManager", () => ({
   windowManager: {
-    setProject: vi.fn<(window: Electron.BrowserWindow, directory: string) => void>(),
+    setProject: (...args: Parameters<typeof mockSetProject>) => mockSetProject(...args),
+    clearProject: (...args: Parameters<typeof mockClearProject>) => mockClearProject(...args),
   },
 }));
 
@@ -673,6 +677,30 @@ describe(loadExistingProject, () => {
       IPC_EVENTS.LOAD_PROJECT,
       expect.objectContaining({ directory: "/my/project" }),
     );
+  });
+
+  it("eagerly registers the directory in WindowManager before parsing", async () => {
+    const project = createProject();
+    mockReadFile.mockResolvedValue(JSON.stringify(project));
+
+    const mainWindow = createMockMainWindow();
+
+    await loadExistingProject(mainWindow, "/my/project");
+
+    // setProject is called eagerly (at the start) AND again by sendData on success
+    expect(mockSetProject).toHaveBeenCalledWith(mainWindow, "/my/project");
+    expect(mockClearProject).not.toHaveBeenCalled();
+  });
+
+  it("clears the WindowManager reservation when parsing fails", async () => {
+    mockReadFile.mockResolvedValue("not valid json {{{");
+
+    const mainWindow = createMockMainWindow();
+
+    await loadExistingProject(mainWindow, "/my/project");
+
+    expect(mockSetProject).toHaveBeenCalledWith(mainWindow, "/my/project");
+    expect(mockClearProject).toHaveBeenCalledWith(mainWindow);
   });
 
   it("shows a corrupted-data error dialog when the project file is invalid JSON", async () => {

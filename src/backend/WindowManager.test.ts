@@ -1,10 +1,11 @@
 import type { BrowserWindow } from "electron";
 
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-type EventHandler = () => void;
+type EventHandler = (...args: unknown[]) => void;
 
 interface MockWindow extends BrowserWindow {
+  triggerClose: () => { defaultPrevented: boolean };
   triggerClosed: () => void;
 }
 
@@ -21,6 +22,8 @@ const createMockBrowserWindow = (
     send: vi.fn<(channel: string, ...args: unknown[]) => void>(),
   };
 
+  const onceHandlers: Record<string, EventHandler[]> = {};
+
   return {
     id,
     webContents,
@@ -30,6 +33,19 @@ const createMockBrowserWindow = (
       }
       eventHandlers[event].push(handler);
     }),
+    once: vi.fn<(event: string, handler: EventHandler) => void>((event, handler) => {
+      if (!onceHandlers[event]) {
+        onceHandlers[event] = [];
+      }
+      onceHandlers[event].push(handler);
+    }),
+    off: vi.fn<(event: string, handler: EventHandler) => void>((event, handler) => {
+      const list = onceHandlers[event] ?? [];
+      const index = list.indexOf(handler);
+      if (index >= 0) {
+        list.splice(index, 1);
+      }
+    }),
     isDestroyed: vi.fn<() => boolean>(() => overrides?.isDestroyed ?? false),
     closable: overrides?.closable ?? true,
     close: vi.fn<() => void>(),
@@ -37,6 +53,22 @@ const createMockBrowserWindow = (
       for (const handler of eventHandlers.closed ?? []) {
         handler();
       }
+      for (const handler of onceHandlers.closed ?? []) {
+        handler();
+      }
+      onceHandlers.closed = [];
+    },
+    triggerClose(): { defaultPrevented: boolean } {
+      let defaultPrevented = false;
+      const event = {
+        preventDefault: () => {
+          defaultPrevented = true;
+        },
+      };
+      for (const handler of eventHandlers.close ?? []) {
+        handler(event);
+      }
+      return { defaultPrevented };
     },
   } as unknown as MockWindow;
 };
@@ -194,6 +226,36 @@ describe("windowManager", () => {
       windowManager.setProject(window, "/project/a");
 
       expect(windowManager.findWindowForProject("/project/b/../a")).toBe(window);
+    });
+
+    it("normalises case on Windows so the same project isn't opened twice", () => {
+      const originalPlatform = process.platform;
+      Object.defineProperty(process, "platform", { value: "win32" });
+
+      try {
+        const window = createMockBrowserWindow();
+        windowManager.registerProjectWindow(window);
+        windowManager.setProject(window, "C:\\Users\\foo\\Whales");
+
+        expect(windowManager.findWindowForProject("c:\\users\\foo\\whales")).toBe(window);
+      } finally {
+        Object.defineProperty(process, "platform", { value: originalPlatform });
+      }
+    });
+
+    it("preserves case sensitivity on POSIX (Whales and whales are different projects)", () => {
+      const originalPlatform = process.platform;
+      Object.defineProperty(process, "platform", { value: "linux" });
+
+      try {
+        const window = createMockBrowserWindow();
+        windowManager.registerProjectWindow(window);
+        windowManager.setProject(window, "/users/foo/Whales");
+
+        expect(windowManager.findWindowForProject("/users/foo/whales")).toBeNull();
+      } finally {
+        Object.defineProperty(process, "platform", { value: originalPlatform });
+      }
     });
   });
 
@@ -368,6 +430,63 @@ describe("windowManager", () => {
 
       expect(editA.close).toHaveBeenCalledWith();
       expect(editB.close).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("parent close defers to edit-window unsaved-edits prompts", () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it("does not prevent default when the project window has no edit windows", () => {
+      const projectWindow = createMockBrowserWindow();
+      windowManager.registerProjectWindow(projectWindow);
+
+      const result = projectWindow.triggerClose();
+
+      expect(result.defaultPrevented).toBe(false);
+      expect(projectWindow.close).not.toHaveBeenCalled();
+    });
+
+    it("prevents default and closes edit windows first, then closes the parent", async () => {
+      const projectWindow = createMockBrowserWindow();
+      const editWindow = createMockBrowserWindow();
+      windowManager.registerProjectWindow(projectWindow);
+      windowManager.addEditWindow(editWindow, projectWindow);
+
+      const result = projectWindow.triggerClose();
+      expect(result.defaultPrevented).toBe(true);
+      expect(editWindow.close).toHaveBeenCalledWith();
+
+      // Simulate edit window completing close
+      editWindow.triggerClosed();
+      // flush microtasks so the await resolves
+      await vi.advanceTimersByTimeAsync(0);
+
+      // Parent close should now be re-attempted by the orchestrator
+      expect(projectWindow.close).toHaveBeenCalledWith();
+    });
+
+    it("leaves the parent open when an edit window's close is cancelled (no closed event within timeout)", async () => {
+      const projectWindow = createMockBrowserWindow();
+      const editWindow = createMockBrowserWindow();
+      windowManager.registerProjectWindow(projectWindow);
+      windowManager.addEditWindow(editWindow, projectWindow);
+
+      const result = projectWindow.triggerClose();
+      expect(result.defaultPrevented).toBe(true);
+      expect(editWindow.close).toHaveBeenCalledWith();
+
+      // Edit window does NOT fire closed — user cancelled the unsaved-edits prompt.
+      // Advance past the cancellation-detection timeout.
+      await vi.advanceTimersByTimeAsync(300);
+
+      // Parent close should NOT have been re-attempted
+      expect(projectWindow.close).not.toHaveBeenCalled();
     });
   });
 });

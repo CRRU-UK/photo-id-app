@@ -26,12 +26,15 @@ vi.mock("@/backend/projects", () => ({
 
 const mockFindIdleProjectWindow = vi.fn<() => BrowserWindow | null>();
 const mockFindWindowForProject = vi.fn<(directory: string) => BrowserWindow | null>();
+const mockGetDirectoryForWindow = vi.fn<(window: BrowserWindow) => string | null>();
 
 vi.mock("@/backend/WindowManager", () => ({
   windowManager: {
     findIdleProjectWindow: () => mockFindIdleProjectWindow(),
     findWindowForProject: (...args: Parameters<typeof mockFindWindowForProject>) =>
       mockFindWindowForProject(...args),
+    getDirectoryForWindow: (...args: Parameters<typeof mockGetDirectoryForWindow>) =>
+      mockGetDirectoryForWindow(...args),
   },
 }));
 
@@ -49,6 +52,7 @@ const createMockWindow = (
     setTitle: vi.fn<(title: string) => void>(),
     focus: vi.fn<() => void>(),
     restore: vi.fn<() => void>(),
+    close: vi.fn<() => void>(),
     isDestroyed: vi.fn<() => boolean>(() => overrides?.isDestroyed ?? false),
     isMinimized: vi.fn<() => boolean>(() => overrides?.isMinimized ?? false),
     webContents: {
@@ -160,12 +164,40 @@ describe("shared IPC utilities", () => {
       mockFindIdleProjectWindow.mockReturnValue(null);
       mockCreateProjectWindow.mockResolvedValue(newWindow);
       mockHandleOpenProjectFile.mockResolvedValue(undefined);
+      mockGetDirectoryForWindow.mockReturnValue("/path/to");
 
       await openProjectFromPath("/path/to/project.photoid");
 
       expect(mockCreateProjectWindow).toHaveBeenCalledWith({ initialRoute: "/project" });
       expect(mockHandleOpenProjectFile).toHaveBeenCalledWith(newWindow, "/path/to/project.photoid");
       expect(newWindow.focus).toHaveBeenCalledWith();
+      expect(newWindow.close).not.toHaveBeenCalled();
+    });
+
+    it("closes the fresh window when the load fails to register a project", async () => {
+      const newWindow = createMockWindow();
+      mockFindWindowForProject.mockReturnValue(null);
+      mockFindIdleProjectWindow.mockReturnValue(null);
+      mockCreateProjectWindow.mockResolvedValue(newWindow);
+      mockHandleOpenProjectFile.mockResolvedValue(undefined);
+      mockGetDirectoryForWindow.mockReturnValue(null);
+
+      await openProjectFromPath("/path/to/project.photoid");
+
+      expect(newWindow.close).toHaveBeenCalledWith();
+      expect(newWindow.focus).not.toHaveBeenCalled();
+    });
+
+    it("does not close an idle window when the load fails on it", async () => {
+      const idleWindow = createMockWindow();
+      mockFindWindowForProject.mockReturnValue(null);
+      mockFindIdleProjectWindow.mockReturnValue(idleWindow);
+      mockHandleOpenProjectFile.mockResolvedValue(undefined);
+      mockGetDirectoryForWindow.mockReturnValue(null);
+
+      await openProjectFromPath("/path/to/project.photoid");
+
+      expect(idleWindow.close).not.toHaveBeenCalled();
     });
 
     it("focuses an existing window and does not load when the project is already open", async () => {

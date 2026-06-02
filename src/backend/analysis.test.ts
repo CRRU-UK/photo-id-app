@@ -48,6 +48,7 @@ describe(analyseMatches, () => {
     mockFetch.mockResolvedValue(new Response(JSON.stringify(successResponse), { status: 200 }));
 
     const result = await analyseMatches({
+      windowId: 1,
       directory: "/project",
       photos: [defaultPhoto],
       settings: defaultSettings,
@@ -67,6 +68,7 @@ describe(analyseMatches, () => {
     mockFetch.mockResolvedValue(new Response(JSON.stringify(unorderedResponse), { status: 200 }));
 
     const result = await analyseMatches({
+      windowId: 1,
       directory: "/project",
       photos: [defaultPhoto],
       settings: defaultSettings,
@@ -79,6 +81,7 @@ describe(analyseMatches, () => {
     mockFetch.mockResolvedValue(new Response(JSON.stringify(successResponse), { status: 200 }));
 
     await analyseMatches({
+      windowId: 1,
       directory: "/project",
       photos: [defaultPhoto],
       settings: defaultSettings,
@@ -95,6 +98,7 @@ describe(analyseMatches, () => {
 
     const settingsWithTrailingSlash = { ...defaultSettings, endpoint: "https://api.example.com/" };
     await analyseMatches({
+      windowId: 1,
       directory: "/project",
       photos: [defaultPhoto],
       settings: settingsWithTrailingSlash,
@@ -109,6 +113,7 @@ describe(analyseMatches, () => {
     mockFetch.mockResolvedValue(new Response(JSON.stringify(successResponse), { status: 200 }));
 
     await analyseMatches({
+      windowId: 1,
       directory: "/project",
       photos: [defaultPhoto],
       settings: defaultSettings,
@@ -129,6 +134,7 @@ describe(analyseMatches, () => {
     };
 
     await analyseMatches({
+      windowId: 1,
       directory: "/project",
       photos: [editedPhoto],
       settings: defaultSettings,
@@ -145,6 +151,7 @@ describe(analyseMatches, () => {
 
     const secondPhoto: PhotoBody = { ...defaultPhoto, name: "photo2.jpg" };
     await analyseMatches({
+      windowId: 1,
       directory: "/project",
       photos: [defaultPhoto, secondPhoto],
       settings: defaultSettings,
@@ -159,7 +166,12 @@ describe(analyseMatches, () => {
     );
 
     await expect(
-      analyseMatches({ directory: "/project", photos: [defaultPhoto], settings: defaultSettings }),
+      analyseMatches({
+        windowId: 1,
+        directory: "/project",
+        photos: [defaultPhoto],
+        settings: defaultSettings,
+      }),
     ).rejects.toThrow("Invalid or missing token");
   });
 
@@ -171,7 +183,12 @@ describe(analyseMatches, () => {
     );
 
     await expect(
-      analyseMatches({ directory: "/project", photos: [defaultPhoto], settings: defaultSettings }),
+      analyseMatches({
+        windowId: 1,
+        directory: "/project",
+        photos: [defaultPhoto],
+        settings: defaultSettings,
+      }),
     ).rejects.toThrow("could not be decoded as an image");
   });
 
@@ -179,7 +196,12 @@ describe(analyseMatches, () => {
     mockFetch.mockResolvedValue(new Response("Internal Server Error", { status: 503 }));
 
     await expect(
-      analyseMatches({ directory: "/project", photos: [defaultPhoto], settings: defaultSettings }),
+      analyseMatches({
+        windowId: 1,
+        directory: "/project",
+        photos: [defaultPhoto],
+        settings: defaultSettings,
+      }),
     ).rejects.toThrow("HTTP 503");
   });
 
@@ -204,11 +226,12 @@ describe(analyseMatches, () => {
     });
 
     const promise = analyseMatches({
+      windowId: 1,
       directory: "/project",
       photos: [defaultPhoto],
       settings: defaultSettings,
     });
-    cancelAnalyseMatches();
+    cancelAnalyseMatches(1);
 
     const result = await promise;
 
@@ -235,11 +258,12 @@ describe(analyseMatches, () => {
     });
 
     const promise = analyseMatches({
+      windowId: 1,
       directory: "/project",
       photos: [defaultPhoto],
       settings: defaultSettings,
     });
-    cancelAnalyseMatches();
+    cancelAnalyseMatches(1);
 
     const result = await promise;
 
@@ -250,7 +274,12 @@ describe(analyseMatches, () => {
     mockFetch.mockRejectedValue(new Error("Network connection failed"));
 
     await expect(
-      analyseMatches({ directory: "/project", photos: [defaultPhoto], settings: defaultSettings }),
+      analyseMatches({
+        windowId: 1,
+        directory: "/project",
+        photos: [defaultPhoto],
+        settings: defaultSettings,
+      }),
     ).rejects.toThrow("Network connection failed");
   });
 
@@ -258,7 +287,12 @@ describe(analyseMatches, () => {
     mockRenderApiImage.mockRejectedValue(new Error("Could not load image: file not found"));
 
     await expect(
-      analyseMatches({ directory: "/project", photos: [defaultPhoto], settings: defaultSettings }),
+      analyseMatches({
+        windowId: 1,
+        directory: "/project",
+        photos: [defaultPhoto],
+        settings: defaultSettings,
+      }),
     ).rejects.toThrow("Could not load image: file not found");
 
     expect(mockFetch).not.toHaveBeenCalled();
@@ -266,7 +300,7 @@ describe(analyseMatches, () => {
 
   it("throws when called with an empty photos array", async () => {
     await expect(
-      analyseMatches({ directory: "/project", photos: [], settings: defaultSettings }),
+      analyseMatches({ windowId: 1, directory: "/project", photos: [], settings: defaultSettings }),
     ).rejects.toThrow("No photos to analyse");
 
     expect(mockFetch).not.toHaveBeenCalled();
@@ -277,7 +311,7 @@ describe(analyseMatches, () => {
     mockRenderApiImage.mockImplementation(() => {
       renderCount = renderCount + 1;
       if (renderCount === 1) {
-        cancelAnalyseMatches();
+        cancelAnalyseMatches(1);
       }
       return Promise.resolve(Buffer.from("image-data"));
     });
@@ -286,6 +320,7 @@ describe(analyseMatches, () => {
 
     const secondPhoto: PhotoBody = { ...defaultPhoto, name: "photo2.jpg" };
     const result = await analyseMatches({
+      windowId: 1,
       directory: "/project",
       photos: [defaultPhoto, secondPhoto],
       settings: defaultSettings,
@@ -305,7 +340,12 @@ describe(analyseMatches, () => {
     );
 
     await expect(
-      analyseMatches({ directory: "/project", photos: [defaultPhoto], settings: defaultSettings }),
+      analyseMatches({
+        windowId: 1,
+        directory: "/project",
+        photos: [defaultPhoto],
+        settings: defaultSettings,
+      }),
     ).rejects.toThrow("The request timed out. The API took too long to respond.");
   });
 
@@ -315,6 +355,7 @@ describe(analyseMatches, () => {
     mockFetch.mockResolvedValue(new Response(JSON.stringify(successResponse), { status: 200 }));
 
     await analyseMatches({
+      windowId: 1,
       directory: "/project",
       photos: [defaultPhoto],
       settings: defaultSettings,
@@ -334,7 +375,57 @@ describe(cancelAnalyseMatches, () => {
     mockRenderApiImage.mockResolvedValue(Buffer.from("image-data"));
   });
 
-  it("does not throw when there is no in-flight request", () => {
-    expect(() => cancelAnalyseMatches()).not.toThrow();
+  it("does not throw when there is no in-flight request for the window", () => {
+    expect(() => cancelAnalyseMatches(1)).not.toThrow();
+  });
+
+  it("only cancels the request for the given window — other windows are unaffected", async () => {
+    // The pending resolver for whichever fetch call did NOT see an already-aborted signal —
+    // i.e. window B's fetch in this scenario. Window A's signal is aborted before fetch is
+    // entered, so its fetch promise rejects immediately and never registers a resolver.
+    let pendingResolve: ((value: Response) => void) | null = null;
+
+    mockFetch.mockImplementation(
+      (_url, init) =>
+        new Promise<Response>((resolve, reject) => {
+          const signal = (init as RequestInit | undefined)?.signal as AbortSignal | undefined;
+          if (signal?.aborted) {
+            reject(new DOMException("aborted", "AbortError"));
+            return;
+          }
+          if (signal) {
+            signal.addEventListener("abort", () =>
+              reject(new DOMException("aborted", "AbortError")),
+            );
+          }
+          pendingResolve = resolve;
+        }),
+    );
+
+    const promiseA = analyseMatches({
+      windowId: 1,
+      directory: "/project",
+      photos: [defaultPhoto],
+      settings: defaultSettings,
+    });
+    const promiseB = analyseMatches({
+      windowId: 2,
+      directory: "/project",
+      photos: [defaultPhoto],
+      settings: defaultSettings,
+    });
+
+    // Cancel only window A. Window A's analyseMatches eventually reaches fetch with an
+    // already-aborted signal, which the mock rejects synchronously.
+    cancelAnalyseMatches(1);
+
+    const resultA = await promiseA;
+    expect(resultA).toBeNull();
+
+    // Window B's fetch was registered with a non-aborted signal — its resolver is pending.
+    // biome-ignore lint/style/noNonNullAssertion: window B reached fetch before promiseA resolved
+    pendingResolve!(new Response(JSON.stringify(successResponse), { status: 200 }));
+    const resultB = await promiseB;
+    expect(resultB).toStrictEqual(successResponse);
   });
 });

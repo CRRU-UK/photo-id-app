@@ -16,24 +16,30 @@ const MOCK_UUID = "a0b1c2d3-e4f5-6789-abcd-ef0123456789";
 const mockAnalyseMatches =
   vi.fn<
     (options: {
+      windowId: number;
       directory: string;
       photos: PhotoBody[];
       settings: { endpoint: string; token: string };
     }) => Promise<AnalysisMatchResponse | null>
   >();
-const mockCancelAnalyseMatches = vi.fn<() => void>();
+const mockCancelAnalyseMatches = vi.fn<(windowId: number) => void>();
 
 vi.mock("@/backend/analysis", () => ({
   analyseMatches: (...args: Parameters<typeof mockAnalyseMatches>) => mockAnalyseMatches(...args),
-  cancelAnalyseMatches: () => mockCancelAnalyseMatches(),
+  cancelAnalyseMatches: (...args: Parameters<typeof mockCancelAnalyseMatches>) =>
+    mockCancelAnalyseMatches(...args),
 }));
 
 const mockGetDirectoryForSender = vi.fn<(webContents: Electron.WebContents) => string | null>();
+const mockGetProjectWindowForSender =
+  vi.fn<(webContents: Electron.WebContents) => { id: number } | null>();
 
 vi.mock("@/backend/WindowManager", () => ({
   windowManager: {
     getDirectoryForSender: (...args: Parameters<typeof mockGetDirectoryForSender>) =>
       mockGetDirectoryForSender(...args),
+    getProjectWindowForSender: (...args: Parameters<typeof mockGetProjectWindowForSender>) =>
+      mockGetProjectWindowForSender(...args),
   },
 }));
 
@@ -100,6 +106,7 @@ describe("analysis IPC handlers", () => {
     mockSaveToken.mockResolvedValue(undefined);
     mockDeleteToken.mockResolvedValue(undefined);
     mockGetDirectoryForSender.mockReturnValue("/project");
+    mockGetProjectWindowForSender.mockReturnValue({ id: 1 });
   });
 
   describe(handleSaveAnalysisProvider, () => {
@@ -242,6 +249,7 @@ describe("analysis IPC handlers", () => {
       const result = await handleAnalyseMatches(mockEvent, [photo]);
 
       expect(mockAnalyseMatches).toHaveBeenCalledWith({
+        windowId: 1,
         directory: "/project",
         photos: [expect.objectContaining({ name: "photo.jpg" })],
         settings: { endpoint: "https://api.com", token: "api-token" },

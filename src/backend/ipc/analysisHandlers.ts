@@ -72,8 +72,9 @@ export const handleAnalyseMatches = async (
   event: IpcMainInvokeEvent,
   photos: PhotoBody[],
 ): Promise<AnalysisMatchResponse | null> => {
+  const projectWindow = windowManager.getProjectWindowForSender(event.sender);
   const directory = windowManager.getDirectoryForSender(event.sender);
-  if (directory === null) {
+  if (!projectWindow || directory === null) {
     throw new Error("No project open");
   }
 
@@ -96,10 +97,20 @@ export const handleAnalyseMatches = async (
   }
 
   return analyseMatches({
+    windowId: projectWindow.id,
     directory,
     photos: validatedPhotos,
     settings: { endpoint: selectedProvider.endpoint, token },
   });
+};
+
+export const handleCancelAnalyseMatches = (event: Electron.IpcMainEvent): void => {
+  const projectWindow = windowManager.getProjectWindowForSender(event.sender);
+  if (!projectWindow) {
+    return;
+  }
+
+  cancelAnalyseMatches(projectWindow.id);
 };
 
 export const handleGetEncryptionAvailability = (): boolean => isEncryptionAvailable();
@@ -109,5 +120,5 @@ export const registerAnalysisHandlers = (ipcMain: Electron.IpcMain): void => {
   ipcMain.handle(IPC_EVENTS.DELETE_ANALYSIS_PROVIDER, handleDeleteAnalysisProvider);
   ipcMain.handle(IPC_EVENTS.ANALYSE_MATCHES, handleAnalyseMatches);
   ipcMain.handle(IPC_EVENTS.GET_ENCRYPTION_AVAILABILITY, handleGetEncryptionAvailability);
-  ipcMain.on(IPC_EVENTS.CANCEL_ANALYSE_MATCHES, () => cancelAnalyseMatches());
+  ipcMain.on(IPC_EVENTS.CANCEL_ANALYSE_MATCHES, handleCancelAnalyseMatches);
 };

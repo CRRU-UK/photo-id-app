@@ -159,11 +159,14 @@ const loadExistingProject = async (
   projectWindow: Electron.BrowserWindow,
   directory: string,
 ): Promise<void> => {
+  windowManager.setProject(projectWindow, directory);
+
   try {
     const filePath = path.join(directory, PROJECT_FILE_NAME);
     const body = await parseProjectFile(filePath);
     sendData(projectWindow, body, directory);
   } catch (error) {
+    windowManager.clearProject(projectWindow);
     console.error("Failed to load existing project file:", error);
 
     const message =
@@ -180,8 +183,26 @@ const loadExistingProject = async (
  * `.photoid` file, and notifies the renderer. The caller is responsible for choosing the
  * directory and the target window, and for resolving the existing-project-file choice up-front
  * via `checkExistingProjectChoice`.
+ *
+ * Reserves the directory in `WindowManager` immediately so a concurrent open of the same folder
+ * sees this load in flight (via `findWindowForProject`) and focuses this window instead of
+ * starting a second copy. The reservation is cleared on failure.
  */
 const processProjectFolder = async (projectWindow: Electron.BrowserWindow, directory: string) => {
+  windowManager.setProject(projectWindow, directory);
+
+  try {
+    return await runProcessProjectFolder(projectWindow, directory);
+  } catch (error) {
+    windowManager.clearProject(projectWindow);
+    throw error;
+  }
+};
+
+const runProcessProjectFolder = async (
+  projectWindow: Electron.BrowserWindow,
+  directory: string,
+) => {
   const files = await fs.promises.readdir(directory);
 
   projectWindow.webContents.send(IPC_EVENTS.SET_LOADING, {
@@ -309,15 +330,19 @@ const handleOpenProjectFile = async (projectWindow: Electron.BrowserWindow, file
 
   if (!fs.existsSync(file)) {
     dialog.showErrorBox(MISSING_RECENT_PROJECT_MESSAGE, file);
-    projectWindow.webContents.send(IPC_EVENTS.SET_LOADING, { show: false } as LoadingData);
+    projectWindow.webContents.send(IPC_EVENTS.SET_LOADING, { show: false });
 
     return;
   }
 
+  const directory = path.dirname(file);
+  windowManager.setProject(projectWindow, directory);
+
   try {
     const body = await parseProjectFile(file);
-    return sendData(projectWindow, body, path.dirname(file));
+    return sendData(projectWindow, body, directory);
   } catch (error) {
+    windowManager.clearProject(projectWindow);
     console.error("Failed to open project file:", error);
     dialog.showErrorBox("Invalid project file", String(error));
 

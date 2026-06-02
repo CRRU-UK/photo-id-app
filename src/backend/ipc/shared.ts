@@ -58,8 +58,9 @@ export const focusExistingWindow = (window: BrowserWindow): void => {
 /**
  * Opens a project file from a file path. If the project is already open in a window, that window
  * is focused instead. Otherwise, an idle (empty) window is reused if available, or a fresh window
- * is spawned mounted directly at the project route. Used for file associations, second-instance
- * argv, and macOS open-file events.
+ * is spawned mounted directly at the project route. If the load fails on a freshly-spawned
+ * window, that window is closed to avoid leaving the user stuck on a loading placeholder. Used
+ * for file associations, second-instance argv, and macOS open-file events.
  */
 export const openProjectFromPath = async (filePath: string): Promise<void> => {
   const directory = path.dirname(filePath);
@@ -74,6 +75,15 @@ export const openProjectFromPath = async (filePath: string): Promise<void> => {
   const targetWindow = idleWindow ?? (await createProjectWindow({ initialRoute: ROUTES.PROJECT }));
 
   await handleOpenProjectFile(targetWindow, filePath);
+
+  if (
+    !idleWindow &&
+    !targetWindow.isDestroyed() &&
+    windowManager.getDirectoryForWindow(targetWindow) === null
+  ) {
+    targetWindow.close();
+    return;
+  }
 
   targetWindow.focus();
 };
