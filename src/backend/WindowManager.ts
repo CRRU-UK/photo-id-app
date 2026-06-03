@@ -50,7 +50,18 @@ class WindowManager {
       }
 
       event.preventDefault();
-      void this.closeAllWindows(window, editWindows);
+
+      /**
+       * Capture the quit state at close-event time. When multiple project windows are closed by the
+       * same `app.quit()`, a concurrent cascade resetting `isQuitting=false` (because the user
+       * cancelled its prompt) correctly cancels the re-fire for any cascade that hasn't reached its
+       * check yet. In practice the unsaved-edits prompts are sync (`showMessageBoxSync`) so they
+       * serialise, the cancelled cascade resets the flag before any sibling's success path checks
+       * it.
+       */
+      const wasQuitting = this.isQuitting;
+
+      void this.closeAllWindows(window, editWindows, wasQuitting);
     });
 
     window.on("closed", () => {
@@ -73,10 +84,12 @@ class WindowManager {
   private readonly closeAllWindows = async (
     parentWindow: BrowserWindow,
     editWindows: BrowserWindow[],
+    wasQuitting: boolean,
   ): Promise<void> => {
     for (const editWindow of editWindows) {
       const closed = await this.tryCloseEditWindow(editWindow);
       if (!closed) {
+        // Tell any concurrent cascades that the quit has been vetoed by the user
         this.isQuitting = false;
         return;
       }
@@ -86,7 +99,13 @@ class WindowManager {
       parentWindow.close();
     }
 
-    if (this.isQuitting) {
+    /**
+     * Only re-fire `app.quit()` if this cascade started under a quit AND no concurrent cascade has
+     * since cancelled it. Without the `isQuitting` recheck, a sibling cascade's cancel wouldn't
+     * prevent us re-firing the quit — Electron would then re-trigger close events on the vetoing
+     * window and prompt the user again.
+     */
+    if (wasQuitting && this.isQuitting) {
       this.isQuitting = false;
       app.quit();
     }
