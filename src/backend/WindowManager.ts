@@ -1,5 +1,5 @@
 import path from "node:path";
-import { BrowserWindow } from "electron";
+import { app, BrowserWindow } from "electron";
 
 /**
  * Normalises a directory path for comparison: resolves `..`/trailing separators, and on Windows
@@ -19,6 +19,14 @@ class WindowManager {
   private readonly projectWindowsById = new Map<number, BrowserWindow>();
   private readonly editWindowParents = new Map<number, number>();
   private readonly editWindowsById = new Map<number, BrowserWindow>();
+  private isQuitting = false;
+
+  constructor() {
+    // During app quit, let the natural close cascade tear windows down.
+    app.on("before-quit", () => {
+      this.isQuitting = true;
+    });
+  }
 
   /**
    * Registers a project window. The `close` listener gives child edit windows a chance to prompt
@@ -32,6 +40,10 @@ class WindowManager {
     this.projectDirectories.set(id, null);
 
     window.on("close", (event) => {
+      if (this.isQuitting) {
+        return;
+      }
+
       const editWindows = this.getEditWindowsForProject(window);
       if (editWindows.length === 0) {
         return;

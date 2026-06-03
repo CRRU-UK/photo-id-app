@@ -26,7 +26,6 @@ import { projectBodySchema } from "@/schemas";
 import type {
   CollectionBody,
   EditorNavigation,
-  LoadingData,
   PhotoBody,
   ProjectBody,
   ProjectPayload,

@@ -75,7 +75,23 @@ const createMockBrowserWindow = (
 
 const mockFromWebContents = vi.fn<(webContents: Electron.WebContents) => BrowserWindow | null>();
 
+const appEventHandlers: Record<string, ((...args: unknown[]) => void)[]> = {};
+
+const triggerAppEvent = (event: string): void => {
+  for (const handler of appEventHandlers[event] ?? []) {
+    handler();
+  }
+};
+
 vi.mock("electron", () => ({
+  app: {
+    on: (event: string, handler: (...args: unknown[]) => void) => {
+      if (!appEventHandlers[event]) {
+        appEventHandlers[event] = [];
+      }
+      appEventHandlers[event].push(handler);
+    },
+  },
   BrowserWindow: {
     fromWebContents: (...args: Parameters<typeof mockFromWebContents>) =>
       mockFromWebContents(...args),
@@ -88,6 +104,9 @@ describe("windowManager", () => {
   beforeEach(async () => {
     vi.resetModules();
     vi.clearAllMocks();
+    for (const key of Object.keys(appEventHandlers)) {
+      delete appEventHandlers[key];
+    }
     nextWindowId = 1;
     const mod = await import("./WindowManager");
     windowManager = mod.windowManager;
@@ -469,6 +488,21 @@ describe("windowManager", () => {
 
       // Parent close should NOT have been re-attempted
       expect(projectWindow.close).not.toHaveBeenCalled();
+    });
+
+    it("does not preventDefault during app quit so the natural close cascade can run", () => {
+      const projectWindow = createMockBrowserWindow();
+      const editWindow = createMockBrowserWindow();
+      windowManager.registerProjectWindow(projectWindow);
+      windowManager.addEditWindow(editWindow, projectWindow);
+
+      triggerAppEvent("before-quit");
+
+      const result = projectWindow.triggerClose();
+
+      expect(result.defaultPrevented).toBe(false);
+      // Edit windows are closed naturally by Electron's quit cascade, not by our deferred logic
+      expect(editWindow.close).not.toHaveBeenCalled();
     });
   });
 });
