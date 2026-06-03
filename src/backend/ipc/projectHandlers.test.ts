@@ -77,6 +77,7 @@ const mockGetDirectoryForSender = vi.fn<(webContents: Electron.WebContents) => s
 const mockGetDirectoryForWindow = vi.fn<(window: BrowserWindow) => string | null>();
 const mockFindWindowForProject = vi.fn<(directory: string) => BrowserWindow | null>();
 const mockClearProject = vi.fn<(window: BrowserWindow) => void>();
+const mockCloseProjectInWindow = vi.fn<(window: BrowserWindow) => Promise<boolean>>();
 
 vi.mock("@/backend/WindowManager", () => ({
   windowManager: {
@@ -89,6 +90,8 @@ vi.mock("@/backend/WindowManager", () => ({
     findWindowForProject: (...args: Parameters<typeof mockFindWindowForProject>) =>
       mockFindWindowForProject(...args),
     clearProject: (...args: Parameters<typeof mockClearProject>) => mockClearProject(...args),
+    closeProjectInWindow: (...args: Parameters<typeof mockCloseProjectInWindow>) =>
+      mockCloseProjectInWindow(...args),
   },
 }));
 
@@ -595,31 +598,43 @@ describe("project IPC handlers", () => {
   });
 
   describe(handleCloseProject, () => {
-    it("clears the project state and resets the title (window stays open)", () => {
+    it("cascades through edit windows then resets the title (window stays open)", async () => {
       const mockWindow = createMockWindow();
       mockGetProjectWindowForSender.mockReturnValue(mockWindow);
+      mockCloseProjectInWindow.mockResolvedValue(true);
 
-      handleCloseProject(createMockEvent(mockWindow));
+      await handleCloseProject(createMockEvent(mockWindow));
 
-      expect(mockClearProject).toHaveBeenCalledWith(mockWindow);
+      expect(mockCloseProjectInWindow).toHaveBeenCalledWith(mockWindow);
       expect(mockWindow.setTitle).toHaveBeenCalledWith("Photo ID");
       expect(mockWindow.close).not.toHaveBeenCalled();
     });
 
-    it("does nothing when the sender window is not found", () => {
-      mockGetProjectWindowForSender.mockReturnValue(null);
+    it("leaves project state intact when an edit window's unsaved-edits prompt is cancelled", async () => {
+      const mockWindow = createMockWindow();
+      mockGetProjectWindowForSender.mockReturnValue(mockWindow);
+      mockCloseProjectInWindow.mockResolvedValue(false);
 
-      expect(() => handleCloseProject(createMockEvent(null))).not.toThrow();
-      expect(mockClearProject).not.toHaveBeenCalled();
+      await handleCloseProject(createMockEvent(mockWindow));
+
+      expect(mockCloseProjectInWindow).toHaveBeenCalledWith(mockWindow);
+      expect(mockWindow.setTitle).not.toHaveBeenCalled();
     });
 
-    it("does nothing when the window is already destroyed", () => {
+    it("does nothing when the sender window is not found", async () => {
+      mockGetProjectWindowForSender.mockReturnValue(null);
+
+      await expect(handleCloseProject(createMockEvent(null))).resolves.toBeUndefined();
+      expect(mockCloseProjectInWindow).not.toHaveBeenCalled();
+    });
+
+    it("does nothing when the window is already destroyed", async () => {
       const mockWindow = createMockWindow({ isDestroyed: true });
       mockGetProjectWindowForSender.mockReturnValue(mockWindow);
 
-      handleCloseProject(createMockEvent(mockWindow));
+      await handleCloseProject(createMockEvent(mockWindow));
 
-      expect(mockClearProject).not.toHaveBeenCalled();
+      expect(mockCloseProjectInWindow).not.toHaveBeenCalled();
       expect(mockWindow.setTitle).not.toHaveBeenCalled();
     });
   });

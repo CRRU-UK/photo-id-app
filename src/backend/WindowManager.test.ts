@@ -83,8 +83,11 @@ const triggerAppEvent = (event: string): void => {
   }
 };
 
+const mockAppQuit = vi.fn<() => void>();
+
 vi.mock("electron", () => ({
   app: {
+    quit: () => mockAppQuit(),
     on: (event: string, handler: (...args: unknown[]) => void) => {
       if (!appEventHandlers[event]) {
         appEventHandlers[event] = [];
@@ -490,7 +493,7 @@ describe("windowManager", () => {
       expect(projectWindow.close).not.toHaveBeenCalled();
     });
 
-    it("does not preventDefault during app quit so the natural close cascade can run", () => {
+    it("re-fires app.quit after a successful cascade triggered by quit", async () => {
       const projectWindow = createMockBrowserWindow();
       const editWindow = createMockBrowserWindow();
       windowManager.registerProjectWindow(projectWindow);
@@ -499,10 +502,123 @@ describe("windowManager", () => {
       triggerAppEvent("before-quit");
 
       const result = projectWindow.triggerClose();
+      expect(result.defaultPrevented).toBe(true);
+      expect(editWindow.close).toHaveBeenCalledWith();
 
-      expect(result.defaultPrevented).toBe(false);
-      // Edit windows are closed naturally by Electron's quit cascade, not by our deferred logic
-      expect(editWindow.close).not.toHaveBeenCalled();
+      // Edit window closes cleanly
+      editWindow.triggerClosed();
+      await vi.advanceTimersByTimeAsync(0);
+
+      // Parent closes, then app.quit() is re-fired so the cancelled quit resumes
+      expect(projectWindow.close).toHaveBeenCalledWith();
+      expect(mockAppQuit).toHaveBeenCalledWith();
+    });
+
+    it("does not re-fire app.quit when the close was not triggered by a quit", async () => {
+      const projectWindow = createMockBrowserWindow();
+      const editWindow = createMockBrowserWindow();
+      windowManager.registerProjectWindow(projectWindow);
+      windowManager.addEditWindow(editWindow, projectWindow);
+
+      projectWindow.triggerClose();
+      editWindow.triggerClosed();
+      await vi.advanceTimersByTimeAsync(0);
+
+      expect(projectWindow.close).toHaveBeenCalledWith();
+      expect(mockAppQuit).not.toHaveBeenCalled();
+    });
+
+    it("does not re-fire app.quit when an edit-window prompt is cancelled during quit", async () => {
+      const projectWindow = createMockBrowserWindow();
+      const editWindow = createMockBrowserWindow();
+      windowManager.registerProjectWindow(projectWindow);
+      windowManager.addEditWindow(editWindow, projectWindow);
+
+      triggerAppEvent("before-quit");
+
+      projectWindow.triggerClose();
+      // Edit window does NOT fire closed — user cancelled the unsaved-edits prompt
+      await vi.advanceTimersByTimeAsync(300);
+
+      expect(projectWindow.close).not.toHaveBeenCalled();
+      expect(mockAppQuit).not.toHaveBeenCalled();
+    });
+
+    it("clears isQuitting after a cancelled quit so subsequent closes behave normally", async () => {
+      const projectWindow = createMockBrowserWindow();
+      const editWindow = createMockBrowserWindow();
+      windowManager.registerProjectWindow(projectWindow);
+      windowManager.addEditWindow(editWindow, projectWindow);
+
+      triggerAppEvent("before-quit");
+      projectWindow.triggerClose();
+      await vi.advanceTimersByTimeAsync(300); // cancellation timeout
+
+      // Reset and try a normal (non-quit) close. closeAllWindows should not re-fire app.quit.
+      mockAppQuit.mockClear();
+      const newProject = createMockBrowserWindow();
+      const newEdit = createMockBrowserWindow();
+      windowManager.registerProjectWindow(newProject);
+      windowManager.addEditWindow(newEdit, newProject);
+
+      newProject.triggerClose();
+      newEdit.triggerClosed();
+      await vi.advanceTimersByTimeAsync(0);
+
+      expect(mockAppQuit).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("closeProjectInWindow", () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it("clears the project directory after all edit windows close cleanly", async () => {
+      const projectWindow = createMockBrowserWindow();
+      const editWindow = createMockBrowserWindow();
+      windowManager.registerProjectWindow(projectWindow);
+      windowManager.setProject(projectWindow, "/project");
+      windowManager.addEditWindow(editWindow, projectWindow);
+
+      const resultPromise = windowManager.closeProjectInWindow(projectWindow);
+
+      expect(editWindow.close).toHaveBeenCalledWith();
+      editWindow.triggerClosed();
+
+      const result = await resultPromise;
+      expect(result).toBe(true);
+      expect(windowManager.getDirectoryForWindow(projectWindow)).toBeNull();
+    });
+
+    it("leaves the project directory intact when an edit-window prompt is cancelled", async () => {
+      const projectWindow = createMockBrowserWindow();
+      const editWindow = createMockBrowserWindow();
+      windowManager.registerProjectWindow(projectWindow);
+      windowManager.setProject(projectWindow, "/project");
+      windowManager.addEditWindow(editWindow, projectWindow);
+
+      const resultPromise = windowManager.closeProjectInWindow(projectWindow);
+      await vi.advanceTimersByTimeAsync(300); // cancellation timeout
+
+      const result = await resultPromise;
+      expect(result).toBe(false);
+      expect(windowManager.getDirectoryForWindow(projectWindow)).toBe("/project");
+    });
+
+    it("returns true and clears the directory when there are no edit windows", async () => {
+      const projectWindow = createMockBrowserWindow();
+      windowManager.registerProjectWindow(projectWindow);
+      windowManager.setProject(projectWindow, "/project");
+
+      const result = await windowManager.closeProjectInWindow(projectWindow);
+
+      expect(result).toBe(true);
+      expect(windowManager.getDirectoryForWindow(projectWindow)).toBeNull();
     });
   });
 });

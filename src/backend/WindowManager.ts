@@ -22,7 +22,11 @@ class WindowManager {
   private isQuitting = false;
 
   constructor() {
-    // During app quit, let the natural close cascade tear windows down.
+    /**
+     * Track whether an `app.quit()` is in progress so the cascade can re-fire `app.quit()` after
+     * closing edit windows. `event.preventDefault()` on the parent's close cancels the original
+     * quit, and there is no other path that would restart it once the edit windows are clean.
+     */
     app.on("before-quit", () => {
       this.isQuitting = true;
     });
@@ -40,10 +44,6 @@ class WindowManager {
     this.projectDirectories.set(id, null);
 
     window.on("close", (event) => {
-      if (this.isQuitting) {
-        return;
-      }
-
       const editWindows = this.getEditWindowsForProject(window);
       if (editWindows.length === 0) {
         return;
@@ -65,7 +65,10 @@ class WindowManager {
   /**
    * Closes a parent's edit windows sequentially, then closes the parent. If any edit window's
    * unsaved-edits prompt is cancelled by the user, the parent is left open so the user can
-   * resolve the prompt before retrying the close.
+   * resolve the prompt before retrying the close, and if the close was triggered by `app.quit()`,
+   * the quit is treated as cancelled too (the original quit was already aborted by the parent's
+   * `event.preventDefault()`). On the success path, re-fire `app.quit()` so the quit resumes,
+   * otherwise the deferred close would leave the app running with no windows.
    */
   private readonly closeAllWindows = async (
     parentWindow: BrowserWindow,
@@ -74,12 +77,18 @@ class WindowManager {
     for (const editWindow of editWindows) {
       const closed = await this.tryCloseEditWindow(editWindow);
       if (!closed) {
+        this.isQuitting = false;
         return;
       }
     }
 
     if (!parentWindow.isDestroyed()) {
       parentWindow.close();
+    }
+
+    if (this.isQuitting) {
+      this.isQuitting = false;
+      app.quit();
     }
   };
 
@@ -134,7 +143,9 @@ class WindowManager {
 
   /**
    * Clears the project (and closes its edit windows) without closing the window itself. For
-   * whole-window close, the registry cleans up automatically via the `closed` listener.
+   * whole-window close, the registry cleans up automatically via the `closed` listener. This
+   * fire-and-forget cascade is only safe when the edit windows have no unsaved edits — for the
+   * user-initiated "close project" flow, use `closeProjectInWindow` instead.
    */
   clearProject(window: BrowserWindow): void {
     this.closeEditWindowsForProject(window);
@@ -142,6 +153,30 @@ class WindowManager {
     if (this.projectWindowsById.has(window.id)) {
       this.projectDirectories.set(window.id, null);
     }
+  }
+
+  /**
+   * Closes the project's edit windows one at a time, surfacing each window's unsaved-edits prompt
+   * before clearing the parent's project state. Returns false if any prompt is cancelled — in
+   * which case the parent's directory is left intact so the user can resolve the prompt before
+   * retrying. Use this from the "close project" IPC handler so the cascade matches the
+   * window-close cascade in `registerProjectWindow`.
+   */
+  async closeProjectInWindow(window: BrowserWindow): Promise<boolean> {
+    const editWindows = this.getEditWindowsForProject(window);
+
+    for (const editWindow of editWindows) {
+      const closed = await this.tryCloseEditWindow(editWindow);
+      if (!closed) {
+        return false;
+      }
+    }
+
+    if (this.projectWindowsById.has(window.id)) {
+      this.projectDirectories.set(window.id, null);
+    }
+
+    return true;
   }
 
   getDirectoryForWindow(window: BrowserWindow): string | null {

@@ -72,9 +72,8 @@ export const handleAnalyseMatches = async (
   event: IpcMainInvokeEvent,
   photos: PhotoBody[],
 ): Promise<AnalysisMatchResponse | null> => {
-  const projectWindow = windowManager.getProjectWindowForSender(event.sender);
   const directory = windowManager.getDirectoryForSender(event.sender);
-  if (!projectWindow || directory === null) {
+  if (directory === null) {
     throw new Error("No project open");
   }
 
@@ -96,8 +95,13 @@ export const handleAnalyseMatches = async (
     throw new Error("Analysis API token is not configured or could not be decrypted.");
   }
 
+  /**
+   * Key the analysis lifecycle by the renderer's webContents id so project and edit window analyses
+   * are independent. Resolving via `getProjectWindowForSender` would collapse them onto the same
+   * key (parent project window) and they would abort each other silently.
+   */
   return analyseMatches({
-    windowId: projectWindow.id,
+    windowId: event.sender.id,
     directory,
     photos: validatedPhotos,
     settings: { endpoint: selectedProvider.endpoint, token },
@@ -105,12 +109,7 @@ export const handleAnalyseMatches = async (
 };
 
 export const handleCancelAnalyseMatches = (event: Electron.IpcMainEvent): void => {
-  const projectWindow = windowManager.getProjectWindowForSender(event.sender);
-  if (!projectWindow) {
-    return;
-  }
-
-  cancelAnalyseMatches(projectWindow.id);
+  cancelAnalyseMatches(event.sender.id);
 };
 
 export const handleGetEncryptionAvailability = (): boolean => isEncryptionAvailable();

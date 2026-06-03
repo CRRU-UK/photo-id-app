@@ -103,6 +103,8 @@ const closeIfLoadFailed = (target: ResolvedTarget): void => {
  * behaviour stays in lockstep.
  */
 export const openProjectFolderForWindow = async (senderWindow: BrowserWindow): Promise<void> => {
+  let target: ResolvedTarget | undefined;
+
   try {
     const directory = await promptForProjectFolder();
     if (!directory) {
@@ -122,18 +124,20 @@ export const openProjectFolderForWindow = async (senderWindow: BrowserWindow): P
       return;
     }
 
-    const target = await resolveTargetWindow(senderWindow);
+    target = await resolveTargetWindow(senderWindow);
 
     if (choice === "existing") {
       await loadExistingProject(target.window, directory);
     } else {
       await processProjectFolder(target.window, directory);
     }
-
-    closeIfLoadFailed(target);
   } catch (error) {
     console.error("Failed to open folder:", error);
     dialog.showErrorBox("Failed to open folder", String(error));
+  } finally {
+    if (target) {
+      closeIfLoadFailed(target);
+    }
   }
 };
 
@@ -141,6 +145,8 @@ export const openProjectFolderForWindow = async (senderWindow: BrowserWindow): P
  * Shows the file picker and loads the chosen file into either the sender window or a new window.
  */
 export const openProjectFileForWindow = async (senderWindow: BrowserWindow): Promise<void> => {
+  let target: ResolvedTarget | undefined;
+
   try {
     const filePath = await promptForProjectFile();
     if (!filePath) {
@@ -151,12 +157,15 @@ export const openProjectFileForWindow = async (senderWindow: BrowserWindow): Pro
       return;
     }
 
-    const target = await resolveTargetWindow(senderWindow);
+    target = await resolveTargetWindow(senderWindow);
     await handleOpenProjectFile(target.window, filePath);
-    closeIfLoadFailed(target);
   } catch (error) {
     console.error("Failed to open file:", error);
     dialog.showErrorBox("Failed to open file", String(error));
+  } finally {
+    if (target) {
+      closeIfLoadFailed(target);
+    }
   }
 };
 
@@ -189,13 +198,18 @@ export const handleOpenProjectFileInvoke = async (
     return;
   }
 
+  let target: ResolvedTarget | undefined;
+
   try {
-    const target = await resolveTargetWindow(senderWindow);
+    target = await resolveTargetWindow(senderWindow);
     await handleOpenProjectFile(target.window, file);
-    closeIfLoadFailed(target);
   } catch (error) {
     console.error("Failed to open project file:", error);
     throw error;
+  } finally {
+    if (target) {
+      closeIfLoadFailed(target);
+    }
   }
 };
 
@@ -294,17 +308,23 @@ export const handleFlushSaveProjectSync = (event: IpcMainEvent, data: string): v
 };
 
 /**
- * Closes the project for the sender's window: closes the project's edit windows, clears the
- * project state in `WindowManager`, and resets the window title. The window itself stays open;
- * the renderer is responsible for navigating back to the index page.
+ * Closes the project for the sender's window: sequentially closes each edit window so the user
+ * can resolve unsaved edits, then clears the project state and resets the window title. The
+ * window itself stays open, the renderer is responsible for navigating back to the index page.
+ * If the user cancels an unsaved-edits prompt, the project state is left intact and the window
+ * stays on the project view.
  */
-export const handleCloseProject = (event: IpcMainEvent): void => {
+export const handleCloseProject = async (event: IpcMainEvent): Promise<void> => {
   const senderWindow = windowManager.getProjectWindowForSender(event.sender);
   if (!senderWindow || senderWindow.isDestroyed()) {
     return;
   }
 
-  windowManager.clearProject(senderWindow);
+  const closed = await windowManager.closeProjectInWindow(senderWindow);
+  if (!closed) {
+    return;
+  }
+
   senderWindow.setTitle(DEFAULT_WINDOW_TITLE);
 };
 
