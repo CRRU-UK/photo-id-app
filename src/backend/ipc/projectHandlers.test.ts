@@ -542,18 +542,19 @@ describe("project IPC handlers", () => {
   });
 
   describe(handleExportMatchesInvoke, () => {
-    it("does nothing when the sender window is not found", async () => {
-      mockGetWindowFromSender.mockReturnValue(null);
+    it("throws when the sender's project window cannot be resolved", async () => {
+      mockGetProjectWindowForSender.mockReturnValue(null);
 
-      await handleExportMatchesInvoke(createMockInvokeEvent(null), "{}", "edited");
-
+      await expect(
+        handleExportMatchesInvoke(createMockInvokeEvent(null), "{}", "edited"),
+      ).rejects.toThrow("No project window");
       expect(mockHandleExportMatches).not.toHaveBeenCalled();
     });
 
     it("throws when no project is open for the sender", async () => {
       const mockWindow = createMockWindow();
-      mockGetWindowFromSender.mockReturnValue(mockWindow);
-      mockGetDirectoryForSender.mockReturnValue(null);
+      mockGetProjectWindowForSender.mockReturnValue(mockWindow);
+      mockGetDirectoryForWindow.mockReturnValue(null);
 
       await expect(
         handleExportMatchesInvoke(createMockInvokeEvent(mockWindow), "{}", "edited"),
@@ -562,8 +563,8 @@ describe("project IPC handlers", () => {
 
     it("exports matches and opens the matched folder for edited export", async () => {
       const mockWindow = createMockWindow();
-      mockGetWindowFromSender.mockReturnValue(mockWindow);
-      mockGetDirectoryForSender.mockReturnValue("/project/dir");
+      mockGetProjectWindowForSender.mockReturnValue(mockWindow);
+      mockGetDirectoryForWindow.mockReturnValue("/project/dir");
       mockHandleExportMatches.mockResolvedValue("/project/dir");
 
       await handleExportMatchesInvoke(createMockInvokeEvent(mockWindow), "{}", "edited");
@@ -579,8 +580,8 @@ describe("project IPC handlers", () => {
 
     it("exports matches and shows CSV file selected in folder for csv export", async () => {
       const mockWindow = createMockWindow();
-      mockGetWindowFromSender.mockReturnValue(mockWindow);
-      mockGetDirectoryForSender.mockReturnValue("/project/dir");
+      mockGetProjectWindowForSender.mockReturnValue(mockWindow);
+      mockGetDirectoryForWindow.mockReturnValue("/project/dir");
       mockHandleExportMatches.mockResolvedValue("/project/dir");
 
       await handleExportMatchesInvoke(createMockInvokeEvent(mockWindow), "{}", "csv");

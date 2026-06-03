@@ -8,7 +8,7 @@ import {
 } from "electron";
 
 import { handleExportMatches } from "@/backend/exports";
-import { focusExistingWindow, getWindowFromSender } from "@/backend/ipc/shared";
+import { focusExistingWindow } from "@/backend/ipc/shared";
 import {
   checkExistingProjectChoice,
   handleFlushSaveProject,
@@ -252,17 +252,17 @@ export const handleExportMatchesInvoke = async (
   data: string,
   type: ExportTypes,
 ): Promise<void> => {
-  const window = getWindowFromSender(event.sender);
-  if (!window) {
-    return;
+  const projectWindow = windowManager.getProjectWindowForSender(event.sender);
+  if (!projectWindow) {
+    throw new Error("No project window");
   }
 
-  const directory = windowManager.getDirectoryForSender(event.sender);
+  const directory = windowManager.getDirectoryForWindow(projectWindow);
   if (directory === null) {
     throw new Error("No project open");
   }
 
-  await handleExportMatches(window, directory, data, type);
+  await handleExportMatches(projectWindow, directory, data, type);
 
   if (type === "csv") {
     const csvPath = path.join(
