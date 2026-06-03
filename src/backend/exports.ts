@@ -3,8 +3,8 @@ import path from "node:path";
 import { stringify } from "csv-stringify/sync";
 import { renderFullImageWithEdits } from "@/backend/imageRenderer";
 import { getCurrentProjectDirectory, resolvePhotoPath } from "@/backend/projects";
+import { sendLoading } from "@/backend/shellIntegration";
 import {
-  IPC_EVENTS,
   PROJECT_EXPORT_CSV_FILE_NAME,
   PROJECT_EXPORT_DATA_DIRECTORY,
   PROJECT_EXPORT_DIRECTORY,
@@ -30,7 +30,7 @@ const exportMatchesAsCSV = async (
   project: ProjectBody,
   directory: string,
 ): Promise<string> => {
-  mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, {
+  sendLoading(mainWindow, {
     show: true,
     text: "Exporting CSV",
     progressValue: 0,
@@ -61,7 +61,7 @@ const exportMatchesAsCSV = async (
   const csvContent = stringify(records);
   await fs.promises.writeFile(csvPath, csvContent, "utf8");
 
-  mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, { show: false });
+  sendLoading(mainWindow, { show: false });
 
   return directory;
 };
@@ -71,7 +71,7 @@ const exportMatchesAsPhotos = async (
   project: ProjectBody,
   directory: string,
 ): Promise<string> => {
-  mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, {
+  sendLoading(mainWindow, {
     show: true,
     text: "Exporting matches",
     progressValue: 0,
@@ -97,7 +97,7 @@ const exportMatchesAsPhotos = async (
     for (const photo of side.photos) {
       progress = progress + 1;
 
-      mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, {
+      sendLoading(mainWindow, {
         show: true,
         text: "Exporting matches",
         progressValue: (progress / totalPhotos) * 100,
@@ -140,7 +140,7 @@ const exportMatchesAsPhotos = async (
     ]);
   }
 
-  mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, { show: false });
+  sendLoading(mainWindow, { show: false });
 
   return directory;
 };

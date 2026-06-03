@@ -68,6 +68,8 @@ const addRecentProject = async ({
 
   await updateRecentProjects(data);
 
+  app.addRecentDocument(path);
+
   return data;
 };
 
@@ -81,7 +83,24 @@ const removeRecentProject = async (path: string): Promise<RecentProject[]> => {
 
   await updateRecentProjects(updatedRecentProjects);
 
+  // Electron has no single-document remove on macOS, so re-sync
+  app.clearRecentDocuments();
+  for (const project of updatedRecentProjects) {
+    app.addRecentDocument(project.path);
+  }
+
   return updatedRecentProjects;
 };
 
-export { addRecentProject, getRecentProjects, removeRecentProject };
+/**
+ * Clears all recent projects from the internal file and the OS recent-documents list.
+ */
+const clearRecentProjects = async (): Promise<RecentProject[]> => {
+  await updateRecentProjects([]);
+
+  app.clearRecentDocuments();
+
+  return [];
+};
+
+export { addRecentProject, clearRecentProjects, getRecentProjects, removeRecentProject };

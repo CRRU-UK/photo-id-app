@@ -201,6 +201,13 @@ export const TOKENS_FILE_NAME = "tokens.json";
 
 export const MAX_RECENT_PROJECTS = 5;
 
+export const PROGRESS_ERROR_FLASH_MS = 1_500;
+
+export const JUMP_LIST_ARGS = {
+  NEW_PROJECT: "--new-project",
+  OPEN_PROJECT_FILE: "--open-project-file",
+} as const;
+
 export const MATCHED_STACKS_PER_PAGE = 8;
 
 export const INITIAL_MATCHED_STACKS = 56;

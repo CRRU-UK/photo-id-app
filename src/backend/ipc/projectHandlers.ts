@@ -3,6 +3,7 @@ import { dialog, type IpcMainEvent, type IpcMainInvokeEvent, shell } from "elect
 
 import { handleExportMatches } from "@/backend/exports";
 import { closeCurrentProject, getWindowFromSender } from "@/backend/ipc/shared";
+import { rebuildApplicationMenu } from "@/backend/menu";
 import {
   getCurrentProjectDirectory,
   handleFlushSaveProject,
@@ -13,6 +14,7 @@ import {
   parseProjectFile,
 } from "@/backend/projects";
 import { getRecentProjects, removeRecentProject } from "@/backend/recents";
+import { showProgressError } from "@/backend/shellIntegration";
 import { windowManager } from "@/backend/WindowManager";
 import {
   IPC_EVENTS,
@@ -33,6 +35,8 @@ export const handleOpenFolder = async (event: IpcMainEvent): Promise<void> => {
     await handleOpenDirectoryPrompt(window);
   } catch (error) {
     console.error("Failed to open folder:", error);
+
+    showProgressError(window);
     dialog.showErrorBox("Failed to open folder", String(error));
   }
 };
@@ -78,6 +82,9 @@ export const handleRemoveRecentProject = async (
   projectPath: string,
 ): Promise<RecentProject[]> => {
   const result = await removeRecentProject(projectPath);
+
+  await rebuildApplicationMenu();
+
   return result;
 };
 
@@ -119,7 +126,13 @@ export const handleExportMatchesInvoke = async (
     return;
   }
 
-  const directory = await handleExportMatches(window, data, type);
+  let directory: string;
+  try {
+    directory = await handleExportMatches(window, data, type);
+  } catch (error) {
+    showProgressError(window);
+    throw error;
+  }
 
   if (type === "csv") {
     const csvPath = path.join(

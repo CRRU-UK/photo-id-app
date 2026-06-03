@@ -1,11 +1,52 @@
 import type { BrowserWindow } from "electron";
-import { app, shell } from "electron";
+import { app, Menu, shell } from "electron";
 
+import { openProjectFromPath } from "@/backend/ipc/shared";
 import { handleOpenDirectoryPrompt, handleOpenFilePrompt } from "@/backend/projects";
+import { clearRecentProjects, getRecentProjects } from "@/backend/recents";
+import { windowManager } from "@/backend/WindowManager";
 import { EXTERNAL_LINKS, IPC_EVENTS } from "@/constants";
+import type { RecentProject } from "@/types";
 
-const getMenu = (mainWindow: BrowserWindow) => {
+const buildOpenRecentSubmenu = (
+  recents: RecentProject[],
+): Electron.MenuItemConstructorOptions[] => {
+  if (recents.length === 0) {
+    return [{ label: "No Recent Projects", enabled: false }];
+  }
+
+  const items: Electron.MenuItemConstructorOptions[] = recents.map((recent) => ({
+    label: recent.name,
+    toolTip: recent.path,
+    click: async () => {
+      try {
+        await openProjectFromPath(recent.path);
+      } catch (error) {
+        console.error("Failed to open recent project:", error);
+      }
+    },
+  }));
+
+  items.push(
+    { type: "separator" },
+    {
+      label: "Clear Recent",
+      click: async () => {
+        await clearRecentProjects();
+        await rebuildApplicationMenu();
+      },
+    },
+  );
+
+  return items;
+};
+
+const getMenu = async (
+  mainWindow: BrowserWindow,
+): Promise<Electron.MenuItemConstructorOptions[]> => {
   const isMac = process.platform === "darwin";
+
+  const recents = await getRecentProjects();
 
   const template: Electron.MenuItemConstructorOptions[] = [
     ...(isMac
@@ -51,6 +92,10 @@ const getMenu = (mainWindow: BrowserWindow) => {
           click() {
             void handleOpenFilePrompt(mainWindow);
           },
+        },
+        {
+          label: "Open Recent",
+          submenu: buildOpenRecentSubmenu(recents),
         },
         ...(isMac
           ? []
@@ -138,4 +183,18 @@ const getMenu = (mainWindow: BrowserWindow) => {
   return template;
 };
 
-export { getMenu };
+/**
+ * Rebuilds and applies the application menu using the current main window and the latest recent
+ * projects.
+ */
+const rebuildApplicationMenu = async (): Promise<void> => {
+  const mainWindow = windowManager.getMainWindow();
+  if (!mainWindow) {
+    return;
+  }
+
+  const template = await getMenu(mainWindow);
+  Menu.setApplicationMenu(Menu.buildFromTemplate(template));
+};
+
+export { getMenu, rebuildApplicationMenu };

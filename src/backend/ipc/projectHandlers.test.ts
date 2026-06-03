@@ -81,6 +81,14 @@ vi.mock("./shared", () => ({
   closeCurrentProject: () => mockCloseCurrentProject(),
 }));
 
+vi.mock("@/backend/menu", () => ({
+  rebuildApplicationMenu: vi.fn<() => Promise<void>>(async () => undefined),
+}));
+
+vi.mock("@/backend/shellIntegration", () => ({
+  showProgressError: vi.fn<() => void>(),
+}));
+
 const {
   handleOpenFolder,
   handleOpenFile,
