@@ -3,7 +3,7 @@ import { dialog, type IpcMainEvent, type IpcMainInvokeEvent, shell } from "elect
 
 import { handleExportMatches } from "@/backend/exports";
 import { closeCurrentProject, getWindowFromSender } from "@/backend/ipc/shared";
-import { rebuildApplicationMenu } from "@/backend/menu";
+import { notifyRecentProjectsChanged } from "@/backend/menu";
 import {
   getCurrentProjectDirectory,
   handleFlushSaveProject,
@@ -83,7 +83,7 @@ export const handleRemoveRecentProject = async (
 ): Promise<RecentProject[]> => {
   const result = await removeRecentProject(projectPath);
 
-  await rebuildApplicationMenu();
+  await notifyRecentProjectsChanged();
 
   return result;
 };

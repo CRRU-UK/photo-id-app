@@ -82,7 +82,7 @@ vi.mock("./shared", () => ({
 }));
 
 vi.mock("@/backend/menu", () => ({
-  rebuildApplicationMenu: vi.fn<() => Promise<void>>(async () => undefined),
+  notifyRecentProjectsChanged: vi.fn<() => Promise<void>>(async () => undefined),
 }));
 
 vi.mock("@/backend/shellIntegration", () => ({

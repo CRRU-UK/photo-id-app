@@ -8,6 +8,7 @@ export enum IPC_EVENTS {
   GET_CURRENT_PROJECT = "project:getCurrentProject",
   GET_RECENT_PROJECTS = "project:getRecentProjects",
   REMOVE_RECENT_PROJECT = "project:removeRecentProject",
+  RECENT_PROJECTS_UPDATED = "project:recentProjectsUpdated",
   SAVE_PROJECT = "project:saveProject",
   LOAD_PROJECT = "project:loadProject",
   CLOSE_PROJECT = "project:closeProject",

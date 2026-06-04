@@ -29,8 +29,15 @@ const RecentProjects = () => {
 
     void getRecentProjects();
 
+    const unsubscribe = window.electronAPI.onRecentProjectsUpdated((data) => {
+      if (!isCancelled) {
+        setRecentProjects(data);
+      }
+    });
+
     return () => {
       isCancelled = true;
+      unsubscribe();
     };
   }, []);
 

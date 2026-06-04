@@ -1,7 +1,7 @@
 import type { BrowserWindow } from "electron";
 import { app, Menu, shell } from "electron";
 
-import { openProjectFromPath } from "@/backend/ipc/shared";
+import { broadcastToAllWindows, openProjectFromPath } from "@/backend/ipc/shared";
 import { handleOpenDirectoryPrompt, handleOpenFilePrompt } from "@/backend/projects";
 import { clearRecentProjects, getRecentProjects } from "@/backend/recents";
 import { windowManager } from "@/backend/WindowManager";
@@ -33,7 +33,7 @@ const buildOpenRecentSubmenu = (
       label: "Clear Recent",
       click: async () => {
         await clearRecentProjects();
-        await rebuildApplicationMenu();
+        await notifyRecentProjectsChanged();
       },
     },
   );
@@ -197,4 +197,15 @@ const rebuildApplicationMenu = async (): Promise<void> => {
   Menu.setApplicationMenu(Menu.buildFromTemplate(template));
 };
 
-export { getMenu, rebuildApplicationMenu };
+/**
+ * Hook to keep recent items menu and in-app list in sync on updates.
+ */
+const notifyRecentProjectsChanged = async (): Promise<void> => {
+  const recents = await getRecentProjects();
+
+  broadcastToAllWindows(IPC_EVENTS.RECENT_PROJECTS_UPDATED, recents);
+
+  await rebuildApplicationMenu();
+};
+
+export { getMenu, notifyRecentProjectsChanged };

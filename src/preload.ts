@@ -78,4 +78,6 @@ contextBridge.exposeInMainWorld("electronAPI", {
     subscribeIpc<PhotoBody>(IPC_EVENTS.UPDATE_PHOTO, callback),
   onSettingsUpdated: (callback: (data: SettingsData) => void) =>
     subscribeIpc<SettingsData>(IPC_EVENTS.SETTINGS_UPDATED, callback),
+  onRecentProjectsUpdated: (callback: (data: RecentProject[]) => void) =>
+    subscribeIpc<RecentProject[]>(IPC_EVENTS.RECENT_PROJECTS_UPDATED, callback),
 });

@@ -3,7 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { app, dialog } from "electron";
 import { ZodError } from "zod";
-import { rebuildApplicationMenu } from "@/backend/menu";
+import { notifyRecentProjectsChanged } from "@/backend/menu";
 import { createPhotoThumbnail } from "@/backend/photos";
 import { addRecentProject } from "@/backend/recents";
 import { flashWindow, sendLoading, setRepresentedProject } from "@/backend/shellIntegration";
@@ -93,7 +93,7 @@ const sendData = async (
     path: projectFilePath,
   });
 
-  await rebuildApplicationMenu();
+  await notifyRecentProjectsChanged();
 };
 
 const homePath = app.getPath("home");

@@ -65,7 +65,7 @@ vi.mock("@/backend/recents", () => ({
 }));
 
 vi.mock("@/backend/menu", () => ({
-  rebuildApplicationMenu: vi.fn<() => Promise<void>>(async () => undefined),
+  notifyRecentProjectsChanged: vi.fn<() => Promise<void>>(async () => undefined),
   getMenu: vi.fn<() => Promise<unknown[]>>(async () => []),
 }));
 
