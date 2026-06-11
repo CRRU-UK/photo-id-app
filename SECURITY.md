@@ -4,7 +4,7 @@ This document describes the security model of the Photo ID app.
 
 ## Renderer Isolation
 
-The renderer process has no direct access to Node.js APIs. All system access is mediated through the preload scripts, which expose a limited API via `contextBridge.exposeInMainWorld()`. The main window uses `src/preload.ts` (full API surface). Edit windows use the narrower `src/preload-editor.ts`, which only exposes the IPC the editor actually needs (project/settings bootstrap, photo save/navigation, analysis) — anything that mutates project data, opens new windows, or interacts with the home/project screens is intentionally absent so a compromised editor renderer cannot reach those handlers.
+The renderer process has no direct access to Node.js APIs. All system access is mediated through the preload scripts, which expose a limited API via `contextBridge.exposeInMainWorld()`. Project windows use `src/preload.ts` (full API surface). Edit windows use the narrower `src/preload-editor.ts`, which only exposes the IPC the editor actually needs (project/settings bootstrap, photo save/navigation, analysis) — anything that mutates project data, opens new windows, or interacts with the home/project screens is intentionally absent so a compromised editor renderer cannot reach those handlers.
 
 - `nodeIntegration: false` - Node.js APIs are not available in the renderer
 - `contextIsolation: true` - The preload script runs in an isolated context
@@ -15,21 +15,28 @@ The renderer process has no direct access to Node.js APIs. All system access is 
 - `will-navigate` handler - Blocks navigation to arbitrary URLs from the renderer
 - `setPermissionRequestHandler` - Denies all renderer permission requests (camera, geolocation, notifications, media). The app does not use these capabilities
 
+## Per-window sessions
+
+Each project window owns its own Electron `Session`, allocated via `session.fromPartition()` when the window is created. CSP, the permission-request handler, and the `photo://` protocol are all registered on that per-window session, scoped to the window's project directory. Edit windows inherit their parent project window's session so editor `fetch()` calls resolve against the same handler.
+
+A renderer in window A cannot resolve `photo://` URLs that point inside window B's project, because A's session does not know about B's directory. This holds even if A's renderer is compromised and crafts URLs by hand.
+
 ## Content Security Policy
 
-A Content Security Policy (CSP) is applied to all renderer responses via `session.defaultSession.webRequest.onHeadersReceived`. The policy restricts script sources to `'self'`, image sources to the app origin and the custom `photo://` protocol, and connections to the app origin and Sentry (when telemetry is enabled).
+A Content Security Policy (CSP) is applied to all renderer responses via each window session's `webRequest.onHeadersReceived` handler. The policy restricts script sources to `'self'`, image sources to the app origin and the custom `photo://` protocol, and connections to the app origin and Sentry (when telemetry is enabled).
 
 The `style-src` directive includes `'unsafe-inline'` because the Primer React component library applies runtime inline styles for layout and theming. This is a known trade-off as removing `'unsafe-inline'` would require a nonce-based approach that Primer does not currently support. The risk is mitigated by the strict `script-src 'self'` policy, which prevents injected inline styles from executing code.
 
 ## Custom Protocol (`photo://`)
 
-All image rendering in the renderer uses the custom `photo://` protocol instead of `file://`. The protocol handler in the main process:
+All image rendering in the renderer uses the custom `photo://` protocol instead of `file://`. The protocol handler is registered on each project window's session and, for every request:
 
-1. Validates that the requested file extension is in the allowlist (`PHOTO_FILE_EXTENSIONS`)
-2. Validates that the resolved file path is within the current project directory (path traversal protection)
-3. Returns 403 for any request that fails validation
+1. Resolves the requesting window's project directory via `windowManager.getDirectoryForWindow()` and returns 403 if no project is loaded
+2. Validates that the requested file extension is in the allowlist (`PHOTO_FILE_EXTENSIONS`)
+3. Validates that the resolved file path is inside that window's project directory (path traversal protection)
+4. Returns 403 for any request that fails validation
 
-The scheme is registered with `corsEnabled: true` and responses set `Access-Control-Allow-Origin: *` so the edit window can `fetch()` full-size image bytes cross-origin (the renderer is loaded from the Vite dev server in development and `file://` in production - both are cross-origin to `photo://`). Cross-origin access to a custom protocol requires `corsEnabled` since [electron/electron#51152](https://github.com/electron/electron/pull/51152) as the path-traversal and extension checks above continue to gate which files are served.
+The scheme is registered (globally, via `protocol.registerSchemesAsPrivileged`) with `corsEnabled: true` and responses set `Access-Control-Allow-Origin: *` so the edit window can `fetch()` full-size image bytes cross-origin (the renderer is loaded from the Vite dev server in development and `file://` in production - both are cross-origin to `photo://`). Cross-origin access to a custom protocol requires `corsEnabled` since [electron/electron#51152](https://github.com/electron/electron/pull/51152) as the path-traversal and extension checks above continue to gate which files are served.
 
 ## Path Traversal Protection
 

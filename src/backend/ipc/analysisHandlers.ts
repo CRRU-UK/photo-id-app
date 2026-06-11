@@ -10,6 +10,7 @@ import {
   upsertAnalysisProvider,
 } from "@/backend/settings";
 import { deleteToken, getToken, isEncryptionAvailable, saveToken } from "@/backend/tokens";
+import { windowManager } from "@/backend/WindowManager";
 import { IPC_EVENTS } from "@/constants";
 import { analysisProviderDraftSchema, analysisProviderSchema, photoBodySchema } from "@/schemas";
 import type {
@@ -68,9 +69,14 @@ export const handleDeleteAnalysisProvider = async (
 };
 
 export const handleAnalyseMatches = async (
-  _event: IpcMainInvokeEvent,
+  event: IpcMainInvokeEvent,
   photos: PhotoBody[],
 ): Promise<AnalysisMatchResponse | null> => {
+  const directory = windowManager.getDirectoryForSender(event.sender);
+  if (directory === null) {
+    throw new Error("No project open");
+  }
+
   const validatedPhotos = photos.map((photo) => photoBodySchema.parse(photo));
 
   const settings = await getSettings();
@@ -89,10 +95,21 @@ export const handleAnalyseMatches = async (
     throw new Error("Analysis API token is not configured or could not be decrypted.");
   }
 
+  /**
+   * Key the analysis lifecycle by the renderer's webContents id so project and edit window analyses
+   * are independent. Resolving via `getProjectWindowForSender` would collapse them onto the same
+   * key (parent project window) and they would abort each other silently.
+   */
   return analyseMatches({
+    windowId: event.sender.id,
+    directory,
     photos: validatedPhotos,
     settings: { endpoint: selectedProvider.endpoint, token },
   });
+};
+
+export const handleCancelAnalyseMatches = (event: Electron.IpcMainEvent): void => {
+  cancelAnalyseMatches(event.sender.id);
 };
 
 export const handleGetEncryptionAvailability = (): boolean => isEncryptionAvailable();
@@ -102,5 +119,5 @@ export const registerAnalysisHandlers = (ipcMain: Electron.IpcMain): void => {
   ipcMain.handle(IPC_EVENTS.DELETE_ANALYSIS_PROVIDER, handleDeleteAnalysisProvider);
   ipcMain.handle(IPC_EVENTS.ANALYSE_MATCHES, handleAnalyseMatches);
   ipcMain.handle(IPC_EVENTS.GET_ENCRYPTION_AVAILABILITY, handleGetEncryptionAvailability);
-  ipcMain.on(IPC_EVENTS.CANCEL_ANALYSE_MATCHES, () => cancelAnalyseMatches());
+  ipcMain.on(IPC_EVENTS.CANCEL_ANALYSE_MATCHES, handleCancelAnalyseMatches);
 };

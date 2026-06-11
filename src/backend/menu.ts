@@ -1,11 +1,48 @@
-import type { BrowserWindow } from "electron";
-import { app, shell } from "electron";
+import { app, BrowserWindow, shell } from "electron";
 
-import { handleOpenDirectoryPrompt, handleOpenFilePrompt } from "@/backend/projects";
+import {
+  openProjectFileForWindow,
+  openProjectFolderForWindow,
+} from "@/backend/ipc/projectHandlers";
+import { windowManager } from "@/backend/WindowManager";
+import { createProjectWindow } from "@/backend/windows";
 import { EXTERNAL_LINKS, IPC_EVENTS } from "@/constants";
 
-const getMenu = (mainWindow: BrowserWindow) => {
+/**
+ * Resolves the project window for the currently-focused window, falling back to null if there is
+ * no focused window or it isn't a tracked project window (e.g. a settings dialog).
+ */
+const focusedProjectWindow = (): BrowserWindow | null => {
+  const focused = BrowserWindow.getFocusedWindow();
+  if (!focused) {
+    return null;
+  }
+  return windowManager.getProjectWindowForSender(focused.webContents);
+};
+
+/**
+ * Returns a project window to operate on for menu-driven actions. Falls back to creating a fresh
+ * index window when no project window is focused (typical on macOS when all windows are closed
+ * but the app is still running in the dock). Without this, menu items like Open Project Folder
+ * would silently no-op.
+ */
+const resolveProjectWindowForMenu = async (): Promise<BrowserWindow> => {
+  const focused = focusedProjectWindow();
+  if (focused) {
+    return focused;
+  }
+
+  return createProjectWindow();
+};
+
+const getMenu = (): Electron.MenuItemConstructorOptions[] => {
   const isMac = process.platform === "darwin";
+
+  const openPreferences = async () => {
+    const window = await resolveProjectWindowForMenu();
+    window.focus();
+    window.webContents.send(IPC_EVENTS.OPEN_SETTINGS);
+  };
 
   const template: Electron.MenuItemConstructorOptions[] = [
     ...(isMac
@@ -18,10 +55,7 @@ const getMenu = (mainWindow: BrowserWindow) => {
               {
                 label: "Preferences...",
                 accelerator: "CmdOrCtrl+,",
-                click() {
-                  mainWindow.focus();
-                  mainWindow.webContents.send(IPC_EVENTS.OPEN_SETTINGS);
-                },
+                click: openPreferences,
               },
               { type: "separator" },
               { role: "services" },
@@ -39,17 +73,27 @@ const getMenu = (mainWindow: BrowserWindow) => {
       label: "File",
       submenu: [
         {
+          label: "New Window",
+          accelerator: "CmdOrCtrl+N",
+          click() {
+            void createProjectWindow();
+          },
+        },
+        { type: "separator" },
+        {
           label: "Open Project Folder",
           accelerator: "CmdOrCtrl+O",
-          click() {
-            void handleOpenDirectoryPrompt(mainWindow);
+          async click() {
+            const window = await resolveProjectWindowForMenu();
+            await openProjectFolderForWindow(window);
           },
         },
         {
           label: "Open Project File",
           accelerator: "CmdOrCtrl+Shift+O",
-          click() {
-            void handleOpenFilePrompt(mainWindow);
+          async click() {
+            const window = await resolveProjectWindowForMenu();
+            await openProjectFileForWindow(window);
           },
         },
         ...(isMac
@@ -58,12 +102,10 @@ const getMenu = (mainWindow: BrowserWindow) => {
               {
                 label: "Settings",
                 accelerator: "CmdOrCtrl+,",
-                click() {
-                  mainWindow.focus();
-                  mainWindow.webContents.send(IPC_EVENTS.OPEN_SETTINGS);
-                },
+                click: openPreferences,
               },
             ]),
+        { type: "separator" },
         isMac ? { role: "close" } : { role: "quit" },
       ],
     },

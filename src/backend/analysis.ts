@@ -1,7 +1,7 @@
 import path from "node:path";
 
 import { renderApiImage } from "@/backend/imageRenderer";
-import { getCurrentProjectDirectory, resolvePhotoPath } from "@/backend/projects";
+import { resolvePhotoPath } from "@/backend/projects";
 import { ANALYSIS_API_REQUEST_TIMEOUT_MS } from "@/constants";
 import { analysisMatchResponseSchema } from "@/schemas";
 import type { AnalysisMatchResponse, PhotoBody } from "@/types";
@@ -12,11 +12,13 @@ type AnalyseMatchesSettings = {
 };
 
 type AnalyseMatchesOptions = {
+  windowId: number;
+  directory: string;
   photos: PhotoBody[];
   settings: AnalyseMatchesSettings;
 };
 
-let currentAbortController: AbortController | null = null;
+const abortControllersByWindow = new Map<number, AbortController>();
 
 /**
  * Generates a blob from a photo. Resolves the source path against the active project directory.
@@ -125,10 +127,14 @@ const normaliseRequestError = (
 };
 
 /**
- * Sends all photos in a stack to the API /match endpoint. Returns null if the request is cancelled
- * via cancelAnalyseMatches.
+ * Sends all photos in a stack to the API /match endpoint. Returns null if the request is
+ * cancelled via `cancelAnalyseMatches` for the same window. Triggering a fresh analysis for the
+ * same `windowId` aborts and replaces any in-flight one for that window; analyses in other
+ * windows are unaffected.
  */
 const analyseMatches = async ({
+  windowId,
+  directory,
   photos,
   settings,
 }: AnalyseMatchesOptions): Promise<AnalysisMatchResponse | null> => {
@@ -136,18 +142,13 @@ const analyseMatches = async ({
     throw new Error("No photos to analyse");
   }
 
-  const directory = getCurrentProjectDirectory();
-
-  if (directory === null) {
-    throw new Error("No project open");
-  }
-
-  if (currentAbortController) {
-    currentAbortController.abort();
+  const previous = abortControllersByWindow.get(windowId);
+  if (previous) {
+    previous.abort();
   }
 
   const abortController = new AbortController();
-  currentAbortController = abortController;
+  abortControllersByWindow.set(windowId, abortController);
 
   try {
     const formData = await buildFormData(directory, photos, abortController);
@@ -160,20 +161,24 @@ const analyseMatches = async ({
   } catch (error) {
     return normaliseRequestError(error, abortController);
   } finally {
-    if (currentAbortController === abortController) {
-      currentAbortController = null;
+    if (abortControllersByWindow.get(windowId) === abortController) {
+      abortControllersByWindow.delete(windowId);
     }
   }
 };
 
 /**
- * Cancels any in-flight analyseMatches request.
+ * Cancels the in-flight analysis for a specific window, if any. Analyses in other windows are
+ * not affected.
  */
-const cancelAnalyseMatches = (): void => {
-  if (currentAbortController) {
-    currentAbortController.abort();
-    currentAbortController = null;
+const cancelAnalyseMatches = (windowId: number): void => {
+  const controller = abortControllersByWindow.get(windowId);
+  if (!controller) {
+    return;
   }
+
+  controller.abort();
+  abortControllersByWindow.delete(windowId);
 };
 
 export { analyseMatches, cancelAnalyseMatches };

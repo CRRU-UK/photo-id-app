@@ -63,18 +63,29 @@ vi.mock("@/backend/recents", () => ({
   removeRecentProject: vi.fn<() => void>(),
 }));
 
+const mockSetProject = vi.fn<(window: Electron.BrowserWindow, directory: string) => void>();
+const mockClearProject = vi.fn<(window: Electron.BrowserWindow) => void>();
+
+vi.mock("@/backend/WindowManager", () => ({
+  windowManager: {
+    setProject: (...args: Parameters<typeof mockSetProject>) => mockSetProject(...args),
+    clearProject: (...args: Parameters<typeof mockClearProject>) => mockClearProject(...args),
+  },
+}));
+
 const {
+  checkExistingProjectChoice,
   findPhotoInProject,
   handleDuplicatePhotoFile,
   handleEditorNavigate,
   handleFlushSaveProject,
-  handleOpenDirectoryPrompt,
-  handleOpenFilePrompt,
   handleOpenProjectFile,
   handleSaveProject,
+  loadExistingProject,
   parseProjectFile,
-  getCurrentProjectDirectory,
-  setCurrentProject,
+  processProjectFolder,
+  promptForProjectFile,
+  promptForProjectFolder,
 } = await import("./projects");
 
 const createPhoto = (name: string, overrides?: Partial<PhotoBody>): PhotoBody => ({
@@ -215,27 +226,6 @@ describe(findPhotoInProject, () => {
   });
 });
 
-describe("getCurrentProjectDirectory / setCurrentProject", () => {
-  it("returns null initially", () => {
-    setCurrentProject(null);
-
-    expect(getCurrentProjectDirectory()).toBeNull();
-  });
-
-  it("returns the directory after setting it", () => {
-    setCurrentProject("/my/project");
-
-    expect(getCurrentProjectDirectory()).toBe("/my/project");
-  });
-
-  it("returns null after clearing", () => {
-    setCurrentProject("/my/project");
-    setCurrentProject(null);
-
-    expect(getCurrentProjectDirectory()).toBeNull();
-  });
-});
-
 describe(handleSaveProject, () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -243,48 +233,36 @@ describe(handleSaveProject, () => {
   });
 
   it("writes the project data to the correct file path", async () => {
-    setCurrentProject("/my/project");
-
     const project = createProject();
     const data = JSON.stringify(project);
 
-    await handleSaveProject(data);
+    await handleSaveProject("/my/project", data);
 
     expect(mockWriteFile).toHaveBeenCalledWith(`/my/project/${PROJECT_FILE_NAME}`, data, "utf8");
   });
 
   it("writes the raw JSON string, not re-serialised data", async () => {
-    setCurrentProject("/my/project");
-
     const data = JSON.stringify(createProject());
 
-    await handleSaveProject(data);
+    await handleSaveProject("/my/project", data);
 
     const writtenData = mockWriteFile.mock.calls[0][1];
 
     expect(writtenData).toBe(data);
   });
 
-  it("throws when no project is open", async () => {
-    setCurrentProject(null);
-
-    const data = JSON.stringify(createProject());
-
-    await expect(handleSaveProject(data)).rejects.toThrow("No project open");
-  });
-
   it("throws when data is invalid JSON", async () => {
-    setCurrentProject("/my/project");
-
-    await expect(handleSaveProject("not json")).rejects.toThrow(/Unexpected token|JSON/);
+    await expect(handleSaveProject("/my/project", "not json")).rejects.toThrow(
+      /Unexpected token|JSON/,
+    );
   });
 
   it("throws when data does not match project schema", async () => {
-    setCurrentProject("/my/project");
-
     const invalidPayload = JSON.stringify({ version: "v1" });
 
-    await expect(handleSaveProject(invalidPayload)).rejects.toThrow(/invalid_type|required/);
+    await expect(handleSaveProject("/my/project", invalidPayload)).rejects.toThrow(
+      /invalid_type|required/,
+    );
   });
 });
 
@@ -294,12 +272,10 @@ describe(handleFlushSaveProject, () => {
   });
 
   it("writes synchronously to the correct file path", () => {
-    setCurrentProject("/my/project");
-
     const project = createProject();
     const data = JSON.stringify(project);
 
-    handleFlushSaveProject(data);
+    handleFlushSaveProject("/my/project", data);
 
     expect(mockWriteFileSync).toHaveBeenCalledWith(
       `/my/project/${PROJECT_FILE_NAME}`,
@@ -308,22 +284,10 @@ describe(handleFlushSaveProject, () => {
     );
   });
 
-  it("does nothing when no project is open", () => {
-    setCurrentProject(null);
-
-    const data = JSON.stringify(createProject());
-
-    handleFlushSaveProject(data);
-
-    expect(mockWriteFileSync).not.toHaveBeenCalled();
-  });
-
   it("does not write when data is invalid JSON", () => {
-    setCurrentProject("/my/project");
-
     const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
 
-    handleFlushSaveProject("not json");
+    handleFlushSaveProject("/my/project", "not json");
 
     expect(mockWriteFileSync).not.toHaveBeenCalled();
     expect(consoleErrorSpy).toHaveBeenCalledWith("Flush save failed:", expect.any(SyntaxError));
@@ -332,13 +296,11 @@ describe(handleFlushSaveProject, () => {
   });
 
   it("does not write when data does not match project schema", () => {
-    setCurrentProject("/my/project");
-
     const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
 
     const invalidPayload = JSON.stringify({ version: "v1" });
 
-    handleFlushSaveProject(invalidPayload);
+    handleFlushSaveProject("/my/project", invalidPayload);
 
     expect(mockWriteFileSync).not.toHaveBeenCalled();
     expect(consoleErrorSpy).toHaveBeenCalledWith(
@@ -354,7 +316,6 @@ describe(handleDuplicatePhotoFile, () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockCopyFile.mockResolvedValue(undefined);
-    setCurrentProject("/project");
     vi.spyOn(Date, "now").mockReturnValue(1700000000000);
   });
 
@@ -365,7 +326,7 @@ describe(handleDuplicatePhotoFile, () => {
   it("copies the original file with a duplicate suffix", async () => {
     const photo = createPhoto("photo.jpg");
 
-    await handleDuplicatePhotoFile(photo);
+    await handleDuplicatePhotoFile("/project", photo);
 
     expect(mockCopyFile).toHaveBeenCalledWith(
       "/project/photo.jpg",
@@ -376,7 +337,7 @@ describe(handleDuplicatePhotoFile, () => {
   it("copies the thumbnail file with a duplicate suffix", async () => {
     const photo = createPhoto("photo.jpg");
 
-    await handleDuplicatePhotoFile(photo);
+    await handleDuplicatePhotoFile("/project", photo);
 
     // Two copyFile calls: one for original, one for thumbnail
     expect(mockCopyFile).toHaveBeenCalledTimes(2);
@@ -389,25 +350,18 @@ describe(handleDuplicatePhotoFile, () => {
       edits: { ...DEFAULT_PHOTO_EDITS, brightness: 200 },
     });
 
-    const result = await handleDuplicatePhotoFile(photo);
+    const result = await handleDuplicatePhotoFile("/project", photo);
 
     expect(result.name).toContain("_duplicate_1700000000000");
     expect(result.name).toContain(".jpg");
     expect(result.thumbnail).toContain("_duplicate_1700000000000");
   });
 
-  it("throws when no project is open", async () => {
-    setCurrentProject(null);
-    const photo = createPhoto("photo.jpg");
-
-    await expect(handleDuplicatePhotoFile(photo)).rejects.toThrow("No project open");
-  });
-
   it("preserves edits and isEdited state", async () => {
     const edits = { ...DEFAULT_PHOTO_EDITS, brightness: 200 };
     const photo = createPhoto("photo.jpg", { edits, isEdited: true });
 
-    const result = await handleDuplicatePhotoFile(photo);
+    const result = await handleDuplicatePhotoFile("/project", photo);
 
     expect(result.edits).toStrictEqual(edits);
     expect(result.isEdited).toBe(true);
@@ -417,7 +371,6 @@ describe(handleDuplicatePhotoFile, () => {
 describe(handleEditorNavigate, () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    setCurrentProject("/project");
   });
 
   it("returns null when the collection has only one photo", async () => {
@@ -427,7 +380,7 @@ describe(handleEditorNavigate, () => {
     });
     mockReadFile.mockResolvedValue(JSON.stringify(project));
 
-    const result = await handleEditorNavigate(photo, "next");
+    const result = await handleEditorNavigate("/project", photo, "next");
 
     expect(result).toBeNull();
   });
@@ -439,7 +392,7 @@ describe(handleEditorNavigate, () => {
     });
     mockReadFile.mockResolvedValue(JSON.stringify(project));
 
-    const result = await handleEditorNavigate(photos[0], "next");
+    const result = await handleEditorNavigate("/project", photos[0], "next");
 
     expect(result?.name).toBe("b.jpg");
   });
@@ -451,7 +404,7 @@ describe(handleEditorNavigate, () => {
     });
     mockReadFile.mockResolvedValue(JSON.stringify(project));
 
-    const result = await handleEditorNavigate(photos[2], "next");
+    const result = await handleEditorNavigate("/project", photos[2], "next");
 
     expect(result?.name).toBe("a.jpg");
   });
@@ -463,7 +416,7 @@ describe(handleEditorNavigate, () => {
     });
     mockReadFile.mockResolvedValue(JSON.stringify(project));
 
-    const result = await handleEditorNavigate(photos[1], "prev");
+    const result = await handleEditorNavigate("/project", photos[1], "prev");
 
     expect(result?.name).toBe("a.jpg");
   });
@@ -475,7 +428,7 @@ describe(handleEditorNavigate, () => {
     });
     mockReadFile.mockResolvedValue(JSON.stringify(project));
 
-    const result = await handleEditorNavigate(photos[0], "prev");
+    const result = await handleEditorNavigate("/project", photos[0], "prev");
 
     expect(result?.name).toBe("c.jpg");
   });
@@ -486,9 +439,9 @@ describe(handleEditorNavigate, () => {
     });
     mockReadFile.mockResolvedValue(JSON.stringify(project));
 
-    await expect(handleEditorNavigate(createPhoto("missing.jpg"), "next")).rejects.toThrow(
-      "Photo not found in project",
-    );
+    await expect(
+      handleEditorNavigate("/project", createPhoto("missing.jpg"), "next"),
+    ).rejects.toThrow("Photo not found in project");
   });
 
   it("returns null when the collection has only one photo (navigating backward)", async () => {
@@ -498,7 +451,7 @@ describe(handleEditorNavigate, () => {
     });
     mockReadFile.mockResolvedValue(JSON.stringify(project));
 
-    const result = await handleEditorNavigate(photo, "prev");
+    const result = await handleEditorNavigate("/project", photo, "prev");
 
     expect(result).toBeNull();
   });
@@ -516,16 +469,9 @@ describe(handleEditorNavigate, () => {
     });
     mockReadFile.mockResolvedValue(JSON.stringify(project));
 
-    const result = await handleEditorNavigate(photos[0], "next");
+    const result = await handleEditorNavigate("/project", photos[0], "next");
 
     expect(result?.name).toBe("m2.jpg");
-  });
-
-  it("throws when no project is open", async () => {
-    setCurrentProject(null);
-    const photo = createPhoto("solo.jpg");
-
-    await expect(handleEditorNavigate(photo, "next")).rejects.toThrow("No project open");
   });
 });
 
@@ -587,7 +533,7 @@ describe(handleOpenProjectFile, () => {
     );
   });
 
-  it("sets the window title with the derived project directory", async () => {
+  it("sets the window title using the project name and app name", async () => {
     const mainWindow = createMockMainWindow();
     const project = createProject();
     mockExistsSync.mockReturnValue(true);
@@ -595,7 +541,7 @@ describe(handleOpenProjectFile, () => {
 
     await handleOpenProjectFile(mainWindow, "/my/project/project.photoid");
 
-    expect(mainWindow.setTitle).toHaveBeenCalledWith(expect.stringContaining("/my/project"));
+    expect(mainWindow.setTitle).toHaveBeenCalledWith("project - Photo ID");
   });
 
   it("focuses the main window after loading", async () => {
@@ -610,122 +556,194 @@ describe(handleOpenProjectFile, () => {
   });
 });
 
-describe(handleOpenDirectoryPrompt, () => {
+describe(promptForProjectFolder, () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("returns null when the dialog is cancelled", async () => {
+    const { dialog } = await import("electron");
+    vi.mocked(dialog.showOpenDialog).mockResolvedValue({
+      canceled: true,
+      filePaths: [],
+    });
+
+    const result = await promptForProjectFolder();
+
+    expect(result).toBeNull();
+  });
+
+  it("returns the chosen directory path", async () => {
+    const { dialog } = await import("electron");
+    vi.mocked(dialog.showOpenDialog).mockResolvedValue({
+      canceled: false,
+      filePaths: ["/my/project"],
+    });
+
+    const result = await promptForProjectFolder();
+
+    expect(result).toBe("/my/project");
+  });
+});
+
+describe(promptForProjectFile, () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("returns null when the dialog is cancelled", async () => {
+    const { dialog } = await import("electron");
+    vi.mocked(dialog.showOpenDialog).mockResolvedValue({
+      canceled: true,
+      filePaths: [],
+    });
+
+    const result = await promptForProjectFile();
+
+    expect(result).toBeNull();
+  });
+
+  it("returns the chosen file path", async () => {
+    const { dialog } = await import("electron");
+    vi.mocked(dialog.showOpenDialog).mockResolvedValue({
+      canceled: false,
+      filePaths: ["/my/project/project.photoid"],
+    });
+
+    const result = await promptForProjectFile();
+
+    expect(result).toBe("/my/project/project.photoid");
+  });
+});
+
+describe(checkExistingProjectChoice, () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("returns 'new' when the directory has no existing project file", async () => {
+    mockReaddir.mockResolvedValue(["photo1.jpg", "photo2.png"]);
+
+    const result = await checkExistingProjectChoice("/my/project");
+
+    expect(result).toBe("new");
+  });
+
+  it("returns 'existing' when the user chooses to open existing data", async () => {
+    const { dialog } = await import("electron");
+    mockReaddir.mockResolvedValue([PROJECT_FILE_NAME, "photo.jpg"]);
+    vi.mocked(dialog.showMessageBox).mockResolvedValue({ response: 1, checkboxChecked: false });
+
+    const result = await checkExistingProjectChoice("/my/project");
+
+    expect(result).toBe("existing");
+  });
+
+  it("returns 'new' when the user chooses to replace existing data", async () => {
+    const { dialog } = await import("electron");
+    mockReaddir.mockResolvedValue([PROJECT_FILE_NAME, "photo.jpg"]);
+    vi.mocked(dialog.showMessageBox).mockResolvedValue({ response: 2, checkboxChecked: false });
+
+    const result = await checkExistingProjectChoice("/my/project");
+
+    expect(result).toBe("new");
+  });
+
+  it("returns 'cancel' when the user cancels the dialog", async () => {
+    const { dialog } = await import("electron");
+    mockReaddir.mockResolvedValue([PROJECT_FILE_NAME, "photo.jpg"]);
+    vi.mocked(dialog.showMessageBox).mockResolvedValue({ response: 0, checkboxChecked: false });
+
+    const result = await checkExistingProjectChoice("/my/project");
+
+    expect(result).toBe("cancel");
+  });
+});
+
+describe(loadExistingProject, () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("parses the project file and sends it to the window", async () => {
+    const project = createProject();
+    mockReadFile.mockResolvedValue(JSON.stringify(project));
+
+    const mainWindow = createMockMainWindow();
+
+    await loadExistingProject(mainWindow, "/my/project");
+
+    expect(mainWindow.webContents.send).toHaveBeenCalledWith(
+      IPC_EVENTS.LOAD_PROJECT,
+      expect.objectContaining({ directory: "/my/project" }),
+    );
+  });
+
+  it("eagerly registers the directory in WindowManager before parsing", async () => {
+    const project = createProject();
+    mockReadFile.mockResolvedValue(JSON.stringify(project));
+
+    const mainWindow = createMockMainWindow();
+
+    await loadExistingProject(mainWindow, "/my/project");
+
+    // setProject is called eagerly (at the start) AND again by sendData on success
+    expect(mockSetProject).toHaveBeenCalledWith(mainWindow, "/my/project");
+    expect(mockClearProject).not.toHaveBeenCalled();
+  });
+
+  it("clears the WindowManager reservation when parsing fails", async () => {
+    mockReadFile.mockResolvedValue("not valid json {{{");
+
+    const mainWindow = createMockMainWindow();
+
+    await loadExistingProject(mainWindow, "/my/project");
+
+    expect(mockSetProject).toHaveBeenCalledWith(mainWindow, "/my/project");
+    expect(mockClearProject).toHaveBeenCalledWith(mainWindow);
+  });
+
+  it("shows a corrupted-data error dialog when the project file is invalid JSON", async () => {
+    const { dialog } = await import("electron");
+    mockReadFile.mockResolvedValue("not valid json {{{");
+
+    const mainWindow = createMockMainWindow();
+
+    await loadExistingProject(mainWindow, "/my/project");
+
+    expect(dialog.showErrorBox).toHaveBeenCalledWith(
+      "Invalid project file",
+      expect.stringContaining("corrupted"),
+    );
+  });
+});
+
+describe(processProjectFolder, () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockWriteFile.mockResolvedValue(undefined);
     mockLstat.mockResolvedValue({ isFile: () => true });
   });
 
-  it("does nothing when the dialog is cancelled", async () => {
-    const { dialog } = await import("electron");
-    vi.mocked(dialog.showOpenDialog).mockResolvedValue({
-      canceled: true,
-      filePaths: [],
-    });
-    const mainWindow = createMockMainWindow();
-
-    await handleOpenDirectoryPrompt(mainWindow);
-
-    expect(mainWindow.webContents.send).not.toHaveBeenCalled();
-  });
-
-  it("loads existing project when user chooses to open existing data", async () => {
-    const { dialog } = await import("electron");
-    vi.mocked(dialog.showOpenDialog).mockResolvedValue({
-      canceled: false,
-      filePaths: ["/my/project"],
-    });
-    mockReaddir.mockResolvedValue([PROJECT_FILE_NAME, "photo.jpg"]);
-    vi.mocked(dialog.showMessageBox).mockResolvedValue({ response: 1, checkboxChecked: false });
-
-    const project = createProject();
-    mockReadFile.mockResolvedValue(JSON.stringify(project));
-
-    const mainWindow = createMockMainWindow();
-
-    await handleOpenDirectoryPrompt(mainWindow);
-
-    expect(mainWindow.webContents.send).toHaveBeenCalledWith(
-      IPC_EVENTS.LOAD_PROJECT,
-      expect.objectContaining({ directory: "/my/project" }),
-    );
-  });
-
-  it("cancels when user dismisses the existing data dialog", async () => {
-    const { dialog } = await import("electron");
-    vi.mocked(dialog.showOpenDialog).mockResolvedValue({
-      canceled: false,
-      filePaths: ["/my/project"],
-    });
-    mockReaddir.mockResolvedValue([PROJECT_FILE_NAME, "photo.jpg"]);
-    vi.mocked(dialog.showMessageBox).mockResolvedValue({ response: 0, checkboxChecked: false });
-
-    const mainWindow = createMockMainWindow();
-
-    await handleOpenDirectoryPrompt(mainWindow);
-
-    // Should not load any project or show loading
-    expect(mainWindow.webContents.send).not.toHaveBeenCalledWith(
-      IPC_EVENTS.LOAD_PROJECT,
-      expect.anything(),
-    );
-  });
-
   it("creates a new project when the directory has no existing data file", async () => {
-    const { dialog } = await import("electron");
-    vi.mocked(dialog.showOpenDialog).mockResolvedValue({
-      canceled: false,
-      filePaths: ["/my/project"],
-    });
     mockReaddir.mockResolvedValue(["photo1.jpg", "photo2.png"]);
     mockExistsSync.mockReturnValue(false);
 
     const mainWindow = createMockMainWindow();
 
-    await handleOpenDirectoryPrompt(mainWindow);
+    await processProjectFolder(mainWindow, "/my/project");
 
-    // Should show loading
     expect(mainWindow.webContents.send).toHaveBeenCalledWith(
       IPC_EVENTS.SET_LOADING,
       expect.objectContaining({ show: true, text: "Preparing project" }),
     );
 
-    // Should write the new project file
     expect(mockWriteFile).toHaveBeenCalledWith(
       expect.stringContaining(PROJECT_FILE_NAME),
       expect.any(String),
       "utf8",
     );
 
-    // Should load the new project
-    expect(mainWindow.webContents.send).toHaveBeenCalledWith(
-      IPC_EVENTS.LOAD_PROJECT,
-      expect.objectContaining({ directory: "/my/project" }),
-    );
-  });
-
-  it("creates a new project when user chooses to overwrite existing data", async () => {
-    const { dialog } = await import("electron");
-    vi.mocked(dialog.showOpenDialog).mockResolvedValue({
-      canceled: false,
-      filePaths: ["/my/project"],
-    });
-    mockReaddir.mockResolvedValue([PROJECT_FILE_NAME, "photo.jpg"]);
-    // Response 2 = "Create new" (neither cancel nor open existing)
-    vi.mocked(dialog.showMessageBox).mockResolvedValue({ response: 2, checkboxChecked: false });
-    mockExistsSync.mockReturnValue(false);
-
-    const mainWindow = createMockMainWindow();
-
-    await handleOpenDirectoryPrompt(mainWindow);
-
-    // Should create a new project, not load the existing one via readFile
-    expect(mockWriteFile).toHaveBeenCalledWith(
-      expect.stringContaining(PROJECT_FILE_NAME),
-      expect.any(String),
-      "utf8",
-    );
     expect(mainWindow.webContents.send).toHaveBeenCalledWith(
       IPC_EVENTS.LOAD_PROJECT,
       expect.objectContaining({ directory: "/my/project" }),
@@ -733,24 +751,17 @@ describe(handleOpenDirectoryPrompt, () => {
   });
 
   it("filters out directory entries when creating a new project", async () => {
-    const { dialog } = await import("electron");
-    vi.mocked(dialog.showOpenDialog).mockResolvedValue({
-      canceled: false,
-      filePaths: ["/my/project"],
-    });
     mockReaddir.mockResolvedValue(["photo.jpg", "subfolder", "image.png"]);
     mockExistsSync.mockReturnValue(false);
 
-    // "subfolder" is not a file
     mockLstat.mockImplementation((filePath: string) =>
       Promise.resolve({ isFile: () => !filePath.includes("subfolder") }),
     );
 
     const mainWindow = createMockMainWindow();
 
-    await handleOpenDirectoryPrompt(mainWindow);
+    await processProjectFolder(mainWindow, "/my/project");
 
-    // Only photo.jpg and image.png should be included (not subfolder)
     const writeCall = mockWriteFile.mock.calls.find((call) => call[0].includes(PROJECT_FILE_NAME));
     // biome-ignore lint/style/noNonNullAssertion: test assertion - find() guaranteed to match
     const savedProject = JSON.parse(writeCall![1]) as ProjectBody;
@@ -759,83 +770,29 @@ describe(handleOpenDirectoryPrompt, () => {
   });
 
   it("skips creating thumbnail directory when it already exists", async () => {
-    const { dialog } = await import("electron");
-    vi.mocked(dialog.showOpenDialog).mockResolvedValue({
-      canceled: false,
-      filePaths: ["/my/project"],
-    });
     mockReaddir.mockResolvedValue(["photo.jpg"]);
     mockExistsSync.mockReturnValue(true);
 
     const mainWindow = createMockMainWindow();
 
-    await handleOpenDirectoryPrompt(mainWindow);
+    await processProjectFolder(mainWindow, "/my/project");
 
     expect(mockMkdir).not.toHaveBeenCalled();
   });
 
   it("filters out non-image files when creating a new project", async () => {
-    const { dialog } = await import("electron");
-    vi.mocked(dialog.showOpenDialog).mockResolvedValue({
-      canceled: false,
-      filePaths: ["/my/project"],
-    });
     mockReaddir.mockResolvedValue(["photo.jpg", "readme.txt", "data.csv", "image.png"]);
     mockExistsSync.mockReturnValue(false);
 
     const mainWindow = createMockMainWindow();
 
-    await handleOpenDirectoryPrompt(mainWindow);
+    await processProjectFolder(mainWindow, "/my/project");
 
-    // The written project should only include .jpg and .png files (2 photos)
     const writeCall = mockWriteFile.mock.calls.find((call) => call[0].includes(PROJECT_FILE_NAME));
     // biome-ignore lint/style/noNonNullAssertion: test assertion - find() guaranteed to match
     const savedProject = JSON.parse(writeCall![1]) as ProjectBody;
 
     expect(savedProject.unassigned.photos).toHaveLength(2);
-  });
-});
-
-describe(handleOpenFilePrompt, () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  it("does nothing when the dialog is cancelled", async () => {
-    const { dialog } = await import("electron");
-    vi.mocked(dialog.showOpenDialog).mockResolvedValue({
-      canceled: true,
-      filePaths: [],
-    });
-    const mainWindow = createMockMainWindow();
-
-    await handleOpenFilePrompt(mainWindow);
-
-    expect(mainWindow.webContents.send).not.toHaveBeenCalled();
-  });
-
-  it("loads and sends the project from the selected file", async () => {
-    const { dialog } = await import("electron");
-    vi.mocked(dialog.showOpenDialog).mockResolvedValue({
-      canceled: false,
-      filePaths: ["/my/project/project.photoid"],
-    });
-    const project = createProject();
-    mockReadFile.mockResolvedValue(JSON.stringify(project));
-
-    const mainWindow = createMockMainWindow();
-
-    await handleOpenFilePrompt(mainWindow);
-
-    expect(mainWindow.webContents.send).toHaveBeenCalledWith(IPC_EVENTS.SET_LOADING, {
-      show: true,
-      text: "Opening project",
-    });
-
-    expect(mainWindow.webContents.send).toHaveBeenCalledWith(
-      IPC_EVENTS.LOAD_PROJECT,
-      expect.objectContaining({ directory: "/my/project" }),
-    );
   });
 });
 

@@ -58,19 +58,19 @@ const ProjectPage = observer(() => {
   // Guards against concurrent drag-end executions (e.g. keyboard + pointer firing simultaneously)
   const isDraggingRef = useRef<boolean>(false);
 
-  const navigate = useNavigate();
-
   const { project, setProject } = useProject();
   const { isAnalysing, result, error, handleClose: handleCloseAnalysis } = useAnalysis();
+
+  const navigate = useNavigate();
 
   const handleCloseProject = useCallback(() => {
     project?.flushSave();
     setProject(null);
 
-    window.electronAPI.closeProject();
-
     void navigate({ to: ROUTES.INDEX });
-  }, [project, navigate, setProject]);
+
+    window.electronAPI.closeProject();
+  }, [project, setProject, navigate]);
 
   const analysisOverlayOpen = isAnalysing || result !== null || error !== null;
 
@@ -102,12 +102,6 @@ const ProjectPage = observer(() => {
       document.removeEventListener("keydown", handleCloseShortcut);
     };
   }, [settingsOpen, analysisOverlayOpen, handleCloseAnalysis, handleCloseProject]);
-
-  useEffect(() => {
-    if (project === null) {
-      void navigate({ to: ROUTES.INDEX });
-    }
-  }, [project, navigate]);
 
   useEffect(() => {
     if (draggingPhoto && isCopying) {
@@ -181,7 +175,6 @@ const ProjectPage = observer(() => {
       if (event.key === "ArrowRight") {
         event.preventDefault();
         setCurrentPage((previous) => (previous + 1) % matchedPageCount);
-        return;
       }
     },
     [matchedPageCount],
@@ -192,8 +185,14 @@ const ProjectPage = observer(() => {
       setLoading({ show: false }),
     );
 
+    // Subscribe to loading events regardless of project state so a freshly-spawned window mounted
+    // directly at `/project` can still display thumbnail-generation progress before its project
+    // body arrives.
+    const unsubscribeLoading = window.electronAPI.onLoading((data) => setLoading(data));
+
     return () => {
       unsubscribeLoadProject();
+      unsubscribeLoading();
     };
   }, []);
 
@@ -205,14 +204,12 @@ const ProjectPage = observer(() => {
     const unsubscribeUpdatePhoto = window.electronAPI.onUpdatePhoto((data) =>
       project.updatePhoto(data),
     );
-    const unsubscribeLoading = window.electronAPI.onLoading((data) => setLoading(data));
 
     document.addEventListener("keyup", handleKeyUp);
     document.addEventListener("keydown", handleKeyDown);
 
     return () => {
       unsubscribeUpdatePhoto();
-      unsubscribeLoading();
 
       document.removeEventListener("keyup", handleKeyUp);
       document.removeEventListener("keydown", handleKeyDown);
@@ -235,8 +232,21 @@ const ProjectPage = observer(() => {
     [matchedArray, matchedArrayLength, currentPage],
   );
 
+  // Until the project state is set, render an empty project frame with a transparent loading
+  // overlay on top. Without the wrapper the user sees a stark black void; the `.project` div
+  // gives us the theme-aware background colour for free, and dropping the overlay's dark backdrop
+  // means the spinner sits cleanly on it. If main has sent a SET_LOADING update (e.g. while
+  // thumbnails generate for a brand-new project), display that — otherwise fall back to a
+  // generic placeholder so the user always sees something is happening.
   if (project === null) {
-    return null;
+    return (
+      <div className="project" data-testid="project-page">
+        <LoadingOverlay
+          data={loading.show ? loading : { show: true, text: "Opening project" }}
+          transparent
+        />
+      </div>
+    );
   }
 
   const handleDragStart = (event: DragStartEvent) => {

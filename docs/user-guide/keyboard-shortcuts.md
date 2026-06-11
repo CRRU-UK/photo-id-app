@@ -13,19 +13,23 @@ Keyboard shortcuts can be used for many functions in the app:
 
 | Function          | Shortcut (Windows / Linux) | Shortcut (macOS) |
 | ----------------- | -------------------------- | ---------------- |
+| New window        | ++ctrl+n++                 | ++cmd+n++        |
 | Start new project | ++ctrl+o++                 | ++cmd+o++        |
 | Open project file | ++ctrl+shift+o++           | ++cmd+shift+o++  |
 | Open settings     | ++ctrl+comma++             | ++cmd+comma++    |
-| Close app         | ++ctrl+w++                 | ++cmd+w++        |
+| Close window      | ++ctrl+w++                 | ++cmd+w++        |
 
 ## Project screen
 
-| Function       | Shortcut (Windows / Linux) | Shortcut (macOS) |
-| -------------- | -------------------------- | ---------------- |
-| Previous page  | ++arrow-left++             | ++arrow-left++   |
-| Next page      | ++arrow-right++            | ++arrow-right++  |
-| Open settings  | ++ctrl+comma++             | ++cmd+comma++    |
-| Close project  | ++ctrl+w++                 | ++cmd+w++        |
+| Function          | Shortcut (Windows / Linux) | Shortcut (macOS) |
+| ----------------- | -------------------------- | ---------------- |
+| New window        | ++ctrl+n++                 | ++cmd+n++        |
+| Open project file | ++ctrl+shift+o++           | ++cmd+shift+o++  |
+| Open new folder   | ++ctrl+o++                 | ++cmd+o++        |
+| Previous page     | ++arrow-left++             | ++arrow-left++   |
+| Next page         | ++arrow-right++            | ++arrow-right++  |
+| Open settings     | ++ctrl+comma++             | ++cmd+comma++    |
+| Close project     | ++ctrl+w++                 | ++cmd+w++        |
 
 ## Photo editor
 

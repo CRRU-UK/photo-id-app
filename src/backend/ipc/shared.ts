@@ -2,17 +2,14 @@ import path from "node:path";
 import { BrowserWindow, dialog } from "electron";
 import { ZodError } from "zod";
 
-import {
-  getCurrentProjectDirectory,
-  handleOpenProjectFile,
-  setCurrentProject,
-} from "@/backend/projects";
+import { handleOpenProjectFile } from "@/backend/projects";
 import { windowManager } from "@/backend/WindowManager";
+import { createProjectWindow } from "@/backend/windows";
 import {
   CORRUPTED_DATA_MESSAGE,
-  DEFAULT_WINDOW_TITLE,
   EXTERNAL_LINKS,
   PROJECT_FILE_EXTENSION,
+  ROUTES,
 } from "@/constants";
 import type { ExternalLinks } from "@/types";
 
@@ -23,21 +20,6 @@ import { version } from "../../../package.json";
  */
 export const getWindowFromSender = (webContents: Electron.WebContents): BrowserWindow | null =>
   BrowserWindow.fromWebContents(webContents);
-
-/**
- * Closes the current project by resetting state, closing any and all edit windows, and resetting
- * the window title.
- */
-export const closeCurrentProject = (): void => {
-  setCurrentProject(null);
-
-  windowManager.closeAllEditWindows();
-
-  const mainWindow = windowManager.getMainWindow();
-  if (mainWindow) {
-    mainWindow.setTitle(DEFAULT_WINDOW_TITLE);
-  }
-};
 
 /**
  * Sends an IPC event with data to all open BrowserWindows.
@@ -54,26 +36,56 @@ export const broadcastToAllWindows = (channel: string, data: unknown): void => {
  * Finds a .photoid file path in an argv array. Checks the full extension rather than just the
  * suffix to avoid matching non-file arguments.
  */
-export const findPhotoidArg = (argv: string[]): string | undefined =>
+export const findProjectFileArg = (argv: string[]): string | undefined =>
   argv.find((arg) => path.extname(arg).toLowerCase() === `.${PROJECT_FILE_EXTENSION}`);
 
 /**
- * Opens a project file from a file path. Closes the current project and any edit windows first if a
- * project is already open.
+ * Brings an existing window to the front. Restores it if minimised, then focuses it. Used when
+ * the user tries to open a project that is already loaded in another window.
  */
-export const openProjectFromPath = async (filePath: string): Promise<void> => {
-  const mainWindow = windowManager.getMainWindow();
-  if (!mainWindow) {
+export const focusExistingWindow = (window: BrowserWindow): void => {
+  if (window.isDestroyed()) {
     return;
   }
 
-  if (getCurrentProjectDirectory() !== null) {
-    closeCurrentProject();
+  if (window.isMinimized()) {
+    window.restore();
   }
 
-  await handleOpenProjectFile(mainWindow, filePath);
+  window.focus();
+};
 
-  mainWindow.focus();
+/**
+ * Opens a project file from a file path. If the project is already open in a window, that window
+ * is focused instead. Otherwise, an idle (empty) window is reused if available, or a fresh window
+ * is spawned mounted directly at the project route. If the load fails on a freshly-spawned
+ * window, that window is closed to avoid leaving the user stuck on a loading placeholder. Used
+ * for file associations, second-instance argv, and macOS open-file events.
+ */
+export const openProjectFromPath = async (filePath: string): Promise<void> => {
+  const directory = path.dirname(filePath);
+
+  const existingWindow = windowManager.findWindowForProject(directory);
+  if (existingWindow) {
+    focusExistingWindow(existingWindow);
+    return;
+  }
+
+  const idleWindow = windowManager.findIdleProjectWindow();
+  const targetWindow = idleWindow ?? (await createProjectWindow({ initialRoute: ROUTES.PROJECT }));
+
+  await handleOpenProjectFile(targetWindow, filePath);
+
+  if (
+    !idleWindow &&
+    !targetWindow.isDestroyed() &&
+    windowManager.getDirectoryForWindow(targetWindow) === null
+  ) {
+    targetWindow.close();
+    return;
+  }
+
+  targetWindow.focus();
 };
 
 const EXTERNAL_LINK_MAP: Record<string, string> = {

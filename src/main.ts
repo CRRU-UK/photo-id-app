@@ -1,14 +1,7 @@
 import "dotenv/config";
 
-import path from "node:path";
-import url from "node:url";
 import * as Sentry from "@sentry/electron/main";
-import { app, BrowserWindow, dialog, ipcMain, Menu, net, protocol, session } from "electron";
-import {
-  installExtension,
-  MOBX_DEVTOOLS,
-  REACT_DEVELOPER_TOOLS,
-} from "electron-devtools-installer";
+import { app, BrowserWindow, dialog, ipcMain, Menu, protocol, session } from "electron";
 import started from "electron-squirrel-startup";
 import { updateElectronApp } from "update-electron-app";
 
@@ -17,12 +10,12 @@ import { registerEditorHandlers } from "@/backend/ipc/editorHandlers";
 import { registerPhotoHandlers } from "@/backend/ipc/photoHandlers";
 import { registerProjectHandlers } from "@/backend/ipc/projectHandlers";
 import { registerSettingsHandlers } from "@/backend/ipc/settingsHandlers";
-import { findPhotoidArg, openProjectFromPath } from "@/backend/ipc/shared";
+import { findProjectFileArg, openProjectFromPath } from "@/backend/ipc/shared";
 import { getMenu } from "@/backend/menu";
-import { getCurrentProjectDirectory } from "@/backend/projects";
 import { initSentry } from "@/backend/settings";
 import { windowManager } from "@/backend/WindowManager";
-import { CSP_HEADERS, PHOTO_FILE_EXTENSIONS, PHOTO_PROTOCOL_SCHEME } from "@/constants";
+import { basePath, createProjectWindow, defaultWebPreferences } from "@/backend/windows";
+import { PHOTO_PROTOCOL_SCHEME } from "@/constants";
 
 /**
  * Handle Squirrel lifecycle events (install, update, uninstall). `app.quit()` only posts a quit
@@ -69,75 +62,8 @@ if (!gotTheLock) {
   app.quit();
 }
 
-// Stores .photoid file paths received before the main window is ready (macOS open-file or argv)
+// Stores .photoid file paths received before any window is ready (macOS open-file or argv)
 const pendingFilePaths: string[] = [];
-
-const defaultWebPreferences = {
-  preload: path.join(__dirname, "preload.js"),
-  nodeIntegration: false,
-  contextIsolation: true,
-  webSecurity: true,
-  sandbox: true,
-  allowRunningInsecureContent: false,
-};
-
-const basePath = path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`);
-
-const createMainWindow = async () => {
-  const mainWindow = new BrowserWindow({
-    width: 1200,
-    height: 800,
-    webPreferences: defaultWebPreferences,
-  });
-
-  mainWindow.maximize();
-
-  mainWindow.on("closed", () => app.quit());
-  windowManager.setMainWindow(mainWindow);
-
-  if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
-    await mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
-  } else {
-    await mainWindow.loadURL(
-      url.format({
-        protocol: "file",
-        slashes: true,
-        pathname: basePath,
-      }),
-    );
-  }
-
-  mainWindow.webContents.on("did-create-window", (window) => {
-    window.webContents.once("dom-ready", () => {
-      if (!production && !process.env.E2E) {
-        window.webContents.openDevTools();
-      }
-    });
-  });
-
-  mainWindow.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
-
-  // Block navigation to arbitrary URLs so a compromised renderer cannot leave the app origin
-  mainWindow.webContents.on("will-navigate", (event, navigationUrl) => {
-    if (
-      MAIN_WINDOW_VITE_DEV_SERVER_URL &&
-      navigationUrl.startsWith(MAIN_WINDOW_VITE_DEV_SERVER_URL)
-    ) {
-      return;
-    }
-
-    if (!navigationUrl.startsWith("file:")) {
-      event.preventDefault();
-    }
-  });
-
-  const menu = Menu.buildFromTemplate(getMenu(mainWindow));
-  Menu.setApplicationMenu(menu);
-
-  if (!production && !process.env.E2E) {
-    mainWindow.webContents.openDevTools();
-  }
-};
 
 /**
  * macOS: fires when a `.photoid` file is opened (may fire before `whenReady`).
@@ -145,8 +71,7 @@ const createMainWindow = async () => {
 app.on("open-file", async (event, filePath) => {
   event.preventDefault();
 
-  const mainWindow = windowManager.getMainWindow();
-  if (mainWindow) {
+  if (windowManager.hasOpenProjectWindows()) {
     try {
       await openProjectFromPath(filePath);
     } catch (error) {
@@ -164,7 +89,7 @@ app.on("open-file", async (event, filePath) => {
  * Windows/Linux: fires when a second instance is launched with a file argument.
  */
 app.on("second-instance", async (_event, argv) => {
-  const filePath = findPhotoidArg(argv);
+  const filePath = findProjectFileArg(argv);
 
   if (filePath) {
     try {
@@ -184,7 +109,7 @@ app.on("window-all-closed", () => {
 
 app.on("activate", async () => {
   if (BrowserWindow.getAllWindows().length === 0) {
-    await createMainWindow();
+    await createProjectWindow({ maximize: true });
   }
 });
 
@@ -193,6 +118,18 @@ app.on("web-contents-created", (_, contents) => {
   contents.on("will-attach-webview", (event) => {
     event.preventDefault();
   });
+});
+
+/**
+ * Catch windows that land on the default session, which has no CSP, permission denial, or
+ * `photo://` handler. Every BrowserWindow must pass an explicit `webPreferences.session`.
+ */
+app.on("browser-window-created", (_event, window) => {
+  if (window.webContents.session === session.defaultSession) {
+    console.error(
+      "BrowserWindow created on the default session — pass `webPreferences.session` explicitly so CSP, permission denial, and the photo:// handler apply.",
+    );
+  }
 });
 
 void app.whenReady().then(async () => {
@@ -221,63 +158,6 @@ void app.whenReady().then(async () => {
     }
   }
 
-  // Set a Content Security Policy on all renderer responses to reduce XSS risk
-  session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
-    callback({
-      responseHeaders: {
-        ...details.responseHeaders,
-        "Content-Security-Policy": [CSP_HEADERS],
-        "Document-Policy": ["js-profiling"],
-      },
-    });
-  });
-
-  // Reject all renderer permission requests
-  session.defaultSession.setPermissionRequestHandler((_webContents, _permission, callback) => {
-    callback(false);
-  });
-
-  // See: https://github.com/electron/electron/pull/51152
-  const corsHeaders = { "Access-Control-Allow-Origin": "*" };
-
-  protocol.handle(PHOTO_PROTOCOL_SCHEME, async (request) => {
-    try {
-      const projectDirectory = getCurrentProjectDirectory();
-      if (!projectDirectory) {
-        return new Response(null, { status: 403, headers: corsHeaders });
-      }
-
-      const fileUrl = request.url.replace(/^photo:/, "file:");
-      const filePath = path.resolve(url.fileURLToPath(fileUrl));
-
-      const extension = path.extname(filePath).toLowerCase();
-      if (!PHOTO_FILE_EXTENSIONS.includes(extension)) {
-        return new Response(null, { status: 403, headers: corsHeaders });
-      }
-
-      const resolvedProjectDirectory = path.resolve(projectDirectory);
-      if (!filePath.startsWith(resolvedProjectDirectory + path.sep)) {
-        return new Response(null, { status: 403, headers: corsHeaders });
-      }
-
-      const upstream = await net.fetch(url.pathToFileURL(filePath).toString());
-      const headers = new Headers(upstream.headers);
-      headers.set("Access-Control-Allow-Origin", "*");
-
-      return new Response(upstream.body, {
-        status: upstream.status,
-        statusText: upstream.statusText,
-        headers,
-      });
-    } catch {
-      return new Response(null, { status: 400, headers: corsHeaders });
-    }
-  });
-
-  if (!production && !process.env.E2E) {
-    await installExtension([REACT_DEVELOPER_TOOLS, MOBX_DEVTOOLS]);
-  }
-
   // Register all IPC handlers
   registerProjectHandlers(ipcMain);
   registerPhotoHandlers(ipcMain);
@@ -285,22 +165,27 @@ void app.whenReady().then(async () => {
   registerSettingsHandlers(ipcMain);
   registerAnalysisHandlers(ipcMain);
 
-  await createMainWindow();
+  // Install the application menu once at app ready. Click handlers resolve the focused window at
+  // click time, so the same menu serves every window.
+  Menu.setApplicationMenu(Menu.buildFromTemplate(getMenu()));
+
+  await createProjectWindow({ maximize: true });
 
   /**
-   * Handle file path from macOS open-file event that fired before the window was ready (only the
-   * last path is opened if multiple events fired before the window was ready)
+   * Handle file paths queued before any window was ready (macOS open-file event firing before
+   * `whenReady`, plus the file path that the OS passed via argv on Windows/Linux). The first
+   * pending path loads into the initial empty window; any additional paths get their own windows.
+   * `openProjectFromPath` reuses an idle window when one exists, so order matters.
    */
-  const pendingFilePath = pendingFilePaths.pop();
+  const queuedPaths = [...pendingFilePaths];
   pendingFilePaths.length = 0;
 
-  if (pendingFilePath) {
-    await openProjectFromPath(pendingFilePath);
+  const argvFilePath = findProjectFileArg(process.argv);
+  if (argvFilePath && !queuedPaths.includes(argvFilePath)) {
+    queuedPaths.push(argvFilePath);
   }
 
-  // Handle file path from argv (Windows/Linux: app launched via file association)
-  const argvFilePath = findPhotoidArg(process.argv);
-  if (argvFilePath) {
-    await openProjectFromPath(argvFilePath);
+  for (const queuedPath of queuedPaths) {
+    await openProjectFromPath(queuedPath);
   }
 });

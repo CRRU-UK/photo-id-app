@@ -24,7 +24,9 @@ Technical information, specifications, requirements, and user journeys.
   - When adding a new type, pick the suffix that matches its lifetime.
 - Schema validation: `src/schemas.ts` defines Zod schemas for project data. Project files are validated against these schemas on load via `parseProjectFile` in `src/backend/projects.ts`.
 - Thumbnail path convention: `photo.thumbnail` (and `PhotoBody.thumbnail`) is a **relative** path (e.g. `thumbnails/photo.jpg`), not an absolute path. The Photo model computes the full URL via `thumbnailFullPath` by joining the active project directory (read from the parent `Project` instance at runtime) and `thumbnail`. Use `thumbnailFullPath` when rendering thumbnails in the UI.
-- **Project folder portability**: A `.photoid` file persists no absolute paths, `PhotoBody.name` and `PhotoBody.thumbnail` are relative to the folder the `.photoid` file lives in, and the project directory is derived at load time from `path.dirname(filePath)`. The folder can be moved, copied, or zipped freely (cross-platform) and still opens. The main process tracks the active directory in `currentProjectDirectory` (see `getCurrentProjectDirectory()` in `src/backend/projects.ts`). IPC handlers that need a directory read it from there rather than from the IPC payload.
+- **Project folder portability**: A `.photoid` file persists no absolute paths, `PhotoBody.name` and `PhotoBody.thumbnail` are relative to the folder the `.photoid` file lives in, and the project directory is derived at load time from `path.dirname(filePath)`. The folder can be moved, copied, or zipped freely (cross-platform) and still opens. The main process tracks the active directory **per project window** in `WindowManager` (see `src/backend/WindowManager.ts`). IPC handlers that need a directory resolve it from the sender's webContents via `windowManager.getDirectoryForSender(event.sender)` rather than from a global or from the IPC payload.
+- **Multi-window project registry**: The app supports multiple open project windows. `WindowManager` tracks `windowId -> projectDirectory` for every registered project window, plus `editWindowId -> parentProjectWindowId` so each edit window knows which project it belongs to. Opening a project from a window that already has one spawns a new window via `createProjectWindow()` in `src/backend/windows.ts`; opening from an empty index window loads in place. Closing a project closes only its window and its associated edit windows.
+- **Per-window sessions**: Each project window owns its own Electron `Session` (allocated via `session.fromPartition()` in `createProjectWindow`). `setupProjectSession` in `src/backend/sessions.ts` registers the CSP header, the permission-denial handler, the `photo://` protocol handler, and (in dev) the DevTools extensions on that session. The `photo://` handler closes over `windowManager.getDirectoryForWindow(window)` so it is scoped to that window's project, i.e. a renderer in window A cannot resolve `photo://` URLs pointing inside window B's project. Edit windows inherit their parent's session via `webPreferences.session`.
 - AnalysisContext flow: `AnalysisContextProvider` wraps both the project and edit routes (each window has its own provider instance, analysis state is per-window, not shared across windows). The context is consumed by **Stack** and **ImageEditor** (the “Analyse” actions that trigger analysis), **AnalysisMatchOverlay** (loading state, results table, and errors), and the project route itself (for closing the overlay alongside the project). Analysis provider selection is held in `SettingsContext`.
 - SAVE_PROJECT IPC: The `SAVE_PROJECT` handler receives a **pre-serialized JSON string** (not a typed object). The renderer calls `project.save()`, which serializes the project to JSON and sends that string over IPC. The main process validates the payload and writes it to disk using the current project directory. This differs from other IPC handlers that receive typed payloads.
 - Platform-specific file association: Opening a `.photoid` file from the OS uses **macOS**: the `open-file` app event (may fire before `whenReady`). **Windows/Linux**: `second-instance` and the process `argv` (the path is passed as an argument). The app handles both so that double-clicking a `.photoid` opens that project.
@@ -56,7 +58,7 @@ Technical information, specifications, requirements, and user journeys.
 
 - **photo:// protocol**: The custom protocol serves only files whose extension is in `PHOTO_FILE_EXTENSIONS` (allowed image types). Other paths return 403. Files are served from the project directory; the renderer never receives raw filesystem paths for image `src` (use `photo://` URLs only, not `file://`).
 - **External links**: The renderer calls `openExternalLink(link)` with an enum value (`ExternalLinks`); the main process maps it to a URL from `EXTERNAL_LINKS`. No arbitrary URLs can be opened from the renderer.
-- **Renderer isolation**: The renderer has no Node.js or `require` access; it only sees `window.electronAPI` as exposed by the preload script. All file I/O and system access happen in the main process. Edit windows use a separate, narrowed preload (`src/preload-editor.ts`) that only exposes the IPC the editor renderer actually needs (project/settings bootstrap, photo save/navigation, analysis). Anything that mutates project data, opens new windows, or interacts with the home/project screens is intentionally absent. The main preload (`src/preload.ts`) still exposes the full surface for the main window.
+- **Renderer isolation**: The renderer has no Node.js or `require` access; it only sees `window.electronAPI` as exposed by the preload script. All file I/O and system access happen in the main process. Edit windows use a separate, narrowed preload (`src/preload-editor.ts`) that only exposes the IPC the editor renderer actually needs (project/settings bootstrap, photo save/navigation, analysis). Anything that mutates project data, opens new windows, or interacts with the home/project screens is intentionally absent. The main preload (`src/preload.ts`) is used by every project window and exposes the full surface.
 - **Token security**: Analysis provider API tokens are encrypted using Electron's `safeStorage` API and stored in a separate `tokens.json` file. Tokens never leave the main process. Decryption happens only at the moment of an API request. Per-token encryption flags handle edge cases where encryption availability changes between sessions. Dedicated `SAVE_ANALYSIS_PROVIDER` and `DELETE_ANALYSIS_PROVIDER` IPC handlers manage token lifecycle.
 - **macOS entitlements**: `entitlements.mac.plist` declares the OS-level capabilities the app is permitted to use under the macOS hardened runtime. Entitlements should be kept to a minimum.
 
@@ -111,24 +113,26 @@ The following describes the specifications and requirements of user journeys and
 
 ### Windows
 
-- There can only be ONE main window, which is created when the app starts
-- Only ONE main window should be used for the application process - multiple main windows should NOT be used
-- The main window should ONLY show the index (`/`) or project (`/project`) views
-- A user can load a project, close it, and load another project (or the same one) in the main window without the app exiting
-- The main window should show the window menu
-- Edit windows should ONLY show the edit view (`/edit`)
-- Edit windows are ONLY created from the main window
+- The app supports multiple **project windows**. Each project window owns at most one project; a window without a project shows the index (`/`) view, a window with a project shows the project (`/project`) view
+- A project window's title is `<project-name> - Photo ID` when a project is loaded, and `Photo ID` when it isn't
+- The first project window is created on app start and is maximised; subsequent project windows open at the default size
+- A new empty project window can be created via the File > New Window menu item (CmdOrCtrl+N)
+- Opening a project file or folder from a window that already has a project loaded spawns the new project in a **new** project window, leaving the existing one untouched. Opening from an empty index window loads the project in place
+- A project can only be open in one window at a time. If the user opens (via dialogue, recent projects, or a `.photoid` file from the OS) a project that is already loaded in another window, that window is focused and brought to the front (restored if minimised) instead of loading the project again. Directories are compared after `path.resolve()` normalisation so trailing separators and `..` segments do not cause false negatives
+- When opening a folder via the picker, the existing-project dialogue ("Open existing / Replace / Cancel") is shown BEFORE creating a new project window so the user does not see a transient empty window if they cancel. Project windows are also created with `show: false` and revealed on `ready-to-show` to avoid a white loading flash
+- When spawning a new window that will host a project, `createProjectWindow` is called with `initialRoute: ROUTES.PROJECT` so the renderer mounts directly at `#/project` and the user never sees the index page first. The caller (`loadExistingProject`, `processProjectFolder`, or `handleOpenProjectFile`) is then responsible for actually loading the project into the window. The project route renders a loading overlay until project state is set — both for the quick "open existing" path (overlay visible briefly between mount and `LOAD_PROJECT`) and the slow "create new" path (overlay shows thumbnail-generation progress via `SET_LOADING` events). Project windows opened for the index page (e.g. File > New Window) default to `initialRoute: ROUTES.INDEX`
+- Opening a `.photoid` file via the OS (file association, double-click, second instance) always opens it in a new project window unless an idle (empty) window already exists, in which case the idle window is reused
+- Edit windows should ONLY show the edit view (`/edit`) and are created from a project window
+- Each edit window is linked to the project window that spawned it (its "parent"). When a project window closes, its edit windows close with it; closing a project window does NOT affect edit windows belonging to other open projects
 - Edit windows do NOT show the window menu
-- There can be multiple edit windows
+- There can be multiple edit windows, each tied to a single project window
 - Edit windows should NEVER show the project or index views
-- The main window should NEVER be able to navigate to the photo editor view, and the edit windows should NEVER be able to navigate to the index or project view
+- Project windows should NEVER be able to navigate to the photo editor view, and the edit windows should NEVER be able to navigate to the index or project view
 - If a photo cannot be loaded in an edit window, it should show the error message and NOT redirect anywhere else
 - Edit windows can be closed without the app exiting
-- When a project is closed (i.e. the user navigates from the project view to the index view), all of the edit windows should be automatically closed
-- When the main window is closed or the app exits, all of the edit windows should also be closed
-- When closing the project view with the keyboard shortcut, it should navigate to the index view instead of closing the window
-- When closing the index view with the keyboard shortcut, it should close the window and application
-- Restarting the app should NEVER load a project automatically, and instead show the index view instead
+- Closing the project (via the sidebar close button or CmdOrCtrl+W on the project view) navigates the window back to the index page, clears the project state in `WindowManager`, and closes any edit windows belonging to that project. The window itself stays open so the user can pick another project or close the window manually. Other open project windows are unaffected
+- When closing the index view with the keyboard shortcut, it should close the window and (on Windows/Linux) the application if it was the last window
+- Restarting the app should NEVER load a project automatically, and instead show a single empty project window at the index view
   - The exception to this is during development, i.e. hot-reload, should retain the project view if a project is already open
 - DevTools should ONLY be shown during development, and NEVER shown in the production build
 - Users should NEVER be able to refresh or modify the webview outside of the designed application flow
@@ -178,8 +182,8 @@ The index view is the default view when opening the app. It allows the user to:
     - Providers can be removed
 - Settings should use default values on new installations
 - Settings should persist between sessions
-- ONLY the main window should have the settings overlay - edit windows should NEVER display the settings overlay
-- Opening the settings overlay with the keyboard shortcut should focus the main window
+- ONLY project windows should have the settings overlay - edit windows should NEVER display the settings overlay
+- Opening the settings overlay with the keyboard shortcut should target whichever project window is currently focused
 - Settings are global app settings and not related to project data files
 - Settings are stored per user
 

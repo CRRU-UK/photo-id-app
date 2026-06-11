@@ -1,4 +1,4 @@
-import type { IpcMainEvent, IpcMainInvokeEvent } from "electron";
+import type { BrowserWindow, IpcMainEvent, IpcMainInvokeEvent } from "electron";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { EditorNavigation, PhotoBody } from "@/types";
@@ -36,23 +36,32 @@ vi.mock("electron", () => ({
   },
 }));
 
-const mockAddEditWindow = vi.fn<(window: unknown) => void>();
+const mockAddEditWindow = vi.fn<(window: unknown, parent: unknown) => void>();
+const mockGetProjectWindowForSender =
+  vi.fn<(webContents: Electron.WebContents) => BrowserWindow | null>();
+const mockGetDirectoryForWindow = vi.fn<(window: BrowserWindow) => string | null>();
+const mockGetDirectoryForSender = vi.fn<(webContents: Electron.WebContents) => string | null>();
 
 vi.mock("@/backend/WindowManager", () => ({
   windowManager: {
-    addEditWindow: (window: unknown) => mockAddEditWindow(window),
+    addEditWindow: (...args: Parameters<typeof mockAddEditWindow>) => mockAddEditWindow(...args),
+    getProjectWindowForSender: (...args: Parameters<typeof mockGetProjectWindowForSender>) =>
+      mockGetProjectWindowForSender(...args),
+    getDirectoryForWindow: (...args: Parameters<typeof mockGetDirectoryForWindow>) =>
+      mockGetDirectoryForWindow(...args),
+    getDirectoryForSender: (...args: Parameters<typeof mockGetDirectoryForSender>) =>
+      mockGetDirectoryForSender(...args),
   },
 }));
 
 const mockHandleEditorNavigate =
-  vi.fn<(data: PhotoBody, direction: EditorNavigation) => Promise<PhotoBody | null>>();
-
-const mockGetCurrentProjectDirectory = vi.fn<() => string | null>();
+  vi.fn<
+    (directory: string, data: PhotoBody, direction: EditorNavigation) => Promise<PhotoBody | null>
+  >();
 
 vi.mock("@/backend/projects", () => ({
-  handleEditorNavigate: (data: PhotoBody, direction: EditorNavigation) =>
-    mockHandleEditorNavigate(data, direction),
-  getCurrentProjectDirectory: () => mockGetCurrentProjectDirectory(),
+  handleEditorNavigate: (directory: string, data: PhotoBody, direction: EditorNavigation) =>
+    mockHandleEditorNavigate(directory, data, direction),
 }));
 
 vi.mock("@/helpers", () => ({
@@ -76,10 +85,18 @@ const createMockPhotoBody = (overrides: Partial<PhotoBody> = {}): PhotoBody =>
     ...overrides,
   }) as PhotoBody;
 
+const mockParentSession = { id: "parent-session" };
+
+const createMockParentWindow = (): BrowserWindow =>
+  ({ id: 1, webContents: { session: mockParentSession } }) as unknown as BrowserWindow;
+
+const createMockEvent = (): IpcMainEvent => ({ sender: {} }) as unknown as IpcMainEvent;
+
 describe("editor IPC handlers", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockGetCurrentProjectDirectory.mockReturnValue("/project");
+    mockGetProjectWindowForSender.mockReturnValue(createMockParentWindow());
+    mockGetDirectoryForWindow.mockReturnValue("/project");
   });
 
   describe(handleOpenEditWindow, () => {
@@ -89,11 +106,35 @@ describe("editor IPC handlers", () => {
       basePath: "/path/to/index.html",
     };
 
+    it("refuses to open when the sender is not a project window", () => {
+      mockGetProjectWindowForSender.mockReturnValue(null);
+      const handler = handleOpenEditWindow(config);
+      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+
+      handler(createMockEvent(), createMockPhotoBody());
+
+      expect(mockBrowserWindowConstructor).not.toHaveBeenCalled();
+
+      consoleErrorSpy.mockRestore();
+    });
+
+    it("refuses to open when the parent window has no project loaded", () => {
+      mockGetDirectoryForWindow.mockReturnValue(null);
+      const handler = handleOpenEditWindow(config);
+      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+
+      handler(createMockEvent(), createMockPhotoBody());
+
+      expect(mockBrowserWindowConstructor).not.toHaveBeenCalled();
+
+      consoleErrorSpy.mockRestore();
+    });
+
     it("creates a new BrowserWindow with the correct options", () => {
       const handler = handleOpenEditWindow(config);
       const photo = createMockPhotoBody();
 
-      handler({} as IpcMainEvent, photo);
+      handler(createMockEvent(), photo);
 
       expect(mockBrowserWindowConstructor).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -110,26 +151,42 @@ describe("editor IPC handlers", () => {
       );
     });
 
+    it("inherits the parent project window's session for `photo://` access", () => {
+      const handler = handleOpenEditWindow(config);
+
+      handler(createMockEvent(), createMockPhotoBody());
+
+      expect(mockBrowserWindowConstructor).toHaveBeenCalledWith(
+        expect.objectContaining({
+          webPreferences: expect.objectContaining({
+            session: mockParentSession,
+          }),
+        }),
+      );
+    });
+
     it("removes the menu from the edit window", () => {
       const handler = handleOpenEditWindow(config);
 
-      handler({} as IpcMainEvent, createMockPhotoBody());
+      handler(createMockEvent(), createMockPhotoBody());
 
       expect(mockRemoveMenu).toHaveBeenCalledWith();
     });
 
-    it("registers the edit window with the window manager", () => {
+    it("registers the edit window with the window manager linked to its parent", () => {
+      const parentWindow = createMockParentWindow();
+      mockGetProjectWindowForSender.mockReturnValue(parentWindow);
       const handler = handleOpenEditWindow(config);
 
-      handler({} as IpcMainEvent, createMockPhotoBody());
+      handler(createMockEvent(), createMockPhotoBody());
 
-      expect(mockAddEditWindow).toHaveBeenCalledWith(expect.anything());
+      expect(mockAddEditWindow).toHaveBeenCalledWith(expect.anything(), parentWindow);
     });
 
     it("does not open dev tools in production", () => {
       const handler = handleOpenEditWindow({ ...config, production: true });
 
-      handler({} as IpcMainEvent, createMockPhotoBody());
+      handler(createMockEvent(), createMockPhotoBody());
 
       expect(mockOpenDevTools).not.toHaveBeenCalledWith();
     });
@@ -137,7 +194,7 @@ describe("editor IPC handlers", () => {
     it("opens dev tools in development", () => {
       const handler = handleOpenEditWindow({ ...config, production: false });
 
-      handler({} as IpcMainEvent, createMockPhotoBody());
+      handler(createMockEvent(), createMockPhotoBody());
 
       expect(mockOpenDevTools).toHaveBeenCalledWith();
     });
@@ -145,7 +202,7 @@ describe("editor IPC handlers", () => {
     it("loads the edit URL with encoded photo data", () => {
       const handler = handleOpenEditWindow(config);
 
-      handler({} as IpcMainEvent, createMockPhotoBody());
+      handler(createMockEvent(), createMockPhotoBody());
 
       expect(mockLoadURL).toHaveBeenCalledWith(expect.stringContaining("/edit"));
     });
@@ -153,7 +210,7 @@ describe("editor IPC handlers", () => {
     it("registers a ready-to-show listener", () => {
       const handler = handleOpenEditWindow(config);
 
-      handler({} as IpcMainEvent, createMockPhotoBody());
+      handler(createMockEvent(), createMockPhotoBody());
 
       expect(mockOnce).toHaveBeenCalledWith("ready-to-show", expect.any(Function));
     });
@@ -161,7 +218,7 @@ describe("editor IPC handlers", () => {
     describe("will-prevent-unload", () => {
       const getWillPreventUnloadCallback = () => {
         const handler = handleOpenEditWindow(config);
-        handler({} as IpcMainEvent, createMockPhotoBody());
+        handler(createMockEvent(), createMockPhotoBody());
 
         const call = mockWebContentsOn.mock.calls.find(
           ([event]) => event === "will-prevent-unload",
@@ -208,7 +265,7 @@ describe("editor IPC handlers", () => {
     describe("will-navigate", () => {
       const getWillNavigateCallback = () => {
         const handler = handleOpenEditWindow(config);
-        handler({} as IpcMainEvent, createMockPhotoBody());
+        handler(createMockEvent(), createMockPhotoBody());
 
         const call = mockWebContentsOn.mock.calls.find(([event]) => event === "will-navigate");
 
@@ -249,17 +306,20 @@ describe("editor IPC handlers", () => {
   });
 
   describe(handleNavigateEditorPhoto, () => {
-    it("returns the encoded payload (directory + next photo)", async () => {
+    it("returns the encoded payload using the sender's project directory", async () => {
+      mockGetDirectoryForSender.mockReturnValue("/project");
       const photo = createMockPhotoBody();
       const nextPhoto = createMockPhotoBody({ name: "next.jpg" });
       mockHandleEditorNavigate.mockResolvedValue(nextPhoto);
 
       const result = await handleNavigateEditorPhoto({} as IpcMainInvokeEvent, photo, "next");
 
+      expect(mockHandleEditorNavigate).toHaveBeenCalledWith("/project", photo, "next");
       expect(result).toBe(`encoded:${JSON.stringify({ directory: "/project", photo: nextPhoto })}`);
     });
 
     it("returns null when the photo is not found", async () => {
+      mockGetDirectoryForSender.mockReturnValue("/project");
       const photo = createMockPhotoBody();
       mockHandleEditorNavigate.mockResolvedValue(null);
 
@@ -268,8 +328,8 @@ describe("editor IPC handlers", () => {
       expect(result).toBeNull();
     });
 
-    it("throws when no project is open", async () => {
-      mockGetCurrentProjectDirectory.mockReturnValue(null);
+    it("throws when no project is open for the sender", async () => {
+      mockGetDirectoryForSender.mockReturnValue(null);
 
       await expect(
         handleNavigateEditorPhoto({} as IpcMainInvokeEvent, createMockPhotoBody(), "next"),
