@@ -69,7 +69,7 @@ const syncMacOsRecents = (recents: RecentProject[]): void => {
   }
 
   app.clearRecentDocuments();
-  for (const project of recents) {
+  for (const project of recents.toReversed()) {
     app.addRecentDocument(project.path);
   }
 };
