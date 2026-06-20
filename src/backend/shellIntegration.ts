@@ -27,10 +27,12 @@ export const sendLoading = (window: BrowserWindow, data: LoadingData): void => {
 };
 
 /**
- * Briefly puts the OS taskbar/dock progress bar into its "error" state, then clears it. Used to
- * surface failed long-running operations (exports, imports) at the OS level.
+ * Hides the renderer loading overlay and briefly flashes the OS taskbar/dock progress bar in its
+ * "error" state before clearing it. Used to surface failed long-running operations (exports,
+ * imports) without leaving the user stuck behind the overlay.
  */
 export const showProgressError = (window: BrowserWindow): void => {
+  window.webContents.send(IPC_EVENTS.SET_LOADING, { show: false });
   window.setProgressBar(1, { mode: "error" });
 
   setTimeout(() => {
