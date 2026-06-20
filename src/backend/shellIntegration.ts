@@ -58,16 +58,6 @@ export const flashWindow = (window: BrowserWindow): void => {
 };
 
 /**
- * Wires per-window shell-integration behaviours. Currently: clear any lingering flash state once
- * the window regains focus.
- */
-export const setupShellIntegration = (window: BrowserWindow): void => {
-  window.on("focus", () => {
-    window.flashFrame(false);
-  });
-};
-
-/**
  * macOS-only: associates the window's title bar with the project's `.photoid` file so cmd-click
  * reveals the path popover and the small icon can be dragged out to Finder. No-op on other
  * platforms.
@@ -112,23 +102,6 @@ export const applyWindowsJumpList = async (): Promise<void> => {
 
   const recents = await getRecentProjects();
 
-  const recentCategory: Electron.JumpListCategory | null =
-    recents.length === 0
-      ? null
-      : {
-          type: "custom",
-          name: "Recent Projects",
-          items: recents.map((recent) => ({
-            type: "task",
-            title: recent.name,
-            description: recent.path,
-            program: process.execPath,
-            args: `"${recent.path}"`,
-            iconPath: process.execPath,
-            iconIndex: 0,
-          })),
-        };
-
   const tasksCategory: Electron.JumpListCategory = {
     type: "tasks",
     items: [
@@ -139,7 +112,6 @@ export const applyWindowsJumpList = async (): Promise<void> => {
         program: process.execPath,
         args: JUMP_LIST_ARGS.NEW_PROJECT,
         iconPath: getJumpListIconPath("new-project"),
-        iconIndex: 0,
       },
       {
         type: "task",
@@ -148,10 +120,28 @@ export const applyWindowsJumpList = async (): Promise<void> => {
         program: process.execPath,
         args: JUMP_LIST_ARGS.OPEN_PROJECT_FILE,
         iconPath: getJumpListIconPath("open-project-file"),
-        iconIndex: 0,
       },
     ],
   };
 
-  app.setJumpList([recentCategory, tasksCategory].filter((category) => category !== null));
+  if (recents.length === 0) {
+    app.setJumpList([tasksCategory]);
+    return;
+  }
+
+  app.setJumpList([
+    {
+      type: "custom",
+      name: "Recent Projects",
+      items: recents.map((recent) => ({
+        type: "task",
+        title: recent.name,
+        description: recent.path,
+        program: process.execPath,
+        args: `"${recent.path}"`,
+        iconPath: process.execPath,
+      })),
+    },
+    tasksCategory,
+  ]);
 };

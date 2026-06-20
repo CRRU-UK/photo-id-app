@@ -185,28 +185,18 @@ const getMenu = async (
 };
 
 /**
- * Rebuilds and applies the application menu using the current main window and the latest recent
- * projects.
- */
-const rebuildApplicationMenu = async (): Promise<void> => {
-  const mainWindow = windowManager.getMainWindow();
-  if (!mainWindow) {
-    return;
-  }
-
-  const template = await getMenu(mainWindow);
-  Menu.setApplicationMenu(Menu.buildFromTemplate(template));
-};
-
-/**
- * Hook to keep recent items menu and in-app list in sync on updates.
+ * Hook to keep the recent items menu, in-app list, and Windows Jump List in sync on updates.
  */
 const notifyRecentProjectsChanged = async (): Promise<void> => {
   const recents = await getRecentProjects();
 
   broadcastToAllWindows(IPC_EVENTS.RECENT_PROJECTS_UPDATED, recents);
 
-  await rebuildApplicationMenu();
+  const mainWindow = windowManager.getMainWindow();
+  if (mainWindow) {
+    Menu.setApplicationMenu(Menu.buildFromTemplate(await getMenu(mainWindow)));
+  }
+
   await applyWindowsJumpList();
 };
 

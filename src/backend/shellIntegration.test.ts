@@ -181,18 +181,6 @@ describe("flashWindow", () => {
   });
 });
 
-describe("setupShellIntegration", () => {
-  it("clears any active flash when the window regains focus", async () => {
-    const { setupShellIntegration } = await importModule();
-    const window = createMockBrowserWindow();
-
-    setupShellIntegration(window);
-    window.trigger("focus");
-
-    expect(window.flashFrame).toHaveBeenCalledWith(false);
-  });
-});
-
 describe("setRepresentedProject", () => {
   it("sets the represented filename on macOS", async () => {
     setPlatform("darwin");

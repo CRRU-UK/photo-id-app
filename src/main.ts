@@ -35,7 +35,7 @@ import {
   handleOpenFilePrompt,
 } from "@/backend/projects";
 import { initSentry } from "@/backend/settings";
-import { applyWindowsJumpList, setupShellIntegration } from "@/backend/shellIntegration";
+import { applyWindowsJumpList } from "@/backend/shellIntegration";
 import { windowManager } from "@/backend/WindowManager";
 import {
   CSP_HEADERS,
@@ -113,8 +113,8 @@ const createMainWindow = async () => {
   mainWindow.maximize();
 
   mainWindow.on("closed", () => app.quit());
+  mainWindow.on("focus", () => mainWindow.flashFrame(false));
   windowManager.setMainWindow(mainWindow);
-  setupShellIntegration(mainWindow);
 
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
     await mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
@@ -194,26 +194,21 @@ const setupQuickLaunchTasks = async (mainWindow: BrowserWindow): Promise<void> =
 
 /**
  * Dispatches an argv array to either a quick-launch handler or the existing `.photoid` file-open
- * flow. Returns `true` if the argv was handled.
+ * flow.
  */
-const handleStartupArgv = async (mainWindow: BrowserWindow, argv: string[]): Promise<boolean> => {
+const handleStartupArgv = async (mainWindow: BrowserWindow, argv: string[]): Promise<void> => {
   if (argv.includes(JUMP_LIST_ARGS.NEW_PROJECT)) {
-    await handleOpenDirectoryPrompt(mainWindow);
-    return true;
+    return handleOpenDirectoryPrompt(mainWindow);
   }
 
   if (argv.includes(JUMP_LIST_ARGS.OPEN_PROJECT_FILE)) {
-    await handleOpenFilePrompt(mainWindow);
-    return true;
+    return handleOpenFilePrompt(mainWindow);
   }
 
   const filePath = findPhotoidArg(argv);
   if (filePath) {
     await openProjectFromPath(filePath);
-    return true;
   }
-
-  return false;
 };
 
 /**
