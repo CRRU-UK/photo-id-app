@@ -1,7 +1,12 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { MAX_RECENT_PROJECTS, RECENT_PROJECTS_FILE_NAME } from "@/constants";
 import type { RecentProject } from "@/types";
+
+const originalPlatform = process.platform;
+const setPlatform = (platform: NodeJS.Platform) => {
+  Object.defineProperty(process, "platform", { value: platform, configurable: true });
+};
 
 const mockExistsSync = vi.fn<(path: string) => boolean>();
 const mockReadFile = vi.fn<(path: string, encoding: string) => Promise<string>>();
@@ -197,6 +202,11 @@ describe(addRecentProject, () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockWriteFile.mockResolvedValue(undefined);
+    setPlatform("darwin");
+  });
+
+  afterEach(() => {
+    setPlatform(originalPlatform);
   });
 
   it("adds a new project to the front of the list", async () => {
@@ -265,7 +275,7 @@ describe(addRecentProject, () => {
     expect(result[0].name).toBe("Updated");
   });
 
-  it("forwards the path to the OS recent documents list", async () => {
+  it("forwards the path to the macOS recent documents list", async () => {
     mockExistsSync.mockReturnValue(true);
     mockReadFile.mockResolvedValue("[]");
 
@@ -273,12 +283,28 @@ describe(addRecentProject, () => {
 
     expect(mockAddRecentDocument).toHaveBeenCalledWith("/project.photoid");
   });
+
+  it("does not touch the OS recent documents list on non-darwin platforms", async () => {
+    setPlatform("win32");
+    mockExistsSync.mockReturnValue(true);
+    mockReadFile.mockResolvedValue("[]");
+
+    await addRecentProject({ name: "Project", path: "/project.photoid" });
+
+    expect(mockAddRecentDocument).not.toHaveBeenCalled();
+    expect(mockClearRecentDocuments).not.toHaveBeenCalled();
+  });
 });
 
 describe(removeRecentProject, () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockWriteFile.mockResolvedValue(undefined);
+    setPlatform("darwin");
+  });
+
+  afterEach(() => {
+    setPlatform(originalPlatform);
   });
 
   it("removes the project with the given path", async () => {
@@ -354,6 +380,11 @@ describe(clearRecentProjects, () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockWriteFile.mockResolvedValue(undefined);
+    setPlatform("darwin");
+  });
+
+  afterEach(() => {
+    setPlatform(originalPlatform);
   });
 
   it("writes an empty list and clears the OS recent documents", async () => {

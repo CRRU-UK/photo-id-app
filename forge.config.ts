@@ -82,7 +82,10 @@ const config: ForgeConfig = {
     },
     icon: path.join(__dirname, "resources", "icon"),
     executableName: "photo-id",
-    extraResource: process.env.CI === "true" ? [path.resolve(__dirname, "./.env")] : [],
+    extraResource: [
+      path.resolve(__dirname, "./resources/icons"),
+      ...(process.env.CI === "true" ? [path.resolve(__dirname, "./.env")] : []),
+    ],
     extendInfo: {
       CFBundleDocumentTypes: [
         {

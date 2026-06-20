@@ -4,7 +4,16 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { IPC_EVENTS, PROGRESS_ERROR_FLASH_MS } from "@/constants";
 
-vi.mock("electron", () => ({}));
+vi.mock("electron", () => ({
+  app: {
+    isPackaged: false,
+    setJumpList: vi.fn<() => void>(),
+  },
+}));
+
+vi.mock("@/backend/recents", () => ({
+  getRecentProjects: vi.fn<() => Promise<unknown[]>>(async () => []),
+}));
 
 type EventHandler = (...args: unknown[]) => void;
 
@@ -215,5 +224,58 @@ describe("setRepresentedProject", () => {
 
     expect(window.setRepresentedFilename).not.toHaveBeenCalled();
     expect(window.setDocumentEdited).not.toHaveBeenCalled();
+  });
+});
+
+describe("applyWindowsJumpList", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("is a no-op on non-win32 platforms", async () => {
+    setPlatform("darwin");
+    const { applyWindowsJumpList } = await importModule();
+    const { app } = await import("electron");
+
+    await applyWindowsJumpList();
+
+    expect(vi.mocked(app.setJumpList)).not.toHaveBeenCalled();
+  });
+
+  it("builds Tasks-only Jump List when there are no recents", async () => {
+    setPlatform("win32");
+    const recents = await import("@/backend/recents");
+    vi.mocked(recents.getRecentProjects).mockResolvedValue([]);
+    const { applyWindowsJumpList } = await importModule();
+    const { app } = await import("electron");
+
+    await applyWindowsJumpList();
+
+    const categories = vi.mocked(app.setJumpList).mock.calls[0]?.[0];
+    expect(categories).toHaveLength(1);
+    expect(categories?.[0]).toMatchObject({ type: "tasks" });
+  });
+
+  it("includes a custom Recent Projects category populated with folder-name titles", async () => {
+    setPlatform("win32");
+    const recents = await import("@/backend/recents");
+    vi.mocked(recents.getRecentProjects).mockResolvedValue([
+      { name: "Survey 2026", path: "C:/projects/Survey 2026/project.photoid", lastOpened: "" },
+      { name: "Survey 2025", path: "C:/projects/Survey 2025/project.photoid", lastOpened: "" },
+    ]);
+    const { applyWindowsJumpList } = await importModule();
+    const { app } = await import("electron");
+
+    await applyWindowsJumpList();
+
+    const categories = vi.mocked(app.setJumpList).mock.calls[0]?.[0];
+    expect(categories?.[0]).toMatchObject({
+      type: "custom",
+      name: "Recent Projects",
+      items: [
+        { type: "task", title: "Survey 2026" },
+        { type: "task", title: "Survey 2025" },
+      ],
+    });
   });
 });

@@ -1,6 +1,8 @@
-import type { BrowserWindow } from "electron";
+import path from "node:path";
+import { app, type BrowserWindow } from "electron";
 
-import { IPC_EVENTS, PROGRESS_ERROR_FLASH_MS } from "@/constants";
+import { getRecentProjects } from "@/backend/recents";
+import { IPC_EVENTS, JUMP_LIST_ARGS, PROGRESS_ERROR_FLASH_MS } from "@/constants";
 import type { LoadingData } from "@/types";
 
 /**
@@ -80,4 +82,76 @@ export const setRepresentedProject = (
 
   window.setRepresentedFilename(projectFilePath ?? "");
   window.setDocumentEdited(false);
+};
+
+/**
+ * Resolves the absolute path of a bundled `.ico` icon. In development the icons live in the source
+ * `resources/icons` directory; in production they're copied into `process.resourcesPath` by
+ * `forge.config.ts`.
+ */
+const getJumpListIconPath = (name: string): string => {
+  const filename = `${name}.ico`;
+  if (app.isPackaged) {
+    return path.join(process.resourcesPath, "icons", filename);
+  }
+
+  return path.join(__dirname, "..", "..", "resources", "icons", filename);
+};
+
+/**
+ * Windows-only: applies the full Jump List — Tasks ("New Project", "Open Project File") plus a
+ * custom "Recent Projects" category populated with the in-app recents list. The custom category
+ * is used instead of the OS-managed `recent` placeholder so each entry can use the project's
+ * folder name as its title (the OS-managed list would show every entry as "project" because every
+ * project file is called `project.photoid`).
+ */
+export const applyWindowsJumpList = async (): Promise<void> => {
+  if (process.platform !== "win32") {
+    return;
+  }
+
+  const recents = await getRecentProjects();
+
+  const recentCategory: Electron.JumpListCategory | null =
+    recents.length === 0
+      ? null
+      : {
+          type: "custom",
+          name: "Recent Projects",
+          items: recents.map((recent) => ({
+            type: "task",
+            title: recent.name,
+            description: recent.path,
+            program: process.execPath,
+            args: `"${recent.path}"`,
+            iconPath: process.execPath,
+            iconIndex: 0,
+          })),
+        };
+
+  const tasksCategory: Electron.JumpListCategory = {
+    type: "tasks",
+    items: [
+      {
+        type: "task",
+        title: "New Project",
+        description: "Start a new Photo ID project from a folder",
+        program: process.execPath,
+        args: JUMP_LIST_ARGS.NEW_PROJECT,
+        iconPath: getJumpListIconPath("new-project"),
+        iconIndex: 0,
+      },
+      {
+        type: "task",
+        title: "Open Project File",
+        description: "Open an existing Photo ID project file",
+        program: process.execPath,
+        args: JUMP_LIST_ARGS.OPEN_PROJECT_FILE,
+        iconPath: getJumpListIconPath("open-project-file"),
+        iconIndex: 0,
+      },
+    ],
+  };
+
+  app.setJumpList([recentCategory, tasksCategory].filter((category) => category !== null));
 };

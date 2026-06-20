@@ -35,7 +35,7 @@ import {
   handleOpenFilePrompt,
 } from "@/backend/projects";
 import { initSentry } from "@/backend/settings";
-import { setupShellIntegration } from "@/backend/shellIntegration";
+import { applyWindowsJumpList, setupShellIntegration } from "@/backend/shellIntegration";
 import { windowManager } from "@/backend/WindowManager";
 import {
   CSP_HEADERS,
@@ -155,7 +155,7 @@ const createMainWindow = async () => {
   const menu = Menu.buildFromTemplate(await getMenu(mainWindow));
   Menu.setApplicationMenu(menu);
 
-  setupQuickLaunchTasks(mainWindow);
+  await setupQuickLaunchTasks(mainWindow);
 
   if (!production && !process.env.E2E) {
     mainWindow.webContents.openDevTools();
@@ -163,29 +163,12 @@ const createMainWindow = async () => {
 };
 
 /**
- * Wires the OS-level quick-launch shortcuts.
+ * Wires the OS-level quick-launch shortcuts: macOS dock menu (static) and the initial Windows
+ * Jump List (refreshed later by `notifyRecentProjectsChanged` whenever recents change).
  */
-const setupQuickLaunchTasks = (mainWindow: BrowserWindow): void => {
+const setupQuickLaunchTasks = async (mainWindow: BrowserWindow): Promise<void> => {
   if (process.platform === "win32") {
-    app.setUserTasks([
-      {
-        program: process.execPath,
-        arguments: JUMP_LIST_ARGS.NEW_PROJECT,
-        iconPath: process.execPath,
-        iconIndex: 0,
-        title: "New Project",
-        description: "Start a new Photo ID project from a folder",
-      },
-      {
-        program: process.execPath,
-        arguments: JUMP_LIST_ARGS.OPEN_PROJECT_FILE,
-        iconPath: process.execPath,
-        iconIndex: 0,
-        title: "Open Project File",
-        description: "Open an existing Photo ID project file",
-      },
-    ]);
-
+    await applyWindowsJumpList();
     return;
   }
 

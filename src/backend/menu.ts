@@ -4,6 +4,7 @@ import { app, Menu, shell } from "electron";
 import { broadcastToAllWindows, openProjectFromPath } from "@/backend/ipc/shared";
 import { handleOpenDirectoryPrompt, handleOpenFilePrompt } from "@/backend/projects";
 import { clearRecentProjects, getRecentProjects } from "@/backend/recents";
+import { applyWindowsJumpList } from "@/backend/shellIntegration";
 import { windowManager } from "@/backend/WindowManager";
 import { EXTERNAL_LINKS, IPC_EVENTS } from "@/constants";
 import type { RecentProject } from "@/types";
@@ -206,6 +207,7 @@ const notifyRecentProjectsChanged = async (): Promise<void> => {
   broadcastToAllWindows(IPC_EVENTS.RECENT_PROJECTS_UPDATED, recents);
 
   await rebuildApplicationMenu();
+  await applyWindowsJumpList();
 };
 
 export { getMenu, notifyRecentProjectsChanged };
