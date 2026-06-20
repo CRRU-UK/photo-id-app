@@ -6,7 +6,12 @@ import { ZodError } from "zod";
 import { notifyRecentProjectsChanged } from "@/backend/menu";
 import { createPhotoThumbnail } from "@/backend/photos";
 import { addRecentProject } from "@/backend/recents";
-import { flashWindow, sendLoading, setRepresentedProject } from "@/backend/shellIntegration";
+import {
+  flashWindow,
+  sendLoading,
+  setRepresentedProject,
+  showProgressError,
+} from "@/backend/shellIntegration";
 import {
   CORRUPTED_DATA_MESSAGE,
   DEFAULT_PHOTO_EDITS,
@@ -173,6 +178,19 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
     progressValue: 0,
   });
 
+  try {
+    return await prepareNewProject(mainWindow, directory, files);
+  } catch (error) {
+    showProgressError(mainWindow);
+    throw error;
+  }
+};
+
+const prepareNewProject = async (
+  mainWindow: Electron.BrowserWindow,
+  directory: string,
+  files: string[],
+) => {
   const photoChecks = await Promise.all(
     files.map(async (fileName) => {
       // Filter non-images based on file extension
