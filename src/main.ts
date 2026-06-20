@@ -174,18 +174,8 @@ const setupQuickLaunchTasks = async (mainWindow: BrowserWindow): Promise<void> =
 
   if (process.platform === "darwin") {
     const dockMenu: MenuItemConstructorOptions[] = [
-      {
-        label: "New Project",
-        click: () => {
-          void handleOpenDirectoryPrompt(mainWindow);
-        },
-      },
-      {
-        label: "Open Project File...",
-        click: () => {
-          void handleOpenFilePrompt(mainWindow);
-        },
-      },
+      { label: "New Project", click: () => void handleOpenDirectoryPrompt(mainWindow) },
+      { label: "Open Project File...", click: () => void handleOpenFilePrompt(mainWindow) },
     ];
 
     app.dock?.setMenu(Menu.buildFromTemplate(dockMenu));

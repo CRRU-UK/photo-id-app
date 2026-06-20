@@ -6,9 +6,12 @@ import { IPC_EVENTS, JUMP_LIST_ARGS, PROGRESS_ERROR_FLASH_MS } from "@/constants
 import type { LoadingData } from "@/types";
 
 /**
- * Translates a {@link LoadingData} payload into the OS-level progress bar state.
+ * Single source of truth for emitting a loading update: sends the {@link IPC_EVENTS.SET_LOADING}
+ * IPC to the renderer and mirrors the same state to the OS taskbar/dock progress bar.
  */
-const applyProgressBar = (window: BrowserWindow, data: LoadingData): void => {
+export const sendLoading = (window: BrowserWindow, data: LoadingData): void => {
+  window.webContents.send(IPC_EVENTS.SET_LOADING, data);
+
   if (!data.show) {
     window.setProgressBar(-1);
     return;
@@ -20,17 +23,7 @@ const applyProgressBar = (window: BrowserWindow, data: LoadingData): void => {
     return;
   }
 
-  const fraction = Math.max(0, Math.min(1, data.progressValue / 100));
-  window.setProgressBar(fraction);
-};
-
-/**
- * Single source of truth for emitting a loading update: sends the {@link IPC_EVENTS.SET_LOADING}
- * IPC to the renderer and mirrors the same state to the OS taskbar/dock progress bar.
- */
-export const sendLoading = (window: BrowserWindow, data: LoadingData): void => {
-  window.webContents.send(IPC_EVENTS.SET_LOADING, data);
-  applyProgressBar(window, data);
+  window.setProgressBar(Math.max(0, Math.min(1, data.progressValue / 100)));
 };
 
 /**
