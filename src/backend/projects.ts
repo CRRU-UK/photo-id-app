@@ -94,6 +94,8 @@ const sendData = async (
   });
 
   await notifyRecentProjectsChanged();
+
+  sendLoading(mainWindow, { show: false });
 };
 
 const homePath = app.getPath("home");

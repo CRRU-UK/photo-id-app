@@ -105,6 +105,7 @@ export const applyWindowsJumpList = async (): Promise<void> => {
         program: process.execPath,
         args: JUMP_LIST_ARGS.NEW_PROJECT,
         iconPath: getJumpListIconPath("new-project"),
+        iconIndex: 0,
       },
       {
         type: "task",
@@ -113,28 +114,34 @@ export const applyWindowsJumpList = async (): Promise<void> => {
         program: process.execPath,
         args: JUMP_LIST_ARGS.OPEN_PROJECT_FILE,
         iconPath: getJumpListIconPath("open-project-file"),
+        iconIndex: 0,
       },
     ],
   };
 
-  if (recents.length === 0) {
-    app.setJumpList([tasksCategory]);
-    return;
-  }
+  const categories: Electron.JumpListCategory[] =
+    recents.length === 0
+      ? [tasksCategory]
+      : [
+          {
+            type: "custom",
+            name: "Recent Projects",
+            items: recents.map((recent) => ({
+              type: "task",
+              title: recent.name,
+              description: recent.path,
+              program: process.execPath,
+              args: `"${recent.path}"`,
+              iconPath: process.execPath,
+              iconIndex: 0,
+            })),
+          },
+          tasksCategory,
+        ];
 
-  app.setJumpList([
-    {
-      type: "custom",
-      name: "Recent Projects",
-      items: recents.map((recent) => ({
-        type: "task",
-        title: recent.name,
-        description: recent.path,
-        program: process.execPath,
-        args: `"${recent.path}"`,
-        iconPath: process.execPath,
-      })),
-    },
-    tasksCategory,
-  ]);
+  try {
+    app.setJumpList(categories);
+  } catch (error) {
+    console.error("Failed to set Windows Jump List:", error);
+  }
 };
