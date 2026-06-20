@@ -42,7 +42,7 @@ export const showProgressError = (window: BrowserWindow): void => {
 
 /**
  * Flashes the taskbar/dock icon to draw the user's attention if the window is not currently
- * focused. On macOS this bounces the dock icon; on Windows it flashes the taskbar button.
+ * focused. On macOS this bounces the dock icon, on Windows it flashes the taskbar button.
  */
 export const flashWindow = (window: BrowserWindow): void => {
   if (!window.isFocused()) {
@@ -69,7 +69,7 @@ export const setRepresentedProject = (
 
 /**
  * Resolves the absolute path of a bundled `.ico` icon. In development the icons live in the source
- * `resources/icons` directory; in production they're copied into `process.resourcesPath` by
+ * `resources/icons` directory, in production they're copied into `process.resourcesPath` by
  * `forge.config.ts`.
  */
 const getJumpListIconPath = (name: string): string => {
