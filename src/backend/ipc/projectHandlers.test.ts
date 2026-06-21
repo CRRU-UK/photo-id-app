@@ -607,42 +607,47 @@ describe("project IPC handlers", () => {
   });
 
   describe(handleCloseProject, () => {
-    it("cascades through edit windows then resets the title (window stays open)", async () => {
+    it("returns true after the cascade resets the title (window stays open)", async () => {
       const mockWindow = createMockWindow();
       mockGetProjectWindowForSender.mockReturnValue(mockWindow);
       mockCloseProjectInWindow.mockResolvedValue(true);
 
-      await handleCloseProject(createMockEvent(mockWindow));
+      const result = await handleCloseProject(createMockInvokeEvent(mockWindow));
 
+      expect(result).toBe(true);
       expect(mockCloseProjectInWindow).toHaveBeenCalledWith(mockWindow);
       expect(mockWindow.setTitle).toHaveBeenCalledWith("Photo ID");
       expect(mockWindow.close).not.toHaveBeenCalled();
     });
 
-    it("leaves project state intact when an edit window's unsaved-edits prompt is cancelled", async () => {
+    it("returns false and leaves state intact when an unsaved-edits prompt is cancelled", async () => {
       const mockWindow = createMockWindow();
       mockGetProjectWindowForSender.mockReturnValue(mockWindow);
       mockCloseProjectInWindow.mockResolvedValue(false);
 
-      await handleCloseProject(createMockEvent(mockWindow));
+      const result = await handleCloseProject(createMockInvokeEvent(mockWindow));
 
+      expect(result).toBe(false);
       expect(mockCloseProjectInWindow).toHaveBeenCalledWith(mockWindow);
       expect(mockWindow.setTitle).not.toHaveBeenCalled();
     });
 
-    it("does nothing when the sender window is not found", async () => {
+    it("returns false when the sender window is not found", async () => {
       mockGetProjectWindowForSender.mockReturnValue(null);
 
-      await expect(handleCloseProject(createMockEvent(null))).resolves.toBeUndefined();
+      const result = await handleCloseProject(createMockInvokeEvent(null));
+
+      expect(result).toBe(false);
       expect(mockCloseProjectInWindow).not.toHaveBeenCalled();
     });
 
-    it("does nothing when the window is already destroyed", async () => {
+    it("returns false when the window is already destroyed", async () => {
       const mockWindow = createMockWindow({ isDestroyed: true });
       mockGetProjectWindowForSender.mockReturnValue(mockWindow);
 
-      await handleCloseProject(createMockEvent(mockWindow));
+      const result = await handleCloseProject(createMockInvokeEvent(mockWindow));
 
+      expect(result).toBe(false);
       expect(mockCloseProjectInWindow).not.toHaveBeenCalled();
       expect(mockWindow.setTitle).not.toHaveBeenCalled();
     });

@@ -78,7 +78,11 @@ export const handleOpenEditWindow = (config: EditorConfig) => {
       );
     }
 
-    // Show a confirmation dialog when the renderer prevents unload due to unsaved edits
+    /**
+     * Show a confirmation dialog when the renderer prevents unload due to unsaved edits. On Cancel
+     * we explicitly signal the WindowManager so any pending cascade resolves without racing a
+     * timeout against `showMessageBoxSync`'s blocking call.
+     */
     editWindow.webContents.on("will-prevent-unload", (event) => {
       const response = dialog.showMessageBoxSync(editWindow, {
         type: "question",
@@ -91,7 +95,10 @@ export const handleOpenEditWindow = (config: EditorConfig) => {
 
       if (response === 0) {
         event.preventDefault();
+        return;
       }
+
+      windowManager.signalEditCancel(editWindow);
     });
 
     // Block navigation to arbitrary URLs so a compromised renderer cannot leave the app origin

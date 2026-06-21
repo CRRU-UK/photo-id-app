@@ -19,6 +19,7 @@ class WindowManager {
   private readonly projectWindowsById = new Map<number, BrowserWindow>();
   private readonly editWindowParents = new Map<number, number>();
   private readonly editWindowsById = new Map<number, BrowserWindow>();
+  private readonly editCloseResolvers = new Map<number, (closed: boolean) => void>();
   private isQuitting = false;
 
   constructor() {
@@ -102,7 +103,7 @@ class WindowManager {
     /**
      * Only re-fire `app.quit()` if this cascade started under a quit AND no concurrent cascade has
      * since cancelled it. Without the `isQuitting` recheck, a sibling cascade's cancel wouldn't
-     * prevent us re-firing the quit — Electron would then re-trigger close events on the vetoing
+     * prevent us re-firing the quit, Electron would then re-trigger close events on the vetoing
      * window and prompt the user again.
      */
     if (wasQuitting && this.isQuitting) {
@@ -113,10 +114,10 @@ class WindowManager {
 
   /**
    * Asks an edit window to close. Resolves true if it closed (no unsaved edits, or the user
-   * chose Discard); false if the close was cancelled by the user's prompt and the window is
-   * still alive. Electron does not emit an event when a `will-prevent-unload` handler declines
-   * to call `preventDefault`, so cancellation is inferred from a short timeout — comfortably
-   * longer than the gap between `close()` and the `closed` event in the normal flow.
+   * chose Discard); false if the user cancelled the unsaved-edits prompt, signalled explicitly
+   * by `editorHandlers` via `signalEditCancel`. The previous timeout-based inference fired the
+   * cancel signal whenever `showMessageBoxSync` blocked the main thread longer than 250 ms
+   * (i.e. on every realistic dialog interaction).
    */
   private readonly tryCloseEditWindow = (editWindow: BrowserWindow): Promise<boolean> => {
     return new Promise((resolve) => {
@@ -125,29 +126,29 @@ class WindowManager {
         return;
       }
 
-      let settled = false;
+      const id = editWindow.id;
+      const onClosed = () => settle(true);
 
-      const onClosed = () => {
-        if (settled) {
-          return;
-        }
-        settled = true;
-        resolve(true);
+      const settle = (value: boolean) => {
+        this.editCloseResolvers.delete(id);
+        editWindow.off("closed", onClosed);
+        resolve(value);
       };
 
+      this.editCloseResolvers.set(id, settle);
       editWindow.once("closed", onClosed);
       editWindow.close();
-
-      setTimeout(() => {
-        if (settled || editWindow.isDestroyed()) {
-          return;
-        }
-        editWindow.off("closed", onClosed);
-        settled = true;
-        resolve(false);
-      }, 250);
     });
   };
+
+  /**
+   * Called by the edit window's `will-prevent-unload` handler when the user picks Cancel on the
+   * unsaved-edits prompt. Resolves any pending `tryCloseEditWindow` for this window with `false`
+   * (no-op if there isn't one — e.g. user closed the window directly without a cascade).
+   */
+  signalEditCancel(editWindow: BrowserWindow): void {
+    this.editCloseResolvers.get(editWindow.id)?.(false);
+  }
 
   /**
    * Assigns a directory to a registered window. No-op if the window isn't registered.

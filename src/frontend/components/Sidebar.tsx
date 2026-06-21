@@ -29,7 +29,7 @@ import { getProjectDirectoryName } from "@/helpers";
 import type { ExportTypes } from "@/types";
 
 interface SidebarProps {
-  onCloseProject: () => void;
+  onCloseProject: () => Promise<void>;
 }
 
 const Sidebar = observer(({ onCloseProject }: SidebarProps) => {

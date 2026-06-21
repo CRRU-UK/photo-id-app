@@ -41,6 +41,7 @@ const mockGetProjectWindowForSender =
   vi.fn<(webContents: Electron.WebContents) => BrowserWindow | null>();
 const mockGetDirectoryForWindow = vi.fn<(window: BrowserWindow) => string | null>();
 const mockGetDirectoryForSender = vi.fn<(webContents: Electron.WebContents) => string | null>();
+const mockSignalEditCancel = vi.fn<(window: BrowserWindow) => void>();
 
 vi.mock("@/backend/WindowManager", () => ({
   windowManager: {
@@ -51,6 +52,8 @@ vi.mock("@/backend/WindowManager", () => ({
       mockGetDirectoryForWindow(...args),
     getDirectoryForSender: (...args: Parameters<typeof mockGetDirectoryForSender>) =>
       mockGetDirectoryForSender(...args),
+    signalEditCancel: (...args: Parameters<typeof mockSignalEditCancel>) =>
+      mockSignalEditCancel(...args),
   },
 }));
 
@@ -251,7 +254,7 @@ describe("editor IPC handlers", () => {
         expect(preventDefault).toHaveBeenCalledWith();
       });
 
-      it("does not prevent default (keeps window open) when user selects 'Cancel'", () => {
+      it("signals cancel to WindowManager and does not preventDefault when user selects 'Cancel'", () => {
         mockShowMessageBoxSync.mockReturnValue(1);
         const callback = getWillPreventUnloadCallback();
         const preventDefault = vi.fn<() => void>();
@@ -259,6 +262,7 @@ describe("editor IPC handlers", () => {
         callback({ preventDefault });
 
         expect(preventDefault).not.toHaveBeenCalledWith();
+        expect(mockSignalEditCancel).toHaveBeenCalled();
       });
     });
 

@@ -311,25 +311,26 @@ export const handleFlushSaveProjectSync = (event: IpcMainEvent, data: string): v
  * If the user cancels an unsaved-edits prompt, the project state is left intact and the window
  * stays on the project view.
  */
-export const handleCloseProject = async (event: IpcMainEvent): Promise<void> => {
+export const handleCloseProject = async (event: IpcMainInvokeEvent): Promise<boolean> => {
   const senderWindow = windowManager.getProjectWindowForSender(event.sender);
   if (!senderWindow || senderWindow.isDestroyed()) {
-    return;
+    return false;
   }
 
   const closed = await windowManager.closeProjectInWindow(senderWindow);
   if (!closed) {
-    return;
+    return false;
   }
 
   senderWindow.setTitle(DEFAULT_WINDOW_TITLE);
   setRepresentedProject(senderWindow, null);
+  return true;
 };
 
 export const registerProjectHandlers = (ipcMain: Electron.IpcMain): void => {
   ipcMain.on(IPC_EVENTS.OPEN_FOLDER, (event) => void handleOpenFolder(event));
   ipcMain.on(IPC_EVENTS.OPEN_FILE, (event) => void handleOpenFile(event));
-  ipcMain.on(IPC_EVENTS.CLOSE_PROJECT, handleCloseProject);
+  ipcMain.handle(IPC_EVENTS.CLOSE_PROJECT, handleCloseProject);
   ipcMain.handle(IPC_EVENTS.OPEN_PROJECT_FILE, handleOpenProjectFileInvoke);
   ipcMain.handle(IPC_EVENTS.GET_RECENT_PROJECTS, handleGetRecentProjects);
   ipcMain.handle(IPC_EVENTS.REMOVE_RECENT_PROJECT, handleRemoveRecentProject);

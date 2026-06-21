@@ -63,13 +63,21 @@ const ProjectPage = observer(() => {
 
   const navigate = useNavigate();
 
-  const handleCloseProject = useCallback(() => {
+  const handleCloseProject = useCallback(async () => {
     project?.flushSave();
+
+    /**
+     * Wait for main to confirm the cascade actually completed, the user might cancel an
+     * edit-window unsaved-edits prompt, in which case main keeps project state and we must NOT
+     * clear React state or navigate to the index page.
+     */
+    const closed = await window.electronAPI.closeProject();
+    if (!closed) {
+      return;
+    }
+
     setProject(null);
-
     void navigate({ to: ROUTES.INDEX });
-
-    window.electronAPI.closeProject();
   }, [project, setProject, navigate]);
 
   const analysisOverlayOpen = isAnalysing || result !== null || error !== null;
@@ -93,7 +101,7 @@ const ProjectPage = observer(() => {
         return;
       }
 
-      handleCloseProject();
+      void handleCloseProject();
     };
 
     document.addEventListener("keydown", handleCloseShortcut);

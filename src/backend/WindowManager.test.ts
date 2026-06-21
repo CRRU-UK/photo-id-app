@@ -522,8 +522,10 @@ describe("windowManager", () => {
       triggerAppEvent("before-quit");
 
       projectWindow.triggerClose();
-      // Edit window does NOT fire closed — user cancelled the unsaved-edits prompt
-      await vi.advanceTimersByTimeAsync(300);
+
+      // User picks Cancel on the unsaved-edits prompt, editorHandlers signals it
+      windowManager.signalEditCancel(editWindow);
+      await vi.advanceTimersByTimeAsync(0);
 
       expect(projectWindow.close).not.toHaveBeenCalled();
       expect(mockAppQuit).not.toHaveBeenCalled();
@@ -537,7 +539,8 @@ describe("windowManager", () => {
 
       triggerAppEvent("before-quit");
       projectWindow.triggerClose();
-      await vi.advanceTimersByTimeAsync(300); // cancellation timeout
+      windowManager.signalEditCancel(editWindow);
+      await vi.advanceTimersByTimeAsync(0);
 
       // Reset and try a normal (non-quit) close. closeAllWindows should not re-fire app.quit.
       mockAppQuit.mockClear();
@@ -588,7 +591,7 @@ describe("windowManager", () => {
       windowManager.addEditWindow(editWindow, projectWindow);
 
       const resultPromise = windowManager.closeProjectInWindow(projectWindow);
-      await vi.advanceTimersByTimeAsync(300); // cancellation timeout
+      windowManager.signalEditCancel(editWindow);
 
       const result = await resultPromise;
       expect(result).toBe(false);
