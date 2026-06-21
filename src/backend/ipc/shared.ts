@@ -7,6 +7,7 @@ import {
   handleOpenProjectFile,
   setCurrentProject,
 } from "@/backend/projects";
+import { setRepresentedProject } from "@/backend/shellIntegration";
 import { windowManager } from "@/backend/WindowManager";
 import {
   CORRUPTED_DATA_MESSAGE,
@@ -36,6 +37,7 @@ export const closeCurrentProject = (): void => {
   const mainWindow = windowManager.getMainWindow();
   if (mainWindow) {
     mainWindow.setTitle(DEFAULT_WINDOW_TITLE);
+    setRepresentedProject(mainWindow, null);
   }
 };
 

@@ -32,6 +32,15 @@ The project can be opened again on the home screen from either the recent projec
 
 Projects can be removed from the recent projects list by selecting the button with the ==:octicons-trash-16: bin icon==. Note that this does not remove the project file, thumbnails, or any exported photos from the project folder.
 
+The same recent projects are also available from the application menu under ==File > Open Recent==. ==Clear Recent== in the same submenu empties the list. Recent projects also appear in the operating system's own recents UI: the **Recent** category of the Windows taskbar Jump List (right-click the taskbar icon) and the **Recent** section of the macOS dock icon (right-click the dock icon).
+
+### Quick launch from the dock or taskbar
+
+You can start a new project or open an existing project file without first focusing the app:
+
+- **Windows**: right-click the Photo ID taskbar icon and pick ==New Project== or ==Open Project File== from the Jump List Tasks.
+- **macOS**: right-click the Photo ID dock icon and pick ==New Project== or ==Open Project File...== from the dock menu.
+
 ## Sorting and matching photos
 
 ![Project screen of the app](../assets/images/project.png?v2){ width="700" }

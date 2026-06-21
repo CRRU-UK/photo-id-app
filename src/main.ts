@@ -3,7 +3,17 @@ import "dotenv/config";
 import path from "node:path";
 import url from "node:url";
 import * as Sentry from "@sentry/electron/main";
-import { app, BrowserWindow, dialog, ipcMain, Menu, net, protocol, session } from "electron";
+import {
+  app,
+  BrowserWindow,
+  dialog,
+  ipcMain,
+  Menu,
+  type MenuItemConstructorOptions,
+  net,
+  protocol,
+  session,
+} from "electron";
 import {
   installExtension,
   MOBX_DEVTOOLS,
@@ -19,10 +29,20 @@ import { registerProjectHandlers } from "@/backend/ipc/projectHandlers";
 import { registerSettingsHandlers } from "@/backend/ipc/settingsHandlers";
 import { findPhotoidArg, openProjectFromPath } from "@/backend/ipc/shared";
 import { getMenu } from "@/backend/menu";
-import { getCurrentProjectDirectory } from "@/backend/projects";
+import {
+  getCurrentProjectDirectory,
+  handleOpenDirectoryPrompt,
+  handleOpenFilePrompt,
+} from "@/backend/projects";
 import { initSentry } from "@/backend/settings";
+import { applyWindowsJumpList } from "@/backend/shellIntegration";
 import { windowManager } from "@/backend/WindowManager";
-import { CSP_HEADERS, PHOTO_FILE_EXTENSIONS, PHOTO_PROTOCOL_SCHEME } from "@/constants";
+import {
+  CSP_HEADERS,
+  JUMP_LIST_ARGS,
+  PHOTO_FILE_EXTENSIONS,
+  PHOTO_PROTOCOL_SCHEME,
+} from "@/constants";
 
 /**
  * Handle Squirrel lifecycle events (install, update, uninstall). `app.quit()` only posts a quit
@@ -93,6 +113,7 @@ const createMainWindow = async () => {
   mainWindow.maximize();
 
   mainWindow.on("closed", () => app.quit());
+  mainWindow.on("focus", () => mainWindow.flashFrame(false));
   windowManager.setMainWindow(mainWindow);
 
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
@@ -131,11 +152,52 @@ const createMainWindow = async () => {
     }
   });
 
-  const menu = Menu.buildFromTemplate(getMenu(mainWindow));
+  const menu = Menu.buildFromTemplate(await getMenu(mainWindow));
   Menu.setApplicationMenu(menu);
+
+  await setupQuickLaunchTasks(mainWindow);
 
   if (!production && !process.env.E2E) {
     mainWindow.webContents.openDevTools();
+  }
+};
+
+/**
+ * Wires the OS-level quick-launch shortcuts: macOS dock menu (static) and the initial Windows
+ * Jump List (refreshed later by `notifyRecentProjectsChanged` whenever recents change).
+ */
+const setupQuickLaunchTasks = async (mainWindow: BrowserWindow): Promise<void> => {
+  if (process.platform === "win32") {
+    await applyWindowsJumpList();
+    return;
+  }
+
+  if (process.platform === "darwin") {
+    const dockMenu: MenuItemConstructorOptions[] = [
+      { label: "New Project", click: () => void handleOpenDirectoryPrompt(mainWindow) },
+      { label: "Open Project File...", click: () => void handleOpenFilePrompt(mainWindow) },
+    ];
+
+    app.dock?.setMenu(Menu.buildFromTemplate(dockMenu));
+  }
+};
+
+/**
+ * Dispatches an argv array to either a quick-launch handler or the existing `.photoid` file-open
+ * flow.
+ */
+const handleStartupArgv = async (mainWindow: BrowserWindow, argv: string[]): Promise<void> => {
+  if (argv.includes(JUMP_LIST_ARGS.NEW_PROJECT)) {
+    return handleOpenDirectoryPrompt(mainWindow);
+  }
+
+  if (argv.includes(JUMP_LIST_ARGS.OPEN_PROJECT_FILE)) {
+    return handleOpenFilePrompt(mainWindow);
+  }
+
+  const filePath = findPhotoidArg(argv);
+  if (filePath) {
+    await openProjectFromPath(filePath);
   }
 };
 
@@ -161,18 +223,20 @@ app.on("open-file", async (event, filePath) => {
 });
 
 /**
- * Windows/Linux: fires when a second instance is launched with a file argument.
+ * Windows/Linux: fires when a second instance is launched with a file argument or one of the Jump
+ * List task argv flags.
  */
 app.on("second-instance", async (_event, argv) => {
-  const filePath = findPhotoidArg(argv);
+  const mainWindow = windowManager.getMainWindow();
+  if (!mainWindow) {
+    return;
+  }
 
-  if (filePath) {
-    try {
-      await openProjectFromPath(filePath);
-    } catch (error) {
-      console.error("Failed to open project from second instance:", error);
-      dialog.showErrorBox("Failed to open project", String(error));
-    }
+  try {
+    await handleStartupArgv(mainWindow, argv);
+  } catch (error) {
+    console.error("Failed to handle second-instance argv:", error);
+    dialog.showErrorBox("Failed to open project", String(error));
   }
 });
 
@@ -287,6 +351,8 @@ void app.whenReady().then(async () => {
 
   await createMainWindow();
 
+  const mainWindow = windowManager.getMainWindow();
+
   /**
    * Handle file path from macOS open-file event that fired before the window was ready (only the
    * last path is opened if multiple events fired before the window was ready)
@@ -298,9 +364,8 @@ void app.whenReady().then(async () => {
     await openProjectFromPath(pendingFilePath);
   }
 
-  // Handle file path from argv (Windows/Linux: app launched via file association)
-  const argvFilePath = findPhotoidArg(process.argv);
-  if (argvFilePath) {
-    await openProjectFromPath(argvFilePath);
+  // Handle initial argv (Windows/Linux file association, or a Jump List task that launched us)
+  if (mainWindow) {
+    await handleStartupArgv(mainWindow, process.argv);
   }
 });

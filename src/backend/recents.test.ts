@@ -1,15 +1,26 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { MAX_RECENT_PROJECTS, RECENT_PROJECTS_FILE_NAME } from "@/constants";
 import type { RecentProject } from "@/types";
 
+const originalPlatform = process.platform;
+const setPlatform = (platform: NodeJS.Platform) => {
+  Object.defineProperty(process, "platform", { value: platform, configurable: true });
+};
+
 const mockExistsSync = vi.fn<(path: string) => boolean>();
 const mockReadFile = vi.fn<(path: string, encoding: string) => Promise<string>>();
 const mockWriteFile = vi.fn<(path: string, data: string, encoding: string) => Promise<void>>();
+const mockAddRecentDocument = vi.fn<(path: string) => void>();
+const mockClearRecentDocuments = vi.fn<() => void>();
 
 vi.mock("electron", () => ({
   app: {
     getPath: vi.fn<() => string>(() => "/mock/userData"),
+    addRecentDocument: (...args: Parameters<typeof mockAddRecentDocument>) =>
+      mockAddRecentDocument(...args),
+    clearRecentDocuments: (...args: Parameters<typeof mockClearRecentDocuments>) =>
+      mockClearRecentDocuments(...args),
   },
 }));
 
@@ -23,8 +34,13 @@ vi.mock("node:fs", () => ({
   },
 }));
 
-const { addRecentProject, dedupeRecentProjects, getRecentProjects, removeRecentProject } =
-  await import("./recents");
+const {
+  addRecentProject,
+  clearRecentProjects,
+  dedupeRecentProjects,
+  getRecentProjects,
+  removeRecentProject,
+} = await import("./recents");
 
 describe(dedupeRecentProjects, () => {
   it("returns empty array when given empty array", () => {
@@ -186,6 +202,11 @@ describe(addRecentProject, () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockWriteFile.mockResolvedValue(undefined);
+    setPlatform("darwin");
+  });
+
+  afterEach(() => {
+    setPlatform(originalPlatform);
   });
 
   it("adds a new project to the front of the list", async () => {
@@ -253,12 +274,37 @@ describe(addRecentProject, () => {
     expect(result.filter((item) => item.path === "/same")).toHaveLength(1);
     expect(result[0].name).toBe("Updated");
   });
+
+  it("forwards the path to the macOS recent documents list", async () => {
+    mockExistsSync.mockReturnValue(true);
+    mockReadFile.mockResolvedValue("[]");
+
+    await addRecentProject({ name: "Project", path: "/project.photoid" });
+
+    expect(mockAddRecentDocument).toHaveBeenCalledWith("/project.photoid");
+  });
+
+  it("does not touch the OS recent documents list on non-darwin platforms", async () => {
+    setPlatform("win32");
+    mockExistsSync.mockReturnValue(true);
+    mockReadFile.mockResolvedValue("[]");
+
+    await addRecentProject({ name: "Project", path: "/project.photoid" });
+
+    expect(mockAddRecentDocument).not.toHaveBeenCalled();
+    expect(mockClearRecentDocuments).not.toHaveBeenCalled();
+  });
 });
 
 describe(removeRecentProject, () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockWriteFile.mockResolvedValue(undefined);
+    setPlatform("darwin");
+  });
+
+  afterEach(() => {
+    setPlatform(originalPlatform);
   });
 
   it("removes the project with the given path", async () => {
@@ -309,5 +355,47 @@ describe(removeRecentProject, () => {
     const result = await removeRecentProject("/anything");
 
     expect(result).toStrictEqual([]);
+  });
+
+  it("clears and re-adds the OS recent documents to keep them in sync", async () => {
+    const existing: RecentProject[] = [
+      { name: "A", path: "/a", lastOpened: "2025-01-01" },
+      { name: "B", path: "/b", lastOpened: "2025-01-02" },
+      { name: "C", path: "/c", lastOpened: "2025-01-03" },
+    ];
+
+    mockExistsSync.mockReturnValue(true);
+    mockReadFile.mockResolvedValue(JSON.stringify(existing));
+
+    await removeRecentProject("/b");
+
+    expect(mockClearRecentDocuments).toHaveBeenCalled();
+    expect(mockAddRecentDocument).toHaveBeenCalledWith("/a");
+    expect(mockAddRecentDocument).toHaveBeenCalledWith("/c");
+    expect(mockAddRecentDocument).not.toHaveBeenCalledWith("/b");
+  });
+});
+
+describe(clearRecentProjects, () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockWriteFile.mockResolvedValue(undefined);
+    setPlatform("darwin");
+  });
+
+  afterEach(() => {
+    setPlatform(originalPlatform);
+  });
+
+  it("writes an empty list and clears the OS recent documents", async () => {
+    const result = await clearRecentProjects();
+
+    expect(result).toStrictEqual([]);
+    expect(mockWriteFile).toHaveBeenCalledWith(
+      expect.stringContaining(RECENT_PROJECTS_FILE_NAME),
+      JSON.stringify([], null, 2),
+      "utf8",
+    );
+    expect(mockClearRecentDocuments).toHaveBeenCalled();
   });
 });

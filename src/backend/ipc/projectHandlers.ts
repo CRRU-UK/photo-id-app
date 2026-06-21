@@ -3,6 +3,7 @@ import { dialog, type IpcMainEvent, type IpcMainInvokeEvent, shell } from "elect
 
 import { handleExportMatches } from "@/backend/exports";
 import { closeCurrentProject, getWindowFromSender } from "@/backend/ipc/shared";
+import { notifyRecentProjectsChanged } from "@/backend/menu";
 import {
   getCurrentProjectDirectory,
   handleFlushSaveProject,
@@ -13,6 +14,7 @@ import {
   parseProjectFile,
 } from "@/backend/projects";
 import { getRecentProjects, removeRecentProject } from "@/backend/recents";
+import { showProgressError } from "@/backend/shellIntegration";
 import { windowManager } from "@/backend/WindowManager";
 import {
   IPC_EVENTS,
@@ -78,6 +80,9 @@ export const handleRemoveRecentProject = async (
   projectPath: string,
 ): Promise<RecentProject[]> => {
   const result = await removeRecentProject(projectPath);
+
+  await notifyRecentProjectsChanged();
+
   return result;
 };
 
@@ -119,7 +124,13 @@ export const handleExportMatchesInvoke = async (
     return;
   }
 
-  const directory = await handleExportMatches(window, data, type);
+  let directory: string;
+  try {
+    directory = await handleExportMatches(window, data, type);
+  } catch (error) {
+    showProgressError(window);
+    throw error;
+  }
 
   if (type === "csv") {
     const csvPath = path.join(

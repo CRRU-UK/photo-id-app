@@ -43,6 +43,8 @@ const createMockWindow = (): BrowserWindow =>
   ({
     setTitle: vi.fn<(title: string) => void>(),
     focus: vi.fn<() => void>(),
+    setRepresentedFilename: vi.fn<(filename: string) => void>(),
+    setDocumentEdited: vi.fn<(edited: boolean) => void>(),
     webContents: {
       send: vi.fn<(channel: string, ...args: unknown[]) => void>(),
     },

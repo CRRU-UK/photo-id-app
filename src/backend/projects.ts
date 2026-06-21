@@ -3,8 +3,15 @@ import fs from "node:fs";
 import path from "node:path";
 import { app, dialog } from "electron";
 import { ZodError } from "zod";
+import { notifyRecentProjectsChanged } from "@/backend/menu";
 import { createPhotoThumbnail } from "@/backend/photos";
 import { addRecentProject } from "@/backend/recents";
+import {
+  flashWindow,
+  sendLoading,
+  setRepresentedProject,
+  showProgressError,
+} from "@/backend/shellIntegration";
 import {
   CORRUPTED_DATA_MESSAGE,
   DEFAULT_PHOTO_EDITS,
@@ -25,7 +32,6 @@ import { projectBodySchema } from "@/schemas";
 import type {
   CollectionBody,
   EditorNavigation,
-  LoadingData,
   PhotoBody,
   ProjectBody,
   ProjectPayload,
@@ -71,18 +77,30 @@ export const parseProjectFile = async (filePath: string): Promise<ProjectBody> =
   return projectBodySchema.parse(json);
 };
 
-const sendData = (mainWindow: Electron.BrowserWindow, body: ProjectBody, directory: string) => {
+const sendData = async (
+  mainWindow: Electron.BrowserWindow,
+  body: ProjectBody,
+  directory: string,
+) => {
   setCurrentProject(directory);
 
-  mainWindow.setTitle(`${DEFAULT_WINDOW_TITLE} - ${directory}`);
+  const projectFilePath = path.join(directory, PROJECT_FILE_NAME);
+  setRepresentedProject(mainWindow, projectFilePath);
+
   const payload: ProjectPayload = { body, directory };
   mainWindow.webContents.send(IPC_EVENTS.LOAD_PROJECT, payload);
+
+  mainWindow.setTitle(`${DEFAULT_WINDOW_TITLE} - ${directory}`);
   mainWindow.focus();
 
-  void addRecentProject({
+  await addRecentProject({
     name: path.basename(directory),
-    path: path.join(directory, PROJECT_FILE_NAME),
+    path: projectFilePath,
   });
+
+  await notifyRecentProjectsChanged();
+
+  sendLoading(mainWindow, { show: false });
 };
 
 const homePath = app.getPath("home");
@@ -111,7 +129,7 @@ const handleExistingProjectFile = async (
     try {
       const filePath = path.join(directory, PROJECT_FILE_NAME);
       const body = await parseProjectFile(filePath);
-      sendData(mainWindow, body, directory);
+      await sendData(mainWindow, body, directory);
     } catch (error) {
       console.error("Failed to load existing project file:", error);
 
@@ -154,12 +172,25 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
     }
   }
 
-  mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, {
+  sendLoading(mainWindow, {
     show: true,
     text: "Preparing project",
     progressValue: 0,
-  } as LoadingData);
+  });
 
+  try {
+    return await prepareNewProject(mainWindow, directory, files);
+  } catch (error) {
+    showProgressError(mainWindow);
+    throw error;
+  }
+};
+
+const prepareNewProject = async (
+  mainWindow: Electron.BrowserWindow,
+  directory: string,
+  files: string[],
+) => {
   const photoChecks = await Promise.all(
     files.map(async (fileName) => {
       // Filter non-images based on file extension
@@ -208,12 +239,12 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
 
         processed = processed + 1;
 
-        mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, {
+        sendLoading(mainWindow, {
           show: true,
           text: "Preparing project",
           progressValue: (processed / photos.length) * 100,
           progressText: `Processing photo ${processed} of ${photos.length}`,
-        } as LoadingData);
+        });
       }),
     );
   }
@@ -260,6 +291,8 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
     "utf8",
   );
 
+  flashWindow(mainWindow);
+
   return sendData(mainWindow, data, directory);
 };
 
@@ -278,7 +311,7 @@ const handleOpenFilePrompt = async (mainWindow: Electron.BrowserWindow) => {
     return;
   }
 
-  mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, { show: true, text: "Opening project" });
+  sendLoading(mainWindow, { show: true, text: "Opening project" });
 
   const [file] = event.filePaths;
 
@@ -289,7 +322,7 @@ const handleOpenFilePrompt = async (mainWindow: Electron.BrowserWindow) => {
     console.error("Failed to open project file:", error);
     dialog.showErrorBox("Invalid project file", String(error));
 
-    mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, { show: false } as LoadingData);
+    sendLoading(mainWindow, { show: false });
   }
 };
 
@@ -305,11 +338,11 @@ const handleOpenProjectFile = async (mainWindow: Electron.BrowserWindow, file: s
     return;
   }
 
-  mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, { show: true, text: "Opening project" });
+  sendLoading(mainWindow, { show: true, text: "Opening project" });
 
   if (!fs.existsSync(file)) {
     dialog.showErrorBox(MISSING_RECENT_PROJECT_MESSAGE, file);
-    mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, { show: false } as LoadingData);
+    sendLoading(mainWindow, { show: false });
 
     return;
   }
@@ -321,7 +354,7 @@ const handleOpenProjectFile = async (mainWindow: Electron.BrowserWindow, file: s
     console.error("Failed to open project file:", error);
     dialog.showErrorBox("Invalid project file", String(error));
 
-    mainWindow.webContents.send(IPC_EVENTS.SET_LOADING, { show: false } as LoadingData);
+    sendLoading(mainWindow, { show: false });
   }
 };
 
