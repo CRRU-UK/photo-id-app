@@ -63,6 +63,18 @@ export const focusExistingWindow = (window: BrowserWindow): void => {
  * for file associations, second-instance argv, and macOS open-file events.
  */
 export const openProjectFromPath = async (filePath: string): Promise<void> => {
+  /**
+   * Validate the extension up front so an invalid path doesn't briefly spawn a window only to close
+   * it immediately after `handleOpenProjectFile` shows its error dialog (which would look like a
+   * crash to the user). `handleOpenProjectFile` keeps the same check as defence in depth.
+   */
+  if (path.extname(filePath).toLowerCase() !== `.${PROJECT_FILE_EXTENSION}`) {
+    console.error("Refused to open non-.photoid file path:", filePath);
+    dialog.showErrorBox("Invalid file", "Only .photoid project files can be opened.");
+
+    return;
+  }
+
   const directory = path.dirname(filePath);
 
   const existingWindow = windowManager.findWindowForProject(directory);
