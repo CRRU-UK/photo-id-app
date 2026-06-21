@@ -118,6 +118,7 @@ vi.mock("@/backend/menu", () => ({
 }));
 
 vi.mock("@/backend/shellIntegration", () => ({
+  setRepresentedProject: vi.fn<() => void>(),
   showProgressError: vi.fn<() => void>(),
 }));
 
