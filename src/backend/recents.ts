@@ -20,8 +20,8 @@ export const dedupeRecentProjects = (items: RecentProject[], max: number): Recen
     }, [] as RecentProject[])
     .slice(0, max);
 
-const userDataPath = app.getPath("userData");
-const recentProjectsFile = path.join(userDataPath, RECENT_PROJECTS_FILE_NAME);
+const getRecentProjectsFilePath = (): string =>
+  path.join(app.getPath("userData"), RECENT_PROJECTS_FILE_NAME);
 
 const recentProjectsFileSchema = z.array(recentProjectSchema);
 
@@ -29,12 +29,14 @@ const recentProjectsFileSchema = z.array(recentProjectSchema);
  * Gets a list of recent projects from the internal file.
  */
 const getRecentProjects = async (): Promise<RecentProject[]> => {
-  if (!fs.existsSync(recentProjectsFile)) {
+  const filePath = getRecentProjectsFilePath();
+
+  if (!fs.existsSync(filePath)) {
     return [];
   }
 
   try {
-    const raw = await fs.promises.readFile(recentProjectsFile, "utf8");
+    const raw = await fs.promises.readFile(filePath, "utf8");
     return recentProjectsFileSchema.parse(JSON.parse(raw));
   } catch (error) {
     console.error("Error reading recent projects file:", error);
@@ -46,12 +48,31 @@ const getRecentProjects = async (): Promise<RecentProject[]> => {
  * Writes the recent projects to the internal file.
  */
 const updateRecentProjects = async (data: RecentProject[]) =>
-  fs.promises.writeFile(recentProjectsFile, JSON.stringify(data, null, 2), "utf8");
+  fs.promises.writeFile(getRecentProjectsFilePath(), JSON.stringify(data, null, 2), "utf8");
 
 interface AddRecentProjectOptions {
   name: string;
   path: string;
 }
+
+/**
+ * Syncs the current recents to the macOS dock "Recent" submenu via `app.addRecentDocument`.
+ *
+ * Windows is handled separately via a custom Jump List category (see `shellIntegration.ts`) so
+ * each entry can show the project's folder name. The OS-managed `addRecentDocument` path uses the
+ * file's display name, which is always `project.photoid` here and would collapse every entry to
+ * "project".
+ */
+const syncMacOsRecents = (recents: RecentProject[]): void => {
+  if (process.platform !== "darwin") {
+    return;
+  }
+
+  app.clearRecentDocuments();
+  for (const project of recents.toReversed()) {
+    app.addRecentDocument(project.path);
+  }
+};
 
 /**
  * Adds a recent project to the current list and returns the updated list.
@@ -68,6 +89,8 @@ const addRecentProject = async ({
 
   await updateRecentProjects(data);
 
+  syncMacOsRecents(data);
+
   return data;
 };
 
@@ -81,7 +104,20 @@ const removeRecentProject = async (path: string): Promise<RecentProject[]> => {
 
   await updateRecentProjects(updatedRecentProjects);
 
+  syncMacOsRecents(updatedRecentProjects);
+
   return updatedRecentProjects;
 };
 
-export { addRecentProject, getRecentProjects, removeRecentProject };
+/**
+ * Clears all recent projects from the internal file and the macOS dock recents.
+ */
+const clearRecentProjects = async (): Promise<RecentProject[]> => {
+  await updateRecentProjects([]);
+
+  syncMacOsRecents([]);
+
+  return [];
+};
+
+export { addRecentProject, clearRecentProjects, getRecentProjects, removeRecentProject };

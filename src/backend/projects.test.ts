@@ -58,9 +58,15 @@ vi.mock("@/backend/photos", () => ({
 
 vi.mock("@/backend/recents", () => ({
   dedupeRecentProjects: vi.fn<() => void>(),
-  addRecentProject: vi.fn<() => void>(),
-  getRecentProjects: vi.fn<() => void>(),
+  addRecentProject: vi.fn<() => Promise<void>>(async () => undefined),
+  getRecentProjects: vi.fn<() => Promise<unknown[]>>(async () => []),
   removeRecentProject: vi.fn<() => void>(),
+  clearRecentProjects: vi.fn<() => Promise<unknown[]>>(async () => []),
+}));
+
+vi.mock("@/backend/menu", () => ({
+  notifyRecentProjectsChanged: vi.fn<() => Promise<void>>(async () => undefined),
+  getMenu: vi.fn<() => Promise<unknown[]>>(async () => []),
 }));
 
 const mockSetProject = vi.fn<(window: Electron.BrowserWindow, directory: string) => void>();
@@ -116,6 +122,11 @@ const createMockMainWindow = () =>
   ({
     setTitle: vi.fn<(title: string) => void>(),
     focus: vi.fn<() => void>(),
+    setProgressBar: vi.fn<(progress: number) => void>(),
+    flashFrame: vi.fn<(flag: boolean) => void>(),
+    isFocused: vi.fn<() => boolean>(() => true),
+    setRepresentedFilename: vi.fn<(filename: string) => void>(),
+    setDocumentEdited: vi.fn<(edited: boolean) => void>(),
     webContents: {
       send: vi.fn<(channel: string, ...args: unknown[]) => void>(),
     },

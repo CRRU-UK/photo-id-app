@@ -113,6 +113,14 @@ vi.mock("./shared", () => ({
     mockFocusExistingWindow(...args),
 }));
 
+vi.mock("@/backend/menu", () => ({
+  notifyRecentProjectsChanged: vi.fn<() => Promise<void>>(async () => undefined),
+}));
+
+vi.mock("@/backend/shellIntegration", () => ({
+  showProgressError: vi.fn<() => void>(),
+}));
+
 const {
   handleOpenFolder,
   handleOpenFile,

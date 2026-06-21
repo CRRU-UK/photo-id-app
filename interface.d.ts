@@ -27,6 +27,7 @@ export interface IElectronAPI {
   onLoading: (callback: (data: LoadingData) => void) => () => void;
   onLoadProject: (callback: (value: ProjectPayload) => void) => () => void;
   onOpenSettings: (callback: () => void) => () => void;
+  onRecentProjectsUpdated: (callback: (data: RecentProject[]) => void) => () => void;
   onSettingsUpdated: (callback: (data: SettingsData) => void) => () => void;
   onUpdatePhoto: (callback: (data: PhotoBody) => void) => () => void;
   openEditWindow: (data: PhotoBody) => void;

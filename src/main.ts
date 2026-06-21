@@ -1,21 +1,35 @@
 import "dotenv/config";
 
 import * as Sentry from "@sentry/electron/main";
-import { app, BrowserWindow, dialog, ipcMain, Menu, protocol, session } from "electron";
+import {
+  app,
+  BrowserWindow,
+  dialog,
+  ipcMain,
+  Menu,
+  type MenuItemConstructorOptions,
+  protocol,
+  session,
+} from "electron";
 import started from "electron-squirrel-startup";
 import { updateElectronApp } from "update-electron-app";
 
 import { registerAnalysisHandlers } from "@/backend/ipc/analysisHandlers";
 import { registerEditorHandlers } from "@/backend/ipc/editorHandlers";
 import { registerPhotoHandlers } from "@/backend/ipc/photoHandlers";
-import { registerProjectHandlers } from "@/backend/ipc/projectHandlers";
+import {
+  openProjectFileForWindow,
+  openProjectFolderForWindow,
+  registerProjectHandlers,
+} from "@/backend/ipc/projectHandlers";
 import { registerSettingsHandlers } from "@/backend/ipc/settingsHandlers";
 import { findProjectFileArg, openProjectFromPath } from "@/backend/ipc/shared";
 import { getMenu } from "@/backend/menu";
 import { initSentry } from "@/backend/settings";
+import { applyWindowsJumpList } from "@/backend/shellIntegration";
 import { windowManager } from "@/backend/WindowManager";
 import { basePath, createProjectWindow, defaultWebPreferences } from "@/backend/windows";
-import { PHOTO_PROTOCOL_SCHEME } from "@/constants";
+import { JUMP_LIST_ARGS, PHOTO_PROTOCOL_SCHEME } from "@/constants";
 
 /**
  * Handle Squirrel lifecycle events (install, update, uninstall). `app.quit()` only posts a quit
@@ -66,6 +80,74 @@ if (!gotTheLock) {
 const pendingFilePaths: string[] = [];
 
 /**
+ * Returns a project window for menu/dock/jump-list driven flows. Reuses an idle (empty) project
+ * window if there is one, otherwise spawns a fresh one. Mirrors `resolveProjectWindowForMenu` in
+ * `menu.ts`.
+ */
+const resolveLaunchWindow = async (): Promise<BrowserWindow> => {
+  const idle = windowManager.findIdleProjectWindow();
+  if (idle) {
+    return idle;
+  }
+  return createProjectWindow();
+};
+
+/**
+ * Wires the OS-level quick-launch shortcuts: macOS dock menu (static) and the initial Windows
+ * Jump List (refreshed later by `notifyRecentProjectsChanged` whenever recents change).
+ */
+const setupQuickLaunchTasks = async (): Promise<void> => {
+  if (process.platform === "win32") {
+    await applyWindowsJumpList();
+    return;
+  }
+
+  if (process.platform === "darwin") {
+    const dockMenu: MenuItemConstructorOptions[] = [
+      {
+        label: "New Project",
+        click: async () => {
+          const window = await resolveLaunchWindow();
+          await openProjectFolderForWindow(window);
+        },
+      },
+      {
+        label: "Open Project File...",
+        click: async () => {
+          const window = await resolveLaunchWindow();
+          await openProjectFileForWindow(window);
+        },
+      },
+    ];
+
+    app.dock?.setMenu(Menu.buildFromTemplate(dockMenu));
+  }
+};
+
+/**
+ * Dispatches an argv array to either a quick-launch handler or the existing `.photoid` file-open
+ * flow.
+ */
+const handleStartupArgv = async (argv: string[]): Promise<void> => {
+  if (argv.includes(JUMP_LIST_ARGS.NEW_PROJECT)) {
+    const window = await resolveLaunchWindow();
+    await openProjectFolderForWindow(window);
+    return;
+  }
+
+  if (argv.includes(JUMP_LIST_ARGS.OPEN_PROJECT_FILE)) {
+    const window = await resolveLaunchWindow();
+    await openProjectFileForWindow(window);
+    return;
+  }
+
+  const filePath = findProjectFileArg(argv);
+  if (filePath) {
+    await openProjectFromPath(filePath);
+  }
+};
+
+/**
  * macOS: fires when a `.photoid` file is opened (may fire before `whenReady`).
  */
 app.on("open-file", async (event, filePath) => {
@@ -86,18 +168,15 @@ app.on("open-file", async (event, filePath) => {
 });
 
 /**
- * Windows/Linux: fires when a second instance is launched with a file argument.
+ * Windows/Linux: fires when a second instance is launched with a file argument or one of the Jump
+ * List task argv flags.
  */
 app.on("second-instance", async (_event, argv) => {
-  const filePath = findProjectFileArg(argv);
-
-  if (filePath) {
-    try {
-      await openProjectFromPath(filePath);
-    } catch (error) {
-      console.error("Failed to open project from second instance:", error);
-      dialog.showErrorBox("Failed to open project", String(error));
-    }
+  try {
+    await handleStartupArgv(argv);
+  } catch (error) {
+    console.error("Failed to handle second-instance argv:", error);
+    dialog.showErrorBox("Failed to open project", String(error));
   }
 });
 
@@ -167,9 +246,11 @@ void app.whenReady().then(async () => {
 
   // Install the application menu once at app ready. Click handlers resolve the focused window at
   // click time, so the same menu serves every window.
-  Menu.setApplicationMenu(Menu.buildFromTemplate(getMenu()));
+  Menu.setApplicationMenu(Menu.buildFromTemplate(await getMenu()));
 
   await createProjectWindow({ maximize: true });
+
+  await setupQuickLaunchTasks();
 
   /**
    * Handle file paths queued before any window was ready (macOS open-file event firing before
@@ -180,12 +261,10 @@ void app.whenReady().then(async () => {
   const queuedPaths = [...pendingFilePaths];
   pendingFilePaths.length = 0;
 
-  const argvFilePath = findProjectFileArg(process.argv);
-  if (argvFilePath && !queuedPaths.includes(argvFilePath)) {
-    queuedPaths.push(argvFilePath);
-  }
-
   for (const queuedPath of queuedPaths) {
     await openProjectFromPath(queuedPath);
   }
+
+  // Handle initial argv (Windows/Linux file association, or a Jump List task that launched us)
+  await handleStartupArgv(process.argv);
 });

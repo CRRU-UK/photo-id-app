@@ -1,12 +1,16 @@
-import { app, BrowserWindow, shell } from "electron";
+import { app, BrowserWindow, Menu, shell } from "electron";
 
 import {
   openProjectFileForWindow,
   openProjectFolderForWindow,
 } from "@/backend/ipc/projectHandlers";
+import { broadcastToAllWindows, openProjectFromPath } from "@/backend/ipc/shared";
+import { clearRecentProjects, getRecentProjects } from "@/backend/recents";
+import { applyWindowsJumpList } from "@/backend/shellIntegration";
 import { windowManager } from "@/backend/WindowManager";
 import { createProjectWindow } from "@/backend/windows";
 import { EXTERNAL_LINKS, IPC_EVENTS } from "@/constants";
+import type { RecentProject } from "@/types";
 
 /**
  * Resolves the project window for the currently-focused window, falling back to null if there is
@@ -35,8 +39,42 @@ const resolveProjectWindowForMenu = async (): Promise<BrowserWindow> => {
   return createProjectWindow();
 };
 
-const getMenu = (): Electron.MenuItemConstructorOptions[] => {
+const buildOpenRecentSubmenu = (
+  recents: RecentProject[],
+): Electron.MenuItemConstructorOptions[] => {
+  if (recents.length === 0) {
+    return [{ label: "No Recent Projects", enabled: false }];
+  }
+
+  const items: Electron.MenuItemConstructorOptions[] = recents.map((recent) => ({
+    label: recent.name,
+    toolTip: recent.path,
+    click: async () => {
+      try {
+        await openProjectFromPath(recent.path);
+      } catch (error) {
+        console.error("Failed to open recent project:", error);
+      }
+    },
+  }));
+
+  items.push(
+    { type: "separator" },
+    {
+      label: "Clear Recent",
+      click: async () => {
+        await clearRecentProjects();
+        await notifyRecentProjectsChanged();
+      },
+    },
+  );
+
+  return items;
+};
+
+const getMenu = async (): Promise<Electron.MenuItemConstructorOptions[]> => {
   const isMac = process.platform === "darwin";
+  const recents = await getRecentProjects();
 
   const openPreferences = async () => {
     const window = await resolveProjectWindowForMenu();
@@ -95,6 +133,10 @@ const getMenu = (): Electron.MenuItemConstructorOptions[] => {
             const window = await resolveProjectWindowForMenu();
             await openProjectFileForWindow(window);
           },
+        },
+        {
+          label: "Open Recent",
+          submenu: buildOpenRecentSubmenu(recents),
         },
         ...(isMac
           ? []
@@ -180,4 +222,14 @@ const getMenu = (): Electron.MenuItemConstructorOptions[] => {
   return template;
 };
 
-export { getMenu };
+/**
+ * Hook to keep the recent items menu, in-app list, and Windows Jump List in sync on updates.
+ */
+const notifyRecentProjectsChanged = async (): Promise<void> => {
+  const recents = await getRecentProjects();
+  broadcastToAllWindows(IPC_EVENTS.RECENT_PROJECTS_UPDATED, recents);
+  Menu.setApplicationMenu(Menu.buildFromTemplate(await getMenu()));
+  await applyWindowsJumpList();
+};
+
+export { getMenu, notifyRecentProjectsChanged };

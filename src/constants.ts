@@ -8,6 +8,7 @@ export enum IPC_EVENTS {
   GET_CURRENT_PROJECT = "project:getCurrentProject",
   GET_RECENT_PROJECTS = "project:getRecentProjects",
   REMOVE_RECENT_PROJECT = "project:removeRecentProject",
+  RECENT_PROJECTS_UPDATED = "project:recentProjectsUpdated",
   SAVE_PROJECT = "project:saveProject",
   LOAD_PROJECT = "project:loadProject",
   CLOSE_PROJECT = "project:closeProject",
@@ -201,6 +202,13 @@ export const SETTINGS_FILE_NAME = "settings.json";
 export const TOKENS_FILE_NAME = "tokens.json";
 
 export const MAX_RECENT_PROJECTS = 5;
+
+export const PROGRESS_ERROR_FLASH_MS = 1_500;
+
+export const JUMP_LIST_ARGS = {
+  NEW_PROJECT: "--new-project",
+  OPEN_PROJECT_FILE: "--open-project-file",
+} as const;
 
 export const MATCHED_STACKS_PER_PAGE = 8;
 

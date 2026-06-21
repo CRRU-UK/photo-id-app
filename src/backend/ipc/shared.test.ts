@@ -55,6 +55,8 @@ const createMockWindow = (
     close: vi.fn<() => void>(),
     isDestroyed: vi.fn<() => boolean>(() => overrides?.isDestroyed ?? false),
     isMinimized: vi.fn<() => boolean>(() => overrides?.isMinimized ?? false),
+    setRepresentedFilename: vi.fn<(filename: string) => void>(),
+    setDocumentEdited: vi.fn<(edited: boolean) => void>(),
     webContents: {
       send: vi.fn<(channel: string, ...args: unknown[]) => void>(),
     },

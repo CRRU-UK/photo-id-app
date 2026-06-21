@@ -9,6 +9,7 @@ import {
 
 import { handleExportMatches } from "@/backend/exports";
 import { focusExistingWindow } from "@/backend/ipc/shared";
+import { notifyRecentProjectsChanged } from "@/backend/menu";
 import {
   checkExistingProjectChoice,
   handleFlushSaveProject,
@@ -21,6 +22,7 @@ import {
   promptForProjectFolder,
 } from "@/backend/projects";
 import { getRecentProjects, removeRecentProject } from "@/backend/recents";
+import { setRepresentedProject, showProgressError } from "@/backend/shellIntegration";
 import { windowManager } from "@/backend/WindowManager";
 import { createProjectWindow } from "@/backend/windows";
 import {
@@ -223,6 +225,9 @@ export const handleRemoveRecentProject = async (
   projectPath: string,
 ): Promise<RecentProject[]> => {
   const result = await removeRecentProject(projectPath);
+
+  await notifyRecentProjectsChanged();
+
   return result;
 };
 
@@ -276,7 +281,12 @@ export const handleExportMatchesInvoke = async (
     throw new Error("No project open");
   }
 
-  await handleExportMatches(projectWindow, directory, data, type);
+  try {
+    await handleExportMatches(projectWindow, directory, data, type);
+  } catch (error) {
+    showProgressError(projectWindow);
+    throw error;
+  }
 
   if (type === "csv") {
     const csvPath = path.join(
@@ -326,6 +336,7 @@ export const handleCloseProject = async (event: IpcMainEvent): Promise<void> => 
   }
 
   senderWindow.setTitle(DEFAULT_WINDOW_TITLE);
+  setRepresentedProject(senderWindow, null);
 };
 
 export const registerProjectHandlers = (ipcMain: Electron.IpcMain): void => {

@@ -75,6 +75,9 @@ const createMockMainWindow = () =>
     webContents: {
       send: vi.fn<(channel: string, ...args: unknown[]) => void>(),
     },
+    setProgressBar: vi.fn<(progress: number) => void>(),
+    flashFrame: vi.fn<(flag: boolean) => void>(),
+    isFocused: vi.fn<() => boolean>(() => true),
   }) as unknown as Electron.BrowserWindow;
 
 describe(handleExportMatches, () => {

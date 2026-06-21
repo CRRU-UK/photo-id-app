@@ -3,8 +3,15 @@ import fs from "node:fs";
 import path from "node:path";
 import { app, dialog } from "electron";
 import { ZodError } from "zod";
+import { notifyRecentProjectsChanged } from "@/backend/menu";
 import { createPhotoThumbnail } from "@/backend/photos";
 import { addRecentProject } from "@/backend/recents";
+import {
+  flashWindow,
+  sendLoading,
+  setRepresentedProject,
+  showProgressError,
+} from "@/backend/shellIntegration";
 import { windowManager } from "@/backend/WindowManager";
 import {
   CORRUPTED_DATA_MESSAGE,
@@ -62,18 +69,29 @@ export const parseProjectFile = async (filePath: string): Promise<ProjectBody> =
   return projectBodySchema.parse(json);
 };
 
-const sendData = (projectWindow: Electron.BrowserWindow, body: ProjectBody, directory: string) => {
+const sendData = async (
+  projectWindow: Electron.BrowserWindow,
+  body: ProjectBody,
+  directory: string,
+) => {
   windowManager.setProject(projectWindow, directory);
+
+  const projectFilePath = path.join(directory, PROJECT_FILE_NAME);
+  setRepresentedProject(projectWindow, projectFilePath);
 
   projectWindow.setTitle(buildProjectWindowTitle(directory));
   const payload: ProjectPayload = { body, directory };
   projectWindow.webContents.send(IPC_EVENTS.LOAD_PROJECT, payload);
   projectWindow.focus();
 
-  void addRecentProject({
+  await addRecentProject({
     name: path.basename(directory),
-    path: path.join(directory, PROJECT_FILE_NAME),
+    path: projectFilePath,
   });
+
+  await notifyRecentProjectsChanged();
+
+  sendLoading(projectWindow, { show: false });
 };
 
 const homePath = app.getPath("home");
@@ -163,7 +181,7 @@ const loadExistingProject = async (
   try {
     const filePath = path.join(directory, PROJECT_FILE_NAME);
     const body = await parseProjectFile(filePath);
-    sendData(projectWindow, body, directory);
+    await sendData(projectWindow, body, directory);
   } catch (error) {
     windowManager.clearProject(projectWindow);
     console.error("Failed to load existing project file:", error);
@@ -204,12 +222,25 @@ const runProcessProjectFolder = async (
 ) => {
   const files = await fs.promises.readdir(directory);
 
-  projectWindow.webContents.send(IPC_EVENTS.SET_LOADING, {
+  sendLoading(projectWindow, {
     show: true,
     text: "Preparing project",
     progressValue: 0,
   });
 
+  try {
+    return await prepareNewProject(projectWindow, directory, files);
+  } catch (error) {
+    showProgressError(projectWindow);
+    throw error;
+  }
+};
+
+const prepareNewProject = async (
+  projectWindow: Electron.BrowserWindow,
+  directory: string,
+  files: string[],
+) => {
   const photoChecks = await Promise.all(
     files.map(async (fileName) => {
       // Filter non-images based on file extension
@@ -258,7 +289,7 @@ const runProcessProjectFolder = async (
 
         processed = processed + 1;
 
-        projectWindow.webContents.send(IPC_EVENTS.SET_LOADING, {
+        sendLoading(projectWindow, {
           show: true,
           text: "Preparing project",
           progressValue: (processed / photos.length) * 100,
@@ -310,6 +341,8 @@ const runProcessProjectFolder = async (
     "utf8",
   );
 
+  flashWindow(projectWindow);
+
   return sendData(projectWindow, data, directory);
 };
 
@@ -325,11 +358,11 @@ const handleOpenProjectFile = async (projectWindow: Electron.BrowserWindow, file
     return;
   }
 
-  projectWindow.webContents.send(IPC_EVENTS.SET_LOADING, { show: true, text: "Opening project" });
+  sendLoading(projectWindow, { show: true, text: "Opening project" });
 
   if (!fs.existsSync(file)) {
     dialog.showErrorBox(MISSING_RECENT_PROJECT_MESSAGE, file);
-    projectWindow.webContents.send(IPC_EVENTS.SET_LOADING, { show: false });
+    sendLoading(projectWindow, { show: false });
 
     return;
   }
@@ -345,7 +378,7 @@ const handleOpenProjectFile = async (projectWindow: Electron.BrowserWindow, file
     console.error("Failed to open project file:", error);
     dialog.showErrorBox("Invalid project file", String(error));
 
-    projectWindow.webContents.send(IPC_EVENTS.SET_LOADING, { show: false });
+    sendLoading(projectWindow, { show: false });
   }
 };
 
