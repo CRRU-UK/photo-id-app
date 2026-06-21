@@ -35,8 +35,6 @@ export const handleOpenFolder = async (event: IpcMainEvent): Promise<void> => {
     await handleOpenDirectoryPrompt(window);
   } catch (error) {
     console.error("Failed to open folder:", error);
-
-    showProgressError(window);
     dialog.showErrorBox("Failed to open folder", String(error));
   }
 };
