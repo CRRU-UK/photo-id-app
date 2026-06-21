@@ -318,21 +318,6 @@ describe("windowManager", () => {
   });
 
   describe("edit windows", () => {
-    it("tracks the parent of an edit window", () => {
-      const projectWindow = createMockBrowserWindow();
-      const editWindow = createMockBrowserWindow();
-      windowManager.registerProjectWindow(projectWindow);
-      windowManager.addEditWindow(editWindow, projectWindow);
-
-      expect(windowManager.getParentProjectWindow(editWindow)).toBe(projectWindow);
-    });
-
-    it("returns null parent for an unknown edit window", () => {
-      const editWindow = createMockBrowserWindow();
-
-      expect(windowManager.getParentProjectWindow(editWindow)).toBeNull();
-    });
-
     it("getEditWindowsForProject returns only that project's edit windows", () => {
       const projectA = createMockBrowserWindow();
       const projectB = createMockBrowserWindow();

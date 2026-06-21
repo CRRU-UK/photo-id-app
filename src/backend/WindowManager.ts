@@ -308,17 +308,6 @@ class WindowManager {
     });
   }
 
-  getParentProjectWindow(editWindow: BrowserWindow): BrowserWindow | null {
-    const parentId = this.editWindowParents.get(editWindow.id);
-
-    if (parentId === undefined) {
-      return null;
-    }
-
-    const parent = this.projectWindowsById.get(parentId);
-    return parent && !parent.isDestroyed() ? parent : null;
-  }
-
   getEditWindowsForProject(projectWindow: BrowserWindow): BrowserWindow[] {
     const projectId = projectWindow.id;
     const result: BrowserWindow[] = [];

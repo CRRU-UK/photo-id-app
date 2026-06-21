@@ -85,10 +85,7 @@ export const createProjectWindow = async (
 
   windowManager.registerProjectWindow(window);
 
-  await setupProjectSession({
-    session: projectSession,
-    getProjectDirectory: () => windowManager.getDirectoryForWindow(window),
-  });
+  await setupProjectSession(projectSession, () => windowManager.getDirectoryForWindow(window));
 
   await window.loadURL(buildWindowUrl(initialRoute));
 

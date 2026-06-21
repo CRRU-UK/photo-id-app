@@ -13,20 +13,15 @@ const production = app.isPackaged;
 
 const corsHeaders = { "Access-Control-Allow-Origin": "*" };
 
-interface SetupProjectSessionOptions {
-  /** Resolved at request time so the same registration covers the window's whole lifetime. */
-  getProjectDirectory: () => string | null;
-  session: Electron.Session;
-}
-
 /**
  * Registers CSP, permission denial, the `photo://` protocol, and (in dev) DevTools extensions on
- * a per-window session. See ARCHITECTURE.md "Per-window sessions" for the design.
+ * a per-window session. `getProjectDirectory` is resolved at request time so the same
+ * registration covers the window's whole lifetime. See ARCHITECTURE.md "Per-window sessions".
  */
-export const setupProjectSession = async ({
-  session,
-  getProjectDirectory,
-}: SetupProjectSessionOptions): Promise<void> => {
+export const setupProjectSession = async (
+  session: Electron.Session,
+  getProjectDirectory: () => string | null,
+): Promise<void> => {
   session.webRequest.onHeadersReceived((details, callback) => {
     callback({
       responseHeaders: {

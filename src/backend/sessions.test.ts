@@ -72,10 +72,7 @@ describe("setupProjectSession", () => {
   describe("CSP", () => {
     it("attaches a Content-Security-Policy header to renderer responses", () => {
       const session = createMockSession();
-      setupProjectSession({
-        session: session as unknown as Electron.Session,
-        getProjectDirectory: () => "/project",
-      });
+      setupProjectSession(session as unknown as Electron.Session, () => "/project");
 
       let captured: { responseHeaders: Record<string, unknown> } | null = null;
       session.capturedHeadersHandler?.({ responseHeaders: { existing: ["yes"] } }, (result) => {
@@ -95,10 +92,7 @@ describe("setupProjectSession", () => {
   describe("permission handler", () => {
     it("denies every permission request", () => {
       const session = createMockSession();
-      setupProjectSession({
-        session: session as unknown as Electron.Session,
-        getProjectDirectory: () => "/project",
-      });
+      setupProjectSession(session as unknown as Electron.Session, () => "/project");
 
       const allow = vi.fn<(grant: boolean) => void>();
       session.capturedPermissionHandler?.(null, "media", allow);
@@ -120,10 +114,7 @@ describe("setupProjectSession", () => {
 
     it("returns 403 when the window has no project loaded", async () => {
       const session = createMockSession();
-      setupProjectSession({
-        session: session as unknown as Electron.Session,
-        getProjectDirectory: () => null,
-      });
+      setupProjectSession(session as unknown as Electron.Session, () => null);
 
       const response = await callProtocol(session, "photo:///project/photo.jpg");
       expect(response?.status).toBe(403);
@@ -131,10 +122,7 @@ describe("setupProjectSession", () => {
 
     it("returns 403 for a file extension outside the allow-list", async () => {
       const session = createMockSession();
-      setupProjectSession({
-        session: session as unknown as Electron.Session,
-        getProjectDirectory: () => "/project",
-      });
+      setupProjectSession(session as unknown as Electron.Session, () => "/project");
 
       const response = await callProtocol(session, "photo:///project/secret.txt");
       expect(response?.status).toBe(403);
@@ -142,10 +130,7 @@ describe("setupProjectSession", () => {
 
     it("returns 403 when the path escapes the project directory", async () => {
       const session = createMockSession();
-      setupProjectSession({
-        session: session as unknown as Electron.Session,
-        getProjectDirectory: () => "/project",
-      });
+      setupProjectSession(session as unknown as Electron.Session, () => "/project");
 
       const response = await callProtocol(session, "photo:///elsewhere/photo.jpg");
       expect(response?.status).toBe(403);
@@ -157,10 +142,7 @@ describe("setupProjectSession", () => {
       // can only resolve files inside this window's project, even if another window has another
       // project open — that other project is unknown here.
       const session = createMockSession();
-      setupProjectSession({
-        session: session as unknown as Electron.Session,
-        getProjectDirectory: () => "/project-a",
-      });
+      setupProjectSession(session as unknown as Electron.Session, () => "/project-a");
 
       const response = await callProtocol(session, "photo:///project-b/photo.jpg");
       expect(response?.status).toBe(403);
@@ -171,10 +153,7 @@ describe("setupProjectSession", () => {
         new Response("body", { status: 200, statusText: "OK", headers: { "X-Custom": "1" } }),
       );
       const session = createMockSession();
-      setupProjectSession({
-        session: session as unknown as Electron.Session,
-        getProjectDirectory: () => "/project",
-      });
+      setupProjectSession(session as unknown as Electron.Session, () => "/project");
 
       const response = await callProtocol(session, "photo:///project/photo.jpg");
 
@@ -188,10 +167,7 @@ describe("setupProjectSession", () => {
     it("re-evaluates the project directory on each request", async () => {
       let current: string | null = null;
       const session = createMockSession();
-      setupProjectSession({
-        session: session as unknown as Electron.Session,
-        getProjectDirectory: () => current,
-      });
+      setupProjectSession(session as unknown as Electron.Session, () => current);
 
       // First request: idle window, no project
       let response = await callProtocol(session, "photo:///project/photo.jpg");
@@ -206,10 +182,7 @@ describe("setupProjectSession", () => {
 
     it("returns 400 when the request URL cannot be parsed", async () => {
       const session = createMockSession();
-      setupProjectSession({
-        session: session as unknown as Electron.Session,
-        getProjectDirectory: () => "/project",
-      });
+      setupProjectSession(session as unknown as Electron.Session, () => "/project");
 
       const response = await callProtocol(session, "photo://not a valid url");
       expect(response?.status).toBe(400);
@@ -219,10 +192,7 @@ describe("setupProjectSession", () => {
   describe("DevTools extensions", () => {
     it("installs React and MobX devtools into the session in development", () => {
       const session = createMockSession();
-      setupProjectSession({
-        session: session as unknown as Electron.Session,
-        getProjectDirectory: () => "/project",
-      });
+      setupProjectSession(session as unknown as Electron.Session, () => "/project");
 
       expect(mockInstallExtension).toHaveBeenCalledWith(["react-id", "mobx-id"], {
         session,
@@ -232,10 +202,7 @@ describe("setupProjectSession", () => {
     it("skips DevTools installation when running under E2E", () => {
       process.env.E2E = "1";
       const session = createMockSession();
-      setupProjectSession({
-        session: session as unknown as Electron.Session,
-        getProjectDirectory: () => "/project",
-      });
+      setupProjectSession(session as unknown as Electron.Session, () => "/project");
 
       expect(mockInstallExtension).not.toHaveBeenCalled();
     });

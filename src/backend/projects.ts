@@ -39,12 +39,6 @@ import type {
 } from "@/types";
 
 /**
- * Builds the window title for a window with a project loaded.
- */
-export const buildProjectWindowTitle = (directory: string): string =>
-  `${path.basename(directory)} - ${DEFAULT_WINDOW_TITLE}`;
-
-/**
  * Validates that a filename does not escape the given directory via path traversal sequences.
  * Returns the resolved absolute path if valid, otherwise throws.
  */
@@ -79,7 +73,7 @@ const sendData = async (
   const projectFilePath = path.join(directory, PROJECT_FILE_NAME);
   setRepresentedProject(projectWindow, projectFilePath);
 
-  projectWindow.setTitle(buildProjectWindowTitle(directory));
+  projectWindow.setTitle(`${path.basename(directory)} - ${DEFAULT_WINDOW_TITLE}`);
   const payload: ProjectPayload = { body, directory };
   projectWindow.webContents.send(IPC_EVENTS.LOAD_PROJECT, payload);
   projectWindow.focus();

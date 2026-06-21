@@ -51,52 +51,36 @@ const focusIfAlreadyOpen = (directory: string): boolean => {
   return true;
 };
 
-interface ResolvedTarget {
-  /**
-   * True when this window was freshly spawned for the open. If the subsequent load fails,
-   * the caller should close it to avoid leaving the user stuck on a "loading" placeholder.
-   */
-  isFresh: boolean;
-  window: BrowserWindow;
-}
-
 /**
- * Returns the window into which the caller should load a project. When the sender already has a
- * project, spawns a fresh window mounted directly at the project route (so the user never sees
- * the index page first), otherwise reuses the sender, which is already on the index page.
+ * Returns [target window, isFresh]. When the sender already has a project, spawns a fresh window
+ * mounted directly at the project route (so the user never sees the index page first), otherwise
+ * reuses the sender. Only fresh windows should be closed by `closeFreshOnLoadFail` if the load
+ * doesn't register a project (the sender's own window stays alive either way).
  */
-const resolveTargetWindow = async (senderWindow: BrowserWindow): Promise<ResolvedTarget> => {
-  const senderHasProject = windowManager.getDirectoryForWindow(senderWindow) !== null;
-
-  if (senderHasProject) {
-    const window = await createProjectWindow({ initialRoute: ROUTES.PROJECT });
-    return { window, isFresh: true };
+const resolveTargetWindow = async (
+  senderWindow: BrowserWindow,
+): Promise<[BrowserWindow, boolean]> => {
+  if (windowManager.getDirectoryForWindow(senderWindow) !== null) {
+    return [await createProjectWindow({ initialRoute: ROUTES.PROJECT }), true];
   }
 
-  return { window: senderWindow, isFresh: false };
+  return [senderWindow, false];
 };
 
 /**
- * After attempting to load a project into a freshly-spawned window, close that window if the
- * load did not register a project. This avoids leaving the user stuck on the "Opening project"
- * loading overlay when the load fails (corrupt file, missing path, etc.). For non-fresh windows
- * (sender on index, or a reused idle window) we leave the window alone — the user was already
- * there and we should not close their window for them.
+ * Closes a freshly-spawned project window if the load did not register a project, avoiding the
+ * user being stuck on the "Opening project" overlay forever.
  */
-const closeIfLoadFailed = (target: ResolvedTarget): void => {
-  if (!target.isFresh) {
+const closeFreshOnLoadFail = (window: BrowserWindow, isFresh: boolean): void => {
+  if (!isFresh || window.isDestroyed()) {
     return;
   }
 
-  if (target.window.isDestroyed()) {
+  if (windowManager.getDirectoryForWindow(window) !== null) {
     return;
   }
 
-  if (windowManager.getDirectoryForWindow(target.window) !== null) {
-    return;
-  }
-
-  target.window.close();
+  window.close();
 };
 
 /**
@@ -105,7 +89,8 @@ const closeIfLoadFailed = (target: ResolvedTarget): void => {
  * behaviour stays in lockstep.
  */
 export const openProjectFolderForWindow = async (senderWindow: BrowserWindow): Promise<void> => {
-  let target: ResolvedTarget | undefined;
+  let target: BrowserWindow | undefined;
+  let isFresh = false;
 
   try {
     const directory = await promptForProjectFolder();
@@ -126,19 +111,19 @@ export const openProjectFolderForWindow = async (senderWindow: BrowserWindow): P
       return;
     }
 
-    target = await resolveTargetWindow(senderWindow);
+    [target, isFresh] = await resolveTargetWindow(senderWindow);
 
     if (choice === "existing") {
-      await loadExistingProject(target.window, directory);
+      await loadExistingProject(target, directory);
     } else {
-      await processProjectFolder(target.window, directory);
+      await processProjectFolder(target, directory);
     }
   } catch (error) {
     console.error("Failed to open folder:", error);
     dialog.showErrorBox("Failed to open folder", String(error));
   } finally {
     if (target) {
-      closeIfLoadFailed(target);
+      closeFreshOnLoadFail(target, isFresh);
     }
   }
 };
@@ -147,7 +132,8 @@ export const openProjectFolderForWindow = async (senderWindow: BrowserWindow): P
  * Shows the file picker and loads the chosen file into either the sender window or a new window.
  */
 export const openProjectFileForWindow = async (senderWindow: BrowserWindow): Promise<void> => {
-  let target: ResolvedTarget | undefined;
+  let target: BrowserWindow | undefined;
+  let isFresh = false;
 
   try {
     const filePath = await promptForProjectFile();
@@ -159,14 +145,14 @@ export const openProjectFileForWindow = async (senderWindow: BrowserWindow): Pro
       return;
     }
 
-    target = await resolveTargetWindow(senderWindow);
-    await handleOpenProjectFile(target.window, filePath);
+    [target, isFresh] = await resolveTargetWindow(senderWindow);
+    await handleOpenProjectFile(target, filePath);
   } catch (error) {
     console.error("Failed to open file:", error);
     dialog.showErrorBox("Failed to open file", String(error));
   } finally {
     if (target) {
-      closeIfLoadFailed(target);
+      closeFreshOnLoadFail(target, isFresh);
     }
   }
 };
@@ -200,17 +186,18 @@ export const handleOpenProjectFileInvoke = async (
     return;
   }
 
-  let target: ResolvedTarget | undefined;
+  let target: BrowserWindow | undefined;
+  let isFresh = false;
 
   try {
-    target = await resolveTargetWindow(senderWindow);
-    await handleOpenProjectFile(target.window, file);
+    [target, isFresh] = await resolveTargetWindow(senderWindow);
+    await handleOpenProjectFile(target, file);
   } catch (error) {
     console.error("Failed to open project file:", error);
     throw error;
   } finally {
     if (target) {
-      closeIfLoadFailed(target);
+      closeFreshOnLoadFail(target, isFresh);
     }
   }
 };
