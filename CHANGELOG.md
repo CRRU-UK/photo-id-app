@@ -1,5 +1,11 @@
 # photo-id
 
+## 1.0.1
+
+### Patch Changes
+
+- 824a7e3: Add recent projects and jump list tasks
+
 ## 1.0.0
 
 ### Major Changes
