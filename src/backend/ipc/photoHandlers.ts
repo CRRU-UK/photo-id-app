@@ -1,17 +1,16 @@
 import type { IpcMainInvokeEvent } from "electron";
 
 import { createPhotoThumbnail, revertPhotoToOriginal } from "@/backend/photos";
-import { getCurrentProjectDirectory, handleDuplicatePhotoFile } from "@/backend/projects";
+import { handleDuplicatePhotoFile } from "@/backend/projects";
 import { windowManager } from "@/backend/WindowManager";
 import { IPC_EVENTS } from "@/constants";
 import type { PhotoBody } from "@/types";
 
 export const handleSavePhotoFile = async (
-  _event: IpcMainInvokeEvent,
+  event: IpcMainInvokeEvent,
   data: PhotoBody,
 ): Promise<void> => {
-  const directory = getCurrentProjectDirectory();
-
+  const directory = windowManager.getDirectoryForSender(event.sender);
   if (directory === null) {
     throw new Error("No project open");
   }
@@ -23,18 +22,23 @@ export const handleSavePhotoFile = async (
     thumbnail,
   };
 
-  const mainWindow = windowManager.getMainWindow();
-  if (mainWindow) {
-    mainWindow.webContents.send(IPC_EVENTS.UPDATE_PHOTO, photoData);
+  /**
+   * Notify the parent project window (the one that owns this edit window) so its renderer
+   * refreshes the thumbnail. Other open project windows are unrelated and should not receive
+   * this event.
+   */
+  const projectWindow = windowManager.getProjectWindowForSender(event.sender);
+
+  if (projectWindow && !projectWindow.isDestroyed()) {
+    projectWindow.webContents.send(IPC_EVENTS.UPDATE_PHOTO, photoData);
   }
 };
 
 export const handleRevertPhotoFile = async (
-  _event: IpcMainInvokeEvent,
+  event: IpcMainInvokeEvent,
   data: PhotoBody,
 ): Promise<PhotoBody> => {
-  const directory = getCurrentProjectDirectory();
-
+  const directory = windowManager.getDirectoryForSender(event.sender);
   if (directory === null) {
     throw new Error("No project open");
   }
@@ -44,10 +48,15 @@ export const handleRevertPhotoFile = async (
 };
 
 export const handleDuplicatePhotoFileInvoke = async (
-  _event: IpcMainInvokeEvent,
+  event: IpcMainInvokeEvent,
   data: PhotoBody,
 ): Promise<PhotoBody> => {
-  const result = await handleDuplicatePhotoFile(data);
+  const directory = windowManager.getDirectoryForSender(event.sender);
+  if (directory === null) {
+    throw new Error("No project open");
+  }
+
+  const result = await handleDuplicatePhotoFile(directory, data);
   return result;
 };
 

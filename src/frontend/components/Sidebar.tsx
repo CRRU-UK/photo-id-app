@@ -12,6 +12,7 @@ import {
   ActionMenu,
   Button,
   FormControl,
+  Heading,
   IconButton,
   Stack as PrimerStack,
   SelectPanel,
@@ -24,10 +25,11 @@ import { useProject } from "@/contexts/ProjectContext";
 import { useSettings } from "@/contexts/SettingsContext";
 import DiscardedSelection from "@/frontend/components/DiscardedSelection";
 import MainSelection from "@/frontend/components/MainSelection";
+import { getProjectDirectoryName } from "@/helpers";
 import type { ExportTypes } from "@/types";
 
 interface SidebarProps {
-  onCloseProject: () => void;
+  onCloseProject: () => Promise<void>;
 }
 
 const Sidebar = observer(({ onCloseProject }: SidebarProps) => {
@@ -102,6 +104,8 @@ const Sidebar = observer(({ onCloseProject }: SidebarProps) => {
     }
   };
 
+  const projectName = getProjectDirectoryName(project.directory);
+
   return (
     <div className="sidebar" data-testid="sidebar">
       <PrimerStack
@@ -114,6 +118,21 @@ const Sidebar = observer(({ onCloseProject }: SidebarProps) => {
           minHeight: "100%",
         }}
       >
+        <Heading
+          as="h2"
+          data-testid="sidebar-project-name"
+          style={{
+            fontSize: "var(--text-title-size-small)",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+            width: "100%",
+          }}
+          title={project.directory}
+        >
+          {projectName}
+        </Heading>
+
         <MainSelection collection={project.unassigned} total={project.photoCount} />
         <DiscardedSelection collection={project.discarded} />
 

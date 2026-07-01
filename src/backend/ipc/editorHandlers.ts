@@ -2,7 +2,7 @@ import path from "node:path";
 import url from "node:url";
 import { BrowserWindow, dialog, type IpcMainEvent, type IpcMainInvokeEvent } from "electron";
 
-import { getCurrentProjectDirectory, handleEditorNavigate } from "@/backend/projects";
+import { handleEditorNavigate } from "@/backend/projects";
 import { windowManager } from "@/backend/WindowManager";
 import { IPC_EVENTS, ROUTES, UNSAVED_EDITS_MESSAGE } from "@/constants";
 import { encodeEditPayload } from "@/helpers";
@@ -25,9 +25,14 @@ const buildEditorWebPreferences = (base: Electron.WebPreferences): Electron.WebP
 });
 
 export const handleOpenEditWindow = (config: EditorConfig) => {
-  return (_event: IpcMainEvent, data: PhotoBody): void => {
-    const directory = getCurrentProjectDirectory();
+  return (event: IpcMainEvent, data: PhotoBody): void => {
+    const parentWindow = windowManager.getProjectWindowForSender(event.sender);
+    if (!parentWindow) {
+      console.error("Refused to open edit window: sender is not a project window");
+      return;
+    }
 
+    const directory = windowManager.getDirectoryForWindow(parentWindow);
     if (directory === null) {
       console.error("Refused to open edit window: no project open");
       return;
@@ -37,14 +42,18 @@ export const handleOpenEditWindow = (config: EditorConfig) => {
       show: false,
       width: 1200,
       height: 800,
-      webPreferences: buildEditorWebPreferences(config.defaultWebPreferences),
+      // Inherit the parent's session so `photo://` resolves against the parent project directory
+      webPreferences: {
+        ...buildEditorWebPreferences(config.defaultWebPreferences),
+        session: parentWindow.webContents.session,
+      },
       backgroundColor: "black",
       fullscreenable: false,
     });
 
     editWindow.removeMenu();
 
-    windowManager.addEditWindow(editWindow);
+    windowManager.addEditWindow(editWindow, parentWindow);
 
     if (!config.production && !process.env.E2E) {
       editWindow.webContents.openDevTools();
@@ -69,7 +78,11 @@ export const handleOpenEditWindow = (config: EditorConfig) => {
       );
     }
 
-    // Show a confirmation dialog when the renderer prevents unload due to unsaved edits
+    /**
+     * Show a confirmation dialog when the renderer prevents unload due to unsaved edits. On Cancel
+     * we explicitly signal the WindowManager so any pending cascade resolves without racing a
+     * timeout against `showMessageBoxSync`'s blocking call.
+     */
     editWindow.webContents.on("will-prevent-unload", (event) => {
       const response = dialog.showMessageBoxSync(editWindow, {
         type: "question",
@@ -82,7 +95,10 @@ export const handleOpenEditWindow = (config: EditorConfig) => {
 
       if (response === 0) {
         event.preventDefault();
+        return;
       }
+
+      windowManager.signalEditCancel(editWindow);
     });
 
     // Block navigation to arbitrary URLs so a compromised renderer cannot leave the app origin
@@ -104,17 +120,16 @@ export const handleOpenEditWindow = (config: EditorConfig) => {
 };
 
 export const handleNavigateEditorPhoto = async (
-  _event: IpcMainInvokeEvent,
+  event: IpcMainInvokeEvent,
   data: PhotoBody,
   direction: EditorNavigation,
 ): Promise<string | null> => {
-  const directory = getCurrentProjectDirectory();
-
+  const directory = windowManager.getDirectoryForSender(event.sender);
   if (directory === null) {
     throw new Error("No project open");
   }
 
-  const result = await handleEditorNavigate(data, direction);
+  const result = await handleEditorNavigate(directory, data, direction);
 
   if (!result) {
     console.warn("Photo not found in project for navigation");

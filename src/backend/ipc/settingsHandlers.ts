@@ -1,8 +1,7 @@
-import { type IpcMainEvent, type IpcMainInvokeEvent, shell } from "electron";
+import { BrowserWindow, type IpcMainEvent, type IpcMainInvokeEvent, shell } from "electron";
 
 import { broadcastToAllWindows, resolveExternalLinkUrl } from "@/backend/ipc/shared";
 import { getSettingsForRenderer, updateSettings } from "@/backend/settings";
-import { windowManager } from "@/backend/WindowManager";
 import { IPC_EVENTS } from "@/constants";
 import { settingsDataSchema } from "@/schemas";
 import type { ExternalLinks, SettingsData } from "@/types";
@@ -26,11 +25,11 @@ export const handleUpdateSettings = async (
 };
 
 export const handleOpenSettings = (): void => {
-  const mainWindow = windowManager.getMainWindow();
+  const targetWindow = BrowserWindow.getFocusedWindow();
 
-  if (mainWindow) {
-    mainWindow.focus();
-    mainWindow.webContents.send(IPC_EVENTS.OPEN_SETTINGS);
+  if (targetWindow) {
+    targetWindow.focus();
+    targetWindow.webContents.send(IPC_EVENTS.OPEN_SETTINGS);
   }
 };
 

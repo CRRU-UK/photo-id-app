@@ -1,72 +1,204 @@
 import path from "node:path";
-import { dialog, type IpcMainEvent, type IpcMainInvokeEvent, shell } from "electron";
+import {
+  type BrowserWindow,
+  dialog,
+  type IpcMainEvent,
+  type IpcMainInvokeEvent,
+  shell,
+} from "electron";
 
 import { handleExportMatches } from "@/backend/exports";
-import { closeCurrentProject, getWindowFromSender } from "@/backend/ipc/shared";
+import { focusExistingWindow } from "@/backend/ipc/shared";
 import { notifyRecentProjectsChanged } from "@/backend/menu";
 import {
-  getCurrentProjectDirectory,
+  checkExistingProjectChoice,
   handleFlushSaveProject,
-  handleOpenDirectoryPrompt,
-  handleOpenFilePrompt,
   handleOpenProjectFile,
   handleSaveProject,
+  loadExistingProject,
   parseProjectFile,
+  processProjectFolder,
+  promptForProjectFile,
+  promptForProjectFolder,
 } from "@/backend/projects";
 import { getRecentProjects, removeRecentProject } from "@/backend/recents";
-import { showProgressError } from "@/backend/shellIntegration";
+import { setRepresentedProject, showProgressError } from "@/backend/shellIntegration";
 import { windowManager } from "@/backend/WindowManager";
+import { createProjectWindow } from "@/backend/windows";
 import {
+  DEFAULT_WINDOW_TITLE,
   IPC_EVENTS,
   PROJECT_EXPORT_CSV_FILE_NAME,
   PROJECT_EXPORT_DATA_DIRECTORY,
   PROJECT_EXPORT_DIRECTORY,
   PROJECT_FILE_NAME,
+  ROUTES,
 } from "@/constants";
 import type { ExportTypes, ProjectPayload, RecentProject } from "@/types";
 
-export const handleOpenFolder = async (event: IpcMainEvent): Promise<void> => {
-  const window = getWindowFromSender(event.sender);
-  if (!window) {
+/**
+ * If the project at the given directory is already open in some window, focuses that window and
+ * returns true so the caller can short-circuit. Returns false otherwise.
+ */
+const focusIfAlreadyOpen = (directory: string): boolean => {
+  const existingWindow = windowManager.findWindowForProject(directory);
+  if (!existingWindow) {
+    return false;
+  }
+
+  focusExistingWindow(existingWindow);
+
+  return true;
+};
+
+/**
+ * Returns [target window, isFresh]. When the sender already has a project, spawns a fresh window
+ * mounted directly at the project route (so the user never sees the index page first), otherwise
+ * reuses the sender. Only fresh windows should be closed by `closeFreshOnLoadFail` if the load
+ * doesn't register a project (the sender's own window stays alive either way).
+ */
+const resolveTargetWindow = async (
+  senderWindow: BrowserWindow,
+): Promise<[BrowserWindow, boolean]> => {
+  if (windowManager.getDirectoryForWindow(senderWindow) !== null) {
+    return [await createProjectWindow({ initialRoute: ROUTES.PROJECT }), true];
+  }
+
+  return [senderWindow, false];
+};
+
+/**
+ * Closes a freshly-spawned project window if the load did not register a project, avoiding the
+ * user being stuck on the "Opening project" overlay forever.
+ */
+const closeFreshOnLoadFail = (window: BrowserWindow, isFresh: boolean): void => {
+  if (!isFresh || window.isDestroyed()) {
     return;
   }
 
+  if (windowManager.getDirectoryForWindow(window) !== null) {
+    return;
+  }
+
+  window.close();
+};
+
+/**
+ * Shows the folder picker and loads the chosen folder into either the sender window (if it has no
+ * project loaded) or a new window. Used by both the IPC handler and the application menu so
+ * behaviour stays in lockstep.
+ */
+export const openProjectFolderForWindow = async (senderWindow: BrowserWindow): Promise<void> => {
+  let target: BrowserWindow | undefined;
+  let isFresh = false;
+
   try {
-    await handleOpenDirectoryPrompt(window);
+    const directory = await promptForProjectFolder();
+    if (!directory) {
+      return;
+    }
+
+    if (focusIfAlreadyOpen(directory)) {
+      return;
+    }
+
+    /**
+     * Resolve the existing-data choice BEFORE creating a target window so the user can cancel
+     * without leaving an empty window behind.
+     */
+    const choice = await checkExistingProjectChoice(directory);
+    if (choice === "cancel") {
+      return;
+    }
+
+    [target, isFresh] = await resolveTargetWindow(senderWindow);
+
+    if (choice === "existing") {
+      await loadExistingProject(target, directory);
+    } else {
+      await processProjectFolder(target, directory);
+    }
   } catch (error) {
     console.error("Failed to open folder:", error);
     dialog.showErrorBox("Failed to open folder", String(error));
+  } finally {
+    if (target) {
+      closeFreshOnLoadFail(target, isFresh);
+    }
   }
 };
 
-export const handleOpenFile = async (event: IpcMainEvent): Promise<void> => {
-  const window = getWindowFromSender(event.sender);
-  if (!window) {
-    return;
-  }
+/**
+ * Shows the file picker and loads the chosen file into either the sender window or a new window.
+ */
+export const openProjectFileForWindow = async (senderWindow: BrowserWindow): Promise<void> => {
+  let target: BrowserWindow | undefined;
+  let isFresh = false;
 
   try {
-    await handleOpenFilePrompt(window);
+    const filePath = await promptForProjectFile();
+    if (!filePath) {
+      return;
+    }
+
+    if (focusIfAlreadyOpen(path.dirname(filePath))) {
+      return;
+    }
+
+    [target, isFresh] = await resolveTargetWindow(senderWindow);
+    await handleOpenProjectFile(target, filePath);
   } catch (error) {
     console.error("Failed to open file:", error);
     dialog.showErrorBox("Failed to open file", String(error));
+  } finally {
+    if (target) {
+      closeFreshOnLoadFail(target, isFresh);
+    }
   }
 };
 
+export const handleOpenFolder = async (event: IpcMainEvent): Promise<void> => {
+  const senderWindow = windowManager.getProjectWindowForSender(event.sender);
+  if (!senderWindow) {
+    return;
+  }
+  await openProjectFolderForWindow(senderWindow);
+};
+
+export const handleOpenFile = async (event: IpcMainEvent): Promise<void> => {
+  const senderWindow = windowManager.getProjectWindowForSender(event.sender);
+  if (!senderWindow) {
+    return;
+  }
+  await openProjectFileForWindow(senderWindow);
+};
+
 export const handleOpenProjectFileInvoke = async (
-  _event: IpcMainInvokeEvent,
+  event: IpcMainInvokeEvent,
   file: string,
 ): Promise<void> => {
-  const mainWindow = windowManager.getMainWindow();
-  if (!mainWindow) {
-    throw new Error("Main window not available");
+  const senderWindow = windowManager.getProjectWindowForSender(event.sender);
+  if (!senderWindow) {
+    throw new Error("Sender window not found");
   }
 
+  if (focusIfAlreadyOpen(path.dirname(file))) {
+    return;
+  }
+
+  let target: BrowserWindow | undefined;
+  let isFresh = false;
+
   try {
-    await handleOpenProjectFile(mainWindow, file);
+    [target, isFresh] = await resolveTargetWindow(senderWindow);
+    await handleOpenProjectFile(target, file);
   } catch (error) {
     console.error("Failed to open project file:", error);
     throw error;
+  } finally {
+    if (target) {
+      closeFreshOnLoadFail(target, isFresh);
+    }
   }
 };
 
@@ -86,8 +218,10 @@ export const handleRemoveRecentProject = async (
   return result;
 };
 
-export const handleGetCurrentProject = async (): Promise<ProjectPayload | null> => {
-  const directory = getCurrentProjectDirectory();
+export const handleGetCurrentProject = async (
+  event: IpcMainInvokeEvent,
+): Promise<ProjectPayload | null> => {
+  const directory = windowManager.getDirectoryForSender(event.sender);
 
   if (directory === null) {
     return null;
@@ -103,11 +237,16 @@ export const handleGetCurrentProject = async (): Promise<ProjectPayload | null> 
 };
 
 export const handleSaveProjectInvoke = async (
-  _event: IpcMainInvokeEvent,
+  event: IpcMainInvokeEvent,
   data: string,
 ): Promise<void> => {
+  const directory = windowManager.getDirectoryForSender(event.sender);
+  if (directory === null) {
+    throw new Error("No project open");
+  }
+
   try {
-    await handleSaveProject(data);
+    await handleSaveProject(directory, data);
   } catch (error) {
     console.error("Failed to save project:", error);
     throw error;
@@ -119,16 +258,20 @@ export const handleExportMatchesInvoke = async (
   data: string,
   type: ExportTypes,
 ): Promise<void> => {
-  const window = getWindowFromSender(event.sender);
-  if (!window) {
-    return;
+  const projectWindow = windowManager.getProjectWindowForSender(event.sender);
+  if (!projectWindow) {
+    throw new Error("No project window");
   }
 
-  let directory: string;
+  const directory = windowManager.getDirectoryForWindow(projectWindow);
+  if (directory === null) {
+    throw new Error("No project open");
+  }
+
   try {
-    directory = await handleExportMatches(window, data, type);
+    await handleExportMatches(projectWindow, directory, data, type);
   } catch (error) {
-    showProgressError(window);
+    showProgressError(projectWindow);
     throw error;
   }
 
@@ -146,8 +289,14 @@ export const handleExportMatchesInvoke = async (
 };
 
 export const handleFlushSaveProjectSync = (event: IpcMainEvent, data: string): void => {
+  const directory = windowManager.getDirectoryForSender(event.sender);
+  if (directory === null) {
+    event.returnValue = false;
+    return;
+  }
+
   try {
-    handleFlushSaveProject(data);
+    handleFlushSaveProject(directory, data);
     event.returnValue = true;
   } catch (error) {
     console.error("Failed to flush save project:", error);
@@ -155,10 +304,33 @@ export const handleFlushSaveProjectSync = (event: IpcMainEvent, data: string): v
   }
 };
 
+/**
+ * Closes the project for the sender's window: sequentially closes each edit window so the user
+ * can resolve unsaved edits, then clears the project state and resets the window title. The
+ * window itself stays open, the renderer is responsible for navigating back to the index page.
+ * If the user cancels an unsaved-edits prompt, the project state is left intact and the window
+ * stays on the project view.
+ */
+export const handleCloseProject = async (event: IpcMainInvokeEvent): Promise<boolean> => {
+  const senderWindow = windowManager.getProjectWindowForSender(event.sender);
+  if (!senderWindow || senderWindow.isDestroyed()) {
+    return false;
+  }
+
+  const closed = await windowManager.closeProjectInWindow(senderWindow);
+  if (!closed) {
+    return false;
+  }
+
+  senderWindow.setTitle(DEFAULT_WINDOW_TITLE);
+  setRepresentedProject(senderWindow, null);
+  return true;
+};
+
 export const registerProjectHandlers = (ipcMain: Electron.IpcMain): void => {
   ipcMain.on(IPC_EVENTS.OPEN_FOLDER, (event) => void handleOpenFolder(event));
   ipcMain.on(IPC_EVENTS.OPEN_FILE, (event) => void handleOpenFile(event));
-  ipcMain.on(IPC_EVENTS.CLOSE_PROJECT, () => closeCurrentProject());
+  ipcMain.handle(IPC_EVENTS.CLOSE_PROJECT, handleCloseProject);
   ipcMain.handle(IPC_EVENTS.OPEN_PROJECT_FILE, handleOpenProjectFileInvoke);
   ipcMain.handle(IPC_EVENTS.GET_RECENT_PROJECTS, handleGetRecentProjects);
   ipcMain.handle(IPC_EVENTS.REMOVE_RECENT_PROJECT, handleRemoveRecentProject);

@@ -62,7 +62,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
   saveProject: (data: string) => ipcRenderer.invoke(IPC_EVENTS.SAVE_PROJECT, data) as Promise<void>,
   flushSaveProject: (data: string): boolean =>
     ipcRenderer.sendSync(IPC_EVENTS.FLUSH_SAVE_PROJECT, data) as boolean,
-  closeProject: () => ipcRenderer.send(IPC_EVENTS.CLOSE_PROJECT),
+  closeProject: () => ipcRenderer.invoke(IPC_EVENTS.CLOSE_PROJECT) as Promise<boolean>,
   openEditWindow: (data: PhotoBody) => ipcRenderer.send(IPC_EVENTS.OPEN_EDIT_WINDOW, data),
   openExternalLink: (link: ExternalLinks) => ipcRenderer.send(IPC_EVENTS.OPEN_EXTERNAL_LINK, link),
   cancelAnalyseMatches: () => ipcRenderer.send(IPC_EVENTS.CANCEL_ANALYSE_MATCHES),

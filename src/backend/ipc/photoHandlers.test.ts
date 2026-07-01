@@ -16,20 +16,24 @@ vi.mock("@/backend/photos", () => ({
     mockRevertPhotoToOriginal(...args),
 }));
 
-const mockHandleDuplicatePhotoFile = vi.fn<(data: PhotoBody) => Promise<PhotoBody>>();
-const mockGetCurrentProjectDirectory = vi.fn<() => string | null>();
+const mockHandleDuplicatePhotoFile =
+  vi.fn<(directory: string, data: PhotoBody) => Promise<PhotoBody>>();
 
 vi.mock("@/backend/projects", () => ({
   handleDuplicatePhotoFile: (...args: Parameters<typeof mockHandleDuplicatePhotoFile>) =>
     mockHandleDuplicatePhotoFile(...args),
-  getCurrentProjectDirectory: () => mockGetCurrentProjectDirectory(),
 }));
 
-const mockGetMainWindow = vi.fn<() => BrowserWindow | null>();
+const mockGetDirectoryForSender = vi.fn<(webContents: Electron.WebContents) => string | null>();
+const mockGetProjectWindowForSender =
+  vi.fn<(webContents: Electron.WebContents) => BrowserWindow | null>();
 
 vi.mock("@/backend/WindowManager", () => ({
   windowManager: {
-    getMainWindow: () => mockGetMainWindow(),
+    getDirectoryForSender: (...args: Parameters<typeof mockGetDirectoryForSender>) =>
+      mockGetDirectoryForSender(...args),
+    getProjectWindowForSender: (...args: Parameters<typeof mockGetProjectWindowForSender>) =>
+      mockGetProjectWindowForSender(...args),
   },
 }));
 
@@ -37,12 +41,13 @@ const { handleSavePhotoFile, handleRevertPhotoFile, handleDuplicatePhotoFileInvo
   "./photoHandlers"
 );
 
-const mockEvent = {} as IpcMainInvokeEvent;
-
-const createMockWindow = (): BrowserWindow =>
+const createMockWindow = (overrides?: Partial<{ isDestroyed: boolean }>): BrowserWindow =>
   ({
+    isDestroyed: vi.fn<() => boolean>(() => overrides?.isDestroyed ?? false),
     webContents: { send: vi.fn<(channel: string, ...args: unknown[]) => void>() },
   }) as unknown as BrowserWindow;
+
+const createMockEvent = (): IpcMainInvokeEvent => ({ sender: {} }) as unknown as IpcMainInvokeEvent;
 
 const createMockPhotoBody = (overrides: Partial<PhotoBody> = {}): PhotoBody =>
   ({
@@ -56,39 +61,39 @@ const createMockPhotoBody = (overrides: Partial<PhotoBody> = {}): PhotoBody =>
 describe("photo IPC handlers", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockGetCurrentProjectDirectory.mockReturnValue("/project");
+    mockGetDirectoryForSender.mockReturnValue("/project");
   });
 
   describe(handleSavePhotoFile, () => {
-    it("generates a thumbnail and broadcasts the updated photo to the main window", async () => {
+    it("generates a thumbnail and notifies the parent project window", async () => {
       const photo = createMockPhotoBody();
-      const mockWindow = createMockWindow();
+      const projectWindow = createMockWindow();
       mockCreatePhotoThumbnail.mockResolvedValue("thumbnail.jpg");
-      mockGetMainWindow.mockReturnValue(mockWindow);
+      mockGetProjectWindowForSender.mockReturnValue(projectWindow);
 
-      await handleSavePhotoFile(mockEvent, photo);
+      await handleSavePhotoFile(createMockEvent(), photo);
 
       expect(mockCreatePhotoThumbnail).toHaveBeenCalledWith("/project", photo);
-      expect(mockWindow.webContents.send).toHaveBeenCalledWith(
+      expect(projectWindow.webContents.send).toHaveBeenCalledWith(
         "photos:updatePhoto",
         expect.objectContaining({ thumbnail: "thumbnail.jpg" }),
       );
     });
 
-    it("does not broadcast when there is no main window", async () => {
+    it("does not broadcast when no parent project window is found", async () => {
       const photo = createMockPhotoBody();
       mockCreatePhotoThumbnail.mockResolvedValue("thumbnail.jpg");
-      mockGetMainWindow.mockReturnValue(null);
+      mockGetProjectWindowForSender.mockReturnValue(null);
 
-      await handleSavePhotoFile(mockEvent, photo);
+      await handleSavePhotoFile(createMockEvent(), photo);
 
       expect(mockCreatePhotoThumbnail).toHaveBeenCalledWith("/project", photo);
     });
 
-    it("throws when no project is open", async () => {
-      mockGetCurrentProjectDirectory.mockReturnValue(null);
+    it("throws when no project is open for the sender", async () => {
+      mockGetDirectoryForSender.mockReturnValue(null);
 
-      await expect(handleSavePhotoFile(mockEvent, createMockPhotoBody())).rejects.toThrow(
+      await expect(handleSavePhotoFile(createMockEvent(), createMockPhotoBody())).rejects.toThrow(
         "No project open",
       );
     });
@@ -100,31 +105,39 @@ describe("photo IPC handlers", () => {
       const revertedPhoto = createMockPhotoBody({ isEdited: false });
       mockRevertPhotoToOriginal.mockResolvedValue(revertedPhoto);
 
-      const result = await handleRevertPhotoFile(mockEvent, photo);
+      const result = await handleRevertPhotoFile(createMockEvent(), photo);
 
       expect(mockRevertPhotoToOriginal).toHaveBeenCalledWith("/project", photo);
       expect(result).toBe(revertedPhoto);
     });
 
-    it("throws when no project is open", async () => {
-      mockGetCurrentProjectDirectory.mockReturnValue(null);
+    it("throws when no project is open for the sender", async () => {
+      mockGetDirectoryForSender.mockReturnValue(null);
 
-      await expect(handleRevertPhotoFile(mockEvent, createMockPhotoBody())).rejects.toThrow(
+      await expect(handleRevertPhotoFile(createMockEvent(), createMockPhotoBody())).rejects.toThrow(
         "No project open",
       );
     });
   });
 
   describe(handleDuplicatePhotoFileInvoke, () => {
-    it("duplicates the photo and returns the result", async () => {
+    it("duplicates the photo using the sender's directory and returns the result", async () => {
       const photo = createMockPhotoBody();
       const duplicatedPhoto = createMockPhotoBody({ name: "photo_copy.jpg" });
       mockHandleDuplicatePhotoFile.mockResolvedValue(duplicatedPhoto);
 
-      const result = await handleDuplicatePhotoFileInvoke(mockEvent, photo);
+      const result = await handleDuplicatePhotoFileInvoke(createMockEvent(), photo);
 
-      expect(mockHandleDuplicatePhotoFile).toHaveBeenCalledWith(photo);
+      expect(mockHandleDuplicatePhotoFile).toHaveBeenCalledWith("/project", photo);
       expect(result).toBe(duplicatedPhoto);
+    });
+
+    it("throws when no project is open for the sender", async () => {
+      mockGetDirectoryForSender.mockReturnValue(null);
+
+      await expect(
+        handleDuplicatePhotoFileInvoke(createMockEvent(), createMockPhotoBody()),
+      ).rejects.toThrow("No project open");
     });
   });
 });

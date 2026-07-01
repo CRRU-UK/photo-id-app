@@ -357,6 +357,10 @@ html[data-color-mode="light"] .project .photo-stack {
   background: rgba(0, 0, 0, 0.8);
 }
 
+.loading.transparent {
+  background: transparent;
+}
+
 .loading .text {
   font-family: var(--BaseStyles-fontFamily);
   font-size: var(--text-title-size-medium);

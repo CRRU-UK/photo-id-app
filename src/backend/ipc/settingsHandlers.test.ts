@@ -5,8 +5,12 @@ import { DEFAULT_SETTINGS } from "@/constants";
 import type { ExternalLinks, SettingsData } from "@/types";
 
 const mockOpenExternal = vi.fn<(url: string) => Promise<void>>();
+const mockGetFocusedWindow = vi.fn<() => BrowserWindow | null>();
 
 vi.mock("electron", () => ({
+  BrowserWindow: {
+    getFocusedWindow: () => mockGetFocusedWindow(),
+  },
   shell: {
     openExternal: (...args: Parameters<typeof mockOpenExternal>) => mockOpenExternal(...args),
   },
@@ -18,14 +22,6 @@ const mockUpdateSettings = vi.fn<(settings: SettingsData) => Promise<void>>();
 vi.mock("@/backend/settings", () => ({
   getSettingsForRenderer: () => mockGetSettingsForRenderer(),
   updateSettings: (...args: Parameters<typeof mockUpdateSettings>) => mockUpdateSettings(...args),
-}));
-
-const mockGetMainWindow = vi.fn<() => BrowserWindow | null>();
-
-vi.mock("@/backend/WindowManager", () => ({
-  windowManager: {
-    getMainWindow: () => mockGetMainWindow(),
-  },
 }));
 
 const mockBroadcastToAllWindows = vi.fn<(channel: string, data: unknown) => void>();
@@ -89,9 +85,9 @@ describe("settings IPC handlers", () => {
   });
 
   describe(handleOpenSettings, () => {
-    it("focuses the main window and sends the open settings event", () => {
+    it("focuses the currently-focused window and sends the open settings event", () => {
       const mockWindow = createMockWindow();
-      mockGetMainWindow.mockReturnValue(mockWindow);
+      mockGetFocusedWindow.mockReturnValue(mockWindow);
 
       handleOpenSettings();
 
@@ -99,8 +95,8 @@ describe("settings IPC handlers", () => {
       expect(mockWindow.webContents.send).toHaveBeenCalledWith("ui:openSettings");
     });
 
-    it("does nothing when there is no main window", () => {
-      mockGetMainWindow.mockReturnValue(null);
+    it("does nothing when there is no focused window", () => {
+      mockGetFocusedWindow.mockReturnValue(null);
 
       expect(() => handleOpenSettings()).not.toThrow();
     });
