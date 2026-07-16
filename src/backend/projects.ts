@@ -293,7 +293,7 @@ const prepareNewProject = async (
 
   flashWindow(mainWindow);
 
-  return sendData(mainWindow, data, directory);
+  return await sendData(mainWindow, data, directory);
 };
 
 /**
@@ -317,7 +317,7 @@ const handleOpenFilePrompt = async (mainWindow: Electron.BrowserWindow) => {
 
   try {
     const body = await parseProjectFile(file);
-    return sendData(mainWindow, body, path.dirname(file));
+    return await sendData(mainWindow, body, path.dirname(file));
   } catch (error) {
     console.error("Failed to open project file:", error);
     dialog.showErrorBox("Invalid project file", String(error));
@@ -349,7 +349,7 @@ const handleOpenProjectFile = async (mainWindow: Electron.BrowserWindow, file: s
 
   try {
     const body = await parseProjectFile(file);
-    return sendData(mainWindow, body, path.dirname(file));
+    return await sendData(mainWindow, body, path.dirname(file));
   } catch (error) {
     console.error("Failed to open project file:", error);
     dialog.showErrorBox("Invalid project file", String(error));
