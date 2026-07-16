@@ -337,7 +337,7 @@ const prepareNewProject = async (
 
   flashWindow(projectWindow);
 
-  return sendData(projectWindow, data, directory);
+  return await sendData(projectWindow, data, directory);
 };
 
 /**
@@ -366,7 +366,7 @@ const handleOpenProjectFile = async (projectWindow: Electron.BrowserWindow, file
 
   try {
     const body = await parseProjectFile(file);
-    return sendData(projectWindow, body, directory);
+    return await sendData(projectWindow, body, directory);
   } catch (error) {
     windowManager.clearProject(projectWindow);
     console.error("Failed to open project file:", error);
