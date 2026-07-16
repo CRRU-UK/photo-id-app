@@ -20,7 +20,7 @@ jobs:
         with:
           token: ${{ secrets.PUBLISH_GITHUB_TOKEN }}
 
-      - uses: actions/setup-node@v6.4.0
+      - uses: actions/setup-node@v7.0.0
         with:
           # Pinned: Node 24.16.0 broke @electron/get's binary download (silent
           # exit 0). Bisected to nodejs/node#63082 in the 24.16.0 release.
