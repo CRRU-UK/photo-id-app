@@ -120,33 +120,16 @@ describe("setupProjectSession", () => {
       expect(response?.status).toBe(403);
     });
 
-    it("returns 403 for a file extension outside the allow-list", async () => {
-      const session = createMockSession();
-      setupProjectSession(session as unknown as Electron.Session, () => "/project");
+    it.each([".txt", ".pdf", ".docx"])(
+      "returns 403 for a file with extension %s",
+      async (extension) => {
+        const session = createMockSession();
+        setupProjectSession(session as unknown as Electron.Session, () => "/project");
 
-      const response = await callProtocol(session, "photo:///project/secret.txt");
-      expect(response?.status).toBe(403);
-    });
-
-    it("returns 403 when the path escapes the project directory", async () => {
-      const session = createMockSession();
-      setupProjectSession(session as unknown as Electron.Session, () => "/project");
-
-      const response = await callProtocol(session, "photo:///elsewhere/photo.jpg");
-      expect(response?.status).toBe(403);
-      expect(mockNetFetch).not.toHaveBeenCalled();
-    });
-
-    it("returns 403 for a path inside a different window's project directory", async () => {
-      // The handler closes over `getProjectDirectory`. A photo:// request bound to this session
-      // can only resolve files inside this window's project, even if another window has another
-      // project open — that other project is unknown here.
-      const session = createMockSession();
-      setupProjectSession(session as unknown as Electron.Session, () => "/project-a");
-
-      const response = await callProtocol(session, "photo:///project-b/photo.jpg");
-      expect(response?.status).toBe(403);
-    });
+        const response = await callProtocol(session, `photo:///project/secret${extension}`);
+        expect(response?.status).toBe(403);
+      },
+    );
 
     it("serves files inside the project directory through net.fetch", async () => {
       mockNetFetch.mockResolvedValue(

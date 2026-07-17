@@ -640,34 +640,21 @@ describe(checkExistingProjectChoice, () => {
     expect(result).toBe("new");
   });
 
-  it("returns 'existing' when the user chooses to open existing data", async () => {
+  it.each([
+    ["existing", 1],
+    ["new", 2],
+    ["cancel", 0],
+  ])("returns '%s' when dialog response is %i", async (expected, response) => {
     const { dialog } = await import("electron");
     mockReaddir.mockResolvedValue([PROJECT_FILE_NAME, "photo.jpg"]);
-    vi.mocked(dialog.showMessageBox).mockResolvedValue({ response: 1, checkboxChecked: false });
+    vi.mocked(dialog.showMessageBox).mockResolvedValue({
+      response: response,
+      checkboxChecked: false,
+    });
 
     const result = await checkExistingProjectChoice("/my/project");
 
-    expect(result).toBe("existing");
-  });
-
-  it("returns 'new' when the user chooses to replace existing data", async () => {
-    const { dialog } = await import("electron");
-    mockReaddir.mockResolvedValue([PROJECT_FILE_NAME, "photo.jpg"]);
-    vi.mocked(dialog.showMessageBox).mockResolvedValue({ response: 2, checkboxChecked: false });
-
-    const result = await checkExistingProjectChoice("/my/project");
-
-    expect(result).toBe("new");
-  });
-
-  it("returns 'cancel' when the user cancels the dialog", async () => {
-    const { dialog } = await import("electron");
-    mockReaddir.mockResolvedValue([PROJECT_FILE_NAME, "photo.jpg"]);
-    vi.mocked(dialog.showMessageBox).mockResolvedValue({ response: 0, checkboxChecked: false });
-
-    const result = await checkExistingProjectChoice("/my/project");
-
-    expect(result).toBe("cancel");
+    expect(result).toBe(expected);
   });
 });
 
