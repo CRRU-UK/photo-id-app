@@ -63,8 +63,16 @@ export const createProjectWindow = async (
 ): Promise<BrowserWindow> => {
   const initialRoute = options.initialRoute ?? ROUTES.INDEX;
 
-  // Persistent partition (the `persist:` prefix is required for DevTools extensions to load)
-  const projectSession = session.fromPartition(`persist:project-${++projectSessionCounter}`);
+  /**
+   * Each window gets its own partition. Dev needs the `persist:` prefix for DevTools extensions to
+   * load. Production uses an in-memory partition so partition directories don't accumulate on disk
+   * and a recycled counter slot can't leak one project's renderer state into another next launch.
+   */
+  const partitionName =
+    !production && !process.env.E2E
+      ? `persist:project-${++projectSessionCounter}`
+      : `project-${++projectSessionCounter}`;
+  const projectSession = session.fromPartition(partitionName);
 
   const window = new BrowserWindow({
     width: 1200,
@@ -82,6 +90,12 @@ export const createProjectWindow = async (
 
     window.show();
   });
+
+  /**
+   * Clear any taskbar/dock attention flash (set by flashWindow after project preparation) once the
+   * user focuses the window.
+   */
+  window.on("focus", () => window.flashFrame(false));
 
   windowManager.registerProjectWindow(window);
 

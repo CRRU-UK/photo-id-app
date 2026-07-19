@@ -56,6 +56,39 @@ export const focusExistingWindow = (window: BrowserWindow): void => {
 };
 
 /**
+ * If the project at the given directory is already open in some window, focuses that window and
+ * returns true so the caller can short-circuit. Returns false otherwise. Shared by the in-app
+ * open flow (`projectHandlers`) and the file-association / argv flow (`openProjectFromPath`).
+ */
+export const focusIfAlreadyOpen = (directory: string): boolean => {
+  const existingWindow = windowManager.findWindowForProject(directory);
+  if (!existingWindow) {
+    return false;
+  }
+
+  focusExistingWindow(existingWindow);
+
+  return true;
+};
+
+/**
+ * Closes a freshly-spawned project window if the load did not register a project, avoiding the
+ * user being stuck on the "Opening project" overlay forever. Only fresh windows are closed, a
+ * reused window (sender on index, or an idle window) is left alone.
+ */
+export const closeFreshOnLoadFail = (window: BrowserWindow, isFresh: boolean): void => {
+  if (!isFresh || window.isDestroyed()) {
+    return;
+  }
+
+  if (windowManager.getDirectoryForWindow(window) !== null) {
+    return;
+  }
+
+  window.close();
+};
+
+/**
  * Opens a project file from a file path. If the project is already open in a window, that window
  * is focused instead. Otherwise, an idle (empty) window is reused if available, or a fresh window
  * is spawned mounted directly at the project route. If the load fails on a freshly-spawned
@@ -77,23 +110,18 @@ export const openProjectFromPath = async (filePath: string): Promise<void> => {
 
   const directory = path.dirname(filePath);
 
-  const existingWindow = windowManager.findWindowForProject(directory);
-  if (existingWindow) {
-    focusExistingWindow(existingWindow);
+  if (focusIfAlreadyOpen(directory)) {
     return;
   }
 
   const idleWindow = windowManager.findIdleProjectWindow();
+  const isFresh = !idleWindow;
   const targetWindow = idleWindow ?? (await createProjectWindow({ initialRoute: ROUTES.PROJECT }));
 
   await handleOpenProjectFile(targetWindow, filePath);
 
-  if (
-    !idleWindow &&
-    !targetWindow.isDestroyed() &&
-    windowManager.getDirectoryForWindow(targetWindow) === null
-  ) {
-    targetWindow.close();
+  if (windowManager.getDirectoryForWindow(targetWindow) === null) {
+    closeFreshOnLoadFail(targetWindow, isFresh);
     return;
   }
 

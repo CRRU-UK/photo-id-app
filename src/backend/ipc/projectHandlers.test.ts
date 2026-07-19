@@ -78,6 +78,7 @@ const mockGetDirectoryForWindow = vi.fn<(window: BrowserWindow) => string | null
 const mockFindWindowForProject = vi.fn<(directory: string) => BrowserWindow | null>();
 const mockClearProject = vi.fn<(window: BrowserWindow) => void>();
 const mockCloseProjectInWindow = vi.fn<(window: BrowserWindow) => Promise<boolean>>();
+const mockIsProjectLoading = vi.fn<(window: BrowserWindow) => boolean>();
 
 vi.mock("@/backend/WindowManager", () => ({
   windowManager: {
@@ -92,6 +93,8 @@ vi.mock("@/backend/WindowManager", () => ({
     clearProject: (...args: Parameters<typeof mockClearProject>) => mockClearProject(...args),
     closeProjectInWindow: (...args: Parameters<typeof mockCloseProjectInWindow>) =>
       mockCloseProjectInWindow(...args),
+    isProjectLoading: (...args: Parameters<typeof mockIsProjectLoading>) =>
+      mockIsProjectLoading(...args),
   },
 }));
 
@@ -106,11 +109,33 @@ const mockGetWindowFromSender =
   vi.fn<(webContents: Electron.WebContents) => BrowserWindow | null>();
 const mockFocusExistingWindow = vi.fn<(window: BrowserWindow) => void>();
 
+/**
+ * `focusIfAlreadyOpen` and `closeFreshOnLoadFail` live in ./shared but only depend on the (mocked)
+ * windowManager, so the mock replicates their real logic, tests keep driving behaviour via
+ * mockFindWindowForProject / mockGetDirectoryForWindow as before.
+ */
 vi.mock("./shared", () => ({
   getWindowFromSender: (...args: Parameters<typeof mockGetWindowFromSender>) =>
     mockGetWindowFromSender(...args),
   focusExistingWindow: (...args: Parameters<typeof mockFocusExistingWindow>) =>
     mockFocusExistingWindow(...args),
+  focusIfAlreadyOpen: (directory: string) => {
+    const existing = mockFindWindowForProject(directory);
+    if (!existing) {
+      return false;
+    }
+    mockFocusExistingWindow(existing);
+    return true;
+  },
+  closeFreshOnLoadFail: (window: BrowserWindow, isFresh: boolean) => {
+    if (!isFresh || window.isDestroyed()) {
+      return;
+    }
+    if (mockGetDirectoryForWindow(window) !== null) {
+      return;
+    }
+    window.close();
+  },
 }));
 
 vi.mock("@/backend/menu", () => ({
@@ -460,30 +485,48 @@ describe("project IPC handlers", () => {
   });
 
   describe(handleGetCurrentProject, () => {
-    it("returns null when the sender has no project", async () => {
-      mockGetDirectoryForSender.mockReturnValue(null);
+    it("returns null when the sender has no project window", async () => {
+      mockGetProjectWindowForSender.mockReturnValue(null);
 
       const result = await handleGetCurrentProject(createMockInvokeEvent(null));
 
       expect(result).toBeNull();
     });
 
+    it("returns null while the project is still loading", async () => {
+      const window = createMockWindow();
+      mockGetProjectWindowForSender.mockReturnValue(window);
+      mockIsProjectLoading.mockReturnValue(true);
+      mockGetDirectoryForWindow.mockReturnValue("/project/dir");
+
+      const result = await handleGetCurrentProject(createMockInvokeEvent(window));
+
+      expect(result).toBeNull();
+      expect(mockParseProjectFile).not.toHaveBeenCalled();
+    });
+
     it("parses and returns the current project for the sender", async () => {
-      mockGetDirectoryForSender.mockReturnValue("/project/dir");
+      const window = createMockWindow();
+      mockGetProjectWindowForSender.mockReturnValue(window);
+      mockIsProjectLoading.mockReturnValue(false);
+      mockGetDirectoryForWindow.mockReturnValue("/project/dir");
       const mockProject = { version: "v1", id: "test" } as unknown as ProjectBody;
       mockParseProjectFile.mockResolvedValue(mockProject);
 
-      const result = await handleGetCurrentProject(createMockInvokeEvent(null));
+      const result = await handleGetCurrentProject(createMockInvokeEvent(window));
 
       expect(mockParseProjectFile).toHaveBeenCalledWith("/project/dir/project.photoid");
       expect(result).toStrictEqual({ body: mockProject, directory: "/project/dir" });
     });
 
     it("returns null when parsing fails", async () => {
-      mockGetDirectoryForSender.mockReturnValue("/project/dir");
+      const window = createMockWindow();
+      mockGetProjectWindowForSender.mockReturnValue(window);
+      mockIsProjectLoading.mockReturnValue(false);
+      mockGetDirectoryForWindow.mockReturnValue("/project/dir");
       mockParseProjectFile.mockRejectedValue(new Error("invalid JSON"));
 
-      const result = await handleGetCurrentProject(createMockInvokeEvent(null));
+      const result = await handleGetCurrentProject(createMockInvokeEvent(window));
 
       expect(result).toBeNull();
     });

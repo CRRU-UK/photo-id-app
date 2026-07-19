@@ -1,13 +1,23 @@
+import fs from "node:fs";
 import path from "node:path";
 import { app, BrowserWindow } from "electron";
 
 /**
- * Normalises a directory path for comparison: resolves `..`/trailing separators, and on Windows
- * lower-cases the result (NTFS is case-insensitive by default, so `C:\Foo` and `c:\foo` refer to
- * the same location). POSIX paths are case-sensitive and returned as-is.
+ * Normalises a directory path for comparison: resolves `..`/trailing separators and symlinks so
+ * the same project opened via a symlink and its real path is recognised as one project, and on
+ * Windows lower-cases the result (NTFS is case-insensitive by default, so `C:\Foo` and `c:\foo`
+ * refer to the same location). POSIX paths are case-sensitive and returned as-is.
  */
 const normaliseDirectory = (directory: string): string => {
-  const resolved = path.resolve(directory);
+  let resolved = path.resolve(directory);
+
+  try {
+    // Resolve symlinks so `~/Dropbox/whales` and the recents-list real path dedupe to one window
+    resolved = fs.realpathSync.native(resolved);
+  } catch {
+    // Path may not exist yet (e.g. a directory reserved mid-load), fall back to the resolved path
+  }
+
   return process.platform === "win32" ? resolved.toLowerCase() : resolved;
 };
 
@@ -20,6 +30,9 @@ class WindowManager {
   private readonly editWindowParents = new Map<number, number>();
   private readonly editWindowsById = new Map<number, BrowserWindow>();
   private readonly editCloseResolvers = new Map<number, (closed: boolean) => void>();
+  private readonly editClosePromises = new Map<number, Promise<boolean>>();
+  private readonly loadingWindowIds = new Set<number>();
+  private readonly closingProjectIds = new Set<number>();
   private isQuitting = false;
 
   constructor() {
@@ -71,6 +84,8 @@ class WindowManager {
       this.closeEditWindowsForProject(window);
       this.projectWindowsById.delete(id);
       this.projectDirectories.delete(id);
+      this.loadingWindowIds.delete(id);
+      this.closingProjectIds.delete(id);
     });
   }
 
@@ -87,28 +102,34 @@ class WindowManager {
     editWindows: BrowserWindow[],
     wasQuitting: boolean,
   ): Promise<void> => {
-    for (const editWindow of editWindows) {
-      const closed = await this.tryCloseEditWindow(editWindow);
-      if (!closed) {
-        // Tell any concurrent cascades that the quit has been vetoed by the user
-        this.isQuitting = false;
-        return;
+    this.closingProjectIds.add(parentWindow.id);
+
+    try {
+      for (const editWindow of editWindows) {
+        const closed = await this.tryCloseEditWindow(editWindow);
+        if (!closed) {
+          // Tell any concurrent cascades that the quit has been vetoed by the user
+          this.isQuitting = false;
+          return;
+        }
       }
-    }
 
-    if (!parentWindow.isDestroyed()) {
-      parentWindow.close();
-    }
+      if (!parentWindow.isDestroyed()) {
+        parentWindow.close();
+      }
 
-    /**
-     * Only re-fire `app.quit()` if this cascade started under a quit AND no concurrent cascade has
-     * since cancelled it. Without the `isQuitting` recheck, a sibling cascade's cancel wouldn't
-     * prevent us re-firing the quit, Electron would then re-trigger close events on the vetoing
-     * window and prompt the user again.
-     */
-    if (wasQuitting && this.isQuitting) {
-      this.isQuitting = false;
-      app.quit();
+      /**
+       * Only re-fire `app.quit()` if this cascade started under a quit AND no concurrent cascade
+       * has since cancelled it. Without the `isQuitting` recheck, a sibling cascade's cancel
+       * wouldn't prevent us re-firing the quit, Electron would then re-trigger close events on the
+       * vetoing window and prompt the user again.
+       */
+      if (wasQuitting && this.isQuitting) {
+        this.isQuitting = false;
+        app.quit();
+      }
+    } finally {
+      this.closingProjectIds.delete(parentWindow.id);
     }
   };
 
@@ -118,19 +139,29 @@ class WindowManager {
    * by `editorHandlers` via `signalEditCancel`. The previous timeout-based inference fired the
    * cancel signal whenever `showMessageBoxSync` blocked the main thread longer than 250 ms
    * (i.e. on every realistic dialog interaction).
+   *
+   * Concurrent callers (the window-close cascade and the "close project" IPC can target the same
+   * edit window) share one in-flight close via `editClosePromises`. Without this, the second
+   * caller's resolver would overwrite the first's and strand the first promise unresolved.
    */
   private readonly tryCloseEditWindow = (editWindow: BrowserWindow): Promise<boolean> => {
-    return new Promise((resolve) => {
-      if (editWindow.isDestroyed()) {
-        resolve(true);
-        return;
-      }
+    if (editWindow.isDestroyed()) {
+      return Promise.resolve(true);
+    }
 
-      const id = editWindow.id;
+    const id = editWindow.id;
+
+    const inFlight = this.editClosePromises.get(id);
+    if (inFlight) {
+      return inFlight;
+    }
+
+    const promise = new Promise<boolean>((resolve) => {
       const onClosed = () => settle(true);
 
       const settle = (value: boolean) => {
         this.editCloseResolvers.delete(id);
+        this.editClosePromises.delete(id);
         editWindow.off("closed", onClosed);
         resolve(value);
       };
@@ -139,6 +170,9 @@ class WindowManager {
       editWindow.once("closed", onClosed);
       editWindow.close();
     });
+
+    this.editClosePromises.set(id, promise);
+    return promise;
   };
 
   /**
@@ -151,7 +185,23 @@ class WindowManager {
   }
 
   /**
-   * Assigns a directory to a registered window. No-op if the window isn't registered.
+   * Reserves a directory for a window whose project is still loading (thumbnail generation, file
+   * parse). The window matches `findWindowForProject` (so a concurrent open of the same folder
+   * focuses this window instead of starting a second copy) but `isProjectLoading` stays true until
+   * `setProject` commits the loaded project, so `handleGetCurrentProject` won't serve a stale or
+   * not-yet-written `project.photoid`. No-op if the window isn't registered.
+   */
+  reserveProjectLoading(window: BrowserWindow, directory: string): void {
+    if (!this.projectWindowsById.has(window.id)) {
+      return;
+    }
+
+    this.projectDirectories.set(window.id, directory);
+    this.loadingWindowIds.add(window.id);
+  }
+
+  /**
+   * Commits a loaded project to a registered window. No-op if the window isn't registered.
    */
   setProject(window: BrowserWindow, directory: string): void {
     if (!this.projectWindowsById.has(window.id)) {
@@ -159,6 +209,19 @@ class WindowManager {
     }
 
     this.projectDirectories.set(window.id, directory);
+    this.loadingWindowIds.delete(window.id);
+  }
+
+  isProjectLoading(window: BrowserWindow): boolean {
+    return this.loadingWindowIds.has(window.id);
+  }
+
+  /**
+   * True while a "close project" / window-close cascade is in flight for this project window, so
+   * callers (e.g. opening an edit window) can refuse to start work that the cascade won't see.
+   */
+  isClosingProject(window: BrowserWindow): boolean {
+    return this.closingProjectIds.has(window.id);
   }
 
   /**
@@ -169,6 +232,7 @@ class WindowManager {
    */
   clearProject(window: BrowserWindow): void {
     this.closeEditWindowsForProject(window);
+    this.loadingWindowIds.delete(window.id);
 
     if (this.projectWindowsById.has(window.id)) {
       this.projectDirectories.set(window.id, null);
@@ -184,19 +248,25 @@ class WindowManager {
    */
   async closeProjectInWindow(window: BrowserWindow): Promise<boolean> {
     const editWindows = this.getEditWindowsForProject(window);
+    this.closingProjectIds.add(window.id);
 
-    for (const editWindow of editWindows) {
-      const closed = await this.tryCloseEditWindow(editWindow);
-      if (!closed) {
-        return false;
+    try {
+      for (const editWindow of editWindows) {
+        const closed = await this.tryCloseEditWindow(editWindow);
+        if (!closed) {
+          return false;
+        }
       }
-    }
 
-    if (this.projectWindowsById.has(window.id)) {
-      this.projectDirectories.set(window.id, null);
-    }
+      if (this.projectWindowsById.has(window.id)) {
+        this.projectDirectories.set(window.id, null);
+        this.loadingWindowIds.delete(window.id);
+      }
 
-    return true;
+      return true;
+    } finally {
+      this.closingProjectIds.delete(window.id);
+    }
   }
 
   getDirectoryForWindow(window: BrowserWindow): string | null {
@@ -283,16 +353,6 @@ class WindowManager {
     }
 
     return null;
-  }
-
-  hasOpenProjectWindows(): boolean {
-    for (const window of this.projectWindowsById.values()) {
-      if (!window.isDestroyed()) {
-        return true;
-      }
-    }
-
-    return false;
   }
 
   /**

@@ -153,18 +153,22 @@ const handleStartupArgv = async (argv: string[]): Promise<void> => {
 app.on("open-file", async (event, filePath) => {
   event.preventDefault();
 
-  if (windowManager.hasOpenProjectWindows()) {
-    try {
-      await openProjectFromPath(filePath);
-    } catch (error) {
-      console.error("Failed to open project from file:", error);
-      dialog.showErrorBox("Failed to open project", String(error));
-    }
-
+  /**
+   * Before the app is ready, `openProjectFromPath` can't create a window, so queue for the
+   * whenReady drain. Once ready, open directly (spawning a window if none are open), otherwise a
+   * file opened with all windows closed would be queued and never drained again.
+   */
+  if (!app.isReady()) {
+    pendingFilePaths.push(filePath);
     return;
   }
 
-  pendingFilePaths.push(filePath);
+  try {
+    await openProjectFromPath(filePath);
+  } catch (error) {
+    console.error("Failed to open project from file:", error);
+    dialog.showErrorBox("Failed to open project", String(error));
+  }
 });
 
 /**
@@ -172,6 +176,18 @@ app.on("open-file", async (event, filePath) => {
  * List task argv flags.
  */
 app.on("second-instance", async (_event, argv) => {
+  /**
+   * A second launch can race the first instance's startup as `handleStartupArgv` creates a window,
+   * which throws before the app is ready. Queue the file path for the whenReady drain instead.
+   */
+  if (!app.isReady()) {
+    const filePath = findProjectFileArg(argv);
+    if (filePath) {
+      pendingFilePaths.push(filePath);
+    }
+    return;
+  }
+
   try {
     await handleStartupArgv(argv);
   } catch (error) {

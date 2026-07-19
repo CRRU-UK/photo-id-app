@@ -176,17 +176,6 @@ describe("windowManager", () => {
 
       expect(windowManager.findIdleProjectWindow()).toBeNull();
     });
-
-    it("hasOpenProjectWindows is true when any registered window exists", () => {
-      const window = createMockBrowserWindow();
-      windowManager.registerProjectWindow(window);
-
-      expect(windowManager.hasOpenProjectWindows()).toBe(true);
-    });
-
-    it("hasOpenProjectWindows is false when none are registered", () => {
-      expect(windowManager.hasOpenProjectWindows()).toBe(false);
-    });
   });
 
   describe("findWindowForProject", () => {
@@ -607,6 +596,71 @@ describe("windowManager", () => {
 
       expect(result).toBe(true);
       expect(windowManager.getDirectoryForWindow(projectWindow)).toBeNull();
+    });
+
+    it("reports isClosingProject during the cascade and clears it after", async () => {
+      const projectWindow = createMockBrowserWindow();
+      const editWindow = createMockBrowserWindow();
+      windowManager.registerProjectWindow(projectWindow);
+      windowManager.addEditWindow(editWindow, projectWindow);
+
+      const resultPromise = windowManager.closeProjectInWindow(projectWindow);
+      expect(windowManager.isClosingProject(projectWindow)).toBe(true);
+
+      editWindow.triggerClosed();
+      await resultPromise;
+
+      expect(windowManager.isClosingProject(projectWindow)).toBe(false);
+    });
+
+    it("asks a shared edit window to close only once across concurrent cascades", async () => {
+      const projectWindow = createMockBrowserWindow();
+      const editWindow = createMockBrowserWindow();
+      windowManager.registerProjectWindow(projectWindow);
+      windowManager.setProject(projectWindow, "/project");
+      windowManager.addEditWindow(editWindow, projectWindow);
+
+      // IPC "close project" and the window-close cascade run against the same edit window.
+      const ipcClose = windowManager.closeProjectInWindow(projectWindow);
+      projectWindow.triggerClose();
+
+      expect(editWindow.close).toHaveBeenCalledTimes(1);
+
+      editWindow.triggerClosed();
+      await expect(ipcClose).resolves.toBe(true);
+    });
+  });
+
+  describe("project loading state", () => {
+    it("marks a reserved directory as loading until setProject commits", () => {
+      const window = createMockBrowserWindow();
+      windowManager.registerProjectWindow(window);
+
+      windowManager.reserveProjectLoading(window, "/my/project");
+      expect(windowManager.getDirectoryForWindow(window)).toBe("/my/project");
+      expect(windowManager.isProjectLoading(window)).toBe(true);
+
+      windowManager.setProject(window, "/my/project");
+      expect(windowManager.isProjectLoading(window)).toBe(false);
+    });
+
+    it("still matches a loading window in findWindowForProject (reservation)", () => {
+      const window = createMockBrowserWindow();
+      windowManager.registerProjectWindow(window);
+      windowManager.reserveProjectLoading(window, "/project/a");
+
+      expect(windowManager.findWindowForProject("/project/a")).toBe(window);
+    });
+
+    it("clears the loading flag when the project is cleared", () => {
+      const window = createMockBrowserWindow();
+      windowManager.registerProjectWindow(window);
+      windowManager.reserveProjectLoading(window, "/my/project");
+
+      windowManager.clearProject(window);
+
+      expect(windowManager.isProjectLoading(window)).toBe(false);
+      expect(windowManager.getDirectoryForWindow(window)).toBeNull();
     });
   });
 });

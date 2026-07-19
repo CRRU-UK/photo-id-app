@@ -10,6 +10,14 @@ import type { LoadingData } from "@/types";
  * IPC to the renderer and mirrors the same state to the OS taskbar/dock progress bar.
  */
 export const sendLoading = (window: BrowserWindow, data: LoadingData): void => {
+  /**
+   * The window can be closed mid-operation (e.g. during long thumbnail generation), touching a
+   * destroyed window's webContents/progress bar throws "Object has been destroyed".
+   */
+  if (window.isDestroyed()) {
+    return;
+  }
+
   window.webContents.send(IPC_EVENTS.SET_LOADING, data);
 
   if (!data.show) {
@@ -32,6 +40,10 @@ export const sendLoading = (window: BrowserWindow, data: LoadingData): void => {
  * imports) without leaving the user stuck behind the overlay.
  */
 export const showProgressError = (window: BrowserWindow): void => {
+  if (window.isDestroyed()) {
+    return;
+  }
+
   window.webContents.send(IPC_EVENTS.SET_LOADING, { show: false });
   window.setProgressBar(1, { mode: "error" });
 

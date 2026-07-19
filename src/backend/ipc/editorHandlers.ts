@@ -32,6 +32,16 @@ export const handleOpenEditWindow = (config: EditorConfig) => {
       return;
     }
 
+    /**
+     * A close cascade in flight for this project is about to null its directory, a new edit window
+     * opened now wouldn't be in the cascade's snapshot and would be orphaned (broken photo://,
+     * failing saves) once the cascade completes.
+     */
+    if (windowManager.isClosingProject(parentWindow)) {
+      console.error("Refused to open edit window: project is closing");
+      return;
+    }
+
     const directory = windowManager.getDirectoryForWindow(parentWindow);
     if (directory === null) {
       console.error("Refused to open edit window: no project open");

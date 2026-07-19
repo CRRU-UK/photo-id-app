@@ -67,12 +67,21 @@ const ProjectPage = observer(() => {
     project?.flushSave();
 
     /**
+     * Block interaction while the close is in flight: main resolves the cascade only after any
+     * edit-window unsaved-edits prompt is dismissed, and that prompt leaves this window
+     * interactive. Without the overlay, a photo moved during the prompt schedules a debounced save
+     * that fires after main has already cleared the project directory, so it is rejected and lost.
+     */
+    setLoading({ show: true, text: "Closing project" });
+
+    /**
      * Wait for main to confirm the cascade actually completed, the user might cancel an
      * edit-window unsaved-edits prompt, in which case main keeps project state and we must NOT
      * clear React state or navigate to the index page.
      */
     const closed = await window.electronAPI.closeProject();
     if (!closed) {
+      setLoading({ show: false });
       return;
     }
 

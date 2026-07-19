@@ -68,6 +68,14 @@ const sendData = async (
   body: ProjectBody,
   directory: string,
 ) => {
+  /**
+   * The window can be closed during a slow load (large-folder thumbnail generation, file parse), so
+   * bail rather than touching a destroyed window's webContents.
+   */
+  if (projectWindow.isDestroyed()) {
+    return;
+  }
+
   windowManager.setProject(projectWindow, directory);
 
   const projectFilePath = path.join(directory, PROJECT_FILE_NAME);
@@ -78,12 +86,21 @@ const sendData = async (
   projectWindow.webContents.send(IPC_EVENTS.LOAD_PROJECT, payload);
   projectWindow.focus();
 
-  await addRecentProject({
-    name: path.basename(directory),
-    path: projectFilePath,
-  });
+  /**
+   * Best-effort book-keeping: the project is already open in the renderer, so a recents/menu write
+   * failure must NOT propagate as throwing here would trigger the caller's `clearProject` and tear
+   * down a working window (403 thumbnails, failing saves, a misleading "Invalid project file").
+   */
+  try {
+    await addRecentProject({
+      name: path.basename(directory),
+      path: projectFilePath,
+    });
 
-  await notifyRecentProjectsChanged();
+    await notifyRecentProjectsChanged();
+  } catch (error) {
+    console.error("Failed to update recent projects:", error);
+  }
 
   sendLoading(projectWindow, { show: false });
 };
@@ -170,7 +187,7 @@ const loadExistingProject = async (
   projectWindow: Electron.BrowserWindow,
   directory: string,
 ): Promise<void> => {
-  windowManager.setProject(projectWindow, directory);
+  windowManager.reserveProjectLoading(projectWindow, directory);
 
   try {
     const filePath = path.join(directory, PROJECT_FILE_NAME);
@@ -200,7 +217,7 @@ const loadExistingProject = async (
  * starting a second copy. The reservation is cleared on failure.
  */
 const processProjectFolder = async (projectWindow: Electron.BrowserWindow, directory: string) => {
-  windowManager.setProject(projectWindow, directory);
+  windowManager.reserveProjectLoading(projectWindow, directory);
 
   try {
     return await runProcessProjectFolder(projectWindow, directory);
@@ -268,6 +285,15 @@ const prepareNewProject = async (
     batchStart < photos.length;
     batchStart += THUMBNAIL_GENERATION_CONCURRENCY
   ) {
+    /**
+     * Stop generating (and writing the project file for) a window the user closed mid-load. The
+     * window's `closed` handler cleans up the registry, so we can return quietly without an error
+     * dialog for a deliberate close.
+     */
+    if (projectWindow.isDestroyed()) {
+      return;
+    }
+
     const batch = photos.slice(batchStart, batchStart + THUMBNAIL_GENERATION_CONCURRENCY);
 
     await Promise.all(
@@ -362,7 +388,7 @@ const handleOpenProjectFile = async (projectWindow: Electron.BrowserWindow, file
   }
 
   const directory = path.dirname(file);
-  windowManager.setProject(projectWindow, directory);
+  windowManager.reserveProjectLoading(projectWindow, directory);
 
   try {
     const body = await parseProjectFile(file);

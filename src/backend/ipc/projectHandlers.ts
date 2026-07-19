@@ -8,7 +8,7 @@ import {
 } from "electron";
 
 import { handleExportMatches } from "@/backend/exports";
-import { focusExistingWindow } from "@/backend/ipc/shared";
+import { closeFreshOnLoadFail, focusIfAlreadyOpen } from "@/backend/ipc/shared";
 import { notifyRecentProjectsChanged } from "@/backend/menu";
 import {
   checkExistingProjectChoice,
@@ -37,50 +37,19 @@ import {
 import type { ExportTypes, ProjectPayload, RecentProject } from "@/types";
 
 /**
- * If the project at the given directory is already open in some window, focuses that window and
- * returns true so the caller can short-circuit. Returns false otherwise.
- */
-const focusIfAlreadyOpen = (directory: string): boolean => {
-  const existingWindow = windowManager.findWindowForProject(directory);
-  if (!existingWindow) {
-    return false;
-  }
-
-  focusExistingWindow(existingWindow);
-
-  return true;
-};
-
-/**
- * Returns [target window, isFresh]. When the sender already has a project, spawns a fresh window
- * mounted directly at the project route (so the user never sees the index page first), otherwise
- * reuses the sender. Only fresh windows should be closed by `closeFreshOnLoadFail` if the load
- * doesn't register a project (the sender's own window stays alive either way).
+ * Returns [target window, isFresh]. When the sender already has a project (or the sender window
+ * was closed while the picker dialog was open), spawns a fresh window mounted directly at the
+ * project route so the user never sees the index page first, otherwise reuses the sender. Only
+ * fresh windows are closed by `closeFreshOnLoadFail` if the load doesn't register a project.
  */
 const resolveTargetWindow = async (
   senderWindow: BrowserWindow,
 ): Promise<[BrowserWindow, boolean]> => {
-  if (windowManager.getDirectoryForWindow(senderWindow) !== null) {
+  if (senderWindow.isDestroyed() || windowManager.getDirectoryForWindow(senderWindow) !== null) {
     return [await createProjectWindow({ initialRoute: ROUTES.PROJECT }), true];
   }
 
   return [senderWindow, false];
-};
-
-/**
- * Closes a freshly-spawned project window if the load did not register a project, avoiding the
- * user being stuck on the "Opening project" overlay forever.
- */
-const closeFreshOnLoadFail = (window: BrowserWindow, isFresh: boolean): void => {
-  if (!isFresh || window.isDestroyed()) {
-    return;
-  }
-
-  if (windowManager.getDirectoryForWindow(window) !== null) {
-    return;
-  }
-
-  window.close();
 };
 
 /**
@@ -108,6 +77,15 @@ export const openProjectFolderForWindow = async (senderWindow: BrowserWindow): P
      */
     const choice = await checkExistingProjectChoice(directory);
     if (choice === "cancel") {
+      return;
+    }
+
+    /**
+     * Re-check after the modal: another window may have opened this project while the dialog was
+     * up. Without this, both flows would load the same project.photoid into two windows whose
+     * debounced saves then clobber each other.
+     */
+    if (focusIfAlreadyOpen(directory)) {
       return;
     }
 
@@ -221,8 +199,21 @@ export const handleRemoveRecentProject = async (
 export const handleGetCurrentProject = async (
   event: IpcMainInvokeEvent,
 ): Promise<ProjectPayload | null> => {
-  const directory = windowManager.getDirectoryForSender(event.sender);
+  const projectWindow = windowManager.getProjectWindowForSender(event.sender);
+  if (!projectWindow) {
+    return null;
+  }
 
+  /**
+   * While a project is still loading (thumbnail generation / file parse) its `project.photoid` may
+   * be stale or not yet written. Return null and let the `LOAD_PROJECT` event deliver the project
+   * once it's committed, so a freshly-spawned window doesn't mount the old file.
+   */
+  if (windowManager.isProjectLoading(projectWindow)) {
+    return null;
+  }
+
+  const directory = windowManager.getDirectoryForWindow(projectWindow);
   if (directory === null) {
     return null;
   }

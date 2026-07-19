@@ -42,6 +42,7 @@ const mockGetProjectWindowForSender =
 const mockGetDirectoryForWindow = vi.fn<(window: BrowserWindow) => string | null>();
 const mockGetDirectoryForSender = vi.fn<(webContents: Electron.WebContents) => string | null>();
 const mockSignalEditCancel = vi.fn<(window: BrowserWindow) => void>();
+const mockIsClosingProject = vi.fn<(window: BrowserWindow) => boolean>();
 
 vi.mock("@/backend/WindowManager", () => ({
   windowManager: {
@@ -54,6 +55,8 @@ vi.mock("@/backend/WindowManager", () => ({
       mockGetDirectoryForSender(...args),
     signalEditCancel: (...args: Parameters<typeof mockSignalEditCancel>) =>
       mockSignalEditCancel(...args),
+    isClosingProject: (...args: Parameters<typeof mockIsClosingProject>) =>
+      mockIsClosingProject(...args),
   },
 }));
 
@@ -100,6 +103,7 @@ describe("editor IPC handlers", () => {
     vi.clearAllMocks();
     mockGetProjectWindowForSender.mockReturnValue(createMockParentWindow());
     mockGetDirectoryForWindow.mockReturnValue("/project");
+    mockIsClosingProject.mockReturnValue(false);
   });
 
   describe(handleOpenEditWindow, () => {
@@ -123,6 +127,18 @@ describe("editor IPC handlers", () => {
 
     it("refuses to open when the parent window has no project loaded", () => {
       mockGetDirectoryForWindow.mockReturnValue(null);
+      const handler = handleOpenEditWindow(config);
+      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+
+      handler(createMockEvent(), createMockPhotoBody());
+
+      expect(mockBrowserWindowConstructor).not.toHaveBeenCalled();
+
+      consoleErrorSpy.mockRestore();
+    });
+
+    it("refuses to open while the parent project is closing", () => {
+      mockIsClosingProject.mockReturnValue(true);
       const handler = handleOpenEditWindow(config);
       const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
 

@@ -70,11 +70,15 @@ vi.mock("@/backend/menu", () => ({
 }));
 
 const mockSetProject = vi.fn<(window: Electron.BrowserWindow, directory: string) => void>();
+const mockReserveProjectLoading =
+  vi.fn<(window: Electron.BrowserWindow, directory: string) => void>();
 const mockClearProject = vi.fn<(window: Electron.BrowserWindow) => void>();
 
 vi.mock("@/backend/WindowManager", () => ({
   windowManager: {
     setProject: (...args: Parameters<typeof mockSetProject>) => mockSetProject(...args),
+    reserveProjectLoading: (...args: Parameters<typeof mockReserveProjectLoading>) =>
+      mockReserveProjectLoading(...args),
     clearProject: (...args: Parameters<typeof mockClearProject>) => mockClearProject(...args),
   },
 }));
@@ -125,6 +129,7 @@ const createMockMainWindow = () =>
     setProgressBar: vi.fn<(progress: number) => void>(),
     flashFrame: vi.fn<(flag: boolean) => void>(),
     isFocused: vi.fn<() => boolean>(() => true),
+    isDestroyed: vi.fn<() => boolean>(() => false),
     setRepresentedFilename: vi.fn<(filename: string) => void>(),
     setDocumentEdited: vi.fn<(edited: boolean) => void>(),
     webContents: {
@@ -685,7 +690,8 @@ describe(loadExistingProject, () => {
 
     await loadExistingProject(mainWindow, "/my/project");
 
-    // setProject is called eagerly (at the start) AND again by sendData on success
+    // The directory is reserved (loading) eagerly, then committed by sendData on success
+    expect(mockReserveProjectLoading).toHaveBeenCalledWith(mainWindow, "/my/project");
     expect(mockSetProject).toHaveBeenCalledWith(mainWindow, "/my/project");
     expect(mockClearProject).not.toHaveBeenCalled();
   });
@@ -697,8 +703,27 @@ describe(loadExistingProject, () => {
 
     await loadExistingProject(mainWindow, "/my/project");
 
-    expect(mockSetProject).toHaveBeenCalledWith(mainWindow, "/my/project");
+    expect(mockReserveProjectLoading).toHaveBeenCalledWith(mainWindow, "/my/project");
     expect(mockClearProject).toHaveBeenCalledWith(mainWindow);
+  });
+
+  it("still loads the project when updating recent projects fails", async () => {
+    const project = createProject();
+    mockReadFile.mockResolvedValue(JSON.stringify(project));
+    const { addRecentProject } = await import("@/backend/recents");
+    vi.mocked(addRecentProject).mockRejectedValueOnce(new Error("recents unwritable"));
+
+    const mainWindow = createMockMainWindow();
+
+    await loadExistingProject(mainWindow, "/my/project");
+
+    // A recents write failure must not tear down a project that is already open in the renderer
+    expect(mainWindow.webContents.send).toHaveBeenCalledWith(
+      IPC_EVENTS.LOAD_PROJECT,
+      expect.objectContaining({ directory: "/my/project" }),
+    );
+    expect(mockSetProject).toHaveBeenCalledWith(mainWindow, "/my/project");
+    expect(mockClearProject).not.toHaveBeenCalled();
   });
 
   it("shows a corrupted-data error dialog when the project file is invalid JSON", async () => {

@@ -19,6 +19,8 @@ The renderer process has no direct access to Node.js APIs. All system access is 
 
 Each project window owns its own Electron `Session`, allocated via `session.fromPartition()` when the window is created. CSP, the permission-request handler, and the `photo://` protocol are all registered on that per-window session, scoped to the window's project directory. Edit windows inherit their parent project window's session so editor `fetch()` calls resolve against the same handler.
 
+In production these partitions are in-memory (no `persist:` prefix), so no renderer storage is written to disk and none is shared between the unrelated projects that may reuse a partition-name slot across launches. Development builds use `persist:` partitions because the DevTools extensions require them.
+
 A renderer in window A cannot resolve `photo://` URLs that point inside window B's project, because A's session does not know about B's directory. This holds even if A's renderer is compromised and crafts URLs by hand.
 
 ## Content Security Policy
