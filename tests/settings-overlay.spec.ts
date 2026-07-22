@@ -54,10 +54,6 @@ test.describe
       const dialog = page.getByRole("dialog", { name: "App Settings" });
       await expect(dialog).toBeVisible();
 
-      /**
-       * Regression guard for the empty-content bug: the General panel must render its controls,
-       * not just the dialog frame.
-       */
       await expect(dialog.getByText("Theme Mode")).toBeVisible();
       await expect(dialog.getByText("Telemetry")).toBeVisible();
 
