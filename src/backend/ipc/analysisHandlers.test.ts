@@ -16,15 +16,27 @@ const MOCK_UUID = "a0b1c2d3-e4f5-6789-abcd-ef0123456789";
 const mockAnalyseMatches =
   vi.fn<
     (options: {
+      windowId: number;
+      directory: string;
       photos: PhotoBody[];
       settings: { endpoint: string; token: string };
     }) => Promise<AnalysisMatchResponse | null>
   >();
-const mockCancelAnalyseMatches = vi.fn<() => void>();
+const mockCancelAnalyseMatches = vi.fn<(windowId: number) => void>();
 
 vi.mock("@/backend/analysis", () => ({
   analyseMatches: (...args: Parameters<typeof mockAnalyseMatches>) => mockAnalyseMatches(...args),
-  cancelAnalyseMatches: () => mockCancelAnalyseMatches(),
+  cancelAnalyseMatches: (...args: Parameters<typeof mockCancelAnalyseMatches>) =>
+    mockCancelAnalyseMatches(...args),
+}));
+
+const mockGetDirectoryForSender = vi.fn<(webContents: Electron.WebContents) => string | null>();
+
+vi.mock("@/backend/WindowManager", () => ({
+  windowManager: {
+    getDirectoryForSender: (...args: Parameters<typeof mockGetDirectoryForSender>) =>
+      mockGetDirectoryForSender(...args),
+  },
 }));
 
 const mockGetSettings = vi.fn<() => Promise<SettingsData>>();
@@ -68,10 +80,14 @@ const {
   handleSaveAnalysisProvider,
   handleDeleteAnalysisProvider,
   handleAnalyseMatches,
+  handleCancelAnalyseMatches,
   handleGetEncryptionAvailability,
 } = await import("./analysisHandlers");
 
-const mockEvent = {} as IpcMainInvokeEvent;
+const createMockEvent = (senderId = 42): IpcMainInvokeEvent =>
+  ({ sender: { id: senderId } }) as unknown as IpcMainInvokeEvent;
+
+const mockEvent = createMockEvent();
 
 const createMockPhotoBody = (overrides: Partial<PhotoBody> = {}): PhotoBody =>
   ({
@@ -89,6 +105,7 @@ describe("analysis IPC handlers", () => {
     mockUpdateSettings.mockResolvedValue(undefined);
     mockSaveToken.mockResolvedValue(undefined);
     mockDeleteToken.mockResolvedValue(undefined);
+    mockGetDirectoryForSender.mockReturnValue("/project");
   });
 
   describe(handleSaveAnalysisProvider, () => {
@@ -228,13 +245,59 @@ describe("analysis IPC handlers", () => {
       mockGetToken.mockResolvedValue("api-token");
       mockAnalyseMatches.mockResolvedValue(mockResponse);
 
-      const result = await handleAnalyseMatches(mockEvent, [photo]);
+      const result = await handleAnalyseMatches(createMockEvent(42), [photo]);
 
       expect(mockAnalyseMatches).toHaveBeenCalledWith({
+        windowId: 42,
+        directory: "/project",
         photos: [expect.objectContaining({ name: "photo.jpg" })],
         settings: { endpoint: "https://api.com", token: "api-token" },
       });
       expect(result).toBe(mockResponse);
+    });
+
+    it("keys the analysis lifecycle by the renderer webContents id, not the project window", async () => {
+      /**
+       * Project-window and edit-window senders for the same project must produce different keys
+       * so their analyses don't abort each other.
+       */
+      const settings = {
+        ...DEFAULT_SETTINGS,
+        selectedAnalysisProviderId: MOCK_UUID,
+        analysisProviders: [{ id: MOCK_UUID, name: "Test", endpoint: "https://api.com" }],
+      } as SettingsData;
+
+      mockGetSettings.mockResolvedValue(settings);
+      mockGetToken.mockResolvedValue("api-token");
+      mockAnalyseMatches.mockResolvedValue({ matches: [] });
+
+      await handleAnalyseMatches(createMockEvent(11), [createMockPhotoBody()]);
+      await handleAnalyseMatches(createMockEvent(22), [createMockPhotoBody()]);
+
+      expect(mockAnalyseMatches).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({ windowId: 11 }),
+      );
+      expect(mockAnalyseMatches).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({ windowId: 22 }),
+      );
+    });
+
+    it("throws when no project is open for the sender", async () => {
+      mockGetDirectoryForSender.mockReturnValue(null);
+
+      await expect(handleAnalyseMatches(mockEvent, [createMockPhotoBody()])).rejects.toThrow(
+        "No project open",
+      );
+    });
+  });
+
+  describe(handleCancelAnalyseMatches, () => {
+    it("cancels the analysis keyed to the renderer's webContents id", () => {
+      handleCancelAnalyseMatches({ sender: { id: 99 } } as unknown as Electron.IpcMainEvent);
+
+      expect(mockCancelAnalyseMatches).toHaveBeenCalledWith(99);
     });
   });
 

@@ -9,6 +9,10 @@ This is a quick reference for the terms used in the app's interface and througho
 
 A self-contained working folder for one set of photos. Made up of a `project.photoid` file and a `thumbnails/` folder, both stored alongside your photos. The folder is portable: you can move, copy, rename, or zip it (including across macOS, Windows, and Linux) and it will still open.
 
+## Project window
+
+A top-level app window that hosts one project at a time (or the home screen when no project is loaded). You can have several project windows open at once, with each window owning one project and any editor windows opened from it. New project windows are created via ==File > New Window== or by opening a project while another window already has one loaded.
+
 ## Stack
 
 A collection of photos. Each stack shows one photo at a time and can contain any number of photos, with arrow buttons to navigate. The total count of photos in the stack and the index of the currently displayed photo are shown in the bottom corners.

@@ -14,7 +14,7 @@ import type {
 export interface IElectronAPI {
   analyseMatches: (photos: PhotoBody[]) => Promise<AnalysisMatchResponse | null>;
   cancelAnalyseMatches: () => void;
-  closeProject: () => void;
+  closeProject: () => Promise<boolean>;
   deleteAnalysisProvider: (providerId: string) => Promise<void>;
   duplicatePhotoFile: (data: PhotoBody) => Promise<PhotoBody>;
   exportMatches: (data: string, type: ExportTypes) => Promise<void>;

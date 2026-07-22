@@ -21,9 +21,10 @@ const Progress = ({ value, label }: ProgressProps) => (
 
 interface LoadingOverlayProps {
   data: LoadingData;
+  transparent?: boolean;
 }
 
-const LoadingOverlay = ({ data }: LoadingOverlayProps) => {
+const LoadingOverlay = ({ data, transparent = false }: LoadingOverlayProps) => {
   const { show, text, progressValue = null, progressText } = data;
 
   if (!show) {
@@ -31,7 +32,7 @@ const LoadingOverlay = ({ data }: LoadingOverlayProps) => {
   }
 
   return (
-    <div className="loading">
+    <div className={transparent ? "loading transparent" : "loading"}>
       <PrimerStack
         align="center"
         direction="vertical"

@@ -40,10 +40,7 @@ vi.mock("@/backend/imageRenderer", () => ({
     mockRenderFullImageWithEdits(...args),
 }));
 
-const mockGetCurrentProjectDirectory = vi.fn<() => string | null>();
-
 vi.mock("@/backend/projects", () => ({
-  getCurrentProjectDirectory: () => mockGetCurrentProjectDirectory(),
   resolvePhotoPath: (directory: string, fileName: string) => `${directory}/${fileName}`,
 }));
 
@@ -81,12 +78,12 @@ const createMockMainWindow = () =>
     setProgressBar: vi.fn<(progress: number) => void>(),
     flashFrame: vi.fn<(flag: boolean) => void>(),
     isFocused: vi.fn<() => boolean>(() => true),
+    isDestroyed: vi.fn<() => boolean>(() => false),
   }) as unknown as Electron.BrowserWindow;
 
 describe(handleExportMatches, () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockGetCurrentProjectDirectory.mockReturnValue("/project");
     mockWriteFile.mockResolvedValue(undefined);
     mockCopyFile.mockResolvedValue(undefined);
     mockUnlink.mockResolvedValue(undefined);
@@ -100,7 +97,7 @@ describe(handleExportMatches, () => {
     const project = createProject({ matched: [] });
     mockExistsSync.mockReturnValue(false);
 
-    await handleExportMatches(mainWindow, JSON.stringify(project), "edited");
+    await handleExportMatches(mainWindow, "/project", JSON.stringify(project), "edited");
 
     expect(mockMkdir).toHaveBeenCalledWith(expect.stringContaining("matched"));
   });
@@ -110,7 +107,7 @@ describe(handleExportMatches, () => {
     const project = createProject({ matched: [] });
     mockExistsSync.mockReturnValue(true);
 
-    await handleExportMatches(mainWindow, JSON.stringify(project), "edited");
+    await handleExportMatches(mainWindow, "/project", JSON.stringify(project), "edited");
 
     expect(mockRm).toHaveBeenCalledWith(expect.stringContaining("matched"), { recursive: true });
     expect(mockMkdir).toHaveBeenCalledWith(expect.stringContaining("matched"));
@@ -130,7 +127,7 @@ describe(handleExportMatches, () => {
     });
     mockExistsSync.mockReturnValue(false);
 
-    await handleExportMatches(mainWindow, JSON.stringify(project), "edited");
+    await handleExportMatches(mainWindow, "/project", JSON.stringify(project), "edited");
 
     expect(mockCopyFile).toHaveBeenCalledWith(expect.any(String), expect.any(String));
     expect(mockRenderFullImageWithEdits).not.toHaveBeenCalled();
@@ -150,7 +147,7 @@ describe(handleExportMatches, () => {
     });
     mockExistsSync.mockReturnValue(false);
 
-    await handleExportMatches(mainWindow, JSON.stringify(project), "edited");
+    await handleExportMatches(mainWindow, "/project", JSON.stringify(project), "edited");
 
     expect(mockRenderFullImageWithEdits).toHaveBeenCalledWith(
       expect.objectContaining({ sourcePath: expect.any(String) }),
@@ -172,7 +169,7 @@ describe(handleExportMatches, () => {
     });
     mockExistsSync.mockReturnValue(false);
 
-    await handleExportMatches(mainWindow, JSON.stringify(project), "edited");
+    await handleExportMatches(mainWindow, "/project", JSON.stringify(project), "edited");
 
     const { calls: loadingCalls } = vi.mocked(mainWindow.webContents).send.mock;
     const progressCalls = loadingCalls.filter(
@@ -187,7 +184,7 @@ describe(handleExportMatches, () => {
     const project = createProject({ matched: [] });
     mockExistsSync.mockReturnValue(false);
 
-    await handleExportMatches(mainWindow, JSON.stringify(project), "edited");
+    await handleExportMatches(mainWindow, "/project", JSON.stringify(project), "edited");
 
     const lastCall = vi.mocked(mainWindow.webContents.send).mock.calls.at(-1);
 
@@ -199,7 +196,7 @@ describe(handleExportMatches, () => {
     const project = createProject({ matched: [] });
     mockExistsSync.mockReturnValue(false);
 
-    await handleExportMatches(mainWindow, JSON.stringify(project), "edited");
+    await handleExportMatches(mainWindow, "/project", JSON.stringify(project), "edited");
 
     expect(mockCopyFile).not.toHaveBeenCalled();
     expect(mockRenderFullImageWithEdits).not.toHaveBeenCalled();
@@ -219,7 +216,7 @@ describe(handleExportMatches, () => {
     });
     mockExistsSync.mockReturnValue(false);
 
-    await handleExportMatches(mainWindow, JSON.stringify(project), "edited");
+    await handleExportMatches(mainWindow, "/project", JSON.stringify(project), "edited");
 
     // Name "42" is padded to "042" and used as prefix
     expect(mockCopyFile).toHaveBeenCalledWith(expect.any(String), expect.stringContaining("042L_"));
@@ -239,7 +236,7 @@ describe(handleExportMatches, () => {
     });
     mockExistsSync.mockReturnValue(false);
 
-    await handleExportMatches(mainWindow, JSON.stringify(project), "edited");
+    await handleExportMatches(mainWindow, "/project", JSON.stringify(project), "edited");
 
     expect(mockCopyFile).toHaveBeenCalledWith(expect.any(String), expect.stringContaining("R_"));
   });
@@ -258,7 +255,7 @@ describe(handleExportMatches, () => {
     });
     mockExistsSync.mockReturnValue(false);
 
-    await handleExportMatches(mainWindow, JSON.stringify(project), "edited");
+    await handleExportMatches(mainWindow, "/project", JSON.stringify(project), "edited");
 
     // Edited JPEG should keep .jpg extension
     expect(mockWriteFile).toHaveBeenCalledWith(expect.stringMatching(/\.jpg$/), expect.any(Buffer));
@@ -278,7 +275,7 @@ describe(handleExportMatches, () => {
     });
     mockExistsSync.mockReturnValue(false);
 
-    await handleExportMatches(mainWindow, JSON.stringify(project), "edited");
+    await handleExportMatches(mainWindow, "/project", JSON.stringify(project), "edited");
 
     // Non-JPEG edited photo should be exported as .png
     expect(mockWriteFile).toHaveBeenCalledWith(expect.stringMatching(/\.png$/), expect.any(Buffer));
@@ -296,10 +293,9 @@ describe(handleExportMatches, () => {
         },
       ],
     });
-    mockGetCurrentProjectDirectory.mockReturnValue("/my/project");
     mockExistsSync.mockReturnValue(false);
 
-    await handleExportMatches(mainWindow, JSON.stringify(project), "edited");
+    await handleExportMatches(mainWindow, "/my/project", JSON.stringify(project), "edited");
 
     expect(mockCopyFile).toHaveBeenCalledWith(
       expect.any(String),
@@ -310,29 +306,22 @@ describe(handleExportMatches, () => {
   it("returns the project directory", async () => {
     const mainWindow = createMockMainWindow();
     const project = createProject({ matched: [] });
-    mockGetCurrentProjectDirectory.mockReturnValue("/my/project");
     mockExistsSync.mockReturnValue(false);
 
-    const directory = await handleExportMatches(mainWindow, JSON.stringify(project), "edited");
+    const directory = await handleExportMatches(
+      mainWindow,
+      "/my/project",
+      JSON.stringify(project),
+      "edited",
+    );
 
     expect(directory).toBe("/my/project");
-  });
-
-  it("throws when no project is open", async () => {
-    const mainWindow = createMockMainWindow();
-    const project = createProject({ matched: [] });
-    mockGetCurrentProjectDirectory.mockReturnValue(null);
-    mockExistsSync.mockReturnValue(false);
-
-    await expect(
-      handleExportMatches(mainWindow, JSON.stringify(project), "edited"),
-    ).rejects.toThrow("No project open");
   });
 
   it("throws when data is invalid JSON", async () => {
     const mainWindow = createMockMainWindow();
 
-    await expect(handleExportMatches(mainWindow, "not json", "edited")).rejects.toThrow(
+    await expect(handleExportMatches(mainWindow, "/project", "not json", "edited")).rejects.toThrow(
       /Unexpected token|JSON/,
     );
   });
@@ -341,9 +330,9 @@ describe(handleExportMatches, () => {
     const mainWindow = createMockMainWindow();
     const invalidPayload = JSON.stringify({ version: "v1" });
 
-    await expect(handleExportMatches(mainWindow, invalidPayload, "edited")).rejects.toThrow(
-      /invalid_type|required/,
-    );
+    await expect(
+      handleExportMatches(mainWindow, "/project", invalidPayload, "edited"),
+    ).rejects.toThrow(/invalid_type|required/);
   });
 
   it("csv export writes to project root and does not clear matched folder", async () => {
@@ -359,9 +348,7 @@ describe(handleExportMatches, () => {
         },
       ],
     });
-    mockGetCurrentProjectDirectory.mockReturnValue("/my/project");
-
-    await handleExportMatches(mainWindow, JSON.stringify(project), "csv");
+    await handleExportMatches(mainWindow, "/my/project", JSON.stringify(project), "csv");
 
     expect(mockUnlink).not.toHaveBeenCalled();
     expect(mockCopyFile).not.toHaveBeenCalled();
@@ -387,9 +374,7 @@ describe(handleExportMatches, () => {
         },
       ],
     });
-    mockGetCurrentProjectDirectory.mockReturnValue("/my/project");
-
-    await handleExportMatches(mainWindow, JSON.stringify(project), "csv");
+    await handleExportMatches(mainWindow, "/my/project", JSON.stringify(project), "csv");
 
     const [, csvContent] = vi.mocked(mockWriteFile).mock.calls[0];
 
@@ -410,7 +395,7 @@ describe(handleExportMatches, () => {
       ],
     });
 
-    await handleExportMatches(mainWindow, JSON.stringify(project), "csv");
+    await handleExportMatches(mainWindow, "/project", JSON.stringify(project), "csv");
 
     const [, csvContent] = vi.mocked(mockWriteFile).mock.calls[0];
 
@@ -421,7 +406,7 @@ describe(handleExportMatches, () => {
     const mainWindow = createMockMainWindow();
     const project = createProject({ matched: [] });
 
-    await handleExportMatches(mainWindow, JSON.stringify(project), "csv");
+    await handleExportMatches(mainWindow, "/project", JSON.stringify(project), "csv");
 
     expect(mockWriteFile).toHaveBeenCalledWith(
       expect.stringContaining(`${PROJECT_EXPORT_DATA_DIRECTORY}/${PROJECT_EXPORT_CSV_FILE_NAME}`),

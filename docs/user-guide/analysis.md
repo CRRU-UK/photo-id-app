@@ -50,7 +50,7 @@ When a match analysis is completed, a table will be shown with the corresponding
 
 ![Analysis results](../assets/images/analysis-match-results.png?v2){ width="700" }
 
-Selecting the ==:octicons-copy-16: Copy details to clipboard== button will copy the details of the selected row to your clipboard. Results are paginated for every 10 matches. You can cancel in-progress analysis using the ==Cancel== button in the overlay.
+Selecting the ==:octicons-copy-16: Copy details to clipboard== button will copy the details of the selected row to your clipboard. Results are paginated for every 10 matches. You can cancel in-progress analysis using the ==Cancel== button in the overlay. Analysis runs independently in each window, so cancelling only affects the analysis in the window you cancel from.
 
 ## Notes
 

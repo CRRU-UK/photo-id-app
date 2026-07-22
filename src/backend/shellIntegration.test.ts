@@ -89,6 +89,16 @@ describe("sendLoading", () => {
     expect(window.setProgressBar).toHaveBeenCalledWith(-1);
   });
 
+  it("is a no-op when the window is destroyed", async () => {
+    const { sendLoading } = await importModule();
+    const window = createMockBrowserWindow({ isDestroyed: true });
+
+    sendLoading(window, { show: true, text: "Working" });
+
+    expect(window.webContents.send).not.toHaveBeenCalled();
+    expect(window.setProgressBar).not.toHaveBeenCalled();
+  });
+
   it("uses the indeterminate value when show is true with no progressValue", async () => {
     const { sendLoading } = await importModule();
     const window = createMockBrowserWindow();
@@ -150,14 +160,29 @@ describe("showProgressError", () => {
     expect(window.setProgressBar).toHaveBeenNthCalledWith(2, -1);
   });
 
-  it("does not clear when the window has been destroyed", async () => {
+  it("does not clear when the window is destroyed before the timer fires", async () => {
+    const { showProgressError } = await importModule();
+    const window = createMockBrowserWindow();
+
+    showProgressError(window);
+    expect(window.setProgressBar).toHaveBeenNthCalledWith(1, 1, { mode: "error" });
+
+    // Window destroyed during the flash window, the deferred clear must be skipped
+    (window.isDestroyed as ReturnType<typeof vi.fn>).mockReturnValue(true);
+    vi.advanceTimersByTime(PROGRESS_ERROR_FLASH_MS);
+
+    expect(window.setProgressBar).toHaveBeenCalledTimes(1);
+  });
+
+  it("is a no-op when the window is already destroyed", async () => {
     const { showProgressError } = await importModule();
     const window = createMockBrowserWindow({ isDestroyed: true });
 
     showProgressError(window);
     vi.advanceTimersByTime(PROGRESS_ERROR_FLASH_MS);
 
-    expect(window.setProgressBar).toHaveBeenCalledTimes(1);
+    expect(window.webContents.send).not.toHaveBeenCalled();
+    expect(window.setProgressBar).not.toHaveBeenCalled();
   });
 });
 

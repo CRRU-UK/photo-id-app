@@ -94,6 +94,7 @@ export const MISSING_RECENT_PROJECT_MESSAGE =
 
 export const GLOBAL_KEYBOARD_HINTS = {
   OPEN_SETTINGS: "Mod+,",
+  NEW_WINDOW: "Mod+N",
 };
 
 export const PROJECT_KEYBOARD_HINTS = {

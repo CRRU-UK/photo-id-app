@@ -7,7 +7,7 @@ import AnalysisMatchOverlay from "@/frontend/components/AnalysisMatchOverlay";
 import ErrorBoundary from "@/frontend/components/ErrorBoundary";
 import ImageEditor from "@/frontend/components/ImageEditor";
 import LoadingOverlay from "@/frontend/components/LoadingOverlay";
-import { buildPhotoUrl, decodeEditPayload } from "@/helpers";
+import { buildPhotoUrl, decodeEditPayload, getProjectDirectoryName } from "@/helpers";
 import type { EditPayload, LoadingData } from "@/types";
 
 const fetchLocalFile = async (directory: string, photo: EditPayload["photo"]) => {
@@ -67,7 +67,8 @@ const EditPage = () => {
 
       try {
         const parsedPayload = decodeEditPayload(encoded);
-        document.title = `${DEFAULT_WINDOW_TITLE} - ${parsedPayload.directory}/${parsedPayload.photo.name}`;
+        const projectName = getProjectDirectoryName(parsedPayload.directory);
+        document.title = `${projectName} - ${parsedPayload.photo.name} - ${DEFAULT_WINDOW_TITLE}`;
 
         const response = await fetchLocalFile(parsedPayload.directory, parsedPayload.photo);
 

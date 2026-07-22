@@ -12,6 +12,7 @@ import {
   setRepresentedProject,
   showProgressError,
 } from "@/backend/shellIntegration";
+import { windowManager } from "@/backend/WindowManager";
 import {
   CORRUPTED_DATA_MESSAGE,
   DEFAULT_PHOTO_EDITS,
@@ -52,21 +53,6 @@ export const resolvePhotoPath = (directory: string, fileName: string): string =>
   return resolved;
 };
 
-let currentProjectDirectory: string | null = null;
-
-/**
- * Returns the directory of the currently open project, or null if none. Used by `getCurrentProject`
- * to restore the project view after hot-reload (development).
- */
-export const getCurrentProjectDirectory = (): string | null => currentProjectDirectory;
-
-/**
- * Sets the current project directory (when a project is loaded or closed).
- */
-export const setCurrentProject = (directory: string | null): void => {
-  currentProjectDirectory = directory;
-};
-
 /**
  * Reads and validates a `.photoid` file. The directory is derived by callers from the file's path.
  */
@@ -78,79 +64,56 @@ export const parseProjectFile = async (filePath: string): Promise<ProjectBody> =
 };
 
 const sendData = async (
-  mainWindow: Electron.BrowserWindow,
+  projectWindow: Electron.BrowserWindow,
   body: ProjectBody,
   directory: string,
 ) => {
-  setCurrentProject(directory);
+  /**
+   * The window can be closed during a slow load (large-folder thumbnail generation, file parse), so
+   * bail rather than touching a destroyed window's webContents.
+   */
+  if (projectWindow.isDestroyed()) {
+    return;
+  }
+
+  windowManager.setProject(projectWindow, directory);
 
   const projectFilePath = path.join(directory, PROJECT_FILE_NAME);
-  setRepresentedProject(mainWindow, projectFilePath);
+  setRepresentedProject(projectWindow, projectFilePath);
 
+  projectWindow.setTitle(`${path.basename(directory)} - ${DEFAULT_WINDOW_TITLE}`);
   const payload: ProjectPayload = { body, directory };
-  mainWindow.webContents.send(IPC_EVENTS.LOAD_PROJECT, payload);
+  projectWindow.webContents.send(IPC_EVENTS.LOAD_PROJECT, payload);
+  projectWindow.focus();
 
-  mainWindow.setTitle(`${DEFAULT_WINDOW_TITLE} - ${directory}`);
-  mainWindow.focus();
+  /**
+   * Best-effort book-keeping: the project is already open in the renderer, so a recents/menu write
+   * failure must NOT propagate as throwing here would trigger the caller's `clearProject` and tear
+   * down a working window (403 thumbnails, failing saves, a misleading "Invalid project file").
+   */
+  try {
+    await addRecentProject({
+      name: path.basename(directory),
+      path: projectFilePath,
+    });
 
-  await addRecentProject({
-    name: path.basename(directory),
-    path: projectFilePath,
-  });
+    await notifyRecentProjectsChanged();
+  } catch (error) {
+    console.error("Failed to update recent projects:", error);
+  }
 
-  await notifyRecentProjectsChanged();
-
-  sendLoading(mainWindow, { show: false });
+  sendLoading(projectWindow, { show: false });
 };
 
 const homePath = app.getPath("home");
 const desktopPath = path.resolve(homePath, "Desktop");
 
 /**
- * Prompts the user when a project file already exists in the chosen directory. Returns `true` if
- * the caller should proceed to create a new project (user chose to overwrite), or `false` if the
- * existing project was opened or the user cancelled.
+ * Shows the folder-picker dialog and returns the chosen directory, or null if the dialog was
+ * cancelled. Kept separate from the project-processing flow so the caller can decide which window
+ * the project should load into after a directory is chosen.
  */
-const handleExistingProjectFile = async (
-  mainWindow: Electron.BrowserWindow,
-  directory: string,
-): Promise<boolean> => {
-  const { response } = await dialog.showMessageBox({
-    message: EXISTING_DATA_MESSAGE,
-    type: "question",
-    buttons: EXISTING_DATA_BUTTONS,
-  });
-
-  if (response === EXISTING_DATA_RESPONSE.CANCEL) {
-    return false;
-  }
-
-  if (response === EXISTING_DATA_RESPONSE.OPEN_EXISTING) {
-    try {
-      const filePath = path.join(directory, PROJECT_FILE_NAME);
-      const body = await parseProjectFile(filePath);
-      await sendData(mainWindow, body, directory);
-    } catch (error) {
-      console.error("Failed to load existing project file:", error);
-
-      const message =
-        error instanceof ZodError || error instanceof SyntaxError
-          ? CORRUPTED_DATA_MESSAGE
-          : String(error);
-
-      dialog.showErrorBox("Invalid project file", message);
-    }
-
-    return false;
-  }
-
-  return true;
-};
-
-/**
- * Handles opening, filtering, and processing a project folder.
- */
-const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => {
+const promptForProjectFolder = async (): Promise<string | null> => {
   const event = await dialog.showOpenDialog({
     title: "Open Project Folder",
     properties: ["openDirectory"],
@@ -158,36 +121,134 @@ const handleOpenDirectoryPrompt = async (mainWindow: Electron.BrowserWindow) => 
   });
 
   if (event.canceled) {
-    return;
+    return null;
   }
 
-  const [directory] = event.filePaths;
+  return event.filePaths[0];
+};
 
+/**
+ * Shows the project-file picker dialog and returns the chosen file path, or null if the dialog
+ * was cancelled.
+ */
+const promptForProjectFile = async (): Promise<string | null> => {
+  const event = await dialog.showOpenDialog({
+    title: "Open Project File",
+    properties: ["openFile"],
+    filters: [{ name: "Photo ID Projects", extensions: [PROJECT_FILE_EXTENSION] }],
+    defaultPath: desktopPath,
+  });
+
+  if (event.canceled) {
+    return null;
+  }
+
+  return event.filePaths[0];
+};
+
+export type ExistingProjectChoice = "new" | "existing" | "cancel";
+
+/**
+ * Inspects a directory for a `.photoid` file. If found, prompts the user to open the existing
+ * project, replace it, or cancel. Returns "new" if the directory has no existing project file
+ * (no dialog needed). Run this BEFORE creating a target window so the user can cancel without
+ * leaving an empty window behind.
+ */
+const checkExistingProjectChoice = async (directory: string): Promise<ExistingProjectChoice> => {
   const files = await fs.promises.readdir(directory);
 
-  if (files.includes(PROJECT_FILE_NAME)) {
-    const shouldCreateNew = await handleExistingProjectFile(mainWindow, directory);
-    if (!shouldCreateNew) {
-      return;
-    }
+  if (!files.includes(PROJECT_FILE_NAME)) {
+    return "new";
   }
 
-  sendLoading(mainWindow, {
+  const { response } = await dialog.showMessageBox({
+    message: EXISTING_DATA_MESSAGE,
+    type: "question",
+    buttons: EXISTING_DATA_BUTTONS,
+  });
+
+  if (response === EXISTING_DATA_RESPONSE.CANCEL) {
+    return "cancel";
+  }
+
+  if (response === EXISTING_DATA_RESPONSE.OPEN_EXISTING) {
+    return "existing";
+  }
+
+  return "new";
+};
+
+/**
+ * Loads an existing project file from a directory (assumes `<directory>/project.photoid` exists
+ * and is valid) into the given window. Shows a user-friendly error dialog if the file is
+ * corrupted.
+ */
+const loadExistingProject = async (
+  projectWindow: Electron.BrowserWindow,
+  directory: string,
+): Promise<void> => {
+  windowManager.reserveProjectLoading(projectWindow, directory);
+
+  try {
+    const filePath = path.join(directory, PROJECT_FILE_NAME);
+    const body = await parseProjectFile(filePath);
+    await sendData(projectWindow, body, directory);
+  } catch (error) {
+    windowManager.clearProject(projectWindow);
+    console.error("Failed to load existing project file:", error);
+
+    const message =
+      error instanceof ZodError || error instanceof SyntaxError
+        ? CORRUPTED_DATA_MESSAGE
+        : String(error);
+
+    dialog.showErrorBox("Invalid project file", message);
+  }
+};
+
+/**
+ * Creates a new project in a directory: scans for image files, generates thumbnails, writes the
+ * `.photoid` file, and notifies the renderer. The caller is responsible for choosing the
+ * directory and the target window, and for resolving the existing-project-file choice up-front
+ * via `checkExistingProjectChoice`.
+ *
+ * Reserves the directory in `WindowManager` immediately so a concurrent open of the same folder
+ * sees this load in flight (via `findWindowForProject`) and focuses this window instead of
+ * starting a second copy. The reservation is cleared on failure.
+ */
+const processProjectFolder = async (projectWindow: Electron.BrowserWindow, directory: string) => {
+  windowManager.reserveProjectLoading(projectWindow, directory);
+
+  try {
+    return await runProcessProjectFolder(projectWindow, directory);
+  } catch (error) {
+    windowManager.clearProject(projectWindow);
+    throw error;
+  }
+};
+
+const runProcessProjectFolder = async (
+  projectWindow: Electron.BrowserWindow,
+  directory: string,
+) => {
+  const files = await fs.promises.readdir(directory);
+
+  sendLoading(projectWindow, {
     show: true,
     text: "Preparing project",
     progressValue: 0,
   });
 
   try {
-    return await prepareNewProject(mainWindow, directory, files);
+    return await prepareNewProject(projectWindow, directory, files);
   } catch (error) {
-    showProgressError(mainWindow);
+    showProgressError(projectWindow);
     throw error;
   }
 };
 
 const prepareNewProject = async (
-  mainWindow: Electron.BrowserWindow,
+  projectWindow: Electron.BrowserWindow,
   directory: string,
   files: string[],
 ) => {
@@ -224,6 +285,15 @@ const prepareNewProject = async (
     batchStart < photos.length;
     batchStart += THUMBNAIL_GENERATION_CONCURRENCY
   ) {
+    /**
+     * Stop generating (and writing the project file for) a window the user closed mid-load. The
+     * window's `closed` handler cleans up the registry, so we can return quietly without an error
+     * dialog for a deliberate close.
+     */
+    if (projectWindow.isDestroyed()) {
+      return;
+    }
+
     const batch = photos.slice(batchStart, batchStart + THUMBNAIL_GENERATION_CONCURRENCY);
 
     await Promise.all(
@@ -239,7 +309,7 @@ const prepareNewProject = async (
 
         processed = processed + 1;
 
-        sendLoading(mainWindow, {
+        sendLoading(projectWindow, {
           show: true,
           text: "Preparing project",
           progressValue: (processed / photos.length) * 100,
@@ -291,46 +361,16 @@ const prepareNewProject = async (
     "utf8",
   );
 
-  flashWindow(mainWindow);
+  flashWindow(projectWindow);
 
-  return await sendData(mainWindow, data, directory);
+  return await sendData(projectWindow, data, directory);
 };
 
 /**
- * Handles opening a project file.
+ * Loads a project from a `.photoid` file path into the given window. Validates the path has a
+ * `.photoid` extension before attempting to open, to guard the IPC boundary.
  */
-const handleOpenFilePrompt = async (mainWindow: Electron.BrowserWindow) => {
-  const event = await dialog.showOpenDialog({
-    title: "Open Project File",
-    properties: ["openFile"],
-    filters: [{ name: "Photo ID Projects", extensions: [PROJECT_FILE_EXTENSION] }],
-    defaultPath: desktopPath,
-  });
-
-  if (event.canceled) {
-    return;
-  }
-
-  sendLoading(mainWindow, { show: true, text: "Opening project" });
-
-  const [file] = event.filePaths;
-
-  try {
-    const body = await parseProjectFile(file);
-    return await sendData(mainWindow, body, path.dirname(file));
-  } catch (error) {
-    console.error("Failed to open project file:", error);
-    dialog.showErrorBox("Invalid project file", String(error));
-
-    sendLoading(mainWindow, { show: false });
-  }
-};
-
-/**
- * Handles opening a recent project file. Validates the path has a .photoid extension before
- * attempting to open, to guard the IPC boundary.
- */
-const handleOpenProjectFile = async (mainWindow: Electron.BrowserWindow, file: string) => {
+const handleOpenProjectFile = async (projectWindow: Electron.BrowserWindow, file: string) => {
   if (path.extname(file).toLowerCase() !== `.${PROJECT_FILE_EXTENSION}`) {
     console.error("Refused to open non-.photoid file path:", file);
     dialog.showErrorBox("Invalid file", "Only .photoid project files can be opened.");
@@ -338,38 +378,35 @@ const handleOpenProjectFile = async (mainWindow: Electron.BrowserWindow, file: s
     return;
   }
 
-  sendLoading(mainWindow, { show: true, text: "Opening project" });
+  sendLoading(projectWindow, { show: true, text: "Opening project" });
 
   if (!fs.existsSync(file)) {
     dialog.showErrorBox(MISSING_RECENT_PROJECT_MESSAGE, file);
-    sendLoading(mainWindow, { show: false });
+    sendLoading(projectWindow, { show: false });
 
     return;
   }
 
+  const directory = path.dirname(file);
+  windowManager.reserveProjectLoading(projectWindow, directory);
+
   try {
     const body = await parseProjectFile(file);
-    return await sendData(mainWindow, body, path.dirname(file));
+    return await sendData(projectWindow, body, directory);
   } catch (error) {
+    windowManager.clearProject(projectWindow);
     console.error("Failed to open project file:", error);
     dialog.showErrorBox("Invalid project file", String(error));
 
-    sendLoading(mainWindow, { show: false });
+    sendLoading(projectWindow, { show: false });
   }
 };
 
 /**
- * Handles saving a project file. Uses the currently open project directory (tracked when the
- * project is loaded) so the write path is authoritative; the payload is only validated, not used
- * for the file path.
+ * Handles saving a project file. Writes to the supplied directory and the directory is
+ * authoritative (resolved from the sender's project window), and the payload is only validated.
  */
-const handleSaveProject = async (data: string) => {
-  const directory = getCurrentProjectDirectory();
-
-  if (directory === null) {
-    throw new Error("No project open");
-  }
-
+const handleSaveProject = async (directory: string, data: string): Promise<void> => {
   const json: unknown = JSON.parse(data);
   const result = projectBodySchema.safeParse(json);
 
@@ -384,13 +421,7 @@ const handleSaveProject = async (data: string) => {
  * Synchronous version of `handleSaveProject` for use during app shutdown (`beforeunload`). Uses
  * `writeFileSync` to guarantee the write completes before the process exits.
  */
-const handleFlushSaveProject = (data: string): void => {
-  const directory = getCurrentProjectDirectory();
-
-  if (directory === null) {
-    return;
-  }
-
+const handleFlushSaveProject = (directory: string, data: string): void => {
   try {
     const json: unknown = JSON.parse(data);
     const result = projectBodySchema.safeParse(json);
@@ -409,13 +440,7 @@ const handleFlushSaveProject = (data: string): void => {
 /**
  * Duplicates the original, edited, and thumbnail versions of a photo a returns the new filenames.
  */
-const handleDuplicatePhotoFile = async (data: PhotoBody): Promise<PhotoBody> => {
-  const directory = getCurrentProjectDirectory();
-
-  if (directory === null) {
-    throw new Error("No project open");
-  }
-
+const handleDuplicatePhotoFile = async (directory: string, data: PhotoBody): Promise<PhotoBody> => {
   const originalPath = resolvePhotoPath(directory, data.name);
   const thumbnailPath = resolvePhotoPath(directory, data.thumbnail);
 
@@ -486,18 +511,13 @@ const findPhotoInProject = (project: ProjectBody, photo: PhotoBody): CollectionB
 
 /**
  * Returns photo to show in the editor on navigation based on direction. Reads the current project
- * file from the active project directory.
+ * file from the supplied project directory.
  */
 const handleEditorNavigate = async (
+  directory: string,
   data: PhotoBody,
   direction: EditorNavigation,
 ): Promise<PhotoBody | null> => {
-  const directory = getCurrentProjectDirectory();
-
-  if (directory === null) {
-    throw new Error("No project open");
-  }
-
   const projectPath = path.join(directory, PROJECT_FILE_NAME);
   const projectData = await parseProjectFile(projectPath);
 
@@ -530,12 +550,15 @@ const handleEditorNavigate = async (
 };
 
 export {
+  checkExistingProjectChoice,
   findPhotoInProject,
   handleDuplicatePhotoFile,
   handleEditorNavigate,
   handleFlushSaveProject,
-  handleOpenDirectoryPrompt,
-  handleOpenFilePrompt,
   handleOpenProjectFile,
   handleSaveProject,
+  loadExistingProject,
+  processProjectFolder,
+  promptForProjectFile,
+  promptForProjectFolder,
 };

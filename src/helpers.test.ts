@@ -12,6 +12,7 @@ import {
   getAlphabetLetter,
   getCanvasFilters,
   getImageCoordinates,
+  getProjectDirectoryName,
   getRecentProjectDisplayPath,
   isEditWindow,
   stripWhitespace,
@@ -470,6 +471,43 @@ describe(buildPhotoUrl, () => {
     const result = url.fileURLToPath(fileUrl);
 
     expect(result).toBe("/Users/admin/Photo ID/photo.jpg");
+  });
+});
+
+describe(getProjectDirectoryName, () => {
+  it("returns the last segment of a POSIX path", () => {
+    expect(getProjectDirectoryName("/Users/admin/foo/bar")).toBe("bar");
+  });
+
+  it("returns the last segment of a Windows path", () => {
+    expect(getProjectDirectoryName(String.raw`C:\Users\admin\foo\bar`)).toBe("bar");
+  });
+
+  it("ignores a trailing POSIX separator", () => {
+    expect(getProjectDirectoryName("/Users/admin/foo/bar/")).toBe("bar");
+  });
+
+  it("ignores a trailing Windows separator", () => {
+    expect(getProjectDirectoryName("C:\\Users\\admin\\foo\\bar\\")).toBe("bar");
+  });
+
+  it("handles paths with spaces and unicode characters", () => {
+    expect(getProjectDirectoryName("/Users/admin/2024 summer survey")).toBe("2024 summer survey");
+    expect(getProjectDirectoryName("/Users/admin/Süßwasser")).toBe("Süßwasser");
+  });
+
+  it("handles a single-segment directory name", () => {
+    expect(getProjectDirectoryName("bar")).toBe("bar");
+  });
+
+  it("handles mixed POSIX and Windows separators", () => {
+    expect(getProjectDirectoryName("C:\\Users/admin\\foo/bar")).toBe("bar");
+  });
+
+  it("falls back to the input when no segments are found", () => {
+    expect(getProjectDirectoryName("")).toBe("");
+    expect(getProjectDirectoryName("/")).toBe("/");
+    expect(getProjectDirectoryName("///")).toBe("///");
   });
 });
 
