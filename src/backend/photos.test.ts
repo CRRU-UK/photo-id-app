@@ -28,7 +28,7 @@ vi.mock("@/backend/projects", () => ({
   resolvePhotoPath: (directory: string, fileName: string) => `${directory}/${fileName}`,
 }));
 
-const { createPhotoThumbnail, revertPhotoToOriginal } = await import("./photos");
+const { createPhotoThumbnail } = await import("./photos");
 
 const createPhoto = (overrides?: Partial<PhotoBody>): PhotoBody => ({
   name: "photo.jpg",
@@ -92,64 +92,5 @@ describe(createPhotoThumbnail, () => {
     await createPhotoThumbnail("/project", photo);
 
     expect(mockMkdir).toHaveBeenCalled();
-  });
-});
-
-describe(revertPhotoToOriginal, () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    mockRenderThumbnailWithEdits.mockResolvedValue(Buffer.from("reverted-thumbnail"));
-    mockWriteFile.mockResolvedValue(undefined);
-    mockMkdir.mockResolvedValue(undefined);
-    mockExistsSync.mockReturnValue(true);
-  });
-
-  it("returns photo with default edits", async () => {
-    const photo = createPhoto({
-      edits: { ...DEFAULT_PHOTO_EDITS, brightness: 200, contrast: 50 },
-      isEdited: true,
-    });
-
-    const result = await revertPhotoToOriginal("/project", photo);
-
-    expect(result.edits).toStrictEqual(DEFAULT_PHOTO_EDITS);
-  });
-
-  it("returns photo with isEdited set to false", async () => {
-    const photo = createPhoto({ isEdited: true });
-
-    const result = await revertPhotoToOriginal("/project", photo);
-
-    expect(result.isEdited).toBe(false);
-  });
-
-  it("preserves the photo name", async () => {
-    const photo = createPhoto({ name: "my-photo.jpg" });
-
-    const result = await revertPhotoToOriginal("/my/dir", photo);
-
-    expect(result.name).toBe("my-photo.jpg");
-  });
-
-  it("creates a new thumbnail with default edits", async () => {
-    const photo = createPhoto({
-      edits: { ...DEFAULT_PHOTO_EDITS, brightness: 200 },
-    });
-
-    await revertPhotoToOriginal("/project", photo);
-
-    expect(mockRenderThumbnailWithEdits).toHaveBeenCalledWith(
-      expect.objectContaining({
-        edits: DEFAULT_PHOTO_EDITS,
-      }),
-    );
-  });
-
-  it("returns the new thumbnail path", async () => {
-    const photo = createPhoto({ name: "reverted.jpg" });
-
-    const result = await revertPhotoToOriginal("/project", photo);
-
-    expect(result.thumbnail).toBe(`${PROJECT_THUMBNAIL_DIRECTORY}/reverted.jpg`);
   });
 });

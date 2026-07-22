@@ -5,7 +5,6 @@ import {
   ChevronRightIcon,
   InfoIcon,
   PencilIcon,
-  UndoIcon,
 } from "@primer/octicons-react";
 import {
   ActionBar,
@@ -15,7 +14,6 @@ import {
   Stack as PrimerStack,
 } from "@primer/react";
 import { observer } from "mobx-react-lite";
-import { useEffect, useRef, useState } from "react";
 
 import { ASPECT_RATIO, PROJECT_TOOLTIPS } from "@/constants";
 import { useAnalysis } from "@/contexts/AnalysisContext";
@@ -52,14 +50,6 @@ interface StackProps {
 const Stack = observer(({ collection, showAnalysisButton = true, stackLabel }: StackProps) => {
   const { settings } = useSettings();
   const { isAnalysing, handleAnalyseMatches } = useAnalysis();
-  const [revertingPhoto, setRevertingPhoto] = useState<boolean>(false);
-  const isMountedRef = useRef<boolean>(true);
-
-  useEffect(() => {
-    return () => {
-      isMountedRef.current = false;
-    };
-  }, []);
 
   const selectedProvider = settings?.analysisProviders?.find(
     ({ id }) => id === settings?.selectedAnalysisProviderId,
@@ -96,28 +86,6 @@ const Stack = observer(({ collection, showAnalysisButton = true, stackLabel }: S
     }
 
     window.electronAPI.openEditWindow(currentPhoto.toBody());
-  };
-
-  const handleRevertPhoto = async () => {
-    if (revertingPhoto || !currentPhoto) {
-      return;
-    }
-
-    setRevertingPhoto(true);
-
-    try {
-      const newData = await window.electronAPI.revertPhotoFile(currentPhoto.toBody());
-
-      if (!isMountedRef.current) {
-        return;
-      }
-
-      currentPhoto.updatePhoto(newData);
-    } finally {
-      if (isMountedRef.current) {
-        setRevertingPhoto(false);
-      }
-    }
   };
 
   const handlePrev = () => collection.setPreviousPhoto();
@@ -201,34 +169,24 @@ const Stack = observer(({ collection, showAnalysisButton = true, stackLabel }: S
           key={showAnalysisButton && selectedProvider ? "with-analysis" : "without-analysis"}
           size="small"
         >
-          <ActionBar.Group>
-            <ActionBar.IconButton
-              aria-label={PROJECT_TOOLTIPS.EDIT_PHOTO}
-              data-testid="edit-photo-button"
-              disabled={collection.photos.length <= 0 || revertingPhoto}
-              icon={PencilIcon}
-              onClick={(event) => {
-                event.preventDefault();
-                return handleOpenEdit();
-              }}
-            />
-            {showAnalysisButton && !!selectedProvider && (
-              <ActionBar.IconButton
-                aria-label={PROJECT_TOOLTIPS.ANALYSIS_MATCH_STACK}
-                disabled={collection.photos.length === 0 || isAnalysing}
-                icon={AiModelIcon}
-                onClick={handleAnalyseClick}
-              />
-            )}
-          </ActionBar.Group>
-          <ActionBar.Divider />
           <ActionBar.IconButton
-            aria-label={PROJECT_TOOLTIPS.REVERT_PHOTO}
-            disabled={collection.photos.length <= 0 || revertingPhoto || !currentPhoto?.isEdited}
-            icon={UndoIcon}
-            onClick={handleRevertPhoto}
-            variant="danger"
+            aria-label={PROJECT_TOOLTIPS.EDIT_PHOTO}
+            data-testid="edit-photo-button"
+            disabled={collection.photos.length <= 0}
+            icon={PencilIcon}
+            onClick={(event) => {
+              event.preventDefault();
+              return handleOpenEdit();
+            }}
           />
+          {showAnalysisButton && !!selectedProvider && (
+            <ActionBar.IconButton
+              aria-label={PROJECT_TOOLTIPS.ANALYSIS_MATCH_STACK}
+              disabled={collection.photos.length === 0 || isAnalysing}
+              icon={AiModelIcon}
+              onClick={handleAnalyseClick}
+            />
+          )}
         </ActionBar>
       </PrimerStack>
     </>

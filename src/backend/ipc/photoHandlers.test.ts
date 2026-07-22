@@ -6,14 +6,10 @@ import type { PhotoBody } from "@/types";
 vi.mock("electron", () => ({}));
 
 const mockCreatePhotoThumbnail = vi.fn<(directory: string, data: PhotoBody) => Promise<string>>();
-const mockRevertPhotoToOriginal =
-  vi.fn<(directory: string, data: PhotoBody) => Promise<PhotoBody>>();
 
 vi.mock("@/backend/photos", () => ({
   createPhotoThumbnail: (...args: Parameters<typeof mockCreatePhotoThumbnail>) =>
     mockCreatePhotoThumbnail(...args),
-  revertPhotoToOriginal: (...args: Parameters<typeof mockRevertPhotoToOriginal>) =>
-    mockRevertPhotoToOriginal(...args),
 }));
 
 const mockHandleDuplicatePhotoFile =
@@ -37,9 +33,7 @@ vi.mock("@/backend/WindowManager", () => ({
   },
 }));
 
-const { handleSavePhotoFile, handleRevertPhotoFile, handleDuplicatePhotoFileInvoke } = await import(
-  "./photoHandlers"
-);
+const { handleSavePhotoFile, handleDuplicatePhotoFileInvoke } = await import("./photoHandlers");
 
 const createMockWindow = (overrides?: Partial<{ isDestroyed: boolean }>): BrowserWindow =>
   ({
@@ -94,27 +88,6 @@ describe("photo IPC handlers", () => {
       mockGetDirectoryForSender.mockReturnValue(null);
 
       await expect(handleSavePhotoFile(createMockEvent(), createMockPhotoBody())).rejects.toThrow(
-        "No project open",
-      );
-    });
-  });
-
-  describe(handleRevertPhotoFile, () => {
-    it("reverts the photo and returns the result", async () => {
-      const photo = createMockPhotoBody({ isEdited: true });
-      const revertedPhoto = createMockPhotoBody({ isEdited: false });
-      mockRevertPhotoToOriginal.mockResolvedValue(revertedPhoto);
-
-      const result = await handleRevertPhotoFile(createMockEvent(), photo);
-
-      expect(mockRevertPhotoToOriginal).toHaveBeenCalledWith("/project", photo);
-      expect(result).toBe(revertedPhoto);
-    });
-
-    it("throws when no project is open for the sender", async () => {
-      mockGetDirectoryForSender.mockReturnValue(null);
-
-      await expect(handleRevertPhotoFile(createMockEvent(), createMockPhotoBody())).rejects.toThrow(
         "No project open",
       );
     });
