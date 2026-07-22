@@ -127,8 +127,6 @@ There are several options that can be used to edit photos in the toolbar on the 
 
 Edits to a photo can be saved using the ==Save== button. Edits can be reset back to their defaults by using the ==Reset== button. Closing the editor window without saving changes will discard any unsaved edits. Opening a photo that has been previously edited will automatically apply the previous edits.
 
-Edits can also be reverted by opening the drop-down menu and selecting ==:octicons-undo-16: Revert to original== in the project screen.
-
 You can load the previous or next photo in the stack the current photo is in using the ==:octicons-chevron-left-16::octicons-chevron-right-16: arrow buttons==. Moving the current photo to a different stack while it is open in an editor screen will load the previous and next photos in the new stack once clicked.
 
 Multiple photo editor windows can be open at the same time so you can compare photos side-by-side.

@@ -15,7 +15,6 @@ export enum IPC_EVENTS {
 
   // Photos
   SAVE_PHOTO_FILE = "photos:savePhotoFile",
-  REVERT_PHOTO_FILE = "photos:revertPhotoFile",
   DUPLICATE_PHOTO_FILE = "photos:duplicatePhotoFile",
   EXPORT_MATCHES = "photos:exportMatches",
   UPDATE_PHOTO = "photos:updatePhoto",
@@ -108,7 +107,6 @@ export const PROJECT_TOOLTIPS = {
   PREVIOUS_PHOTO: "Previous photo",
   NEXT_PHOTO: "Next photo",
   STACK_ACTIONS: "Actions",
-  REVERT_PHOTO: "Revert to original",
   ANALYSIS_MATCH_STACK: "Analyse matches",
 };
 

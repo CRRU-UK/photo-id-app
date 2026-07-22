@@ -36,7 +36,6 @@ export interface IElectronAPI {
   openProjectFolder: () => void;
   openRecentProject: (path: string) => Promise<void>;
   removeRecentProject: (path: string) => Promise<RecentProject[]>;
-  revertPhotoFile: (data: PhotoBody) => Promise<PhotoBody>;
   saveAnalysisProvider: (draft: AnalysisProviderDraft) => Promise<void>;
   savePhotoFile: (data: PhotoBody) => Promise<void>;
   saveProject: (data: string) => Promise<void>;
