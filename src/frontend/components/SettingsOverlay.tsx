@@ -77,6 +77,7 @@ const SettingsOverlay = ({ open, onClose, onOpenRequest, returnFocusRef }: Setti
 
   useEffect(() => {
     if (!open) {
+      setActiveTab("general");
       setIsProviderOverlayOpen(false);
       setEditingProvider(null);
     }

@@ -66,4 +66,16 @@ test.describe
       await expect(dialog.getByRole("button", { name: "Add Provider" })).toBeVisible();
       await expect(dialog.getByText("Theme Mode")).toHaveCount(0);
     });
+
+    test("resets to the General tab when closed and reopened", async () => {
+      // Continues from the previous test, which left the Analysis tab active.
+      await page.keyboard.press("Escape");
+      await expect(page.getByRole("dialog", { name: "App Settings" })).toHaveCount(0);
+
+      await page.getByRole("button", { name: "Settings" }).click();
+
+      const dialog = page.getByRole("dialog", { name: "App Settings" });
+      await expect(dialog.getByText("Theme Mode")).toBeVisible();
+      await expect(dialog.getByRole("button", { name: "Add Provider" })).toHaveCount(0);
+    });
   });
