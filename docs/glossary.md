@@ -11,7 +11,7 @@ A self-contained working folder for one set of photos. Made up of a `project.pho
 
 ## Project window
 
-A top-level app window that hosts one project at a time (or the home screen when no project is loaded). You can have several project windows open at once - each window owns one project and any editor windows opened from it. New project windows are created via ==File > New Window== or by opening a project while another window already has one loaded.
+A top-level app window that hosts one project at a time (or the home screen when no project is loaded). You can have several project windows open at once, with each window owning one project and any editor windows opened from it. New project windows are created via ==File > New Window== or by opening a project while another window already has one loaded.
 
 ## Stack
 

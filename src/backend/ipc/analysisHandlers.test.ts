@@ -257,13 +257,16 @@ describe("analysis IPC handlers", () => {
     });
 
     it("keys the analysis lifecycle by the renderer webContents id, not the project window", async () => {
-      // Project-window and edit-window senders for the same project must produce different keys
-      // so their analyses don't abort each other.
+      /**
+       * Project-window and edit-window senders for the same project must produce different keys
+       * so their analyses don't abort each other.
+       */
       const settings = {
         ...DEFAULT_SETTINGS,
         selectedAnalysisProviderId: MOCK_UUID,
         analysisProviders: [{ id: MOCK_UUID, name: "Test", endpoint: "https://api.com" }],
       } as SettingsData;
+
       mockGetSettings.mockResolvedValue(settings);
       mockGetToken.mockResolvedValue("api-token");
       mockAnalyseMatches.mockResolvedValue({ matches: [] });
