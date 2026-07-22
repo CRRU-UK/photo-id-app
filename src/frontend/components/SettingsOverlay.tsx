@@ -16,8 +16,9 @@ import {
   Select,
   Stack,
   Text,
+  UnderlineNav,
 } from "@primer/react";
-import { Blankslate, UnderlinePanels } from "@primer/react/experimental";
+import { Blankslate } from "@primer/react/experimental";
 import type { RefObject } from "react";
 import { useCallback, useEffect, useState } from "react";
 
@@ -56,6 +57,7 @@ interface SettingsProps {
 const SettingsOverlay = ({ open, onClose, onOpenRequest, returnFocusRef }: SettingsProps) => {
   const { settings: contextSettings, updateSettings } = useSettings();
 
+  const [activeTab, setActiveTab] = useState<"general" | "analysis">("general");
   const [isLoading, setIsLoading] = useState(false);
   const [isProviderOverlayOpen, setIsProviderOverlayOpen] = useState(false);
   const [editingProvider, setEditingProvider] = useState<AnalysisProvider | null>(null);
@@ -164,12 +166,32 @@ const SettingsOverlay = ({ open, onClose, onOpenRequest, returnFocusRef }: Setti
         title="App Settings"
         width="xlarge"
       >
-        {contextSettings && (
-          <UnderlinePanels aria-label="Select a tab">
-            <UnderlinePanels.Tab icon={GearIcon}>General</UnderlinePanels.Tab>
-            <UnderlinePanels.Tab icon={AiModelIcon}>Analysis</UnderlinePanels.Tab>
+        {contextSettings ? (
+          <>
+            <UnderlineNav aria-label="Settings sections">
+              <UnderlineNav.Item
+                aria-current={activeTab === "general" ? "page" : undefined}
+                leadingVisual={<GearIcon />}
+                onSelect={(event) => {
+                  event.preventDefault();
+                  setActiveTab("general");
+                }}
+              >
+                General
+              </UnderlineNav.Item>
+              <UnderlineNav.Item
+                aria-current={activeTab === "analysis" ? "page" : undefined}
+                leadingVisual={<AiModelIcon />}
+                onSelect={(event) => {
+                  event.preventDefault();
+                  setActiveTab("analysis");
+                }}
+              >
+                Analysis
+              </UnderlineNav.Item>
+            </UnderlineNav>
 
-            <UnderlinePanels.Panel>
+            {activeTab === "general" && (
               <Stack direction="vertical" gap="spacious" padding="spacious">
                 <FormControl disabled={isLoading}>
                   <FormControl.Label>Theme Mode</FormControl.Label>
@@ -214,9 +236,9 @@ const SettingsOverlay = ({ open, onClose, onOpenRequest, returnFocusRef }: Setti
                   </FormControl.Caption>
                 </FormControl>
               </Stack>
-            </UnderlinePanels.Panel>
+            )}
 
-            <UnderlinePanels.Panel>
+            {activeTab === "analysis" && (
               <Stack direction="vertical" gap="none" padding="spacious">
                 {isEncryptionAvailable === false && (
                   <Banner
@@ -293,9 +315,9 @@ const SettingsOverlay = ({ open, onClose, onOpenRequest, returnFocusRef }: Setti
                   </Stack>
                 )}
               </Stack>
-            </UnderlinePanels.Panel>
-          </UnderlinePanels>
-        )}
+            )}
+          </>
+        ) : null}
       </Dialog>
 
       <AnalysisProviderOverlay

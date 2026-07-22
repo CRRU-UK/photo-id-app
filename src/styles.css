@@ -110,7 +110,7 @@ body.copying *:hover {
 }
 
 /**
- * Remove <Dialog /> body padding from the settings overlay so <UnderlinePanels /> is flush.
+ * Remove <Dialog /> body padding from the settings overlay so <UnderlineNav /> is flush.
  */
 .settings-overlay [class*="prc-Dialog-Body"] {
   padding: 0;
