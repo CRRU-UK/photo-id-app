@@ -9,6 +9,7 @@ import {
 import {
   Banner,
   Button,
+  Checkbox,
   Dialog,
   FormControl,
   IconButton,
@@ -58,7 +59,6 @@ const SettingsOverlay = ({ open, onClose, onOpenRequest, returnFocusRef }: Setti
   const { settings: contextSettings, updateSettings } = useSettings();
 
   const [activeTab, setActiveTab] = useState<"general" | "analysis">("general");
-  const [isLoading, setIsLoading] = useState(false);
   const [isProviderOverlayOpen, setIsProviderOverlayOpen] = useState(false);
   const [editingProvider, setEditingProvider] = useState<AnalysisProvider | null>(null);
   const [isEncryptionAvailable, setIsEncryptionAvailable] = useState<boolean>(true);
@@ -89,8 +89,6 @@ const SettingsOverlay = ({ open, onClose, onOpenRequest, returnFocusRef }: Setti
         return;
       }
 
-      setIsLoading(true);
-
       try {
         await updateSettings({
           ...contextSettings,
@@ -98,8 +96,6 @@ const SettingsOverlay = ({ open, onClose, onOpenRequest, returnFocusRef }: Setti
         });
       } catch (error) {
         console.error("Error saving settings:", error);
-      } finally {
-        setIsLoading(false);
       }
     },
     [contextSettings, updateSettings],
@@ -111,8 +107,6 @@ const SettingsOverlay = ({ open, onClose, onOpenRequest, returnFocusRef }: Setti
         return;
       }
 
-      setIsLoading(true);
-
       try {
         await updateSettings({
           ...contextSettings,
@@ -120,8 +114,24 @@ const SettingsOverlay = ({ open, onClose, onOpenRequest, returnFocusRef }: Setti
         });
       } catch (error) {
         console.error("Error saving settings:", error);
-      } finally {
-        setIsLoading(false);
+      }
+    },
+    [contextSettings, updateSettings],
+  );
+
+  const handleShowUnsavedWarningChange = useCallback(
+    async (checked: boolean) => {
+      if (!contextSettings) {
+        return;
+      }
+
+      try {
+        await updateSettings({
+          ...contextSettings,
+          showUnsavedWarning: checked,
+        });
+      } catch (error) {
+        console.error("Error saving settings:", error);
       }
     },
     [contextSettings, updateSettings],
@@ -194,7 +204,7 @@ const SettingsOverlay = ({ open, onClose, onOpenRequest, returnFocusRef }: Setti
 
             {activeTab === "general" && (
               <Stack direction="vertical" gap="spacious" padding="spacious">
-                <FormControl disabled={isLoading}>
+                <FormControl>
                   <FormControl.Label>Theme Mode</FormControl.Label>
                   <Select
                     onChange={(event) => void handleThemeModeChange(event.target.value)}
@@ -211,7 +221,7 @@ const SettingsOverlay = ({ open, onClose, onOpenRequest, returnFocusRef }: Setti
                   </FormControl.Caption>
                 </FormControl>
 
-                <FormControl disabled={isLoading}>
+                <FormControl>
                   <FormControl.Label>Telemetry</FormControl.Label>
                   <Select
                     onChange={(event) => void handleTelemetryChange(event.target.value)}
@@ -234,6 +244,18 @@ const SettingsOverlay = ({ open, onClose, onOpenRequest, returnFocusRef }: Setti
                       Privacy Policy
                     </Link>{" "}
                     for more information.
+                  </FormControl.Caption>
+                </FormControl>
+
+                <FormControl>
+                  <Checkbox
+                    checked={contextSettings.showUnsavedWarning}
+                    onChange={(event) => void handleShowUnsavedWarningChange(event.target.checked)}
+                  />
+                  <FormControl.Label>Warn on unsaved edits</FormControl.Label>
+                  <FormControl.Caption>
+                    Show a confirmation dialog when closing an edit window or switching photos with
+                    unsaved edits.
                   </FormControl.Caption>
                 </FormControl>
               </Stack>

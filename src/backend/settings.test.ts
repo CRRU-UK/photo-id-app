@@ -85,6 +85,7 @@ describe("settings", () => {
         telemetry: "enabled",
         analysisProviders: [],
         selectedAnalysisProviderId: null,
+        showUnsavedWarning: true,
       };
       mockExistsSync.mockReturnValue(true);
       mockReadFile.mockResolvedValue(JSON.stringify(savedSettings));
@@ -92,6 +93,22 @@ describe("settings", () => {
       const result = await getSettings();
 
       expect(result).toStrictEqual(savedSettings);
+    });
+
+    it("defaults showUnsavedWarning to false when the field is missing from the file", async () => {
+      const settingsWithoutFlag = {
+        version: "v1" as const,
+        themeMode: "dark" as const,
+        telemetry: "disabled" as const,
+        analysisProviders: [],
+        selectedAnalysisProviderId: null,
+      };
+      mockExistsSync.mockReturnValue(true);
+      mockReadFile.mockResolvedValue(JSON.stringify(settingsWithoutFlag));
+
+      const result = await getSettings();
+
+      expect(result.showUnsavedWarning).toBe(false);
     });
 
     it("merges saved settings with defaults to fill missing fields", async () => {
@@ -315,6 +332,7 @@ describe("settings", () => {
         telemetry: "disabled",
         analysisProviders: [],
         selectedAnalysisProviderId: null,
+        showUnsavedWarning: false,
       };
 
       await updateSettings(settings);
@@ -349,6 +367,7 @@ describe("settings", () => {
         telemetry: "enabled",
         analysisProviders: [],
         selectedAnalysisProviderId: null,
+        showUnsavedWarning: false,
       };
 
       mockExistsSync.mockReturnValue(true);
@@ -384,6 +403,7 @@ describe("settings", () => {
         telemetry: "enabled",
         analysisProviders: [],
         selectedAnalysisProviderId: null,
+        showUnsavedWarning: false,
       };
 
       mockExistsSync.mockReturnValue(true);
