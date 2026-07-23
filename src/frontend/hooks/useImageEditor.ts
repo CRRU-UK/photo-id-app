@@ -12,10 +12,11 @@ import { useZoomInteraction } from "./imageEditor/useZoomInteraction";
 interface UseImageEditorProps {
   file: File;
   loupeEnabled: boolean;
+  onEdit?: () => void;
   onError?: () => void;
 }
 
-const useImageEditor = ({ file, loupeEnabled, onError }: UseImageEditorProps) => {
+const useImageEditor = ({ file, loupeEnabled, onEdit, onError }: UseImageEditorProps) => {
   const [resetKey, setResetKey] = useState(0);
 
   const { imageRef, imageLoaded } = useImageLoader(file, { onError });
@@ -76,15 +77,25 @@ const useImageEditor = ({ file, loupeEnabled, onError }: UseImageEditorProps) =>
       clamp(canvasRef.current);
       drawThrottled();
       redrawLoupe();
+      onEdit?.();
     },
-    [getTransform, setPanInternal, clamp, canvasRef, drawThrottled, redrawLoupe],
+    [getTransform, setPanInternal, clamp, canvasRef, drawThrottled, redrawLoupe, onEdit],
+  );
+
+  // Wraps the drag-pan setter so a pointer-drag also marks the edit as dirty
+  const handleDragPan = useCallback(
+    (pan: { x: number; y: number }) => {
+      setPanInternal(pan);
+      onEdit?.();
+    },
+    [setPanInternal, onEdit],
   );
 
   const { handlePointerDown, handlePointerMove, handlePointerUp, handleDirectionalPan } =
     usePanInteraction({
       canvasRef,
       imageRef,
-      onPan: setPanInternal,
+      onPan: handleDragPan,
       onDirectionalPan: handlePan,
       onDraw: draw,
       onDrawThrottled: drawThrottled,
@@ -111,19 +122,22 @@ const useImageEditor = ({ file, loupeEnabled, onError }: UseImageEditorProps) =>
     (event: WheelEvent) => {
       handleWheelInternal(event);
       redrawLoupe();
+      onEdit?.();
     },
-    [handleWheelInternal, redrawLoupe],
+    [handleWheelInternal, redrawLoupe, onEdit],
   );
 
   const handleZoomIn = useCallback(() => {
     handleZoomInInternal();
     redrawLoupe();
-  }, [handleZoomInInternal, redrawLoupe]);
+    onEdit?.();
+  }, [handleZoomInInternal, redrawLoupe, onEdit]);
 
   const handleZoomOut = useCallback(() => {
     handleZoomOutInternal();
     redrawLoupe();
-  }, [handleZoomOutInternal, redrawLoupe]);
+    onEdit?.();
+  }, [handleZoomOutInternal, redrawLoupe, onEdit]);
 
   /**
    * Sets the brightness level for the image.
@@ -133,8 +147,9 @@ const useImageEditor = ({ file, loupeEnabled, onError }: UseImageEditorProps) =>
     (value: number) => {
       setBrightnessInternal(value);
       drawThrottled();
+      onEdit?.();
     },
-    [setBrightnessInternal, drawThrottled],
+    [setBrightnessInternal, drawThrottled, onEdit],
   );
 
   /**
@@ -145,8 +160,9 @@ const useImageEditor = ({ file, loupeEnabled, onError }: UseImageEditorProps) =>
     (value: number) => {
       setContrastInternal(value);
       drawThrottled();
+      onEdit?.();
     },
-    [setContrastInternal, drawThrottled],
+    [setContrastInternal, drawThrottled, onEdit],
   );
 
   /**
@@ -157,8 +173,9 @@ const useImageEditor = ({ file, loupeEnabled, onError }: UseImageEditorProps) =>
     (value: number) => {
       setSaturateInternal(value);
       drawThrottled();
+      onEdit?.();
     },
-    [setSaturateInternal, drawThrottled],
+    [setSaturateInternal, drawThrottled, onEdit],
   );
 
   /**

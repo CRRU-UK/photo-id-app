@@ -2,6 +2,7 @@ import { EyeClosedIcon, EyeIcon } from "@primer/octicons-react";
 import { IconButton, Stack } from "@primer/react";
 import { memo, type RefObject, useCallback, useEffect, useRef, useState } from "react";
 import {
+  DEFAULT_SETTINGS,
   EDGE_DETECTION,
   EDITOR_KEYS,
   EDITOR_TOOLTIPS,
@@ -69,8 +70,19 @@ const ImageEditor = ({
   const [saving, setSaving] = useState<boolean>(false);
   const [navigating, setNavigating] = useState<boolean>(false);
   const [loupeEnabled, setLoupeEnabled] = useState<boolean>(false);
+  const [isDirty, setIsDirty] = useState<boolean>(false);
 
   const navigatingRef = useRef<boolean>(false);
+
+  /**
+   * Edits live in refs inside the editor hook (not React state), so the component does not
+   * re-render on change. This ref lets the hook's `onEdit` callback recompute the reactive dirty
+   * flag without the hook needing a reference to `hasUnsavedEdits`, which is defined further down.
+   */
+  const refreshDirtyRef = useRef<() => void>(() => {});
+  const handleEdit = useCallback(() => {
+    refreshDirtyRef.current();
+  }, []);
 
   const edits = data.edits;
 
@@ -87,6 +99,7 @@ const ImageEditor = ({
   // biome-ignore lint/correctness/useExhaustiveDependencies: edits intentionally captured at the moment of the photo change
   useEffect(() => {
     savedEditsRef.current = edits;
+    setIsDirty(false);
   }, [photoId]);
 
   const [sliderInitials, setSliderInitials] = useState({
@@ -99,6 +112,14 @@ const ImageEditor = ({
   const selectedProvider = settings?.analysisProviders?.find(
     ({ id }) => id === settings?.selectedAnalysisProviderId,
   );
+
+  /**
+   * Whether to show the unsaved-edits discard warning. Read through a ref so the `beforeunload`
+   * and navigation handlers see the latest value without re-binding listeners on every change.
+   */
+  const showUnsavedWarningRef = useRef<boolean>(DEFAULT_SETTINGS.showUnsavedWarning);
+  showUnsavedWarningRef.current =
+    settings?.showUnsavedWarning ?? DEFAULT_SETTINGS.showUnsavedWarning;
 
   const {
     handleAnalyseMatches,
@@ -113,6 +134,7 @@ const ImageEditor = ({
   const { refs, state, getters, filters, handlers, actions } = useImageEditor({
     file: image,
     loupeEnabled,
+    onEdit: handleEdit,
     onError,
   });
 
@@ -170,6 +192,7 @@ const ImageEditor = ({
 
   const handleReset = useCallback(() => {
     actions.resetAll();
+
     resetEdgeDetection();
     setLoupeEnabled(false);
     setSliderInitials({
@@ -177,6 +200,12 @@ const ImageEditor = ({
       contrast: IMAGE_FILTERS.CONTRAST.DEFAULT,
       saturate: IMAGE_FILTERS.SATURATE.DEFAULT,
     });
+
+    /**
+     * `resetAll` bypasses the hook's onEdit (it is a programmatic reset), so refresh the dirty flag
+     * here: resetting to defaults is itself an unsaved change unless the photo was already default.
+     */
+    refreshDirtyRef.current();
   }, [actions, resetEdgeDetection]);
 
   const getCurrentEdits = useCallback(() => {
@@ -205,6 +234,7 @@ const ImageEditor = ({
       });
 
       savedEditsRef.current = edits;
+      setIsDirty(false);
     } catch (error) {
       console.error("Failed to save edited photo file:", error);
     } finally {
@@ -247,13 +277,18 @@ const ImageEditor = ({
     );
   }, []);
 
+  // Keep the reactive dirty flag (drives the Save button) in sync with the ref-based edit state
+  refreshDirtyRef.current = () => {
+    setIsDirty(hasUnsavedEdits());
+  };
+
   const handleEditorNavigation = useCallback(
     async (direction: EditorNavigation) => {
       if (navigatingRef.current) {
         return;
       }
 
-      if (hasUnsavedEdits()) {
+      if (showUnsavedWarningRef.current && hasUnsavedEdits()) {
         const discard = window.confirm(UNSAVED_EDITS_MESSAGE);
         if (!discard) {
           return;
@@ -362,10 +397,14 @@ const ImageEditor = ({
     };
   }, [handlers.handleWheel]);
 
-  // Warn the user before closing the edit window when there are unsaved changes
+  /**
+   * Warn the user before closing the edit window when there are unsaved changes. Gating
+   * preventDefault on the setting means the backend's native close dialog (which only fires in
+   * response to `will-prevent-unload`) is suppressed too when the warning is off.
+   */
   useEffect(() => {
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-      if (hasUnsavedEdits()) {
+      if (showUnsavedWarningRef.current && hasUnsavedEdits()) {
         event.preventDefault();
       }
     };
@@ -430,6 +469,7 @@ const ImageEditor = ({
         <Toolbar
           edgeDetectionEnabled={edgeDetectionEnabled}
           isAnalysing={isAnalysing}
+          isDirty={isDirty}
           loupeEnabled={loupeEnabled}
           onAnalyse={handleAnalysis}
           onDirectionalPan={handlers.handleDirectionalPan}

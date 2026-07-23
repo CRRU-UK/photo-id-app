@@ -43,6 +43,7 @@ export const settingsDataSchema = z.object({
     .string()
     .nullable()
     .default(DEFAULT_SETTINGS.selectedAnalysisProviderId),
+  showUnsavedWarning: z.boolean().default(DEFAULT_SETTINGS.showUnsavedWarning),
 });
 
 export const photoEditsSchema = z.object({

@@ -45,6 +45,10 @@ The label identifying a matched pair, used when exporting. By default this is th
 
 Per-photo adjustments - brightness, contrast, saturation, zoom, and pan - applied in the editor. Edits are stored in the project file and applied when matched photos are exported. Original photos are never modified.
 
+## Unsaved edits warning
+
+An optional confirmation dialogue shown before unsaved edits are discarded when you close an editor window or switch to another photo. It is **off by default**, the editor ==Save== button is only enabled when you have unsaved edits, so it already indicates unsaved changes, and can be turned on with the **Warn about unsaved edits** setting.
+
 ## Loupe
 
 A magnifying overlay in the editor that follows your cursor. Useful for inspecting fine detail (small notches, scars) without zooming the whole image.
