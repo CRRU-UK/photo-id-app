@@ -43,9 +43,18 @@ jobs:
       - name: Create draft release
         if: steps.changesets.outputs.hasChangesets == 'false'
         run: |
-          npm run changesets:tag
           VERSION=$(node -p "require('./package.json').version")
+
+          # Skip if the release already exists
+          if gh release view "v${VERSION}" --repo CRRU-UK/photo-id-app >/dev/null 2>&1; then
+            echo "Release v${VERSION} already exists — skipping draft creation."
+            exit 0
+          fi
+
+          npm run changesets:tag
+
           awk "/^## ${VERSION}$/{found=1; next} found && /^## /{exit} found{print}" CHANGELOG.md > /tmp/release-notes.md
+
           gh release create "v${VERSION}" --draft --title "v${VERSION}" --notes-file /tmp/release-notes.md --target $(git rev-parse HEAD) --repo CRRU-UK/photo-id-app
         env:
           GH_TOKEN: ${{ secrets.PUBLISH_GITHUB_TOKEN }}
