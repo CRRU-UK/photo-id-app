@@ -78,6 +78,8 @@ Note that the `prerelease.yaml` workflow can be triggered manually via GitHub Ac
 
 The draft release is pre-created in `release.yaml` _before_ the tag is pushed. This is done as the auto-update checker in distributed app sessions caches release metadata, so a release that is briefly live without binaries will be permanently skipped by those sessions. `publish.yaml` appends platform artifacts to the draft, and the final job marks the release as published once all three builds complete.
 
+The `Create draft release` step runs on every no-changeset push to `main` (e.g. dependabot merges), not just the release PR merge, and the version in `package.json` only changes when a release PR lands. The step therefore skips itself when a release for the current version already exists. Without that guard, each intervening push would create a fresh duplicate draft for the already-tagged version.
+
 ### Code Signing
 
 Secrets and variables used for code singing are managed via Terraform ([`terraform/`](terraform/)) and populated into GitHub Actions automatically via Terraform Cloud. The `GITHUB_TOKEN` environment variable (a GitHub PAT with `repo` scope) is required to allow the GitHub provider to manage repository secrets and variables.
