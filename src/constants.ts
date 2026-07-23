@@ -281,6 +281,7 @@ export const DEFAULT_SETTINGS = {
   telemetry: "disabled" as const,
   analysisProviders: [] as AnalysisProvider[],
   selectedAnalysisProviderId: null,
+  showUnsavedWarning: false,
 };
 
 // Analysis

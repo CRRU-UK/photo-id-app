@@ -145,9 +145,14 @@ export const SettingsProvider = ({ children }: SettingsProviderProps) => {
     };
   }, [settings?.themeMode]);
 
-  const updateSettings = useCallback(async (nextSettings: SettingsData) => {
-    await window.electronAPI.updateSettings(nextSettings);
-  }, []);
+  const updateSettings = useCallback(
+    async (nextSettings: SettingsData) => {
+      setSettings(nextSettings);
+      applySettingsToTheme(nextSettings);
+      await window.electronAPI.updateSettings(nextSettings);
+    },
+    [applySettingsToTheme],
+  );
 
   const value = useMemo<SettingsContextValue>(
     () => ({ settings, colorMode, updateSettings }),

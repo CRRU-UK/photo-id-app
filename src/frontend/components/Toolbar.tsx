@@ -20,6 +20,7 @@ import type { AnalysisProvider, EditorNavigation } from "@/types";
 interface ToolbarProps {
   edgeDetectionEnabled: boolean;
   isAnalysing: boolean;
+  isDirty: boolean;
   loupeEnabled: boolean;
   onAnalyse: () => void;
   onDirectionalPan: (direction: EditorPanDirection) => void;
@@ -47,6 +48,7 @@ const Toolbar = ({
   resetKey,
   edgeDetectionEnabled,
   isAnalysing,
+  isDirty,
   loupeEnabled,
   selectedProvider,
   saving,
@@ -214,7 +216,7 @@ const Toolbar = ({
         </Button>
 
         <Button
-          disabled={saving}
+          disabled={saving || !isDirty}
           loading={saving}
           onClick={onSave}
           size="medium"

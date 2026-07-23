@@ -125,7 +125,11 @@ There are several options that can be used to edit photos in the toolbar on the 
 
     Original photos in your project are NEVER edited or modified in any way. Edits made to photos are only visible in the app and are used when generating matched photos when exporting a project.
 
-Edits to a photo can be saved using the ==Save== button. Edits can be reset back to their defaults by using the ==Reset== button. Closing the editor window without saving changes will discard any unsaved edits. Opening a photo that has been previously edited will automatically apply the previous edits.
+Edits to a photo can be saved using the ==Save== button, which is only enabled when there are unsaved edits, so it doubles as an indicator that you have changes to save. Edits can be reset back to their defaults by using the ==Reset== button. Closing the editor window or switching to another photo without saving will discard any unsaved edits. Opening a photo that has been previously edited will automatically apply the previous edits.
+
+!!! tip
+
+    Enable ==Warn about unsaved edits== in [Settings](#settings) to show a dialogue when closing a photo that has unsaved edits.
 
 You can load the previous or next photo in the stack the current photo is in using the ==:octicons-chevron-left-16::octicons-chevron-right-16: arrow buttons==. Moving the current photo to a different stack while it is open in an editor screen will load the previous and next photos in the new stack once clicked.
 
@@ -156,6 +160,8 @@ Projects are auto-saved whenever changes are made in the project or photo editor
 The settings menu can be opened by selecting the ==:octicons-gear-16: Settings== button on the home page, using the [keyboard shortcut](./keyboard-shortcuts.md), or by using the menu bar option.
 
 These settings are global (i.e. the same for all projects) and per-user on your system.
+
+Available settings include the theme mode, optional telemetry, [analysis providers](./analysis.md), and **Warn about unsaved edits** — when enabled, the photo editor shows a confirmation dialog before discarding unsaved edits (off by default; see [Editing photos](#editing-photos)).
 
 For information on how we handle data and optional telemetry, see our [privacy policy](../privacy.md).
 
