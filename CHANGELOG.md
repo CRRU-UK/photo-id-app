@@ -1,5 +1,18 @@
 # photo-id
 
+## 1.1.0
+
+### Minor Changes
+
+- 97de757: Multiple project windows can now be used
+- 746d7f5: Added a setting to show a warning dialogue when closing a photo that has unsaved edits (default off)
+
+### Patch Changes
+
+- cb00860: Remove revert to original button
+- 3cc2a92: Fix the App Settings overlay showing an empty content area
+- 824a7e3: Add recent projects and jump list tasks
+
 ## 1.0.0
 
 ### Major Changes
