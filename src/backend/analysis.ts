@@ -160,15 +160,13 @@ const requestProviderMatches = async (
 };
 
 /**
- * Turns an error thrown by a single provider request into a message for the failures list.
+ * Turns an error thrown by a single provider request into a message for the failures list. Aborts
+ * are not handled here: the only signal that can abort a request is the window's abort controller,
+ * and `analyseMatches` returns null on an aborted controller before failures are collected.
  */
 const describeRequestError = (error: unknown): string => {
   if (error instanceof Error && error.name === "TimeoutError") {
     return "The request timed out. The API took too long to respond.";
-  }
-
-  if (error instanceof Error && error.name === "AbortError") {
-    return "The request was cancelled.";
   }
 
   if (error instanceof Error) {

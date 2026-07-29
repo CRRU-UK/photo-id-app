@@ -11,7 +11,7 @@ import {
   Tooltip,
 } from "@primer/react";
 import { DataTable, Table } from "@primer/react/experimental";
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 
 import {
   ANALYSIS_RESULTS_PER_PAGE,
@@ -138,7 +138,7 @@ const Results = ({
   const rows = data.matches.slice(start, end);
 
   // Derived from all matches, not just the current page, so a provider keeps its colour when paging
-  const providerVariants = useMemo(() => getProviderLabelVariants(data.matches), [data.matches]);
+  const providerVariants = getProviderLabelVariants(data.matches);
 
   const subtitleId = useId();
 

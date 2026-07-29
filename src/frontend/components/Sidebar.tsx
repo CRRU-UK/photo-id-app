@@ -51,10 +51,8 @@ const Sidebar = observer(({ onCloseProject }: SidebarProps) => {
     () => contextSettings?.analysisProviders ?? [],
     [contextSettings?.analysisProviders],
   );
-  const selectedProviderIds = useMemo(
-    () => contextSettings?.selectedAnalysisProviderIds ?? [],
-    [contextSettings?.selectedAnalysisProviderIds],
-  );
+
+  const selectedProviderIds = contextSettings?.selectedAnalysisProviderIds ?? [];
   const selectedProviders = getSelectedAnalysisProviders(contextSettings);
 
   const providerItems = useMemo<ProviderItem[]>(
@@ -78,10 +76,7 @@ const Sidebar = observer(({ onCloseProject }: SidebarProps) => {
     [providerItems, providerFilter, selectedProviderIds],
   );
 
-  const selectedItems = useMemo(
-    () => providerItems.filter(({ id }) => selectedProviderIds.includes(id)),
-    [providerItems, selectedProviderIds],
-  );
+  const selectedItems = providerItems.filter(({ id }) => selectedProviderIds.includes(id));
 
   if (project === null) {
     return null;
