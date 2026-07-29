@@ -22,6 +22,8 @@ To add a provider, open the app settings. In the ==:octicons-ai-model-16: Analys
 
 Enter a provider label, your base API URL, and token. Select the ==Save== button and the provider will be added. You can view your providers in the app settings. Providers can be edited by selecting the ==:octicons-pencil-16: edit== icon or deleted by selecting the ==:octicons-trash-16: bin== icon in the provider list.
 
+If the API URL is not a valid URL, an error is shown beneath the field and the ==Save== button stays disabled until it is corrected. If saving fails for another reason, an error is shown at the top of the form and your entries are kept so you can retry.
+
 !!! tip
 
     You can add multiple providers and use several at once, which is useful for comparing different configurations, indexes, etc.

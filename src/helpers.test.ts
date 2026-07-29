@@ -21,6 +21,7 @@ import {
   getSelectedAnalysisProviders,
   isEditWindow,
   stripWhitespace,
+  validateProviderFields,
 } from "./helpers";
 
 describe(getAlphabetLetter, () => {
@@ -661,5 +662,50 @@ describe(getProviderLabelVariants, () => {
 
   it("returns an empty map when there are no matches", () => {
     expect(getProviderLabelVariants([]).size).toBe(0);
+  });
+});
+
+describe(validateProviderFields, () => {
+  const validFields = {
+    name: "Provider",
+    endpoint: "http://localhost:8080",
+    token: "secret",
+    tokenLocked: false,
+  };
+
+  it("accepts a complete set of fields", () => {
+    expect(validateProviderFields(validFields)).toEqual({
+      endpointError: null,
+      fieldsValid: true,
+    });
+  });
+
+  it("reports an error and blocks saving for a malformed endpoint", () => {
+    const result = validateProviderFields({ ...validFields, endpoint: "not a url" });
+
+    expect(result.endpointError).toBeTruthy();
+    expect(result.fieldsValid).toBe(false);
+  });
+
+  it("stays silent on an untouched endpoint but still blocks saving", () => {
+    expect(validateProviderFields({ ...validFields, endpoint: "   " })).toEqual({
+      endpointError: null,
+      fieldsValid: false,
+    });
+  });
+
+  it("blocks saving when the name is only whitespace", () => {
+    expect(validateProviderFields({ ...validFields, name: "  " }).fieldsValid).toBe(false);
+  });
+
+  it("requires a token unless an existing one is kept", () => {
+    expect(validateProviderFields({ ...validFields, token: "" }).fieldsValid).toBe(false);
+    expect(
+      validateProviderFields({ ...validFields, token: "", tokenLocked: true }).fieldsValid,
+    ).toBe(true);
+  });
+
+  it("treats a whitespace-only token as missing", () => {
+    expect(validateProviderFields({ ...validFields, token: " \t " }).fieldsValid).toBe(false);
   });
 });
