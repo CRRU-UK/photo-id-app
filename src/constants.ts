@@ -278,7 +278,7 @@ export const DEFAULT_SETTINGS = {
   themeMode: "dark" as const,
   telemetry: "disabled" as const,
   analysisProviders: [] as AnalysisProvider[],
-  selectedAnalysisProviderId: null,
+  selectedAnalysisProviderIds: [] as string[],
   showUnsavedWarning: false,
 };
 
@@ -296,3 +296,16 @@ export const RATING_THRESHOLDS = {
   GOOD: 82,
   AVERAGE: 70,
 };
+
+/**
+ * Label colours cycled through so rows from different providers can be told apart in the analysis
+ * results table.
+ */
+export const PROVIDER_LABEL_VARIANTS = [
+  "done",
+  "accent",
+  "sponsors",
+  "severe",
+  "attention",
+  "secondary",
+] as const;

@@ -87,7 +87,7 @@ Photos can be duplicated by holding the ++ctrl++/++cmd++ key while dragging-and-
 
 ### Analysis
 
-You can use an analysis provider to analyse photos in your project.
+You can use one or more analysis providers to analyse photos in your project. When several providers are selected, each analysis is sent to all of them and the results are combined into a single table.
 
 For more information, check out the [Analysis](./analysis.md) guide.
 

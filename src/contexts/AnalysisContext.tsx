@@ -8,7 +8,7 @@ import {
   useState,
 } from "react";
 
-import type { AnalysisMatchResponse, PhotoBody } from "@/types";
+import type { AnalysisMatchResults, PhotoBody } from "@/types";
 
 interface AnalysisContextValue {
   error: string | null;
@@ -16,7 +16,7 @@ interface AnalysisContextValue {
   handleClose: () => void;
   inputLabel: string | null;
   isAnalysing: boolean;
-  result: AnalysisMatchResponse | null;
+  result: AnalysisMatchResults | null;
 }
 
 const AnalysisContext = createContext<AnalysisContextValue | null>(null);
@@ -27,7 +27,7 @@ interface AnalysisContextProviderProps {
 
 export const AnalysisContextProvider = ({ children }: AnalysisContextProviderProps) => {
   const [isAnalysing, setIsAnalysing] = useState(false);
-  const [result, setResult] = useState<AnalysisMatchResponse | null>(null);
+  const [result, setResult] = useState<AnalysisMatchResults | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [inputLabel, setInputLabel] = useState<string | null>(null);
 

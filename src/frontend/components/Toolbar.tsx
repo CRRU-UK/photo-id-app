@@ -15,10 +15,11 @@ import { KeybindingHint } from "@primer/react/experimental";
 import { memo, useCallback } from "react";
 import { EDITOR_KEYS, EDITOR_TOOLTIPS, EditorPanDirection, IMAGE_FILTERS } from "@/constants";
 import Slider from "@/frontend/components/Slider";
-import type { AnalysisProvider, EditorNavigation } from "@/types";
+import type { EditorNavigation } from "@/types";
 
 interface ToolbarProps {
   edgeDetectionEnabled: boolean;
+  hasSelectedProviders: boolean;
   isAnalysing: boolean;
   isDirty: boolean;
   loupeEnabled: boolean;
@@ -35,7 +36,6 @@ interface ToolbarProps {
   onZoomOut: () => void;
   resetKey: number;
   saving: boolean;
-  selectedProvider: AnalysisProvider | undefined;
   sliderInitials: {
     brightness: number;
     contrast: number;
@@ -47,10 +47,10 @@ const Toolbar = ({
   sliderInitials,
   resetKey,
   edgeDetectionEnabled,
+  hasSelectedProviders,
   isAnalysing,
   isDirty,
   loupeEnabled,
-  selectedProvider,
   saving,
   onAnalyse,
   onSetBrightness,
@@ -168,8 +168,8 @@ const Toolbar = ({
             variant={loupeEnabled ? "primary" : "default"}
           />
         </ActionBar.Group>
-        {selectedProvider !== undefined && <ActionBar.Divider />}
-        {selectedProvider !== undefined && (
+        {hasSelectedProviders && <ActionBar.Divider />}
+        {hasSelectedProviders && (
           <ActionBar.Group>
             <ActionBar.IconButton
               aria-label={EDITOR_TOOLTIPS.ANALYSE}

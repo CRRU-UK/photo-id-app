@@ -59,7 +59,7 @@ A temporary view filter in the editor that emphasises edges in the photo. Helpfu
 
 ## Analysis provider
 
-An external service (e.g. a machine-learning model) configured in the app's settings, used to compare photos against an existing catalogue. See the [analysis guide](./user-guide/analysis.md) for details.
+An external service (e.g. a machine-learning model) configured in the app's settings, used to compare photos against an existing catalogue. More than one provider can be selected at a time, in which case each analysis is sent to all of them and the results are combined. See the [analysis guide](./user-guide/analysis.md) for details.
 
 ## Export
 

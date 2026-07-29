@@ -19,8 +19,8 @@ import {
   RATING_THRESHOLDS,
 } from "@/constants";
 import { useAnalysis } from "@/contexts/AnalysisContext";
-import { useSettings } from "@/contexts/SettingsContext";
-import type { AnalysisMatch, AnalysisMatchResponse } from "@/types";
+import { getProviderLabelVariants } from "@/helpers";
+import type { AnalysisMatchResult, AnalysisMatchResults } from "@/types";
 
 const CopyDetailsButton = ({ details }: { details: string }) => {
   const [copied, setCopied] = useState(false);
@@ -67,13 +67,7 @@ const CopyDetailsButton = ({ details }: { details: string }) => {
   );
 };
 
-const Loading = ({
-  inputLabel,
-  providerLabel,
-}: {
-  inputLabel: string | null;
-  providerLabel: string | null;
-}) => {
+const Loading = ({ inputLabel }: { inputLabel: string | null }) => {
   const subtitleId = useId();
 
   return (
@@ -83,9 +77,7 @@ const Loading = ({
           <Spinner size="small" />
           <span>
             Processing matches for{" "}
-            {inputLabel !== null && <Label variant="accent">{inputLabel}</Label>} with analysis
-            provider {providerLabel !== null && <Label variant="done">{providerLabel}</Label>}
-            ...
+            {inputLabel !== null && <Label variant="accent">{inputLabel}</Label>}...
           </span>
         </PrimerStack>
       </Table.Subtitle>
@@ -108,6 +100,11 @@ const Loading = ({
             width: "grow",
           },
           {
+            header: "Provider",
+            id: "provider",
+            width: "auto",
+          },
+          {
             header: "",
             id: "details",
             width: "50px",
@@ -122,17 +119,15 @@ const Loading = ({
 const Results = ({
   data,
   inputLabel,
-  providerLabel,
 }: {
-  data: AnalysisMatchResponse;
+  data: AnalysisMatchResults;
   inputLabel: string | null;
-  providerLabel: string | null;
 }) => {
   const [pageIndex, setPageIndex] = useState(0);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: reset local UI state when data prop changes
   useEffect(() => {
-    // Reset pagination when analysis result changes (reset state when prop changes).
+    // Reset pagination when analysis result changes (reset state when prop changes)
     setPageIndex(0);
   }, [data]);
 
@@ -142,10 +137,13 @@ const Results = ({
 
   const rows = data.matches.slice(start, end);
 
+  // Derived from all matches, not just the current page, so a provider keeps its colour when paging
+  const providerVariants = getProviderLabelVariants(data.matches);
+
   const subtitleId = useId();
 
   const tableContent = (
-    <DataTable<AnalysisMatch>
+    <DataTable<AnalysisMatchResult>
       cellPadding="spacious"
       columns={[
         {
@@ -164,7 +162,7 @@ const Results = ({
           header: "Rating",
           field: "rating",
           width: "grow",
-          renderCell: (row: AnalysisMatch) => {
+          renderCell: (row: AnalysisMatchResult) => {
             const rating = Math.round(row.rating * 100);
 
             let progressBarColor = "success.emphasis";
@@ -191,23 +189,32 @@ const Results = ({
           },
         },
         {
+          header: "Provider",
+          field: "provider",
+          width: "auto",
+          renderCell: (row: AnalysisMatchResult) => {
+            return <Label variant={providerVariants.get(row.provider)}>{row.provider}</Label>;
+          },
+        },
+        {
           header: "",
           field: "details",
           width: "auto",
-          renderCell: (row: AnalysisMatch) => {
+          renderCell: (row: AnalysisMatchResult) => {
             return <CopyDetailsButton details={row.details} />;
           },
         },
       ]}
       data={rows}
+      // The same match ID can be returned by more than one provider, so rows are keyed by both
+      getRowId={(row) => `${row.provider}:${row.id}`}
     />
   );
 
   return (
     <Table.Container>
       <Table.Subtitle as="p" id={subtitleId}>
-        Match results for {inputLabel !== null && <Label variant="accent">{inputLabel}</Label>} with
-        analysis provider {providerLabel !== null && <Label variant="done">{providerLabel}</Label>}:
+        Match results for {inputLabel !== null && <Label variant="accent">{inputLabel}</Label>}
       </Table.Subtitle>
 
       {tableContent}
@@ -224,18 +231,20 @@ const Results = ({
 
 const AnalysisMatchOverlay = () => {
   const { isAnalysing, result, error, inputLabel, handleClose } = useAnalysis();
-  const { settings } = useSettings();
-
-  const selectedProvider =
-    settings?.analysisProviders.find(({ id }) => id === settings.selectedAnalysisProviderId) ??
-    null;
-  const providerLabel = selectedProvider?.name ?? null;
 
   const open = isAnalysing || result !== null || error !== null;
 
   if (!open) {
     return null;
   }
+
+  const failures = result?.failures ?? [];
+
+  /**
+   * Compared against the number of providers asked, not against the match count: a provider that
+   * succeeds but returns no matches is a valid empty result, not a failed analysis.
+   */
+  const allProvidersFailed = failures.length > 0 && failures.length === result?.providerCount;
 
   return (
     <Dialog
@@ -246,12 +255,29 @@ const AnalysisMatchOverlay = () => {
       }
       onClose={handleClose}
       title="Match Analysis"
+      width="900px"
     >
-      {isAnalysing && <Loading inputLabel={inputLabel} providerLabel={providerLabel} />}
+      {isAnalysing && <Loading inputLabel={inputLabel} />}
 
-      {result !== null && (
-        <Results data={result} inputLabel={inputLabel} providerLabel={providerLabel} />
+      {failures.length > 0 && (
+        <Banner
+          style={{ marginBottom: "var(--stack-gap-spacious)" }}
+          title={allProvidersFailed ? "Analysis failed" : "Some providers failed"}
+          variant={allProvidersFailed ? "critical" : "warning"}
+        >
+          <Banner.Description>
+            <PrimerStack direction="vertical" gap="none">
+              {failures.map((failure) => (
+                <span key={failure.provider}>
+                  <strong>{failure.provider}</strong>: {failure.message}
+                </span>
+              ))}
+            </PrimerStack>
+          </Banner.Description>
+        </Banner>
       )}
+
+      {result !== null && !allProvidersFailed && <Results data={result} inputLabel={inputLabel} />}
 
       {error !== null && (
         <Banner title="Error" variant="critical">

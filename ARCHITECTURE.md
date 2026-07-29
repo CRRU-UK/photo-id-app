@@ -252,25 +252,37 @@ The project view is accessed when opening a project. It allows the user to:
 
 #### Analysis
 
-- An analysis button should show in stacks and the image editor once a provider has been selected in the sidebar
-  - Only one provider can be selected, and the selection in the sidebar allows the user to filter through all the providers they've added
+- An analysis button should show in stacks and the image editor once at least one provider has been selected in the sidebar
+  - Any number of providers can be selected, and the selection in the sidebar allows the user to filter through all the providers they've added
   - If a provider is currently selected, it should always be shown regardless of the filter value
-  - Selecting the current provider should unselect it and result in a state where analysis is disabled
+  - The selection panel should NOT close when a provider is selected or unselected, so several can be picked in one go
+  - Selecting an already-selected provider should unselect it; unselecting the last selected provider results in a state where analysis is disabled
   - Re-selecting any provider should re-enable analysis
+  - The selection button shows the provider name when one provider is selected, or a count when more than one is
 - The unassigned and discarded stacks should NOT show the analysis button as this would not be useful
-- Clicking the stack analysis button sends all photos in that stack to the selected provider's `/match` endpoint with the token
-- Clicking the stack analysis button opens an overlay with a data table loading state while the request is being sent and the response is being received
-- Clicking the image editor analysis button should send ONLY the currently displayed photo to the selected provider's `/match` endpoint, including any pending edits (even if they have not yet been saved)
-- Once the response has been received, the overlay content should update the data table with the data received
+- Clicking the stack analysis button sends all photos in that stack to EVERY selected provider's `/match` endpoint with that provider's token
+  - Photos are rendered to JPEG once and the resulting blobs are shared across all provider requests, so the pixel data is only held in memory once
+  - Requests to each provider are dispatched concurrently
+- Clicking the stack analysis button opens an overlay with a data table loading state while the requests are being sent and the responses are being received
+- Clicking the image editor analysis button should send ONLY the currently displayed photo to every selected provider's `/match` endpoint, including any pending edits (even if they have not yet been saved)
+- Once the responses have been received, the overlay content should update the data table with the combined data received from all providers
 - The data table contains the following columns:
-  - Rank of the match (1-indexed, best first)
+  - Rank of the match (1-indexed, best first) as returned by that provider
   - ID of the match
   - Match rating (i.e. confidence, similarity, etc.) visualised as a progress bar and percentage value
+  - Name of the provider that returned the match
   - Copy button which shows the match details on hover and copies them to the clipboard on click
 - The API contract in [`analysis-api-spec.yaml`](./docs/assets/analysis-api-spec.yaml) should be used as the ONLY contract for what the app sends and expects to receive from an analysis provider API
 - The data table results should show all the results received, paginated at a fixed amount per page
 - The progress bars change colour depending on the value of the rating
-- Table rows are ordered by rank ascending (best match first)
+- Table rows are interleaved by rank ascending: every provider's rank 1 sits together at the top, then every rank 2, and so on, so ranks can be compared side by side without paginating
+  - Within a single rank, providers stay in the order they were selected
+  - A provider that returns fewer matches simply drops out of the later rank groups
+- A provider that fails does NOT fail the whole analysis
+  - Results from the providers that succeeded are still shown, with a warning banner naming each failed provider and its error
+  - If EVERY selected provider fails, the banner is shown as critical and no table is rendered
+  - "Every provider failed" is determined by comparing the number of failures against the number of providers the analysis was sent to, NOT by whether any matches came back: a provider that succeeds but returns no matches is a valid empty result and must still render the (empty) table alongside a warning about the providers that did fail
+  - A missing or undecryptable token is a configuration error, not a provider failure, and fails the whole analysis
 
 ### Edit View
 

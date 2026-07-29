@@ -24,33 +24,40 @@ Enter a provider label, your base API URL, and token. Select the ==Save== button
 
 !!! tip
 
-    You can add multiple providers and quickly swap between them, which is useful for testing different configurations, indexes, etc.
+    You can add multiple providers and use several at once, which is useful for comparing different configurations, indexes, etc.
 
 ## Analysis methods
 
-To choose a provider to use for analysis, open the ==Analysis Provider== dropdown in the project view sidebar. Here you can choose from the providers you have added. Select the provider you want to use.
+To choose the providers to use for analysis, open the ==Analysis Providers== dropdown in the project view sidebar. Here you can choose from the providers you have added. Select as many providers as you want to use - the panel stays open so you can pick several in one go.
 
 ![Selecting a provider](../assets/images/analysis-provider-select.png?v2){ width="300" }
 
-You can unselect a provider by selecting it again in the list, which will disable analysis integration until a provider is selected again.
+The button shows the provider name when you have one provider selected, or a count (for example ==5 providers selected==) when you have more than one.
+
+You can unselect a provider by selecting it again in the list. Unselecting your last provider will disable analysis integration until a provider is selected again.
 
 There is currently a single analysis method, with more planned for the future:
 
 ### Matching
 
-When a provider is selected, an ==:octicons-ai-model-16: Analyse== button will appear below each stack and in the image editor toolbar. This can be used to analyse potential matches, such as against an indexed machine learning model. Note that the unassigned and discarded stacks do not support analysis.
+When at least one provider is selected, an ==:octicons-ai-model-16: Analyse== button will appear below each stack and in the image editor toolbar. This can be used to analyse potential matches, such as against an indexed machine learning model. Note that the unassigned and discarded stacks do not support analysis.
 
-Analysing matches in a stack will use _all_ photos in that stack, and analysing matches for an image in the image editor will use only that image (with any pending edits applied).
+Analysing matches in a stack will use _all_ photos in that stack, and analysing matches for an image in the image editor will use only that image (with any pending edits applied). The same photos are sent to every provider you have selected.
 
-When a match analysis is completed, a table will be shown with the corresponding information:
+When a match analysis is completed, a single table will be shown combining the results from every provider, with the corresponding information:
 
-- Match rank (ordered by best match first)
+- Match rank as given by that provider (its own best match first)
 - Rating (e.g. confidence, similarity)
+- Provider that returned the match
 - Details (useful for debugging information)
 
 ![Analysis results](../assets/images/analysis-match-results.png?v2){ width="700" }
 
+When you have more than one provider selected, rows are interleaved by rank: every provider's best match (rank 1) sits together at the top of the table, followed by every rank 2, and so on. This lets you compare what each provider returned for the same rank side by side without paginating. Providers that return fewer matches simply drop out of the later ranks.
+
 Selecting the ==:octicons-copy-16: Copy details to clipboard== button will copy the details of the selected row to your clipboard. Results are paginated for every 10 matches. You can cancel in-progress analysis using the ==Cancel== button in the overlay. Analysis runs independently in each window, so cancelling only affects the analysis in the window you cancel from.
+
+If one of your selected providers fails (for example it is unreachable or rejects your token), the results from the providers that succeeded are still shown, with a warning above the table naming each provider that failed and why. If _every_ selected provider fails, an error is shown instead of the table.
 
 ## Notes
 

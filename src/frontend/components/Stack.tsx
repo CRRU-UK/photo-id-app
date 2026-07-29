@@ -18,6 +18,7 @@ import { observer } from "mobx-react-lite";
 import { ASPECT_RATIO, PROJECT_TOOLTIPS } from "@/constants";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { useSettings } from "@/contexts/SettingsContext";
+import { getSelectedAnalysisProviders } from "@/helpers";
 import type Collection from "@/models/Collection";
 import type Photo from "@/models/Photo";
 
@@ -51,9 +52,7 @@ const Stack = observer(({ collection, showAnalysisButton = true, stackLabel }: S
   const { settings } = useSettings();
   const { isAnalysing, handleAnalyseMatches } = useAnalysis();
 
-  const selectedProvider = settings?.analysisProviders?.find(
-    ({ id }) => id === settings?.selectedAnalysisProviderId,
-  );
+  const hasSelectedProviders = getSelectedAnalysisProviders(settings).length > 0;
 
   const handleAnalyseClick = () => {
     if (collection.photos.length === 0) {
@@ -166,7 +165,7 @@ const Stack = observer(({ collection, showAnalysisButton = true, stackLabel }: S
           aria-label={PROJECT_TOOLTIPS.STACK_ACTIONS}
           flush
           gap="condensed"
-          key={showAnalysisButton && selectedProvider ? "with-analysis" : "without-analysis"}
+          key={showAnalysisButton && hasSelectedProviders ? "with-analysis" : "without-analysis"}
           size="small"
         >
           <ActionBar.IconButton
@@ -179,7 +178,7 @@ const Stack = observer(({ collection, showAnalysisButton = true, stackLabel }: S
               return handleOpenEdit();
             }}
           />
-          {showAnalysisButton && !!selectedProvider && (
+          {showAnalysisButton && hasSelectedProviders && (
             <ActionBar.IconButton
               aria-label={PROJECT_TOOLTIPS.ANALYSIS_MATCH_STACK}
               disabled={collection.photos.length === 0 || isAnalysing}

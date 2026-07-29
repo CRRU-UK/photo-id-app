@@ -1,7 +1,9 @@
 import url from "node:url";
 import { describe, expect, expectTypeOf, it } from "vitest";
 
-import { ROUTES } from "@/constants";
+import { PROVIDER_LABEL_VARIANTS, ROUTES } from "@/constants";
+
+import type { AnalysisMatchResult, SettingsData } from "@/types";
 
 import {
   buildPhotoUrl,
@@ -10,10 +12,13 @@ import {
   decodeEditPayload,
   encodeEditPayload,
   getAlphabetLetter,
+  getAnalysisProvidersLabel,
   getCanvasFilters,
   getImageCoordinates,
   getProjectDirectoryName,
+  getProviderLabelVariants,
   getRecentProjectDisplayPath,
+  getSelectedAnalysisProviders,
   isEditWindow,
   stripWhitespace,
 } from "./helpers";
@@ -543,5 +548,118 @@ describe(stripWhitespace, () => {
     ["string with no whitespace", "abcdef", "abcdef"],
   ])("strips %s", (_label, input, expected) => {
     expect(stripWhitespace(input)).toBe(expected);
+  });
+});
+
+describe(getSelectedAnalysisProviders, () => {
+  const providerA = { id: "id-a", name: "Provider A", endpoint: "https://a.example.com" };
+  const providerB = { id: "id-b", name: "Provider B", endpoint: "https://b.example.com" };
+
+  const createSettings = (selectedAnalysisProviderIds: string[]): SettingsData =>
+    ({
+      analysisProviders: [providerA, providerB],
+      selectedAnalysisProviderIds,
+    }) as SettingsData;
+
+  it("returns every selected provider", () => {
+    const result = getSelectedAnalysisProviders(createSettings([providerA.id, providerB.id]));
+
+    expect(result).toStrictEqual([providerA, providerB]);
+  });
+
+  it("returns only the selected providers", () => {
+    const result = getSelectedAnalysisProviders(createSettings([providerB.id]));
+
+    expect(result).toStrictEqual([providerB]);
+  });
+
+  it("ignores selected IDs that no longer have a configured provider", () => {
+    const result = getSelectedAnalysisProviders(createSettings(["id-gone"]));
+
+    expect(result).toStrictEqual([]);
+  });
+
+  it("returns an empty array when nothing is selected", () => {
+    expect(getSelectedAnalysisProviders(createSettings([]))).toStrictEqual([]);
+  });
+
+  it("returns an empty array when settings have not loaded", () => {
+    expect(getSelectedAnalysisProviders(null)).toStrictEqual([]);
+    expect(getSelectedAnalysisProviders(undefined)).toStrictEqual([]);
+  });
+});
+
+describe(getAnalysisProvidersLabel, () => {
+  const createProviders = (count: number) =>
+    Array.from({ length: count }, (_value, index) => ({
+      id: `id-${index}`,
+      name: `Provider ${index}`,
+      endpoint: `https://${index}.example.com`,
+    }));
+
+  it("falls back to a generic label when nothing is selected", () => {
+    expect(getAnalysisProvidersLabel([])).toBe("Analysis Provider");
+  });
+
+  it("uses the provider name when exactly one is selected", () => {
+    expect(getAnalysisProvidersLabel(createProviders(1))).toBe("Provider 0");
+  });
+
+  it("counts the providers when more than one is selected", () => {
+    expect(getAnalysisProvidersLabel(createProviders(2))).toBe("2 providers selected");
+    expect(getAnalysisProvidersLabel(createProviders(5))).toBe("5 providers selected");
+  });
+});
+
+describe(getProviderLabelVariants, () => {
+  const createMatch = (provider: string, rank: number): AnalysisMatchResult => ({
+    provider,
+    rank,
+    id: `${provider}-${rank}`,
+    rating: 0.5,
+    details: "details",
+  });
+
+  it("gives each provider a distinct variant", () => {
+    const result = getProviderLabelVariants([
+      createMatch("A", 1),
+      createMatch("B", 1),
+      createMatch("C", 1),
+    ]);
+
+    expect([...result.values()]).toStrictEqual(["done", "accent", "sponsors"]);
+  });
+
+  it("keys providers by first appearance so a provider keeps one variant across ranks", () => {
+    const result = getProviderLabelVariants([
+      createMatch("A", 1),
+      createMatch("B", 1),
+      createMatch("A", 2),
+      createMatch("B", 2),
+    ]);
+
+    expect(result.size).toBe(2);
+    expect(result.get("A")).toBe("done");
+    expect(result.get("B")).toBe("accent");
+  });
+
+  it("cycles variants when there are more providers than colours", () => {
+    const matches = Array.from({ length: PROVIDER_LABEL_VARIANTS.length + 2 }, (_value, index) =>
+      createMatch(`Provider ${index}`, 1),
+    );
+
+    const result = getProviderLabelVariants(matches);
+
+    expect(result.get("Provider 0")).toBe(PROVIDER_LABEL_VARIANTS[0]);
+    expect(result.get(`Provider ${PROVIDER_LABEL_VARIANTS.length}`)).toBe(
+      PROVIDER_LABEL_VARIANTS[0],
+    );
+    expect(result.get(`Provider ${PROVIDER_LABEL_VARIANTS.length + 1}`)).toBe(
+      PROVIDER_LABEL_VARIANTS[1],
+    );
+  });
+
+  it("returns an empty map when there are no matches", () => {
+    expect(getProviderLabelVariants([]).size).toBe(0);
   });
 });

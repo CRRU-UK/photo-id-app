@@ -14,6 +14,8 @@ All project data, photos, and settings remain on your computer. The app does not
 - **Settings** are stored in your system application data directory.
 - **Analysis providers** are stored in your system application data directory, and API tokens are encrypted ([more info](./user-guide/analysis.md#api-tokens)).
 
+When you run a match analysis, the photos involved are sent to _every_ analysis provider you have selected in the sidebar, not just one. Providers are services you configure yourself, so what happens to the photos after they are sent is governed by whoever operates each endpoint. Nothing is sent to a provider until you select it and start an analysis.
+
 ## Optional telemetry (error reporting)
 
 !!! info "Always opt-in"
