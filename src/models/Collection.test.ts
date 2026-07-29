@@ -86,13 +86,6 @@ describe(Collection, () => {
 
       expect(window.electronAPI.saveProject).toHaveBeenCalledWith(expect.any(String));
     });
-
-    it("returns the collection for chaining", () => {
-      const collection = new Collection({ index: 0, photos: [] }, project);
-      const result = collection.addPhoto(createPhoto("photo.jpg"));
-
-      expect(result).toBe(collection);
-    });
   });
 
   describe("removePhoto", () => {
@@ -125,14 +118,6 @@ describe(Collection, () => {
       collection.removePhoto(photo3);
 
       expect(collection.index).toBe(0);
-    });
-
-    it("returns the collection for chaining", () => {
-      const photo = createPhoto("photo.jpg");
-      const collection = new Collection({ index: 0, photos: [photo] }, project);
-      const result = collection.removePhoto(photo);
-
-      expect(result).toBe(collection);
     });
   });
 
@@ -193,10 +178,9 @@ describe(Collection, () => {
     it("returns without changing index on empty collection", () => {
       const collection = new Collection({ index: 0, photos: [] }, project);
 
-      const result = collection.setPreviousPhoto();
+      collection.setPreviousPhoto();
 
       expect(collection.index).toBe(0);
-      expect(result).toBe(collection);
     });
 
     it("moves to the previous photo", () => {
@@ -230,24 +214,15 @@ describe(Collection, () => {
 
       expect(window.electronAPI.saveProject).toHaveBeenCalledWith(expect.any(String));
     });
-
-    it("returns the collection for chaining", () => {
-      const photo = createPhoto("a.jpg");
-      const collection = new Collection({ index: 0, photos: [photo] }, project);
-      const result = collection.setPreviousPhoto();
-
-      expect(result).toBe(collection);
-    });
   });
 
   describe("setNextPhoto", () => {
     it("returns without changing index on empty collection", () => {
       const collection = new Collection({ index: 0, photos: [] }, project);
 
-      const result = collection.setNextPhoto();
+      collection.setNextPhoto();
 
       expect(collection.index).toBe(0);
-      expect(result).toBe(collection);
     });
 
     it("moves to the next photo", () => {
@@ -280,14 +255,6 @@ describe(Collection, () => {
 
       expect(window.electronAPI.saveProject).toHaveBeenCalledWith(expect.any(String));
     });
-
-    it("returns the collection for chaining", () => {
-      const photo = createPhoto("a.jpg");
-      const collection = new Collection({ index: 0, photos: [photo] }, project);
-      const result = collection.setNextPhoto();
-
-      expect(result).toBe(collection);
-    });
   });
 
   describe("setName", () => {
@@ -307,13 +274,6 @@ describe(Collection, () => {
       vi.runAllTimers();
 
       expect(window.electronAPI.saveProject).toHaveBeenCalledWith(expect.any(String));
-    });
-
-    it("returns the collection for chaining", () => {
-      const collection = new Collection({ index: 0, photos: [] }, project);
-      const result = collection.setName("Test");
-
-      expect(result).toBe(collection);
     });
   });
 });

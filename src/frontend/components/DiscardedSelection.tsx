@@ -6,7 +6,7 @@ import { BOX_HOVER_STYLES, DragAreas } from "@/constants";
 import Stack from "@/frontend/components/Stack";
 import type Collection from "@/models/Collection";
 
-export interface DiscardedSelectionProps {
+interface DiscardedSelectionProps {
   collection: Collection;
 }
 

@@ -1,5 +1,3 @@
-import "dotenv/config";
-
 import * as Sentry from "@sentry/electron/main";
 import {
   app,
@@ -30,6 +28,12 @@ import { applyWindowsJumpList } from "@/backend/shellIntegration";
 import { windowManager } from "@/backend/WindowManager";
 import { basePath, createProjectWindow, defaultWebPreferences } from "@/backend/windows";
 import { JUMP_LIST_ARGS, PHOTO_PROTOCOL_SCHEME } from "@/constants";
+
+try {
+  process.loadEnvFile();
+} catch {
+  // Local and dev
+}
 
 /**
  * Handle Squirrel lifecycle events (install, update, uninstall). `app.quit()` only posts a quit

@@ -414,4 +414,25 @@ describe(handleExportMatches, () => {
       "utf8",
     );
   });
+
+  it("csv export escapes filenames containing commas and quotes", async () => {
+    const mainWindow = createMockMainWindow();
+    const photo = createPhoto('od d,"name".jpg', { isEdited: false });
+    const project = createProject({
+      matched: [
+        {
+          id: 1,
+          left: { photos: [photo], index: 0, name: "" },
+          right: createEmptyCollection(),
+        },
+      ],
+    });
+
+    await handleExportMatches(mainWindow, "/project", JSON.stringify(project), "csv");
+
+    const [, csvContent] = vi.mocked(mockWriteFile).mock.calls[0];
+
+    // Comma/quote-containing cell is wrapped in quotes with embedded quotes doubled
+    expect(csvContent).toContain('A,"od d,""name"".jpg"');
+  });
 });

@@ -63,39 +63,16 @@ const createMockWindow = (
   }) as unknown as BrowserWindow;
 
 const {
-  getWindowFromSender,
   broadcastToAllWindows,
   findProjectFileArg,
   focusExistingWindow,
   openProjectFromPath,
   resolveExternalLinkUrl,
-  withErrorDialog,
 } = await import("./shared");
 
 describe("shared IPC utilities", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-  });
-
-  describe(getWindowFromSender, () => {
-    it("delegates to BrowserWindow.fromWebContents", () => {
-      const mockWindow = createMockWindow();
-      const mockWebContents = {} as Electron.WebContents;
-      mockFromWebContents.mockReturnValue(mockWindow);
-
-      const result = getWindowFromSender(mockWebContents);
-
-      expect(result).toBe(mockWindow);
-      expect(mockFromWebContents).toHaveBeenCalledWith(mockWebContents);
-    });
-
-    it("returns null when no window is found", () => {
-      mockFromWebContents.mockReturnValue(null);
-
-      const result = getWindowFromSender({} as Electron.WebContents);
-
-      expect(result).toBeNull();
-    });
   });
 
   describe(broadcastToAllWindows, () => {
@@ -274,35 +251,6 @@ describe("shared IPC utilities", () => {
       const result = resolveExternalLinkUrl("unknown" as never);
 
       expect(result).toBeUndefined();
-    });
-  });
-
-  describe(withErrorDialog, () => {
-    it("calls the handler function", async () => {
-      const handler = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
-      const wrapped = withErrorDialog("test action", handler);
-
-      await wrapped();
-
-      expect(handler).toHaveBeenCalledWith();
-    });
-
-    it("shows an error dialog when the handler throws", async () => {
-      const handler = vi.fn<() => Promise<void>>().mockRejectedValue(new Error("something broke"));
-      const wrapped = withErrorDialog("test action", handler);
-
-      await wrapped();
-
-      expect(mockShowErrorBox).toHaveBeenCalledWith("Failed to test action", "something broke");
-    });
-
-    it("does not show an error dialog when the handler succeeds", async () => {
-      const handler = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
-      const wrapped = withErrorDialog("test action", handler);
-
-      await wrapped();
-
-      expect(mockShowErrorBox).not.toHaveBeenCalled();
     });
   });
 });

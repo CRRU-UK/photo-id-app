@@ -1,7 +1,6 @@
 import type { z } from "zod";
 
 import type Collection from "@/models/Collection";
-import type Photo from "@/models/Photo";
 import type {
   analysisMatchResponseSchema,
   analysisMatchSchema,
@@ -9,15 +8,13 @@ import type {
   analysisProviderSchema,
   collectionBodySchema,
   editPayloadSchema,
-  matchedBodySchema,
   photoBodySchema,
   photoEditsSchema,
   projectBodySchema,
-  projectPayloadSchema,
+  recentProjectSchema,
   settingsDataSchema,
   telemetrySchema,
   themeModeSchema,
-  tokenEntrySchema,
   tokenStoreSchema,
 } from "@/schemas";
 
@@ -39,28 +36,14 @@ export type PhotoBody = z.infer<typeof photoBodySchema>;
 
 export type CollectionBody = z.infer<typeof collectionBodySchema>;
 
-export type MatchedBody = z.infer<typeof matchedBodySchema>;
-
 export type ProjectBody = z.infer<typeof projectBodySchema>;
 
-export type ProjectPayload = z.infer<typeof projectPayloadSchema>;
+/** Runtime-only payload (includes current directory path). */
+export type ProjectPayload = { directory: string; body: ProjectBody };
 
 export type EditPayload = z.infer<typeof editPayloadSchema>;
 
-export type RecentProject = {
-  name: string;
-  path: string;
-  lastOpened: string;
-};
-
-export type DraggableStartData = {
-  collection: Collection;
-  currentPhoto: Photo;
-};
-
-export type DraggableEndData = {
-  collection: Collection;
-};
+export type RecentProject = z.infer<typeof recentProjectSchema>;
 
 export type LoadingData = {
   show: boolean;
@@ -100,8 +83,6 @@ export type Telemetry = z.infer<typeof telemetrySchema>;
 export type AnalysisProvider = z.infer<typeof analysisProviderSchema>;
 
 export type AnalysisProviderDraft = z.infer<typeof analysisProviderDraftSchema>;
-
-export type TokenEntry = z.infer<typeof tokenEntrySchema>;
 
 export type TokenStore = z.infer<typeof tokenStoreSchema>;
 

@@ -224,19 +224,6 @@ describe(Photo, () => {
       expect(window.electronAPI.saveProject).toHaveBeenCalledWith(expect.any(String));
     });
 
-    it("returns the photo for chaining", () => {
-      const photo = createPhoto();
-
-      const result = photo.updatePhoto({
-        name: "photo.jpg",
-        thumbnail: ".thumbnails/photo.jpg",
-        edits: { ...defaultEdits, pan: { x: 0, y: 0 } },
-        isEdited: false,
-      });
-
-      expect(result).toBe(photo);
-    });
-
     it("creates deep copy of edits to avoid shared references", () => {
       const photo = createPhoto();
 

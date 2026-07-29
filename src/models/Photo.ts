@@ -55,14 +55,12 @@ class Photo {
     };
   }
 
-  public updatePhoto(data: PhotoBody): this {
+  public updatePhoto(data: PhotoBody): void {
     this.edits = { ...data.edits, pan: { ...data.edits.pan } };
     this.thumbnail = data.thumbnail;
     this.version = Date.now();
 
     this.project.save();
-
-    return this;
   }
 }
 

@@ -4,7 +4,6 @@ import { analyseMatches, cancelAnalyseMatches } from "@/backend/analysis";
 import { broadcastToAllWindows } from "@/backend/ipc/shared";
 import {
   getSettings,
-  getSettingsForRenderer,
   removeAnalysisProvider,
   updateSettings,
   upsertAnalysisProvider,
@@ -24,7 +23,7 @@ import type {
  * Broadcasts enriched settings to all windows after an analysis provider change.
  */
 const broadcastSettingsUpdate = async (): Promise<void> => {
-  const enrichedSettings = await getSettingsForRenderer();
+  const enrichedSettings = await getSettings();
   broadcastToAllWindows(IPC_EVENTS.SETTINGS_UPDATED, enrichedSettings);
 };
 

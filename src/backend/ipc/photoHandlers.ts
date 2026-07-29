@@ -43,8 +43,7 @@ export const handleDuplicatePhotoFileInvoke = async (
     throw new Error("No project open");
   }
 
-  const result = await handleDuplicatePhotoFile(directory, data);
-  return result;
+  return handleDuplicatePhotoFile(directory, data);
 };
 
 export const registerPhotoHandlers = (ipcMain: Electron.IpcMain): void => {

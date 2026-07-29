@@ -34,7 +34,7 @@ const ProgressElements = ({ progress, total }: ProgressElementsProps) => (
   </PrimerStack>
 );
 
-export interface MainSelectionProps {
+interface MainSelectionProps {
   collection: Collection;
   total: number;
 }

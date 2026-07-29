@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef } from "react";
-import { CANVAS_DRAW_DEBOUNCE_MS } from "@/constants";
 import { getCanvasFilters } from "@/helpers";
 import type { ImageFilters, ImageTransformations } from "@/types";
 
@@ -17,7 +16,6 @@ export const useCanvasRenderer = ({ imageRef, getFilters, getTransform, clamp }:
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const contextRef = useRef<CanvasRenderingContext2D | null>(null);
   const throttleRef = useRef<number | null>(null);
-  const debounceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
@@ -97,24 +95,11 @@ export const useCanvasRenderer = ({ imageRef, getFilters, getTransform, clamp }:
   }, [imageRef, getFilters, getTransform, clamp]);
 
   /**
-   * Schedules a single draw after `CANVAS_DRAW_DEBOUNCE_MS` of no further calls. Ensures a final
-   * render after interactions stop (e.g. slider release).
+   * Coalesces rapid calls (e.g. slider drags) into one draw per animation frame. The final call's
+   * frame renders the settled state because `draw` reads the latest filter/transform refs when it
+   * fires, so no separate debounced "settle" draw is needed.
    */
-  const drawDebounced = useCallback(() => {
-    if (debounceTimeoutRef.current !== null) {
-      clearTimeout(debounceTimeoutRef.current);
-      debounceTimeoutRef.current = null;
-    }
-
-    debounceTimeoutRef.current = setTimeout(() => {
-      draw();
-      debounceTimeoutRef.current = null;
-    }, CANVAS_DRAW_DEBOUNCE_MS);
-  }, [draw]);
-
   const drawThrottled = useCallback(() => {
-    drawDebounced();
-
     if (throttleRef.current !== null) {
       return;
     }
@@ -123,17 +108,12 @@ export const useCanvasRenderer = ({ imageRef, getFilters, getTransform, clamp }:
       draw();
       throttleRef.current = null;
     });
-  }, [draw, drawDebounced]);
+  }, [draw]);
 
   const cancelThrottle = useCallback(() => {
     if (throttleRef.current !== null) {
       cancelAnimationFrame(throttleRef.current);
       throttleRef.current = null;
-    }
-
-    if (debounceTimeoutRef.current !== null) {
-      clearTimeout(debounceTimeoutRef.current);
-      debounceTimeoutRef.current = null;
     }
   }, []);
 

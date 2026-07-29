@@ -25,7 +25,6 @@ class Project {
   lastModified: Date;
 
   private saveDebounceTimer: ReturnType<typeof setTimeout> | null = null;
-  private static readonly SAVE_DEBOUNCE_MS = SAVE_PROJECT_DEBOUNCE_MS;
 
   constructor(payload?: ProjectPayload) {
     makeObservable(this, {
@@ -97,7 +96,7 @@ class Project {
    * Loads project state from JSON. `runInAction` batches all observable updates into a single
    * transaction so observers re-run once instead of on every property change.
    */
-  public loadFromJSON(data: ProjectBody, directory: Directory): this {
+  public loadFromJSON(data: ProjectBody, directory: Directory): void {
     const { id, version, unassigned, matched, discarded, created, lastModified } = data;
 
     runInAction(() => {
@@ -120,7 +119,6 @@ class Project {
     });
 
     console.debug("Loaded project from data:", this);
-    return this;
   }
 
   private serialize(): string {
@@ -153,7 +151,7 @@ class Project {
 
       const data = this.serialize();
       void window.electronAPI.saveProject(data);
-    }, Project.SAVE_DEBOUNCE_MS);
+    }, SAVE_PROJECT_DEBOUNCE_MS);
   }
 
   /**
@@ -172,18 +170,16 @@ class Project {
     window.electronAPI.flushSaveProject(data);
   }
 
-  public addPhotoToStack(from: Collection, to: Collection, photo: Photo): this {
+  public addPhotoToStack(from: Collection, to: Collection, photo: Photo): void {
     if (to.hasPhoto(photo)) {
-      return this;
+      return;
     }
 
     from.removePhoto(photo);
     to.addPhoto(photo);
-
-    return this;
   }
 
-  public async duplicatePhotoToStack(to: Collection, photo: Photo): Promise<this> {
+  public async duplicatePhotoToStack(to: Collection, photo: Photo): Promise<void> {
     const result = await window.electronAPI.duplicatePhotoFile(photo.toBody());
 
     const newPhoto = new Photo(
@@ -199,11 +195,9 @@ class Project {
     this.allPhotos.set(newPhoto.fileName, newPhoto);
 
     this.save();
-
-    return this;
   }
 
-  public addPage(): this {
+  public addPage(): void {
     const lastId = this.matched.reduce((max, match) => Math.max(max, match.id), 0);
 
     for (let i = 0; i < MATCHED_STACKS_PER_PAGE; i = i + 1) {
@@ -215,14 +209,11 @@ class Project {
     }
 
     this.save();
-    return this;
   }
 
-  public async exportMatches(type: ExportTypes): Promise<this> {
+  public async exportMatches(type: ExportTypes): Promise<void> {
     const data = this.serialize();
     await window.electronAPI.exportMatches(data, type);
-
-    return this;
   }
 }
 

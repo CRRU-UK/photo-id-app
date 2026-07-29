@@ -1,25 +1,13 @@
 import path from "node:path";
 import { BrowserWindow, dialog } from "electron";
-import { ZodError } from "zod";
 
 import { handleOpenProjectFile } from "@/backend/projects";
 import { windowManager } from "@/backend/WindowManager";
 import { createProjectWindow } from "@/backend/windows";
-import {
-  CORRUPTED_DATA_MESSAGE,
-  EXTERNAL_LINKS,
-  PROJECT_FILE_EXTENSION,
-  ROUTES,
-} from "@/constants";
+import { EXTERNAL_LINKS, PROJECT_FILE_EXTENSION, ROUTES } from "@/constants";
 import type { ExternalLinks } from "@/types";
 
 import { version } from "../../../package.json";
-
-/**
- * Resolves the BrowserWindow from an IPC event sender.
- */
-export const getWindowFromSender = (webContents: Electron.WebContents): BrowserWindow | null =>
-  BrowserWindow.fromWebContents(webContents);
 
 /**
  * Sends an IPC event with data to all open BrowserWindows.
@@ -151,33 +139,3 @@ export const resolveExternalLinkUrl = (link: ExternalLinks): string | undefined 
 
   return url.replace("$VERSION", `v${version}`);
 };
-
-/**
- * Extracts a user-friendly message from an error. Zod validation errors are simplified to avoid
- * showing raw schema details to users.
- */
-export const getUserErrorMessage = (error: unknown): string => {
-  if (error instanceof ZodError || error instanceof SyntaxError) {
-    return CORRUPTED_DATA_MESSAGE;
-  }
-
-  if (error instanceof Error) {
-    return error.message;
-  }
-
-  return String(error);
-};
-
-/**
- * Wraps an async IPC `.on` handler with try/catch and shows an error dialog on failure.
- */
-export const withErrorDialog =
-  (label: string, handler: () => Promise<void>): (() => Promise<void>) =>
-  async () => {
-    try {
-      await handler();
-    } catch (error) {
-      console.error(`Failed to ${label}:`, error);
-      dialog.showErrorBox(`Failed to ${label}`, getUserErrorMessage(error));
-    }
-  };

@@ -41,7 +41,6 @@ vi.mock("@sentry/electron/main", () => ({
 
 const {
   getSettings,
-  getSettingsForRenderer,
   getTelemetrySync,
   initSentry,
   removeAnalysisProvider,
@@ -192,16 +191,6 @@ describe("settings", () => {
         JSON.stringify(DEFAULT_SETTINGS, null, 2),
         "utf8",
       );
-    });
-  });
-
-  describe(getSettingsForRenderer, () => {
-    it("returns the settings from disk", async () => {
-      mockExistsSync.mockReturnValue(false);
-
-      const result = await getSettingsForRenderer();
-
-      expect(result).toStrictEqual(DEFAULT_SETTINGS);
     });
   });
 
