@@ -239,7 +239,12 @@ const AnalysisMatchOverlay = () => {
   }
 
   const failures = result?.failures ?? [];
-  const allProvidersFailed = failures.length > 0 && result?.matches.length === 0;
+
+  /**
+   * Compared against the number of providers asked, not against the match count: a provider that
+   * succeeds but returns no matches is a valid empty result, not a failed analysis.
+   */
+  const allProvidersFailed = failures.length > 0 && failures.length === result?.providerCount;
 
   return (
     <Dialog

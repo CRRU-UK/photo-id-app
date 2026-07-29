@@ -98,10 +98,15 @@ export type AnalysisFailure = { provider: string; message: string };
 /**
  * The combined outcome of one analysis across every selected provider. Constructed in the main
  * process from already-validated provider responses, so it has no schema of its own.
+ *
+ * `providerCount` is how many providers the analysis was sent to, which is what makes
+ * `failures.length === providerCount` ("every provider failed") distinguishable from a provider
+ * that succeeded but returned no matches.
  */
 export type AnalysisMatchResults = {
   matches: AnalysisMatchResult[];
   failures: AnalysisFailure[];
+  providerCount: number;
 };
 
 export type SettingsData = z.infer<typeof settingsDataSchema>;

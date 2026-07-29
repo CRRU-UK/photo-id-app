@@ -90,6 +90,21 @@ const buildFormData = (blobs: ImageBlob[]): FormData => {
 };
 
 /**
+ * Trims trailing slashes from an endpoint so the `/match` path can be appended. Uses a loop rather
+ * than a `/\/+$/` regex: that pattern backtracks quadratically over a long run of slashes, and
+ * endpoints come from user input.
+ */
+const trimTrailingSlashes = (endpoint: string): string => {
+  let end = endpoint.length;
+
+  while (end > 0 && endpoint[end - 1] === "/") {
+    end = end - 1;
+  }
+
+  return endpoint.slice(0, end);
+};
+
+/**
  * Performs the POST to a provider's `/match` endpoint and validates the response.
  */
 const performMatchRequest = async (
@@ -97,7 +112,7 @@ const performMatchRequest = async (
   provider: AnalyseMatchesProvider,
   abortController: AbortController,
 ): Promise<AnalysisMatchResponse> => {
-  const endpoint = provider.endpoint.replace(/\/+$/, "");
+  const endpoint = trimTrailingSlashes(provider.endpoint);
   const url = `${endpoint}/match`;
 
   const signal = AbortSignal.any([
@@ -237,7 +252,11 @@ const analyseMatches = async ({
      * providers stay in the order they were selected. Providers returning fewer matches simply
      * drop out of the later rank groups.
      */
-    return { matches: matches.toSorted((a, b) => a.rank - b.rank), failures };
+    return {
+      matches: matches.toSorted((a, b) => a.rank - b.rank),
+      failures,
+      providerCount: providers.length,
+    };
   } finally {
     if (abortControllersByWindow.get(windowId) === abortController) {
       abortControllersByWindow.delete(windowId);

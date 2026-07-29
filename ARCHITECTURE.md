@@ -281,6 +281,7 @@ The project view is accessed when opening a project. It allows the user to:
 - A provider that fails does NOT fail the whole analysis
   - Results from the providers that succeeded are still shown, with a warning banner naming each failed provider and its error
   - If EVERY selected provider fails, the banner is shown as critical and no table is rendered
+  - "Every provider failed" is determined by comparing the number of failures against the number of providers the analysis was sent to, NOT by whether any matches came back: a provider that succeeds but returns no matches is a valid empty result and must still render the (empty) table alongside a warning about the providers that did fail
   - A missing or undecryptable token is a configuration error, not a provider failure, and fails the whole analysis
 
 ### Edit View

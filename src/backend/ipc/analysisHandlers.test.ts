@@ -234,7 +234,7 @@ describe("analysis IPC handlers", () => {
         analysisProviders: [{ id: MOCK_UUID, name: "Test", endpoint: "https://api.com" }],
       } as SettingsData;
       const photo = createMockPhotoBody();
-      const mockResponse: AnalysisMatchResults = { matches: [], failures: [] };
+      const mockResponse: AnalysisMatchResults = { matches: [], failures: [], providerCount: 1 };
 
       mockGetSettings.mockResolvedValue(settings);
       mockGetToken.mockResolvedValue("api-token");
@@ -265,7 +265,7 @@ describe("analysis IPC handlers", () => {
       mockGetToken.mockImplementation((id) =>
         Promise.resolve(id === MOCK_UUID ? "first-token" : "second-token"),
       );
-      mockAnalyseMatches.mockResolvedValue({ matches: [], failures: [] });
+      mockAnalyseMatches.mockResolvedValue({ matches: [], failures: [], providerCount: 1 });
 
       await handleAnalyseMatches(mockEvent, [createMockPhotoBody()]);
 
@@ -291,7 +291,7 @@ describe("analysis IPC handlers", () => {
 
       mockGetSettings.mockResolvedValue(settings);
       mockGetToken.mockResolvedValue("second-token");
-      mockAnalyseMatches.mockResolvedValue({ matches: [], failures: [] });
+      mockAnalyseMatches.mockResolvedValue({ matches: [], failures: [], providerCount: 1 });
 
       await handleAnalyseMatches(mockEvent, [createMockPhotoBody()]);
 
@@ -315,7 +315,7 @@ describe("analysis IPC handlers", () => {
 
       mockGetSettings.mockResolvedValue(settings);
       mockGetToken.mockResolvedValue("api-token");
-      mockAnalyseMatches.mockResolvedValue({ matches: [], failures: [] });
+      mockAnalyseMatches.mockResolvedValue({ matches: [], failures: [], providerCount: 1 });
 
       await handleAnalyseMatches(createMockEvent(11), [createMockPhotoBody()]);
       await handleAnalyseMatches(createMockEvent(22), [createMockPhotoBody()]);

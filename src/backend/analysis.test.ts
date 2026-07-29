@@ -68,7 +68,11 @@ describe(analyseMatches, () => {
       providers: defaultProviders,
     });
 
-    expect(result).toStrictEqual({ matches: annotatedSuccessMatches, failures: [] });
+    expect(result).toStrictEqual({
+      matches: annotatedSuccessMatches,
+      failures: [],
+      providerCount: 1,
+    });
   });
 
   it("sorts matches by rank ascending", async () => {
@@ -107,14 +111,18 @@ describe(analyseMatches, () => {
     );
   });
 
-  it("strips a trailing slash from the endpoint before appending /match", async () => {
+  it.each([
+    ["a single trailing slash", "https://api.example.com/"],
+    ["repeated trailing slashes", "https://api.example.com///"],
+    ["no trailing slash", "https://api.example.com"],
+  ])("strips %s from the endpoint before appending /match", async (_label, endpoint) => {
     mockFetch.mockResolvedValue(new Response(JSON.stringify(successResponse), { status: 200 }));
 
     await analyseMatches({
       windowId: 1,
       directory: "/project",
       photos: [defaultPhoto],
-      providers: [{ ...defaultProvider, endpoint: "https://api.example.com/" }],
+      providers: [{ ...defaultProvider, endpoint }],
     });
 
     const [url] = mockFetch.mock.calls[0];
@@ -188,6 +196,7 @@ describe(analyseMatches, () => {
     expect(result).toStrictEqual({
       matches: [],
       failures: [{ provider: defaultProvider.name, message: "Invalid or missing token" }],
+      providerCount: 1,
     });
   });
 
@@ -558,6 +567,32 @@ describe(analyseMatches, () => {
         defaultProvider.name,
         secondProvider.name,
       ]);
+      expect(result?.providerCount).toBe(2);
+    });
+
+    it("reports the provider count so an empty success is distinguishable from a total failure", async () => {
+      /**
+       * A provider that succeeds with no matches alongside one that fails produces no matches at
+       * all, so only the provider count tells the two situations apart.
+       */
+      mockFetch.mockImplementation((url) => {
+        if (String(url).startsWith(secondProvider.endpoint)) {
+          return Promise.reject(new Error("Network connection failed"));
+        }
+
+        return Promise.resolve(new Response(JSON.stringify({ matches: [] }), { status: 200 }));
+      });
+
+      const result = await analyseMatches({
+        windowId: 1,
+        directory: "/project",
+        photos: [defaultPhoto],
+        providers: [defaultProvider, secondProvider],
+      });
+
+      expect(result?.matches).toStrictEqual([]);
+      expect(result?.failures).toHaveLength(1);
+      expect(result?.providerCount).toBe(2);
     });
 
     it("returns null when cancelled, even if some providers already responded", async () => {
@@ -650,6 +685,10 @@ describe(cancelAnalyseMatches, () => {
     // biome-ignore lint/style/noNonNullAssertion: window B reached fetch before promiseA resolved
     pendingResolve!(new Response(JSON.stringify(successResponse), { status: 200 }));
     const resultB = await promiseB;
-    expect(resultB).toStrictEqual({ matches: annotatedSuccessMatches, failures: [] });
+    expect(resultB).toStrictEqual({
+      matches: annotatedSuccessMatches,
+      failures: [],
+      providerCount: 1,
+    });
   });
 });
