@@ -1,6 +1,5 @@
 import fs from "node:fs";
 import path from "node:path";
-import { stringify } from "csv-stringify/sync";
 import { renderFullImageWithEdits } from "@/backend/imageRenderer";
 import { resolvePhotoPath } from "@/backend/projects";
 import { sendLoading } from "@/backend/shellIntegration";
@@ -23,6 +22,19 @@ const getMatchExportLabel = (matchId: number, sideName: string): string => {
   }
 
   return getAlphabetLetter(matchId);
+};
+
+/**
+ * Serialises rows to CSV.
+ *
+ * A cell is quoted only if it contains a quote, comma, or line break, and embedded quotes are
+ * doubled. Every record (including the last) is terminated with a newline.
+ */
+const toCSV = (records: string[][]): string => {
+  const escapeCell = (cell: string): string =>
+    /[",\n\r]/.test(cell) ? `"${cell.replaceAll('"', '""')}"` : cell;
+
+  return `${records.map((row) => row.map(escapeCell).join(",")).join("\n")}\n`;
 };
 
 const exportMatchesAsCSV = async (
@@ -57,9 +69,10 @@ const exportMatchesAsCSV = async (
     await fs.promises.mkdir(dataDirectory);
   }
 
-  const csvPath = path.join(dataDirectory, PROJECT_EXPORT_CSV_FILE_NAME);
-  const csvContent = stringify(records);
-  await fs.promises.writeFile(csvPath, csvContent, "utf8");
+  const targetPath = path.join(dataDirectory, PROJECT_EXPORT_CSV_FILE_NAME);
+  const content = toCSV(records);
+
+  await fs.promises.writeFile(targetPath, content, "utf8");
 
   sendLoading(mainWindow, { show: false });
 

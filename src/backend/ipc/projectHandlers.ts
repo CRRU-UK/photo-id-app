@@ -181,8 +181,7 @@ export const handleOpenProjectFileInvoke = async (
 };
 
 export const handleGetRecentProjects = async (): Promise<RecentProject[]> => {
-  const result = await getRecentProjects();
-  return result;
+  return getRecentProjects();
 };
 
 export const handleRemoveRecentProject = async (

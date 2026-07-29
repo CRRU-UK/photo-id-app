@@ -105,8 +105,6 @@ vi.mock("@/backend/windows", () => ({
     mockCreateProjectWindow(...args),
 }));
 
-const mockGetWindowFromSender =
-  vi.fn<(webContents: Electron.WebContents) => BrowserWindow | null>();
 const mockFocusExistingWindow = vi.fn<(window: BrowserWindow) => void>();
 
 /**
@@ -115,8 +113,6 @@ const mockFocusExistingWindow = vi.fn<(window: BrowserWindow) => void>();
  * mockFindWindowForProject / mockGetDirectoryForWindow as before.
  */
 vi.mock("./shared", () => ({
-  getWindowFromSender: (...args: Parameters<typeof mockGetWindowFromSender>) =>
-    mockGetWindowFromSender(...args),
   focusExistingWindow: (...args: Parameters<typeof mockFocusExistingWindow>) =>
     mockFocusExistingWindow(...args),
   focusIfAlreadyOpen: (directory: string) => {

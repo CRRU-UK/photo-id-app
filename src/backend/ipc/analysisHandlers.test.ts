@@ -45,7 +45,6 @@ const mockUpsertAnalysisProvider =
   vi.fn<(settings: SettingsData, providerId: string, provider: unknown) => SettingsData>();
 const mockRemoveAnalysisProvider =
   vi.fn<(settings: SettingsData, providerId: string) => SettingsData>();
-const mockGetSettingsForRenderer = vi.fn<() => Promise<SettingsData>>();
 
 vi.mock("@/backend/settings", () => ({
   getSettings: () => mockGetSettings(),
@@ -54,7 +53,6 @@ vi.mock("@/backend/settings", () => ({
     mockUpsertAnalysisProvider(settings, providerId, provider),
   removeAnalysisProvider: (settings: SettingsData, providerId: string) =>
     mockRemoveAnalysisProvider(settings, providerId),
-  getSettingsForRenderer: () => mockGetSettingsForRenderer(),
 }));
 
 const mockSaveToken = vi.fn<(id: string, token: string) => Promise<void>>();
@@ -117,9 +115,10 @@ describe("analysis IPC handlers", () => {
       };
       const settings = { ...DEFAULT_SETTINGS } as SettingsData;
       const updatedSettings = { ...settings } as SettingsData;
-      mockGetSettings.mockResolvedValue(settings);
+
+      // Initial read returns current settings, the post-update broadcast re-reads the saved state
+      mockGetSettings.mockResolvedValueOnce(settings).mockResolvedValue(updatedSettings);
       mockUpsertAnalysisProvider.mockReturnValue(updatedSettings);
-      mockGetSettingsForRenderer.mockResolvedValue(updatedSettings);
 
       await handleSaveAnalysisProvider(mockEvent, draft);
 
@@ -146,7 +145,6 @@ describe("analysis IPC handlers", () => {
       const settings = { ...DEFAULT_SETTINGS } as SettingsData;
       mockGetSettings.mockResolvedValue(settings);
       mockUpsertAnalysisProvider.mockReturnValue(settings);
-      mockGetSettingsForRenderer.mockResolvedValue(settings);
 
       await handleSaveAnalysisProvider(mockEvent, draft);
 
@@ -165,7 +163,6 @@ describe("analysis IPC handlers", () => {
       const settings = { ...DEFAULT_SETTINGS } as SettingsData;
       mockGetSettings.mockResolvedValue(settings);
       mockUpsertAnalysisProvider.mockReturnValue(settings);
-      mockGetSettingsForRenderer.mockResolvedValue(settings);
 
       await handleSaveAnalysisProvider(mockEvent, draft);
 
@@ -180,9 +177,10 @@ describe("analysis IPC handlers", () => {
         analysisProviders: [{ id: MOCK_UUID, name: "Test", endpoint: "https://api.com" }],
       } as SettingsData;
       const updatedSettings = { ...DEFAULT_SETTINGS } as SettingsData;
-      mockGetSettings.mockResolvedValue(settings);
+
+      // Initial read returns current settings, the post-update broadcast re-reads the saved state
+      mockGetSettings.mockResolvedValueOnce(settings).mockResolvedValue(updatedSettings);
       mockRemoveAnalysisProvider.mockReturnValue(updatedSettings);
-      mockGetSettingsForRenderer.mockResolvedValue(updatedSettings);
 
       await handleDeleteAnalysisProvider(mockEvent, MOCK_UUID);
 

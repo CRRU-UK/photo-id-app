@@ -195,13 +195,6 @@ describe(Project, () => {
       expect(project.matched).toHaveLength(0);
     });
 
-    it("returns the project for chaining", () => {
-      const project = new Project();
-      const result = project.loadFromJSON(createProjectBody(), projectDirectory);
-
-      expect(result).toBe(project);
-    });
-
     it("preserves collection names", () => {
       const project = new Project();
       const data = createProjectBody({
@@ -335,9 +328,8 @@ describe(Project, () => {
       const from = project.unassigned;
       const photo = from.currentPhoto as Photo;
 
-      const result = project.addPhotoToStack(from, from, photo);
+      project.addPhotoToStack(from, from, photo);
 
-      expect(result).toBe(project);
       expect(from.photos).toHaveLength(2); // unchanged
     });
 
@@ -354,17 +346,6 @@ describe(Project, () => {
       vi.runAllTimers();
 
       expect(window.electronAPI.saveProject).toHaveBeenCalledWith(expect.any(String));
-    });
-
-    it("returns the project for chaining", () => {
-      const project = new Project(createPayload());
-      const from = project.unassigned;
-      const to = project.discarded;
-      const photo = from.currentPhoto as Photo;
-
-      const result = project.addPhotoToStack(from, to, photo);
-
-      expect(result).toBe(project);
     });
   });
 
@@ -439,22 +420,6 @@ describe(Project, () => {
 
       expect(window.electronAPI.saveProject).toHaveBeenCalledWith(expect.any(String));
     });
-
-    it("returns the project for chaining", async () => {
-      const project = new Project(createPayload());
-      const to = project.unassigned;
-      const photo = to.currentPhoto as Photo;
-
-      vi.mocked(window.electronAPI.duplicatePhotoFile).mockResolvedValue({
-        ...photo.toBody(),
-        name: "photo1_duplicate.jpg",
-        thumbnail: ".thumbnails/photo1_duplicate.jpg",
-      });
-
-      const result = await project.duplicatePhotoToStack(to, photo);
-
-      expect(result).toBe(project);
-    });
   });
 
   describe("addPage", () => {
@@ -510,14 +475,6 @@ describe(Project, () => {
       expect(window.electronAPI.saveProject).toHaveBeenCalledWith(expect.any(String));
     });
 
-    it("returns the project for chaining", () => {
-      const project = new Project(createPayload());
-
-      const result = project.addPage();
-
-      expect(result).toBe(project);
-    });
-
     it("starts ids at 1 when matched is empty", () => {
       const project = new Project(createPayload({ matched: [] }));
 
@@ -548,15 +505,6 @@ describe(Project, () => {
 
       expect(parsed.version).toBe("v1");
       expect(parsed.unassigned.photos).toHaveLength(2);
-    });
-
-    it("returns the project for chaining", async () => {
-      const project = new Project(createPayload());
-      vi.mocked(window.electronAPI.exportMatches).mockResolvedValue(undefined);
-
-      const result = await project.exportMatches("edited");
-
-      expect(result).toBe(project);
     });
   });
 

@@ -123,16 +123,8 @@ const removeAnalysisProvider = (settings: SettingsData, providerId: string): Set
   };
 };
 
-/**
- * Gets settings suitable for sending to the renderer. Tokens are never included.
- */
-const getSettingsForRenderer = async (): Promise<SettingsData> => {
-  return getSettings();
-};
-
 export {
   getSettings,
-  getSettingsForRenderer,
   getTelemetrySync,
   initSentry,
   removeAnalysisProvider,

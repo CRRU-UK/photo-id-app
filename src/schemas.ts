@@ -109,11 +109,3 @@ export const projectBodySchema = z.object({
   created: z.iso.datetime(),
   lastModified: z.iso.datetime(),
 });
-
-/**
- * Runtime-only payload (includes current directory path).
- */
-export const projectPayloadSchema = z.object({
-  directory: z.string(),
-  body: projectBodySchema,
-});

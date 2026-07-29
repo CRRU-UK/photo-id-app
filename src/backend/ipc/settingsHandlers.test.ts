@@ -16,11 +16,11 @@ vi.mock("electron", () => ({
   },
 }));
 
-const mockGetSettingsForRenderer = vi.fn<() => Promise<SettingsData>>();
+const mockGetSettings = vi.fn<() => Promise<SettingsData>>();
 const mockUpdateSettings = vi.fn<(settings: SettingsData) => Promise<void>>();
 
 vi.mock("@/backend/settings", () => ({
-  getSettingsForRenderer: () => mockGetSettingsForRenderer(),
+  getSettings: () => mockGetSettings(),
   updateSettings: (...args: Parameters<typeof mockUpdateSettings>) => mockUpdateSettings(...args),
 }));
 
@@ -49,9 +49,9 @@ describe("settings IPC handlers", () => {
   });
 
   describe(handleGetSettings, () => {
-    it("returns settings from the renderer helper", async () => {
+    it("returns settings from disk", async () => {
       const mockSettings = { ...DEFAULT_SETTINGS } as SettingsData;
-      mockGetSettingsForRenderer.mockResolvedValue(mockSettings);
+      mockGetSettings.mockResolvedValue(mockSettings);
 
       const result = await handleGetSettings();
 
@@ -64,7 +64,7 @@ describe("settings IPC handlers", () => {
       const settings = { ...DEFAULT_SETTINGS } as SettingsData;
       const enrichedSettings = { ...DEFAULT_SETTINGS } as SettingsData;
       mockUpdateSettings.mockResolvedValue(undefined);
-      mockGetSettingsForRenderer.mockResolvedValue(enrichedSettings);
+      mockGetSettings.mockResolvedValue(enrichedSettings);
 
       await handleUpdateSettings({} as IpcMainInvokeEvent, settings);
 

@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useState } from "react";
+import { type RefObject, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import type { EdgeDetectionData } from "@/types";
+import { IMAGE_FILTERS } from "@/constants";
+import type { EdgeDetectionData, ImageFilters } from "@/types";
 import { useCanvasRenderer } from "./imageEditor/useCanvasRenderer";
-import { useImageFilters } from "./imageEditor/useImageFilters";
 import { useImageLoader } from "./imageEditor/useImageLoader";
 import { useImageTransform } from "./imageEditor/useImageTransform";
 import { useLoupe } from "./imageEditor/useLoupe";
@@ -21,14 +21,27 @@ const useImageEditor = ({ file, loupeEnabled, onEdit, onError }: UseImageEditorP
 
   const { imageRef, imageLoaded } = useImageLoader(file, { onError });
 
-  const {
-    setBrightness: setBrightnessInternal,
-    setContrast: setContrastInternal,
-    setSaturate: setSaturateInternal,
-    setEdgeDetection: setEdgeDetectionInternal,
-    resetFilters: resetFiltersInternal,
-    getFilters,
-  } = useImageFilters();
+  const brightnessRef = useRef<number>(IMAGE_FILTERS.BRIGHTNESS.DEFAULT);
+  const contrastRef = useRef<number>(IMAGE_FILTERS.CONTRAST.DEFAULT);
+  const saturateRef = useRef<number>(IMAGE_FILTERS.SATURATE.DEFAULT);
+  const edgeDetectionRef = useRef<EdgeDetectionData>({ enabled: false });
+
+  const getFilters = useCallback(
+    (): ImageFilters => ({
+      brightness: brightnessRef.current,
+      contrast: contrastRef.current,
+      saturate: saturateRef.current,
+      edgeDetection: edgeDetectionRef.current,
+    }),
+    [],
+  );
+
+  const resetFiltersInternal = useCallback(() => {
+    brightnessRef.current = IMAGE_FILTERS.BRIGHTNESS.DEFAULT;
+    contrastRef.current = IMAGE_FILTERS.CONTRAST.DEFAULT;
+    saturateRef.current = IMAGE_FILTERS.SATURATE.DEFAULT;
+    edgeDetectionRef.current = { enabled: false };
+  }, []);
 
   const {
     getTransform,
@@ -140,43 +153,21 @@ const useImageEditor = ({ file, loupeEnabled, onEdit, onError }: UseImageEditorP
   }, [handleZoomOutInternal, redrawLoupe, onEdit]);
 
   /**
-   * Sets the brightness level for the image.
-   * @param value - Brightness percentage (0-200, default 100)
+   * Builds a brightness/contrast/saturation setter (each 0-200, default 100): writes its ref,
+   * re-renders via the throttled draw, and marks the edit dirty.
    */
-  const setBrightness = useCallback(
-    (value: number) => {
-      setBrightnessInternal(value);
+  const makeFilterSetter = useCallback(
+    (ref: RefObject<number>) => (value: number) => {
+      ref.current = value;
       drawThrottled();
       onEdit?.();
     },
-    [setBrightnessInternal, drawThrottled, onEdit],
+    [drawThrottled, onEdit],
   );
 
-  /**
-   * Sets the contrast level for the image.
-   * @param value - Contrast percentage (0-200, default 100)
-   */
-  const setContrast = useCallback(
-    (value: number) => {
-      setContrastInternal(value);
-      drawThrottled();
-      onEdit?.();
-    },
-    [setContrastInternal, drawThrottled, onEdit],
-  );
-
-  /**
-   * Sets the saturation level for the image.
-   * @param value - Saturation percentage (0-200, default 100)
-   */
-  const setSaturate = useCallback(
-    (value: number) => {
-      setSaturateInternal(value);
-      drawThrottled();
-      onEdit?.();
-    },
-    [setSaturateInternal, drawThrottled, onEdit],
-  );
+  const setBrightness = useMemo(() => makeFilterSetter(brightnessRef), [makeFilterSetter]);
+  const setContrast = useMemo(() => makeFilterSetter(contrastRef), [makeFilterSetter]);
+  const setSaturate = useMemo(() => makeFilterSetter(saturateRef), [makeFilterSetter]);
 
   /**
    * Toggles the visualization of edges on the image.
@@ -184,11 +175,11 @@ const useImageEditor = ({ file, loupeEnabled, onEdit, onError }: UseImageEditorP
    */
   const setEdgeDetection = useCallback(
     (state: EdgeDetectionData) => {
-      setEdgeDetectionInternal(state);
+      edgeDetectionRef.current = state;
       drawThrottled();
       redrawLoupe();
     },
-    [setEdgeDetectionInternal, drawThrottled, redrawLoupe],
+    [drawThrottled, redrawLoupe],
   );
 
   const resetAll = useCallback(() => {
@@ -209,9 +200,9 @@ const useImageEditor = ({ file, loupeEnabled, onEdit, onError }: UseImageEditorP
       zoom: number;
       pan: { x: number; y: number };
     }) => {
-      setBrightnessInternal(value.brightness);
-      setContrastInternal(value.contrast);
-      setSaturateInternal(value.saturate);
+      brightnessRef.current = value.brightness;
+      contrastRef.current = value.contrast;
+      saturateRef.current = value.saturate;
       setZoomInternal(value.zoom);
       setPanInternal({ x: value.pan.x, y: value.pan.y });
 
@@ -219,14 +210,7 @@ const useImageEditor = ({ file, loupeEnabled, onEdit, onError }: UseImageEditorP
 
       draw();
     },
-    [
-      setBrightnessInternal,
-      setContrastInternal,
-      setSaturateInternal,
-      setZoomInternal,
-      setPanInternal,
-      draw,
-    ],
+    [setZoomInternal, setPanInternal, draw],
   );
 
   // All values below are already stable (useCallback/useRef), so no useMemo wrapper needed

@@ -1,6 +1,6 @@
 import { EyeClosedIcon, EyeIcon } from "@primer/octicons-react";
 import { IconButton, Stack } from "@primer/react";
-import { memo, type RefObject, useCallback, useEffect, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
 import {
   DEFAULT_SETTINGS,
   EDGE_DETECTION,
@@ -19,36 +19,6 @@ import { useEditorKeyboard } from "@/frontend/hooks/imageEditor/useEditorKeyboar
 import useImageEditor from "@/frontend/hooks/useImageEditor";
 import { computeIsEdited } from "@/helpers";
 import type { EditorNavigation, PhotoBody } from "@/types";
-
-interface CanvasImageProps {
-  handlePointerDown: (event: React.PointerEvent<HTMLCanvasElement>) => void;
-  handlePointerLeave: () => void;
-  handlePointerMove: (event: React.PointerEvent<HTMLCanvasElement>) => void;
-  handlePointerUp: () => void;
-  loupeEnabled: boolean;
-}
-
-const CanvasImage = ({
-  handlePointerDown,
-  handlePointerMove,
-  handlePointerUp,
-  handlePointerLeave,
-  loupeEnabled,
-  ref,
-}: CanvasImageProps & { ref?: RefObject<HTMLCanvasElement | null> }) => {
-  return (
-    <canvas
-      className={loupeEnabled ? "canvas-photo loupe-active" : "canvas-photo"}
-      onPointerDown={handlePointerDown}
-      onPointerLeave={handlePointerLeave}
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerUp}
-      ref={ref}
-    />
-  );
-};
-
-CanvasImage.displayName = "CanvasImage";
 
 interface ImageEditorProps {
   data: PhotoBody;
@@ -336,17 +306,10 @@ const ImageEditor = ({
     onZoomOut: handlers.handleZoomOut,
   });
 
-  const previousPhotoIdRef = useRef<string>(`${directory}/${data.name}`);
   const loadedPhotoIdRef = useRef<string | null>(null);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: log fires once per photo id change; data is intentionally captured at that moment
   useEffect(() => {
-    const currentPhotoId = `${directory}/${data.name}`;
-
-    if (previousPhotoIdRef.current !== currentPhotoId) {
-      previousPhotoIdRef.current = currentPhotoId;
-    }
-
     console.debug("Loaded photo edit data:", data);
   }, [directory, data.name]);
 
@@ -421,12 +384,12 @@ const ImageEditor = ({
       <LoadingOverlay data={{ show: navigating }} />
 
       <div className="edit">
-        <CanvasImage
-          handlePointerDown={handlers.handlePointerDown}
-          handlePointerLeave={handleCanvasPointerLeave}
-          handlePointerMove={handleCanvasPointerMove}
-          handlePointerUp={handlers.handlePointerUp}
-          loupeEnabled={loupeEnabled}
+        <canvas
+          className={loupeEnabled ? "canvas-photo loupe-active" : "canvas-photo"}
+          onPointerDown={handlers.handlePointerDown}
+          onPointerLeave={handleCanvasPointerLeave}
+          onPointerMove={handleCanvasPointerMove}
+          onPointerUp={handlers.handlePointerUp}
           ref={refs.canvasRef}
         />
 

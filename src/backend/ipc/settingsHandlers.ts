@@ -1,15 +1,12 @@
 import { BrowserWindow, type IpcMainEvent, type IpcMainInvokeEvent, shell } from "electron";
 
 import { broadcastToAllWindows, resolveExternalLinkUrl } from "@/backend/ipc/shared";
-import { getSettingsForRenderer, updateSettings } from "@/backend/settings";
+import { getSettings, updateSettings } from "@/backend/settings";
 import { IPC_EVENTS } from "@/constants";
 import { settingsDataSchema } from "@/schemas";
 import type { ExternalLinks, SettingsData } from "@/types";
 
-export const handleGetSettings = async (): Promise<SettingsData> => {
-  const result = await getSettingsForRenderer();
-  return result;
-};
+export const handleGetSettings = (): Promise<SettingsData> => getSettings();
 
 export const handleUpdateSettings = async (
   _event: IpcMainInvokeEvent,
@@ -20,7 +17,7 @@ export const handleUpdateSettings = async (
   await updateSettings(validatedSettings);
 
   // Notify all windows with enriched settings
-  const enrichedSettings = await getSettingsForRenderer();
+  const enrichedSettings = await getSettings();
   broadcastToAllWindows(IPC_EVENTS.SETTINGS_UPDATED, enrichedSettings);
 };
 

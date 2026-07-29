@@ -34,17 +34,16 @@ class Collection {
     this.project = project;
   }
 
-  addPhoto(photo: Photo): this {
+  addPhoto(photo: Photo): void {
     this.photos.push(photo);
 
     // Move stack to latest photo when adding
     this.index = this.photos.length - 1;
 
     this.project.save();
-    return this;
   }
 
-  removePhoto(photo: Photo): this {
+  removePhoto(photo: Photo): void {
     const photoIndex = this.photos.indexOf(photo);
     if (photoIndex !== -1) {
       this.photos.splice(photoIndex, 1);
@@ -55,7 +54,6 @@ class Collection {
     }
 
     this.project.save();
-    return this;
   }
 
   hasPhoto(photo: Photo): boolean {
@@ -70,9 +68,9 @@ class Collection {
     return this.photos[this.index];
   }
 
-  setPreviousPhoto(): this {
+  setPreviousPhoto(): void {
     if (this.photos.length === 0) {
-      return this;
+      return;
     }
 
     let newIndex = (this.index - 1) % this.photos.length;
@@ -82,25 +80,22 @@ class Collection {
     this.index = newIndex;
 
     this.project.save();
-    return this;
   }
 
-  setNextPhoto(): this {
+  setNextPhoto(): void {
     if (this.photos.length === 0) {
-      return this;
+      return;
     }
 
     this.index = (this.index + 1) % this.photos.length;
 
     this.project.save();
-    return this;
   }
 
-  setName(name: string): this {
+  setName(name: string): void {
     this.name = name;
 
     this.project.save();
-    return this;
   }
 }
 

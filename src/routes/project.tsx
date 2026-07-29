@@ -24,7 +24,7 @@ import Sidebar from "@/frontend/components/Sidebar";
 import { chunkArray, getAlphabetLetter } from "@/helpers";
 import type Collection from "@/models/Collection";
 import type Photo from "@/models/Photo";
-import type { DraggableEndData, DraggableStartData, LoadingData, Match } from "@/types";
+import type { LoadingData, Match } from "@/types";
 
 // Defined outside ProjectPage to prevent unnecessary unmount/remount on parent re-render
 const DraggableImageComponent = ({ photo }: { photo: Photo }) => {
@@ -267,7 +267,10 @@ const ProjectPage = observer(() => {
   }
 
   const handleDragStart = (event: DragStartEvent) => {
-    const { collection, currentPhoto } = event.active.data.current as unknown as DraggableStartData;
+    const { collection, currentPhoto } = event.active.data.current as unknown as {
+      collection: Collection;
+      currentPhoto: Photo;
+    };
 
     isDraggingRef.current = true;
 
@@ -286,7 +289,7 @@ const ProjectPage = observer(() => {
     const target = event.over ?? null;
 
     if (target && draggingPhoto !== null && draggingCollectionFrom !== null) {
-      const draggingCollectionTo = (target.data.current as DraggableEndData).collection;
+      const draggingCollectionTo = (target.data.current as { collection: Collection }).collection;
 
       if (isCopying) {
         setLoading({ show: true, text: "Duplicating photo" });
