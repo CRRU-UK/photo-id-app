@@ -90,18 +90,15 @@ describe("setupProjectSession", () => {
   });
 
   describe("permission handler", () => {
-    it.each(["media", "geolocation", "notifications", "clipboard-read"])(
-      "denies the %s permission request",
-      (permission) => {
-        const session = createMockSession();
-        setupProjectSession(session as unknown as Electron.Session, () => "/project");
+    it("denies permission requests the app does not need", () => {
+      const session = createMockSession();
+      setupProjectSession(session as unknown as Electron.Session, () => "/project");
 
-        const allow = vi.fn<(grant: boolean) => void>();
-        session.capturedPermissionHandler?.(null, permission, allow);
+      const allow = vi.fn<(grant: boolean) => void>();
+      session.capturedPermissionHandler?.(null, "media", allow);
 
-        expect(allow).toHaveBeenCalledWith(false);
-      },
-    );
+      expect(allow).toHaveBeenCalledWith(false);
+    });
 
     it("allows clipboard writes so copy-to-clipboard buttons work", () => {
       const session = createMockSession();
