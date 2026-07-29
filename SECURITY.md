@@ -13,7 +13,7 @@ The renderer process has no direct access to Node.js APIs. All system access is 
 - `allowRunningInsecureContent: false` - Mixed content is blocked
 - `setWindowOpenHandler(() => ({ action: "deny" }))` - Prevents arbitrary window creation
 - `will-navigate` handler - Blocks navigation to arbitrary URLs from the renderer
-- `setPermissionRequestHandler` - Denies all renderer permission requests (camera, geolocation, notifications, media). The app does not use these capabilities
+- `setPermissionRequestHandler` - Denies all renderer permission requests (camera, geolocation, notifications, media, clipboard reads). The app does not use these capabilities. The single exception is `clipboard-sanitized-write`, required by the copy-to-clipboard buttons as it is write-only and cannot read existing clipboard contents
 
 ## Per-window sessions
 

@@ -90,7 +90,7 @@ describe("setupProjectSession", () => {
   });
 
   describe("permission handler", () => {
-    it("denies every permission request", () => {
+    it("denies permission requests the app does not need", () => {
       const session = createMockSession();
       setupProjectSession(session as unknown as Electron.Session, () => "/project");
 
@@ -98,6 +98,16 @@ describe("setupProjectSession", () => {
       session.capturedPermissionHandler?.(null, "media", allow);
 
       expect(allow).toHaveBeenCalledWith(false);
+    });
+
+    it("allows clipboard writes so copy-to-clipboard buttons work", () => {
+      const session = createMockSession();
+      setupProjectSession(session as unknown as Electron.Session, () => "/project");
+
+      const allow = vi.fn<(grant: boolean) => void>();
+      session.capturedPermissionHandler?.(null, "clipboard-sanitized-write", allow);
+
+      expect(allow).toHaveBeenCalledWith(true);
     });
   });
 

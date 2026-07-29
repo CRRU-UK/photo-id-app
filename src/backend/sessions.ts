@@ -14,7 +14,14 @@ const production = app.isPackaged;
 const corsHeaders = { "Access-Control-Allow-Origin": "*" };
 
 /**
- * Registers CSP, permission denial, the `photo://` protocol, and (in dev) DevTools extensions on
+ * The copy-to-clipboard buttons call `navigator.clipboard.writeText`, which Chromium restricts
+ * behind the `clipboard-sanitized-write` permission. This permission is write-only as it does not
+ * allow reading the existing clipboard contents, only writing new text to it.
+ */
+const allowedPermissions = new Set<string>(["clipboard-sanitized-write"]);
+
+/**
+ * Registers CSP, permission handling, the `photo://` protocol, and (in dev) DevTools extensions on
  * a per-window session. `getProjectDirectory` is resolved at request time so the same
  * registration covers the window's whole lifetime. See ARCHITECTURE.md "Per-window sessions".
  */
@@ -32,8 +39,8 @@ export const setupProjectSession = async (
     });
   });
 
-  session.setPermissionRequestHandler((_webContents, _permission, callback) => {
-    callback(false);
+  session.setPermissionRequestHandler((_webContents, permission, callback) => {
+    callback(allowedPermissions.has(permission));
   });
 
   session.protocol.handle(PHOTO_PROTOCOL_SCHEME, async (request) => {
