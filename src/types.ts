@@ -90,6 +90,20 @@ export type AnalysisMatch = z.infer<typeof analysisMatchSchema>;
 
 export type AnalysisMatchResponse = z.infer<typeof analysisMatchResponseSchema>;
 
+/** A match annotated with the name of the provider that returned it. */
+export type AnalysisMatchResult = AnalysisMatch & { provider: string };
+
+export type AnalysisFailure = { provider: string; message: string };
+
+/**
+ * The combined outcome of one analysis across every selected provider. Constructed in the main
+ * process from already-validated provider responses, so it has no schema of its own.
+ */
+export type AnalysisMatchResults = {
+  matches: AnalysisMatchResult[];
+  failures: AnalysisFailure[];
+};
+
 export type SettingsData = z.infer<typeof settingsDataSchema>;
 
 export type ExportTypes = "edited" | "csv";

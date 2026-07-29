@@ -39,10 +39,9 @@ export const settingsDataSchema = z.object({
   themeMode: themeModeSchema.default(DEFAULT_SETTINGS.themeMode as z.infer<typeof themeModeSchema>),
   telemetry: telemetrySchema.default(DEFAULT_SETTINGS.telemetry as z.infer<typeof telemetrySchema>),
   analysisProviders: z.array(analysisProviderSchema).default(DEFAULT_SETTINGS.analysisProviders),
-  selectedAnalysisProviderId: z
-    .string()
-    .nullable()
-    .default(DEFAULT_SETTINGS.selectedAnalysisProviderId),
+  selectedAnalysisProviderIds: z
+    .array(z.string())
+    .default(DEFAULT_SETTINGS.selectedAnalysisProviderIds),
   showUnsavedWarning: z.boolean().default(DEFAULT_SETTINGS.showUnsavedWarning),
 });
 

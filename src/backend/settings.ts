@@ -108,18 +108,19 @@ const upsertAnalysisProvider = (
 };
 
 /**
- * Returns updated settings with the given analysis provider removed. Clears
- * selectedAnalysisProviderId if it matches.
+ * Returns updated settings with the given analysis provider removed. Drops the provider from
+ * `selectedAnalysisProviderIds` if it was selected.
  */
 const removeAnalysisProvider = (settings: SettingsData, providerId: string): SettingsData => {
   const updatedProviders = settings.analysisProviders.filter(({ id }) => id !== providerId);
-  const updatedSelectedProviderId =
-    settings.selectedAnalysisProviderId === providerId ? null : settings.selectedAnalysisProviderId;
+  const updatedSelectedProviderIds = settings.selectedAnalysisProviderIds.filter(
+    (id) => id !== providerId,
+  );
 
   return {
     ...settings,
     analysisProviders: updatedProviders,
-    selectedAnalysisProviderId: updatedSelectedProviderId,
+    selectedAnalysisProviderIds: updatedSelectedProviderIds,
   };
 };
 

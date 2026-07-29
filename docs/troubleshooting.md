@@ -21,6 +21,15 @@ The app validates its settings file on every load. If the file is missing or cor
 
 If this happens, simply re-apply your preferences in the settings menu.
 
+## Some analysis providers failed
+
+A match analysis is sent to every provider you have selected. If some of them fail (unreachable endpoint, rejected token, timeout) the results from the providers that succeeded are still shown, with a warning above the table naming each provider that failed and the error it returned. If _every_ selected provider fails, an error is shown instead of the table.
+
+- Check the endpoint URL and token for the named provider in ==Settings== > ==:octicons-ai-model-16: Analysis==
+- Unselect a provider in the sidebar dropdown to stop sending analyses to it
+
+If the analysis fails immediately with a token error naming a provider, its token is missing or could not be decrypted, re-enter it in the provider settings (see [API tokens](./user-guide/analysis.md#api-tokens)).
+
 ## Auto-update did not pick up a new version
 
 The app checks for updates in the background after launch. Occasionally a new release is published but the auto-updater takes a few minutes to notice it.

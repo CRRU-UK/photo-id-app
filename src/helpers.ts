@@ -1,6 +1,19 @@
-import { DEFAULT_PHOTO_EDITS, EDGE_DETECTION, PHOTO_PROTOCOL_SCHEME, ROUTES } from "@/constants";
+import {
+  DEFAULT_PHOTO_EDITS,
+  EDGE_DETECTION,
+  PHOTO_PROTOCOL_SCHEME,
+  PROVIDER_LABEL_VARIANTS,
+  ROUTES,
+} from "@/constants";
 import { editPayloadSchema } from "@/schemas";
-import type { EdgeDetectionData, EditPayload, PhotoEdits } from "@/types";
+import type {
+  AnalysisMatchResult,
+  AnalysisProvider,
+  EdgeDetectionData,
+  EditPayload,
+  PhotoEdits,
+  SettingsData,
+} from "@/types";
 
 /**
  * Encodes the edit-window bootstrap payload (photo + active project directory) for the URL query.
@@ -151,6 +164,54 @@ export const computeIsEdited = (edits: PhotoEdits): boolean =>
  * @returns Returns `true` if the hash is an edit window, otherwise `false`.
  */
 export const isEditWindow = (hash: string): boolean => hash.startsWith(`#${ROUTES.EDIT}`);
+
+/**
+ * Returns the analysis providers currently selected in settings, in the order they were added.
+ * Returns an empty array when settings have not loaded yet or nothing is selected.
+ */
+export const getSelectedAnalysisProviders = (
+  settings: SettingsData | null | undefined,
+): AnalysisProvider[] => {
+  if (!settings) {
+    return [];
+  }
+
+  return settings.analysisProviders.filter(({ id }) =>
+    settings.selectedAnalysisProviderIds.includes(id),
+  );
+};
+
+/**
+ * Builds the label for the analysis provider selection button.
+ */
+export const getAnalysisProvidersLabel = (providers: AnalysisProvider[]): string => {
+  if (providers.length === 0) {
+    return "Analysis Provider";
+  }
+
+  if (providers.length === 1) {
+    return providers[0].name;
+  }
+
+  return `${providers.length} providers selected`;
+};
+
+/**
+ * Maps each provider present in a set of analysis matches to a Label colour, so rows from different
+ * providers can be told apart at a glance.
+ */
+export const getProviderLabelVariants = (
+  matches: AnalysisMatchResult[],
+): Map<string, (typeof PROVIDER_LABEL_VARIANTS)[number]> => {
+  const providerNames = [...new Set(matches.map(({ provider }) => provider))];
+
+  return new Map(
+    providerNames.map((providerName, index) => [
+      providerName,
+      PROVIDER_LABEL_VARIANTS[index % PROVIDER_LABEL_VARIANTS.length],
+    ]),
+  );
+};
 
 /**
  * Strips all whitespace (including invisible characters).

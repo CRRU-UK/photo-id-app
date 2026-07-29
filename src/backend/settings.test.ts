@@ -83,7 +83,7 @@ describe("settings", () => {
         themeMode: "light",
         telemetry: "enabled",
         analysisProviders: [],
-        selectedAnalysisProviderId: null,
+        selectedAnalysisProviderIds: [],
         showUnsavedWarning: true,
       };
       mockExistsSync.mockReturnValue(true);
@@ -100,7 +100,7 @@ describe("settings", () => {
         themeMode: "dark" as const,
         telemetry: "disabled" as const,
         analysisProviders: [],
-        selectedAnalysisProviderId: null,
+        selectedAnalysisProviderIds: [],
       };
       mockExistsSync.mockReturnValue(true);
       mockReadFile.mockResolvedValue(JSON.stringify(settingsWithoutFlag));
@@ -159,7 +159,7 @@ describe("settings", () => {
         themeMode: "light",
         telemetry: "enabled",
         analysisProviders: [],
-        selectedAnalysisProviderId: null,
+        selectedAnalysisProviderIds: [],
       };
       mockExistsSync.mockReturnValue(true);
       mockReadFile.mockResolvedValue(JSON.stringify(settingsWithoutVersion));
@@ -280,28 +280,28 @@ describe("settings", () => {
       expect(result.analysisProviders[0]).toStrictEqual(providerB);
     });
 
-    it("clears selectedAnalysisProviderId when removing the selected provider", () => {
+    it("drops the removed provider from selectedAnalysisProviderIds", () => {
       const settings: SettingsData = {
         ...DEFAULT_SETTINGS,
-        analysisProviders: [providerA],
-        selectedAnalysisProviderId: providerA.id,
+        analysisProviders: [providerA, providerB],
+        selectedAnalysisProviderIds: [providerA.id, providerB.id],
       };
 
       const result = removeAnalysisProvider(settings, providerA.id);
 
-      expect(result.selectedAnalysisProviderId).toBeNull();
+      expect(result.selectedAnalysisProviderIds).toStrictEqual([providerB.id]);
     });
 
-    it("preserves selectedAnalysisProviderId when removing a different provider", () => {
+    it("preserves selectedAnalysisProviderIds when removing an unselected provider", () => {
       const settings: SettingsData = {
         ...DEFAULT_SETTINGS,
         analysisProviders: [providerA, providerB],
-        selectedAnalysisProviderId: providerA.id,
+        selectedAnalysisProviderIds: [providerA.id],
       };
 
       const result = removeAnalysisProvider(settings, providerB.id);
 
-      expect(result.selectedAnalysisProviderId).toBe(providerA.id);
+      expect(result.selectedAnalysisProviderIds).toStrictEqual([providerA.id]);
     });
 
     it("does not mutate the original settings", () => {
@@ -320,7 +320,7 @@ describe("settings", () => {
         themeMode: "auto",
         telemetry: "disabled",
         analysisProviders: [],
-        selectedAnalysisProviderId: null,
+        selectedAnalysisProviderIds: [],
         showUnsavedWarning: false,
       };
 
@@ -355,7 +355,7 @@ describe("settings", () => {
         themeMode: "dark",
         telemetry: "enabled",
         analysisProviders: [],
-        selectedAnalysisProviderId: null,
+        selectedAnalysisProviderIds: [],
         showUnsavedWarning: false,
       };
 
@@ -391,7 +391,7 @@ describe("settings", () => {
         themeMode: "dark",
         telemetry: "enabled",
         analysisProviders: [],
-        selectedAnalysisProviderId: null,
+        selectedAnalysisProviderIds: [],
         showUnsavedWarning: false,
       };
 

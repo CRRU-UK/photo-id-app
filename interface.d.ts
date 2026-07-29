@@ -1,5 +1,5 @@
 import type {
-  AnalysisMatchResponse,
+  AnalysisMatchResults,
   AnalysisProviderDraft,
   EditorNavigation,
   ExportTypes,
@@ -12,7 +12,7 @@ import type {
 } from "./src/types";
 
 export interface IElectronAPI {
-  analyseMatches: (photos: PhotoBody[]) => Promise<AnalysisMatchResponse | null>;
+  analyseMatches: (photos: PhotoBody[]) => Promise<AnalysisMatchResults | null>;
   cancelAnalyseMatches: () => void;
   closeProject: () => Promise<boolean>;
   deleteAnalysisProvider: (providerId: string) => Promise<void>;

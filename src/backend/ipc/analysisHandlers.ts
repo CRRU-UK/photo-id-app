@@ -13,7 +13,7 @@ import { windowManager } from "@/backend/WindowManager";
 import { IPC_EVENTS } from "@/constants";
 import { analysisProviderDraftSchema, analysisProviderSchema, photoBodySchema } from "@/schemas";
 import type {
-  AnalysisMatchResponse,
+  AnalysisMatchResults,
   AnalysisProvider,
   AnalysisProviderDraft,
   PhotoBody,
@@ -70,7 +70,7 @@ export const handleDeleteAnalysisProvider = async (
 export const handleAnalyseMatches = async (
   event: IpcMainInvokeEvent,
   photos: PhotoBody[],
-): Promise<AnalysisMatchResponse | null> => {
+): Promise<AnalysisMatchResults | null> => {
   const directory = windowManager.getDirectoryForSender(event.sender);
   if (directory === null) {
     throw new Error("No project open");
@@ -80,18 +80,30 @@ export const handleAnalyseMatches = async (
 
   const settings = await getSettings();
 
-  const selectedProvider = settings.analysisProviders.find(
-    ({ id }) => id === settings.selectedAnalysisProviderId,
+  const selectedProviders = settings.analysisProviders.filter(
+    ({ id, endpoint }) => settings.selectedAnalysisProviderIds.includes(id) && endpoint,
   );
 
-  if (!selectedProvider?.endpoint) {
+  if (selectedProviders.length === 0) {
     throw new Error("Analysis provider is not configured.");
   }
 
-  const token = await getToken(selectedProvider.id);
+  const providers = [];
 
-  if (!token) {
-    throw new Error("Analysis API token is not configured or could not be decrypted.");
+  for (const selectedProvider of selectedProviders) {
+    const token = await getToken(selectedProvider.id);
+
+    if (!token) {
+      throw new Error(
+        `Analysis API token for "${selectedProvider.name}" is not configured or could not be decrypted.`,
+      );
+    }
+
+    providers.push({
+      name: selectedProvider.name,
+      endpoint: selectedProvider.endpoint,
+      token,
+    });
   }
 
   /**
@@ -103,7 +115,7 @@ export const handleAnalyseMatches = async (
     windowId: event.sender.id,
     directory,
     photos: validatedPhotos,
-    settings: { endpoint: selectedProvider.endpoint, token },
+    providers,
   });
 };
 

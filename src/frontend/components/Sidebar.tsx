@@ -25,7 +25,11 @@ import { useProject } from "@/contexts/ProjectContext";
 import { useSettings } from "@/contexts/SettingsContext";
 import DiscardedSelection from "@/frontend/components/DiscardedSelection";
 import MainSelection from "@/frontend/components/MainSelection";
-import { getProjectDirectoryName } from "@/helpers";
+import {
+  getAnalysisProvidersLabel,
+  getProjectDirectoryName,
+  getSelectedAnalysisProviders,
+} from "@/helpers";
 import type { ExportTypes } from "@/types";
 
 interface SidebarProps {
@@ -47,8 +51,11 @@ const Sidebar = observer(({ onCloseProject }: SidebarProps) => {
     () => contextSettings?.analysisProviders ?? [],
     [contextSettings?.analysisProviders],
   );
-  const selectedProviderId = contextSettings?.selectedAnalysisProviderId ?? null;
-  const selectedProvider = analysisProviders.find(({ id }) => id === selectedProviderId) ?? null;
+  const selectedProviderIds = useMemo(
+    () => contextSettings?.selectedAnalysisProviderIds ?? [],
+    [contextSettings?.selectedAnalysisProviderIds],
+  );
+  const selectedProviders = getSelectedAnalysisProviders(contextSettings);
 
   const providerItems = useMemo<ProviderItem[]>(
     () =>
@@ -65,29 +72,32 @@ const Sidebar = observer(({ onCloseProject }: SidebarProps) => {
     () =>
       providerItems.filter(
         (item) =>
-          item.id === selectedProviderId ||
+          selectedProviderIds.includes(item.id) ||
           item.text.toLowerCase().includes(providerFilter.toLowerCase()),
       ),
-    [providerItems, providerFilter, selectedProviderId],
+    [providerItems, providerFilter, selectedProviderIds],
   );
 
-  const selectedItem = providerItems.find(({ id }) => id === selectedProviderId) ?? undefined;
+  const selectedItems = useMemo(
+    () => providerItems.filter(({ id }) => selectedProviderIds.includes(id)),
+    [providerItems, selectedProviderIds],
+  );
 
   if (project === null) {
     return null;
   }
 
-  const handleProviderChange = async (item: ItemInput | undefined) => {
+  const handleProviderChange = async (items: ItemInput[]) => {
     if (!contextSettings) {
       return;
     }
 
-    const itemId = item ? (item as ProviderItem).id : null;
+    const itemIds = items.map((item) => (item as ProviderItem).id);
 
     try {
-      await updateSettings({ ...contextSettings, selectedAnalysisProviderId: itemId });
+      await updateSettings({ ...contextSettings, selectedAnalysisProviderIds: itemIds });
     } catch (error) {
-      console.error("Error updating selected analysis provider:", error);
+      console.error("Error updating selected analysis providers:", error);
     }
   };
 
@@ -137,7 +147,7 @@ const Sidebar = observer(({ onCloseProject }: SidebarProps) => {
         <DiscardedSelection collection={project.discarded} />
 
         <FormControl style={{ marginLeft: "auto", marginTop: "auto" }}>
-          <FormControl.Label visuallyHidden>Select analysis provider</FormControl.Label>
+          <FormControl.Label visuallyHidden>Select analysis providers</FormControl.Label>
           <SelectPanel
             items={filteredItems}
             message={
@@ -151,7 +161,7 @@ const Sidebar = observer(({ onCloseProject }: SidebarProps) => {
             }
             onFilterChange={setProviderFilter}
             onOpenChange={setProviderPanelOpen}
-            onSelectedChange={(item: ItemInput | undefined) => void handleProviderChange(item)}
+            onSelectedChange={(items: ItemInput[]) => void handleProviderChange(items)}
             open={providerPanelOpen}
             placeholderText="Filter providers"
             renderAnchor={(anchorProps) => (
@@ -159,14 +169,14 @@ const Sidebar = observer(({ onCloseProject }: SidebarProps) => {
                 {...anchorProps}
                 leadingVisual={AiModelIcon}
                 trailingAction={TriangleDownIcon}
-                variant={selectedProvider ? "primary" : "default"}
+                variant={selectedProviders.length > 0 ? "primary" : "default"}
               >
-                {selectedProvider?.name ?? "Analysis Provider"}
+                {getAnalysisProvidersLabel(selectedProviders)}
               </Button>
             )}
-            selected={selectedItem}
-            subtitle="Select which analysis provider to use."
-            title="Analysis Provider"
+            selected={selectedItems}
+            subtitle="Select which analysis providers to use."
+            title="Analysis Providers"
           />
         </FormControl>
 

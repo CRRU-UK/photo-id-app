@@ -17,7 +17,7 @@ import Slider from "@/frontend/components/Slider";
 import Toolbar from "@/frontend/components/Toolbar";
 import { useEditorKeyboard } from "@/frontend/hooks/imageEditor/useEditorKeyboard";
 import useImageEditor from "@/frontend/hooks/useImageEditor";
-import { computeIsEdited } from "@/helpers";
+import { computeIsEdited, getSelectedAnalysisProviders } from "@/helpers";
 import type { EditorNavigation, PhotoBody } from "@/types";
 
 interface ImageEditorProps {
@@ -79,9 +79,7 @@ const ImageEditor = ({
   });
 
   const { settings } = useSettings();
-  const selectedProvider = settings?.analysisProviders?.find(
-    ({ id }) => id === settings?.selectedAnalysisProviderId,
-  );
+  const hasSelectedProviders = getSelectedAnalysisProviders(settings).length > 0;
 
   /**
    * Whether to show the unsaved-edits discard warning. Read through a ref so the `beforeunload`
@@ -213,7 +211,7 @@ const ImageEditor = ({
   }, [data, getCurrentEdits]);
 
   const handleAnalysis = useCallback(() => {
-    if (!selectedProvider) {
+    if (!hasSelectedProviders) {
       return;
     }
 
@@ -223,7 +221,7 @@ const ImageEditor = ({
       [{ ...data, edits: currentEdits, isEdited: computeIsEdited(currentEdits) }],
       data.name,
     );
-  }, [data, getCurrentEdits, handleAnalyseMatches, selectedProvider]);
+  }, [data, getCurrentEdits, handleAnalyseMatches, hasSelectedProviders]);
 
   /**
    * Ref ensures the dirty check always reads the latest getters without re-subscribing on every
@@ -431,6 +429,7 @@ const ImageEditor = ({
 
         <Toolbar
           edgeDetectionEnabled={edgeDetectionEnabled}
+          hasSelectedProviders={hasSelectedProviders}
           isAnalysing={isAnalysing}
           isDirty={isDirty}
           loupeEnabled={loupeEnabled}
@@ -447,7 +446,6 @@ const ImageEditor = ({
           onZoomOut={handlers.handleZoomOut}
           resetKey={state.resetKey}
           saving={saving}
-          selectedProvider={selectedProvider}
           sliderInitials={sliderInitials}
         />
       </div>

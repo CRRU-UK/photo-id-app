@@ -2,12 +2,7 @@ import type { IpcMainInvokeEvent } from "electron";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { DEFAULT_PHOTO_EDITS, DEFAULT_SETTINGS } from "@/constants";
-import type {
-  AnalysisMatchResponse,
-  AnalysisProviderDraft,
-  PhotoBody,
-  SettingsData,
-} from "@/types";
+import type { AnalysisMatchResults, AnalysisProviderDraft, PhotoBody, SettingsData } from "@/types";
 
 vi.mock("electron", () => ({}));
 
@@ -19,8 +14,8 @@ const mockAnalyseMatches =
       windowId: number;
       directory: string;
       photos: PhotoBody[];
-      settings: { endpoint: string; token: string };
-    }) => Promise<AnalysisMatchResponse | null>
+      providers: { name: string; endpoint: string; token: string }[];
+    }) => Promise<AnalysisMatchResults | null>
   >();
 const mockCancelAnalyseMatches = vi.fn<(windowId: number) => void>();
 
@@ -191,10 +186,12 @@ describe("analysis IPC handlers", () => {
   });
 
   describe(handleAnalyseMatches, () => {
-    it("throws when no provider is configured", async () => {
+    const SECOND_MOCK_UUID = "b1c2d3e4-f5a6-7890-bcde-f01234567890";
+
+    it("throws when no provider is selected", async () => {
       const settings = {
         ...DEFAULT_SETTINGS,
-        selectedAnalysisProviderId: null,
+        selectedAnalysisProviderIds: [],
       } as SettingsData;
       mockGetSettings.mockResolvedValue(settings);
 
@@ -203,10 +200,10 @@ describe("analysis IPC handlers", () => {
       );
     });
 
-    it("throws when the selected provider has no endpoint", async () => {
+    it("throws when the only selected provider has no endpoint", async () => {
       const settings = {
         ...DEFAULT_SETTINGS,
-        selectedAnalysisProviderId: "provider-1",
+        selectedAnalysisProviderIds: [MOCK_UUID],
         analysisProviders: [{ id: MOCK_UUID, name: "Test", endpoint: "" }],
       } as SettingsData;
       mockGetSettings.mockResolvedValue(settings);
@@ -216,28 +213,28 @@ describe("analysis IPC handlers", () => {
       );
     });
 
-    it("throws when the token is not available", async () => {
+    it("throws naming the provider whose token is not available", async () => {
       const settings = {
         ...DEFAULT_SETTINGS,
-        selectedAnalysisProviderId: MOCK_UUID,
+        selectedAnalysisProviderIds: [MOCK_UUID],
         analysisProviders: [{ id: MOCK_UUID, name: "Test", endpoint: "https://api.com" }],
       } as SettingsData;
       mockGetSettings.mockResolvedValue(settings);
       mockGetToken.mockResolvedValue(null);
 
       await expect(handleAnalyseMatches(mockEvent, [createMockPhotoBody()])).rejects.toThrow(
-        "Analysis API token is not configured or could not be decrypted.",
+        'Analysis API token for "Test" is not configured or could not be decrypted.',
       );
     });
 
-    it("calls analyseMatches with validated photos and settings", async () => {
+    it("calls analyseMatches with validated photos and the selected provider", async () => {
       const settings = {
         ...DEFAULT_SETTINGS,
-        selectedAnalysisProviderId: MOCK_UUID,
+        selectedAnalysisProviderIds: [MOCK_UUID],
         analysisProviders: [{ id: MOCK_UUID, name: "Test", endpoint: "https://api.com" }],
       } as SettingsData;
       const photo = createMockPhotoBody();
-      const mockResponse: AnalysisMatchResponse = { matches: [] };
+      const mockResponse: AnalysisMatchResults = { matches: [], failures: [] };
 
       mockGetSettings.mockResolvedValue(settings);
       mockGetToken.mockResolvedValue("api-token");
@@ -249,9 +246,60 @@ describe("analysis IPC handlers", () => {
         windowId: 42,
         directory: "/project",
         photos: [expect.objectContaining({ name: "photo.jpg" })],
-        settings: { endpoint: "https://api.com", token: "api-token" },
+        providers: [{ name: "Test", endpoint: "https://api.com", token: "api-token" }],
       });
       expect(result).toBe(mockResponse);
+    });
+
+    it("forwards every selected provider with its own token", async () => {
+      const settings = {
+        ...DEFAULT_SETTINGS,
+        selectedAnalysisProviderIds: [MOCK_UUID, SECOND_MOCK_UUID],
+        analysisProviders: [
+          { id: MOCK_UUID, name: "First", endpoint: "https://first.com" },
+          { id: SECOND_MOCK_UUID, name: "Second", endpoint: "https://second.com" },
+        ],
+      } as SettingsData;
+
+      mockGetSettings.mockResolvedValue(settings);
+      mockGetToken.mockImplementation((id) =>
+        Promise.resolve(id === MOCK_UUID ? "first-token" : "second-token"),
+      );
+      mockAnalyseMatches.mockResolvedValue({ matches: [], failures: [] });
+
+      await handleAnalyseMatches(mockEvent, [createMockPhotoBody()]);
+
+      expect(mockAnalyseMatches).toHaveBeenCalledWith(
+        expect.objectContaining({
+          providers: [
+            { name: "First", endpoint: "https://first.com", token: "first-token" },
+            { name: "Second", endpoint: "https://second.com", token: "second-token" },
+          ],
+        }),
+      );
+    });
+
+    it("ignores configured providers that are not selected", async () => {
+      const settings = {
+        ...DEFAULT_SETTINGS,
+        selectedAnalysisProviderIds: [SECOND_MOCK_UUID],
+        analysisProviders: [
+          { id: MOCK_UUID, name: "First", endpoint: "https://first.com" },
+          { id: SECOND_MOCK_UUID, name: "Second", endpoint: "https://second.com" },
+        ],
+      } as SettingsData;
+
+      mockGetSettings.mockResolvedValue(settings);
+      mockGetToken.mockResolvedValue("second-token");
+      mockAnalyseMatches.mockResolvedValue({ matches: [], failures: [] });
+
+      await handleAnalyseMatches(mockEvent, [createMockPhotoBody()]);
+
+      expect(mockAnalyseMatches).toHaveBeenCalledWith(
+        expect.objectContaining({
+          providers: [{ name: "Second", endpoint: "https://second.com", token: "second-token" }],
+        }),
+      );
     });
 
     it("keys the analysis lifecycle by the renderer webContents id, not the project window", async () => {
@@ -261,13 +309,13 @@ describe("analysis IPC handlers", () => {
        */
       const settings = {
         ...DEFAULT_SETTINGS,
-        selectedAnalysisProviderId: MOCK_UUID,
+        selectedAnalysisProviderIds: [MOCK_UUID],
         analysisProviders: [{ id: MOCK_UUID, name: "Test", endpoint: "https://api.com" }],
       } as SettingsData;
 
       mockGetSettings.mockResolvedValue(settings);
       mockGetToken.mockResolvedValue("api-token");
-      mockAnalyseMatches.mockResolvedValue({ matches: [] });
+      mockAnalyseMatches.mockResolvedValue({ matches: [], failures: [] });
 
       await handleAnalyseMatches(createMockEvent(11), [createMockPhotoBody()]);
       await handleAnalyseMatches(createMockEvent(22), [createMockPhotoBody()]);
