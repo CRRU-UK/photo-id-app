@@ -89,6 +89,9 @@ export const EXISTING_DATA_RESPONSE = {
 export const MISSING_RECENT_PROJECT_MESSAGE =
   "Project not found, directory or data file may have been deleted.";
 
+export const SAVE_PROVIDER_ERROR_MESSAGE =
+  "Could not save this provider. Check the details and try again.";
+
 export const GLOBAL_KEYBOARD_HINTS = {
   OPEN_SETTINGS: "Mod+,",
   NEW_WINDOW: "Mod+N",

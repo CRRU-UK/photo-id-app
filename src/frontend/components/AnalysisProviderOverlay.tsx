@@ -9,6 +9,7 @@ import {
 import { Banner, Dialog, FormControl, Stack, TextInput } from "@primer/react";
 import { useEffect, useState } from "react";
 
+import { SAVE_PROVIDER_ERROR_MESSAGE } from "@/constants";
 import { stripWhitespace } from "@/helpers";
 import { analysisProviderDraftSchema } from "@/schemas";
 import type { AnalysisProvider, AnalysisProviderDraft } from "@/types";
@@ -36,7 +37,7 @@ const AnalysisProviderOverlay = ({
   const [showToken, setShowToken] = useState(false);
   const [isEditingToken, setIsEditingToken] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [saveError, setSaveError] = useState<string | null>(null);
+  const [saveFailed, setSaveFailed] = useState(false);
 
   const isEditing = !!editingProvider;
   const tokenLocked = isEditing && !isEditingToken;
@@ -61,7 +62,7 @@ const AnalysisProviderOverlay = ({
       });
       setShowToken(false);
       setIsEditingToken(false);
-      setSaveError(null);
+      setSaveFailed(false);
     }
   }, [open, editingProvider]);
 
@@ -71,7 +72,7 @@ const AnalysisProviderOverlay = ({
 
   const handleSave = async () => {
     setIsSaving(true);
-    setSaveError(null);
+    setSaveFailed(false);
 
     const providerDraft: AnalysisProviderDraft = {
       ...(editingProvider ? { id: editingProvider.id } : {}),
@@ -85,7 +86,7 @@ const AnalysisProviderOverlay = ({
       onClose();
     } catch (error) {
       console.error("Error saving analysis provider:", error);
-      setSaveError("Could not save this provider. Check the details and try again.");
+      setSaveFailed(true);
     } finally {
       setIsSaving(false);
     }
@@ -108,9 +109,9 @@ const AnalysisProviderOverlay = ({
       title={isEditing ? "Edit Provider" : "Add Provider"}
     >
       <Stack direction="vertical" gap="spacious" padding="spacious">
-        {saveError !== null && (
+        {saveFailed && (
           <Banner title="Error" variant="critical">
-            {saveError}
+            {SAVE_PROVIDER_ERROR_MESSAGE}
           </Banner>
         )}
 
