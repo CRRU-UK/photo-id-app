@@ -6,10 +6,11 @@ import {
   LinkIcon,
   PencilIcon,
 } from "@primer/octicons-react";
-import { Dialog, FormControl, Stack, TextInput } from "@primer/react";
+import { Banner, Dialog, FormControl, Stack, TextInput } from "@primer/react";
 import { useEffect, useState } from "react";
 
 import { stripWhitespace } from "@/helpers";
+import { analysisProviderDraftSchema } from "@/schemas";
 import type { AnalysisProvider, AnalysisProviderDraft } from "@/types";
 
 interface AnalysisProviderOverlayProps {
@@ -35,12 +36,21 @@ const AnalysisProviderOverlay = ({
   const [showToken, setShowToken] = useState(false);
   const [isEditingToken, setIsEditingToken] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const isEditing = !!editingProvider;
   const tokenLocked = isEditing && !isEditingToken;
+
+  const trimmedEndpoint = draft.endpoint.trim();
+
+  // Validate with the same schema the main process uses, so the UI can never disagree with the save
+  const endpointResult = analysisProviderDraftSchema.shape.endpoint.safeParse(trimmedEndpoint);
+  const endpointError =
+    trimmedEndpoint && !endpointResult.success ? endpointResult.error.issues[0].message : null;
+
   const fieldsValid = tokenLocked
-    ? Boolean(draft.name.trim() && draft.endpoint.trim())
-    : Boolean(draft.name.trim() && draft.endpoint.trim() && stripWhitespace(draft.token));
+    ? Boolean(draft.name.trim() && endpointResult.success)
+    : Boolean(draft.name.trim() && endpointResult.success && stripWhitespace(draft.token));
 
   useEffect(() => {
     if (open) {
@@ -51,6 +61,7 @@ const AnalysisProviderOverlay = ({
       });
       setShowToken(false);
       setIsEditingToken(false);
+      setSaveError(null);
     }
   }, [open, editingProvider]);
 
@@ -60,6 +71,7 @@ const AnalysisProviderOverlay = ({
 
   const handleSave = async () => {
     setIsSaving(true);
+    setSaveError(null);
 
     const providerDraft: AnalysisProviderDraft = {
       ...(editingProvider ? { id: editingProvider.id } : {}),
@@ -73,6 +85,7 @@ const AnalysisProviderOverlay = ({
       onClose();
     } catch (error) {
       console.error("Error saving analysis provider:", error);
+      setSaveError("Could not save this provider. Check the details and try again.");
     } finally {
       setIsSaving(false);
     }
@@ -95,6 +108,12 @@ const AnalysisProviderOverlay = ({
       title={isEditing ? "Edit Provider" : "Add Provider"}
     >
       <Stack direction="vertical" gap="spacious" padding="spacious">
+        {saveError !== null && (
+          <Banner title="Error" variant="critical">
+            {saveError}
+          </Banner>
+        )}
+
         <FormControl required>
           <FormControl.Label>Provider name</FormControl.Label>
           <TextInput
@@ -118,9 +137,14 @@ const AnalysisProviderOverlay = ({
             onChange={(event) => setDraft((prev) => ({ ...prev, endpoint: event.target.value }))}
             placeholder="https://api.example.com"
             size="large"
+            validationStatus={endpointError ? "error" : undefined}
             value={draft.endpoint}
           />
-          <FormControl.Caption>Base URL of your provider API.</FormControl.Caption>
+          {endpointError ? (
+            <FormControl.Validation variant="error">{endpointError}</FormControl.Validation>
+          ) : (
+            <FormControl.Caption>Base URL of your provider API.</FormControl.Caption>
+          )}
         </FormControl>
 
         <FormControl required={!tokenLocked}>
