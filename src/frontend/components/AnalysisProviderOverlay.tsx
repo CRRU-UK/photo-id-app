@@ -10,8 +10,7 @@ import { Banner, Dialog, FormControl, Stack, TextInput } from "@primer/react";
 import { useEffect, useState } from "react";
 
 import { SAVE_PROVIDER_ERROR_MESSAGE } from "@/constants";
-import { stripWhitespace } from "@/helpers";
-import { analysisProviderDraftSchema } from "@/schemas";
+import { stripWhitespace, validateProviderFields } from "@/helpers";
 import type { AnalysisProvider, AnalysisProviderDraft } from "@/types";
 
 interface AnalysisProviderOverlayProps {
@@ -42,16 +41,7 @@ const AnalysisProviderOverlay = ({
   const isEditing = !!editingProvider;
   const tokenLocked = isEditing && !isEditingToken;
 
-  const trimmedEndpoint = draft.endpoint.trim();
-
-  // Validate with the same schema the main process uses, so the UI can never disagree with the save
-  const endpointResult = analysisProviderDraftSchema.shape.endpoint.safeParse(trimmedEndpoint);
-  const endpointError =
-    trimmedEndpoint && !endpointResult.success ? endpointResult.error.issues[0].message : null;
-
-  const fieldsValid = tokenLocked
-    ? Boolean(draft.name.trim() && endpointResult.success)
-    : Boolean(draft.name.trim() && endpointResult.success && stripWhitespace(draft.token));
+  const { endpointError, fieldsValid } = validateProviderFields({ ...draft, tokenLocked });
 
   useEffect(() => {
     if (open) {

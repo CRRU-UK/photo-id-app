@@ -5,7 +5,7 @@ import {
   PROVIDER_LABEL_VARIANTS,
   ROUTES,
 } from "@/constants";
-import { editPayloadSchema } from "@/schemas";
+import { analysisProviderDraftSchema, editPayloadSchema } from "@/schemas";
 import type {
   AnalysisMatchResult,
   AnalysisProvider,
@@ -217,6 +217,41 @@ export const getProviderLabelVariants = (
  * Strips all whitespace (including invisible characters).
  */
 export const stripWhitespace = (value: string): string => value.replaceAll(/\s+/g, "");
+
+/**
+ * Validates the analysis provider form, returning the endpoint error to display (if any) and
+ * whether the form can be submitted. Uses the same schema as the main process so the form can never
+ * disagree with the save.
+ *
+ * `tokenLocked` means an existing token is kept, so no token needs to be entered.
+ */
+export const validateProviderFields = ({
+  name,
+  endpoint,
+  token,
+  tokenLocked,
+}: {
+  name: string;
+  endpoint: string;
+  token: string;
+  tokenLocked: boolean;
+}): { endpointError: string | null; fieldsValid: boolean } => {
+  const trimmedEndpoint = endpoint.trim();
+  const endpointResult = analysisProviderDraftSchema.shape.endpoint.safeParse(trimmedEndpoint);
+
+  // Only complain once something has been typed, so an untouched field is not shown as an error
+  const endpointError =
+    trimmedEndpoint.length > 0 && !endpointResult.success
+      ? endpointResult.error.issues[0].message
+      : null;
+
+  const hasToken = tokenLocked || stripWhitespace(token).length > 0;
+
+  return {
+    endpointError,
+    fieldsValid: name.trim().length > 0 && endpointResult.success && hasToken,
+  };
+};
 
 /**
  * Returns the last path segment of a project directory (the user-visible project name). Works in
