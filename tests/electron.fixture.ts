@@ -50,6 +50,15 @@ export const drag = async (
   target: Locator,
   options?: { copy?: boolean },
 ): Promise<void> => {
+  /**
+   * Both ends have to be on screen before the boxes are measured. A target below the fold drags
+   * towards the edge of the scrolling stack list, which triggers dnd-kit's auto-scroll and moves
+   * the stacks out from under the measured coordinates mid-drag, dropping the photo on a
+   * neighbouring stack. Prefer stacks on the first rows in tests for the same reason.
+   */
+  await target.scrollIntoViewIfNeeded();
+  await source.scrollIntoViewIfNeeded();
+
   const sourceBox = await source.boundingBox();
   const targetBox = await target.boundingBox();
 

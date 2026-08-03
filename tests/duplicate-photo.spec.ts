@@ -197,26 +197,27 @@ test.describe
       const unassigned = page.getByTestId("unassigned-section");
       await showPhoto(unassigned, PLAIN_PHOTO);
 
-      await drag(unassigned.getByTestId("photo-draggable"), page.getByTestId("match-3-left"), {
+      await drag(unassigned.getByTestId("photo-draggable"), page.getByTestId("match-2-right"), {
         copy: true,
       });
 
       await expect(
-        page.getByTestId("match-3-left").getByText("1 / 1", { exact: true }),
+        page.getByTestId("match-2-right").getByText("1 / 1", { exact: true }),
       ).toBeVisible({ timeout: 10_000 });
 
       expect(fileExists("photo_2.jpg")).toBe(true);
       expect(fileExists(PROJECT_THUMBNAIL_DIRECTORY, "photo_2.jpg")).toBe(true);
     });
 
+    // Into the stack whose duplicate failed above, so this also covers recovery from that failure
     test("moves a photo normally without the copy modifier", async () => {
       const unassigned = page.getByTestId("unassigned-section");
       await showPhoto(unassigned, PLAIN_PHOTO);
 
-      await drag(unassigned.getByTestId("photo-draggable"), page.getByTestId("match-4-left"));
+      await drag(unassigned.getByTestId("photo-draggable"), page.getByTestId("match-2-left"));
 
       await expect(
-        page.getByTestId("match-4-left").getByText("1 / 1", { exact: true }),
+        page.getByTestId("match-2-left").getByText("1 / 1", { exact: true }),
       ).toBeVisible({ timeout: 10_000 });
 
       // A move copies no file
