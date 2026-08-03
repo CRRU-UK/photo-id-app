@@ -85,6 +85,8 @@ By default a new project starts with 56 matched stack pairs (seven pages of eigh
 
 Photos can be duplicated by holding the ++ctrl++/++cmd++ key while dragging-and-dropping them between stacks. The photo will be duplicated into the target stack, with the original remaining where it was dragged from. Edits and other changes made to the duplicated photo are not reflected onto the original.
 
+Duplicates are named with a numbered suffix, counting up from the highest number already used for that photo: `photo.jpg` becomes `photo_2.jpg`, then `photo_3.jpg`. Existing files are never overwritten.
+
 ### Analysis
 
 You can use one or more analysis providers to analyse photos in your project. When several providers are selected, each analysis is sent to all of them and the results are combined into a single table.

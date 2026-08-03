@@ -24,7 +24,11 @@ A consequence of this approach is that `app.isPackaged` is `false` during tests,
 
 ### Test images
 
-Test files (such as photos) are stored in [`tests/data`](data/) and are copied to a temp directory for each test.
+Test files (such as photos) are stored in [`tests/data`](data/) and are copied to a temp directory for each test. Specs that care about filenames (such as photo duplication) copy them under names of their own choosing.
+
+### Drag-and-drop
+
+[`electron.fixture.ts`](electron.fixture.ts) exports a `drag` helper that drives dnd-kit with pointer events. Pass `{ copy: true }` for a duplicate rather than a move as it holds the modifier for the drag and waits for the app's `copying` body class before dropping, so a missed keydown fails the test instead of quietly performing a move. It presses Alt rather than Control because a ctrl-click opens the context menu on macOS.
 
 ## CI
 

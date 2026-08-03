@@ -92,6 +92,8 @@ export const MISSING_RECENT_PROJECT_MESSAGE =
 export const SAVE_PROVIDER_ERROR_MESSAGE =
   "Could not save this provider. Check the details and try again.";
 
+export const DUPLICATE_LIMIT_ERROR = "Maximum duplicates reached";
+
 export const GLOBAL_KEYBOARD_HINTS = {
   OPEN_SETTINGS: "Mod+,",
   NEW_WINDOW: "Mod+N",

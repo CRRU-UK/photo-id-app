@@ -1,11 +1,11 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { type ElectronApplication, expect, type Locator, type Page, test } from "@playwright/test";
+import { type ElectronApplication, expect, type Page, test } from "@playwright/test";
 import { _electron as electron } from "playwright";
 
 import { EXISTING_DATA_RESPONSE } from "../src/constants";
-import { getPackagedBinaryPath } from "./electron.fixture";
+import { drag, getPackagedBinaryPath } from "./electron.fixture";
 
 const TEST_DATA_DIR = path.join(__dirname, "data");
 
@@ -17,32 +17,6 @@ let app: ElectronApplication;
 let page: Page;
 let projectDir: string;
 let userDataDir: string;
-
-/**
- * Drags from the centre of `source` to the centre of `target` using pointer events. Moves slightly
- * off-centre first to exceed activation constraint.
- */
-const drag = async (source: Locator, target: Locator): Promise<void> => {
-  const sourceBox = await source.boundingBox();
-  const targetBox = await target.boundingBox();
-
-  if (!sourceBox || !targetBox) {
-    throw new Error("drag: source or target element not found / not visible");
-  }
-
-  const fromX = sourceBox.x + sourceBox.width / 2;
-  const fromY = sourceBox.y + sourceBox.height / 2;
-  const toX = targetBox.x + targetBox.width / 2;
-  const toY = targetBox.y + targetBox.height / 2;
-
-  await source.page().mouse.move(fromX, fromY);
-  await source.page().mouse.down();
-
-  // Exceed dnd-kit activationConstraint distance
-  await source.page().mouse.move(fromX + 12, fromY + 12);
-  await source.page().mouse.move(toX, toY, { steps: 8 });
-  await source.page().mouse.up();
-};
 
 test.describe
   .serial("Project lifecycle", () => {

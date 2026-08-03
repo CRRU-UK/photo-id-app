@@ -1,9 +1,16 @@
 import type { BrowserWindow, IpcMainInvokeEvent } from "electron";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { DUPLICATE_LIMIT_ERROR } from "@/constants";
 import type { PhotoBody } from "@/types";
 
-vi.mock("electron", () => ({}));
+const mockShowErrorBox = vi.fn<(title: string, content: string) => void>();
+
+vi.mock("electron", () => ({
+  dialog: {
+    showErrorBox: (...args: Parameters<typeof mockShowErrorBox>) => mockShowErrorBox(...args),
+  },
+}));
 
 const mockCreatePhotoThumbnail = vi.fn<(directory: string, data: PhotoBody) => Promise<string>>();
 
@@ -111,6 +118,29 @@ describe("photo IPC handlers", () => {
       await expect(
         handleDuplicatePhotoFileInvoke(createMockEvent(), createMockPhotoBody()),
       ).rejects.toThrow("No project open");
+    });
+
+    it("shows a dialog and still rejects when the duplicate limit is reached", async () => {
+      mockHandleDuplicatePhotoFile.mockRejectedValue(new Error(DUPLICATE_LIMIT_ERROR));
+
+      await expect(
+        handleDuplicatePhotoFileInvoke(createMockEvent(), createMockPhotoBody()),
+      ).rejects.toThrow(DUPLICATE_LIMIT_ERROR);
+
+      expect(mockShowErrorBox).toHaveBeenCalledWith(
+        "Cannot duplicate photo",
+        DUPLICATE_LIMIT_ERROR,
+      );
+    });
+
+    it("does not show a dialog for other failures", async () => {
+      mockHandleDuplicatePhotoFile.mockRejectedValue(new Error("ENOENT: no such file"));
+
+      await expect(
+        handleDuplicatePhotoFileInvoke(createMockEvent(), createMockPhotoBody()),
+      ).rejects.toThrow("ENOENT: no such file");
+
+      expect(mockShowErrorBox).not.toHaveBeenCalled();
     });
   });
 });
