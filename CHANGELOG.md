@@ -1,5 +1,17 @@
 # photo-id
 
+## 1.2.0
+
+### Minor Changes
+
+- 3971474: Multiple analysis providers can now be selected
+- 873b19a: Updated duplicate file naming
+
+### Patch Changes
+
+- cd5f327: Fixed the copy button in analysis results not copying to the clipboard
+- df1c7ac: Show warning message when attempting to enter an invalid provider URL
+
 ## 1.1.0
 
 ### Minor Changes
