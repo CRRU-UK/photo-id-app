@@ -218,6 +218,10 @@ The project view is accessed when opening a project. It allows the user to:
   - Duplicated photos should be fully independent from the original
 - Photos can be duplicated by clicking and dragging the photo to another stack while pressing the keyboard shortcut
   - Duplicating a photo copies the data in the project data file into a new entry
+  - Duplicate filenames take the next free counter for their name family, checked against the names already in the project directory so an existing file is never overwritten and repeated duplication does not compound suffixes
+    - CRRU-format names (`YYYYMMDD_NNND_AAA`) rewrite the fourth digit in place, so `20240708_1420_ABC` becomes `20240708_1421_ABC` - that counter is a single digit, so duplicating once `_1429` exists fails with a "Maximum duplicates reached" dialogue and no file is written
+    - All other names get a `_2`, `_3`, etc. suffix, which is unbounded
+  - The duplicated thumbnail is named after the new original, so a later edit-save writes to the thumbnail path the project points at
 - A user can click a button below the stack to reset the currently shown photo back to its original state (i.e. without any edits applied)
 - There are three main stacks in a project, described below
 - A photo can only ever exist in one stack at any one time - it should NOT exist in multiple stacks at once

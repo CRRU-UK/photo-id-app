@@ -1,9 +1,9 @@
-import type { IpcMainInvokeEvent } from "electron";
+import { dialog, type IpcMainInvokeEvent } from "electron";
 
 import { createPhotoThumbnail } from "@/backend/photos";
 import { handleDuplicatePhotoFile } from "@/backend/projects";
 import { windowManager } from "@/backend/WindowManager";
-import { IPC_EVENTS } from "@/constants";
+import { DUPLICATE_LIMIT_ERROR, IPC_EVENTS } from "@/constants";
 import type { PhotoBody } from "@/types";
 
 export const handleSavePhotoFile = async (
@@ -43,7 +43,15 @@ export const handleDuplicatePhotoFileInvoke = async (
     throw new Error("No project open");
   }
 
-  return handleDuplicatePhotoFile(directory, data);
+  try {
+    return await handleDuplicatePhotoFile(directory, data);
+  } catch (error) {
+    if (error instanceof Error && error.message === DUPLICATE_LIMIT_ERROR) {
+      dialog.showErrorBox("Cannot duplicate photo", DUPLICATE_LIMIT_ERROR);
+    }
+
+    throw error;
+  }
 };
 
 export const registerPhotoHandlers = (ipcMain: Electron.IpcMain): void => {

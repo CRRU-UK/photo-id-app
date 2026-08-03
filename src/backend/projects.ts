@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { app, dialog } from "electron";
 import { ZodError } from "zod";
+import { nextDuplicateBaseName } from "@/backend/duplicateNames";
 import { notifyRecentProjectsChanged } from "@/backend/menu";
 import { createPhotoThumbnail } from "@/backend/photos";
 import { addRecentProject } from "@/backend/recents";
@@ -438,31 +439,32 @@ const handleFlushSaveProject = (directory: string, data: string): void => {
 };
 
 /**
- * Duplicates the original, edited, and thumbnail versions of a photo a returns the new filenames.
+ * Duplicates the original and thumbnail versions of a photo and returns the new filenames.
  */
 const handleDuplicatePhotoFile = async (directory: string, data: PhotoBody): Promise<PhotoBody> => {
   const originalPath = resolvePhotoPath(directory, data.name);
   const thumbnailPath = resolvePhotoPath(directory, data.thumbnail);
 
-  const time = Date.now();
-
   const originalExtension = path.extname(data.name);
   const originalBaseName = path.basename(data.name, originalExtension);
   const originalDir = path.dirname(data.name);
-  const newOriginalPath = path.join(
-    originalDir,
-    `${originalBaseName}_duplicate_${time}${originalExtension}`,
-  );
+
+  const entries = await fs.promises.readdir(directory);
+  const existingBaseNames = entries.map((entry) => path.basename(entry, path.extname(entry)));
+  const newBaseName = nextDuplicateBaseName(originalBaseName, existingBaseNames);
+
+  const newOriginalPath = path.join(originalDir, `${newBaseName}${originalExtension}`);
 
   await fs.promises.copyFile(originalPath, path.join(directory, newOriginalPath));
 
+  /**
+   * The thumbnail is named after the original (@see `createPhotoThumbnail`), so it has to follow
+   * the new base name, otherwise a later edit-save on the duplicate writes to a thumbnail path the
+   * project does not point at.
+   */
   const thumbnailExtension = path.extname(data.thumbnail);
-  const thumbnailBaseName = path.basename(data.thumbnail, thumbnailExtension);
   const thumbnailDir = path.dirname(data.thumbnail);
-  const newThumbnailPath = path.join(
-    thumbnailDir,
-    `${thumbnailBaseName}_duplicate_${time}${thumbnailExtension}`,
-  );
+  const newThumbnailPath = path.join(thumbnailDir, `${newBaseName}${thumbnailExtension}`);
 
   await fs.promises.copyFile(thumbnailPath, path.join(directory, newThumbnailPath));
 

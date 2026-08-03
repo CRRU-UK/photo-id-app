@@ -1,6 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { DEFAULT_PHOTO_EDITS, IPC_EVENTS, PROJECT_FILE_NAME } from "@/constants";
+import {
+  DEFAULT_PHOTO_EDITS,
+  DUPLICATE_LIMIT_ERROR,
+  IPC_EVENTS,
+  PROJECT_FILE_NAME,
+} from "@/constants";
 import type { CollectionBody, PhotoBody, PhotoEdits, ProjectBody } from "@/types";
 
 const mockExistsSync = vi.fn<(path: string) => boolean>();
@@ -332,31 +337,32 @@ describe(handleDuplicatePhotoFile, () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockCopyFile.mockResolvedValue(undefined);
-    vi.spyOn(Date, "now").mockReturnValue(1700000000000);
+    mockReaddir.mockResolvedValue(["photo.jpg"]);
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
   });
 
-  it("copies the original file with a duplicate suffix", async () => {
+  it("copies the original file to the next free name", async () => {
     const photo = createPhoto("photo.jpg");
 
     await handleDuplicatePhotoFile("/project", photo);
 
-    expect(mockCopyFile).toHaveBeenCalledWith(
-      "/project/photo.jpg",
-      expect.stringContaining("_duplicate_1700000000000"),
-    );
+    expect(mockCopyFile).toHaveBeenCalledWith("/project/photo.jpg", "/project/photo_2.jpg");
   });
 
-  it("copies the thumbnail file with a duplicate suffix", async () => {
+  it("copies the thumbnail file alongside the original", async () => {
     const photo = createPhoto("photo.jpg");
 
     await handleDuplicatePhotoFile("/project", photo);
 
     // Two copyFile calls: one for original, one for thumbnail
     expect(mockCopyFile).toHaveBeenCalledTimes(2);
+    expect(mockCopyFile).toHaveBeenCalledWith(
+      "/project/thumbnails/photo.jpg",
+      "/project/thumbnails/photo_2.jpg",
+    );
   });
 
   it("returns a new PhotoBody with updated file names", async () => {
@@ -368,9 +374,28 @@ describe(handleDuplicatePhotoFile, () => {
 
     const result = await handleDuplicatePhotoFile("/project", photo);
 
-    expect(result.name).toContain("_duplicate_1700000000000");
-    expect(result.name).toContain(".jpg");
-    expect(result.thumbnail).toContain("_duplicate_1700000000000");
+    expect(result.name).toBe("photo_2.jpg");
+    expect(result.thumbnail).toBe("thumbnails/photo_2.jpg");
+  });
+
+  it("skips a name already taken by a file with another extension", async () => {
+    mockReaddir.mockResolvedValue(["photo.jpg", "photo_2.png"]);
+    const photo = createPhoto("photo.jpg");
+
+    const result = await handleDuplicatePhotoFile("/project", photo);
+
+    expect(result.name).toBe("photo_3.jpg");
+  });
+
+  it("copies nothing when the CRRU counter is exhausted", async () => {
+    mockReaddir.mockResolvedValue(["20240708_1420_ABC.jpg", "20240708_1429_ABC.jpg"]);
+    const photo = createPhoto("20240708_1420_ABC.jpg");
+
+    await expect(handleDuplicatePhotoFile("/project", photo)).rejects.toThrow(
+      DUPLICATE_LIMIT_ERROR,
+    );
+
+    expect(mockCopyFile).not.toHaveBeenCalled();
   });
 
   it("preserves edits and isEdited state", async () => {

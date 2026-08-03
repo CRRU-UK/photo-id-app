@@ -296,11 +296,14 @@ const ProjectPage = observer(() => {
 
         try {
           await project.duplicatePhotoToStack(draggingCollectionTo, draggingPhoto);
+        } catch (error) {
+          // Main shows an error dialogue
+          console.error("Failed to duplicate photo:", error);
         } finally {
           setLoading({ show: false });
+          setDraggingPhoto(null);
         }
 
-        setDraggingPhoto(null);
         return;
       }
 
