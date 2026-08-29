@@ -33,12 +33,11 @@ jobs:
       - name: Create release pull request
         id: changesets
         uses: changesets/action@v2.1.1
-        env:
-          GITHUB_TOKEN: ${{ secrets.PUBLISH_GITHUB_TOKEN }}
         with:
           pr-title: Release
           version-script: npm run changesets:version
           create-github-releases: false
+          github-token: ${{ secrets.PUBLISH_GITHUB_TOKEN }}
 
       - name: Create draft release
         if: steps.changesets.outputs.hasChangesets == 'false'
