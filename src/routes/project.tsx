@@ -59,7 +59,7 @@ const ProjectPage = observer(() => {
   const isDraggingRef = useRef<boolean>(false);
 
   const { project, setProject } = useProject();
-  const { isAnalysing, result, error, handleClose: handleCloseAnalysis } = useAnalysis();
+  const { isOpen: analysisOverlayOpen, handleClose: handleCloseAnalysis } = useAnalysis();
 
   const navigate = useNavigate();
 
@@ -88,8 +88,6 @@ const ProjectPage = observer(() => {
     setProject(null);
     void navigate({ to: ROUTES.INDEX });
   }, [project, setProject, navigate]);
-
-  const analysisOverlayOpen = isAnalysing || result !== null || error !== null;
 
   useEffect(() => {
     const handleCloseShortcut = (event: KeyboardEvent) => {

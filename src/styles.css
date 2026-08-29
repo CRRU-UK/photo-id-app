@@ -218,6 +218,7 @@ html[data-color-mode="light"] .project .photo-stack {
 .edit {
   --editor-toolbar-height: 60px;
   --editor-slider-width: 140px;
+  --editor-results-width: 50%;
 
   position: relative;
   width: 100vw;
@@ -227,6 +228,13 @@ html[data-color-mode="light"] .project .photo-stack {
 @media (max-width: 1280px) {
   .edit {
     --editor-slider-width: 120px;
+    --editor-results-width: 55%;
+  }
+}
+
+@media (max-width: 1080px) {
+  .edit {
+    --editor-results-width: 60%;
   }
 }
 
@@ -311,6 +319,43 @@ html[data-color-mode="light"] .project .photo-stack {
 
 .edit > .canvas-photo:active {
   cursor: grabbing;
+}
+
+.edit.with-results > .canvas-photo {
+  width: calc(100% - var(--editor-results-width));
+}
+
+.edit > .edit-results-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: var(--editor-toolbar-height);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  width: var(--editor-results-width);
+  overflow: hidden;
+  background: var(--bgColor-default);
+  border-left: var(--borderWidth-default) var(--borderColor-muted) solid;
+}
+
+.edit > .edit-results-panel > .edit-results-panel-header {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--app-spacing);
+  border-bottom: var(--borderWidth-default) var(--borderColor-muted) solid;
+}
+
+.edit > .edit-results-panel > .edit-results-panel-header h2 {
+  font-size: var(--text-title-size-small);
+}
+
+.edit > .edit-results-panel > .edit-results-panel-body {
+  flex: 1;
+  padding: var(--app-spacing);
+  overflow-y: auto;
 }
 
 .edit > .canvas-photo.loupe-active,

@@ -3,7 +3,6 @@ import type { SetStateAction } from "react";
 import { useCallback, useEffect, useState } from "react";
 import { DEFAULT_WINDOW_TITLE, ROUTES } from "@/constants";
 import { AnalysisContextProvider } from "@/contexts/AnalysisContext";
-import AnalysisMatchOverlay from "@/frontend/components/AnalysisMatchOverlay";
 import ErrorBoundary from "@/frontend/components/ErrorBoundary";
 import ImageEditor from "@/frontend/components/ImageEditor";
 import LoadingOverlay from "@/frontend/components/LoadingOverlay";
@@ -105,7 +104,6 @@ const EditPage = () => {
   return (
     <AnalysisContextProvider>
       <LoadingOverlay data={loading} />
-      <AnalysisMatchOverlay />
       {payload && file && (
         <ErrorBoundary recovery={{ label: "Reload photo", onClick: () => setError(null) }}>
           <ImageEditor

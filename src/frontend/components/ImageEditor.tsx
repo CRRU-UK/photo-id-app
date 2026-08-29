@@ -12,6 +12,7 @@ import {
 } from "@/constants";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { useSettings } from "@/contexts/SettingsContext";
+import AnalysisResultsPanel from "@/frontend/components/AnalysisResultsPanel";
 import LoadingOverlay from "@/frontend/components/LoadingOverlay";
 import Slider from "@/frontend/components/Slider";
 import Toolbar from "@/frontend/components/Toolbar";
@@ -93,11 +94,8 @@ const ImageEditor = ({
     handleAnalyseMatches,
     handleClose: handleCloseAnalysis,
     isAnalysing,
-    result,
-    error,
+    isOpen: analysisOverlayOpen,
   } = useAnalysis();
-
-  const analysisOverlayOpen = isAnalysing || result !== null || error !== null;
 
   const { refs, state, getters, filters, handlers, actions } = useImageEditor({
     file: image,
@@ -381,7 +379,7 @@ const ImageEditor = ({
     <>
       <LoadingOverlay data={{ show: navigating }} />
 
-      <div className="edit">
+      <div className={analysisOverlayOpen ? "edit with-results" : "edit"}>
         <canvas
           className={loupeEnabled ? "canvas-photo loupe-active" : "canvas-photo"}
           onPointerDown={handlers.handlePointerDown}
@@ -448,6 +446,8 @@ const ImageEditor = ({
           saving={saving}
           sliderInitials={sliderInitials}
         />
+
+        <AnalysisResultsPanel />
       </div>
     </>
   );

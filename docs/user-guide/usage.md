@@ -122,6 +122,7 @@ There are several options that can be used to edit photos in the toolbar on the 
 - **:material-magnify: Zooming** can be done by using the mousewheel on the photo (or the ==:octicons-zoom-in-16::octicons-zoom-out-16:== buttons in the toolbar)
 - **:material-cursor-move: Panning** can be done by clicking and dragging the photo (or the ==:octicons-arrow-left-16::octicons-arrow-up-16::octicons-arrow-down-16::octicons-arrow-right-16:== buttons in the toolbar)
 - **:material-crop: Cropping** is based on the zoom and pan of the photo - what you see in the photo editor is how the photo will be cropped
+- **:octicons-ai-model-16: Analyse** (when at least one provider is selected) analyses the photo for matches (see the [Analysis](./analysis.md) guide)
 
 !!! note
 
