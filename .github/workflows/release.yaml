@@ -36,9 +36,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.PUBLISH_GITHUB_TOKEN }}
         with:
-          title: Release
-          version: npm run changesets:version
-          createGithubReleases: false
+          pr-title: Release
+          version-script: npm run changesets:version
+          create-github-releases: false
 
       - name: Create draft release
         if: steps.changesets.outputs.hasChangesets == 'false'
