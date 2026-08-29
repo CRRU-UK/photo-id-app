@@ -46,6 +46,8 @@ When at least one provider is selected, an ==:octicons-ai-model-16: Analyse== bu
 
 Analysing matches in a stack will use _all_ photos in that stack, and analysing matches for an image in the image editor will use only that image (with any pending edits applied). The same photos are sent to every provider you have selected.
 
+In the image editor, results appear in a panel beside the photo (with the photo on the left and results on the right) so you can view the image, the matches, and an external catalogue at the same time. When analysing a whole stack from the project screen, results appear in a dialogue instead.
+
 When a match analysis is completed, a single table will be shown combining the results from every provider, with the corresponding information:
 
 - Match rank as given by that provider (its own best match first)
@@ -57,7 +59,7 @@ When a match analysis is completed, a single table will be shown combining the r
 
 When you have more than one provider selected, rows are interleaved by rank: every provider's best match (rank 1) sits together at the top of the table, followed by every rank 2, and so on. This lets you compare what each provider returned for the same rank side by side without paginating. Providers that return fewer matches simply drop out of the later ranks.
 
-Selecting the ==:octicons-copy-16: Copy details to clipboard== button will copy the details of the selected row to your clipboard. Results are paginated for every 10 matches. You can cancel in-progress analysis using the ==Cancel== button in the overlay. Analysis runs independently in each window, so cancelling only affects the analysis in the window you cancel from.
+Selecting the ==:octicons-copy-16: Copy details to clipboard== button will copy the details of the selected row to your clipboard. Results are paginated for every 10 matches. You can close the results (which also cancels any in-progress analysis) using the close button on the editor's results panel or the ==Cancel==/==Close== button on the project-screen dialog. Analysis runs independently in each window, so cancelling only affects the analysis in the window you cancel from.
 
 If one of your selected providers fails (for example it is unreachable or rejects your token), the results from the providers that succeeded are still shown, with a warning above the table naming each provider that failed and why. If _every_ selected provider fails, an error is shown instead of the table.
 

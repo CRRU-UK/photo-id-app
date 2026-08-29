@@ -16,6 +16,7 @@ interface AnalysisContextValue {
   handleClose: () => void;
   inputLabel: string | null;
   isAnalysing: boolean;
+  isOpen: boolean;
   result: AnalysisMatchResults | null;
 }
 
@@ -74,9 +75,11 @@ export const AnalysisContextProvider = ({ children }: AnalysisContextProviderPro
     setInputLabel(null);
   }, [isAnalysing]);
 
+  const isOpen = isAnalysing || result !== null || error !== null;
+
   const value = useMemo<AnalysisContextValue>(
-    () => ({ isAnalysing, result, error, inputLabel, handleAnalyseMatches, handleClose }),
-    [isAnalysing, result, error, inputLabel, handleAnalyseMatches, handleClose],
+    () => ({ isAnalysing, isOpen, result, error, inputLabel, handleAnalyseMatches, handleClose }),
+    [isAnalysing, isOpen, result, error, inputLabel, handleAnalyseMatches, handleClose],
   );
 
   return <AnalysisContext.Provider value={value}>{children}</AnalysisContext.Provider>;
