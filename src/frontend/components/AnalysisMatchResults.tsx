@@ -102,11 +102,6 @@ const Loading = ({ inputLabel }: { inputLabel: string | null }) => {
             width: "grow",
           },
           {
-            header: "Provider",
-            id: "provider",
-            width: "auto",
-          },
-          {
             header: "",
             id: "details",
             width: "50px",
