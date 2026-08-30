@@ -1,5 +1,11 @@
 # photo-id
 
+## 1.2.1
+
+### Patch Changes
+
+- ff6c682: Update match results layout in edit window
+
 ## 1.2.0
 
 ### Minor Changes
