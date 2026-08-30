@@ -1,5 +1,11 @@
 # photo-id
 
+## 1.2.2
+
+### Patch Changes
+
+- 2feeb32: Update match results layout
+
 ## 1.2.1
 
 ### Patch Changes
