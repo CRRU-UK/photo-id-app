@@ -22,7 +22,7 @@
     "package": "electron-forge package",
     "make": "electron-forge make",
     "publish": "electron-forge publish",
-    "changesets:add": "npx @changesets/cli add",
+    "changesets:add": "npx @changesets/cli git-tag",
     "changesets:version": "npx @changesets/cli version && npm install --package-lock-only",
     "changesets:tag": "npx @changesets/cli tag && git push --follow-tags",
     "test": "npm run test:linting && npm run test:types && npm run test:unit",
