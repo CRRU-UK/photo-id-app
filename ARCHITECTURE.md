@@ -274,7 +274,7 @@ The project view is accessed when opening a project. It allows the user to:
   - Rank of the match (1-indexed, best first) as returned by that provider
   - ID of the match
   - Match rating (i.e. confidence, similarity, etc.) visualised as a progress bar and percentage value
-  - Name of the provider that returned the match
+  - Name of the provider that returned the match, shown only when more than one provider returned matches; when a single provider returned matches this column is hidden and its name is shown in the table subtitle instead
   - Copy button which shows the match details on hover and copies them to the clipboard on click
 - The API contract in [`analysis-api-spec.yaml`](./docs/assets/analysis-api-spec.yaml) should be used as the ONLY contract for what the app sends and expects to receive from an analysis provider API
 - The data table results should show all the results received, paginated at a fixed amount per page

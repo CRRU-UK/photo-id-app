@@ -9,7 +9,7 @@ import {
   Text,
   Tooltip,
 } from "@primer/react";
-import { DataTable, Table } from "@primer/react/experimental";
+import { type Column, DataTable, Table } from "@primer/react/experimental";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 
 import {
@@ -142,71 +142,80 @@ const Results = ({
   // Derived from all matches, not just the current page, so a provider keeps its colour when paging
   const providerVariants = getProviderLabelVariants(data.matches);
 
+  const singleProvider = providerVariants.size === 1 ? [...providerVariants.keys()][0] : null;
+
   const subtitleId = useId();
+
+  const allColumns: Column<AnalysisMatchResult>[] = [
+    {
+      header: "Rank",
+      field: "rank",
+      width: "auto",
+      rowHeader: true,
+    },
+    {
+      header: "ID",
+      field: "id",
+      width: "auto",
+      rowHeader: true,
+    },
+    {
+      header: "Rating",
+      field: "rating",
+      width: "grow",
+      renderCell: (row: AnalysisMatchResult) => {
+        const rating = Math.round(row.rating * 100);
+
+        let progressBarColor = "success.emphasis";
+
+        if (rating < RATING_THRESHOLDS.GOOD) {
+          progressBarColor = "attention.emphasis";
+        }
+
+        if (rating < RATING_THRESHOLDS.AVERAGE) {
+          progressBarColor = "danger.emphasis";
+        }
+
+        return (
+          <>
+            <ProgressBar
+              bg={progressBarColor}
+              inline
+              progress={rating}
+              style={{ width: "100%", marginRight: "var(--stack-gap-condensed)" }}
+            />
+            <Text>{rating}%</Text>
+          </>
+        );
+      },
+    },
+    {
+      header: "Provider",
+      field: "provider",
+      width: "auto",
+      renderCell: (row: AnalysisMatchResult) => {
+        return <Label variant={providerVariants.get(row.provider)}>{row.provider}</Label>;
+      },
+    },
+    {
+      header: "",
+      field: "details",
+      width: "auto",
+      renderCell: (row: AnalysisMatchResult) => {
+        return <CopyDetailsButton details={row.details} />;
+      },
+    },
+  ];
+
+  const columns =
+    singleProvider === null
+      ? allColumns
+      : allColumns.filter((column) => column.field !== "provider");
 
   const tableContent = (
     <DataTable<AnalysisMatchResult>
       cellPadding="spacious"
-      columns={[
-        {
-          header: "Rank",
-          field: "rank",
-          width: "auto",
-          rowHeader: true,
-        },
-        {
-          header: "ID",
-          field: "id",
-          width: "auto",
-          rowHeader: true,
-        },
-        {
-          header: "Rating",
-          field: "rating",
-          width: "grow",
-          renderCell: (row: AnalysisMatchResult) => {
-            const rating = Math.round(row.rating * 100);
-
-            let progressBarColor = "success.emphasis";
-
-            if (rating < RATING_THRESHOLDS.GOOD) {
-              progressBarColor = "attention.emphasis";
-            }
-
-            if (rating < RATING_THRESHOLDS.AVERAGE) {
-              progressBarColor = "danger.emphasis";
-            }
-
-            return (
-              <>
-                <ProgressBar
-                  bg={progressBarColor}
-                  inline
-                  progress={rating}
-                  style={{ width: "100%", marginRight: "var(--stack-gap-condensed)" }}
-                />
-                <Text>{rating}%</Text>
-              </>
-            );
-          },
-        },
-        {
-          header: "Provider",
-          field: "provider",
-          width: "auto",
-          renderCell: (row: AnalysisMatchResult) => {
-            return <Label variant={providerVariants.get(row.provider)}>{row.provider}</Label>;
-          },
-        },
-        {
-          header: "",
-          field: "details",
-          width: "auto",
-          renderCell: (row: AnalysisMatchResult) => {
-            return <CopyDetailsButton details={row.details} />;
-          },
-        },
-      ]}
+      columns={columns}
       data={rows}
       // The same match ID can be returned by more than one provider, so rows are keyed by both
       getRowId={(row) => `${row.provider}:${row.id}`}
@@ -217,6 +226,12 @@ const Results = ({
     <Table.Container>
       <Table.Subtitle as="p" id={subtitleId}>
         Match results for {inputLabel !== null && <Label variant="accent">{inputLabel}</Label>}
+        {singleProvider !== null && (
+          <>
+            {" "}
+            from <Label variant="accent">{singleProvider}</Label>
+          </>
+        )}
       </Table.Subtitle>
 
       {tableContent}

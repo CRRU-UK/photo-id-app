@@ -52,7 +52,7 @@ When a match analysis is completed, a single table will be shown combining the r
 
 - Match rank as given by that provider (its own best match first)
 - Rating (e.g. confidence, similarity)
-- Provider that returned the match
+- Provider that returned the match (shown only when more than one provider is selected)
 - Details (useful for debugging information)
 
 ![Analysis results](../assets/images/analysis-match-results.png?v2){ width="700" }
