@@ -32,7 +32,7 @@ jobs:
 
       - name: Create release pull request
         id: changesets
-        uses: changesets/action@v2.1.1
+        uses: changesets/action@v2.1.2
         with:
           pr-title: Release
           version-script: npm run changesets:version
