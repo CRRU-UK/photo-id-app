@@ -46,7 +46,6 @@ const initializeSentry = () => {
       }),
       Sentry.consoleLoggingIntegration({ levels: ["log", "warn", "error"] }),
     ],
-    enableLogs: true,
   });
 };
 

@@ -16,7 +16,7 @@ npm run test:e2e
 
 Playwright launches Electron and connects via Chrome DevTools Protocol (CDP) to drive the app. Native file dialogues are mocked so tests can run non-interactively, but all other I/O (filesystem, thumbnails, IPC) runs for real against an isolated temp directory that is cleaned up after each test.
 
-The packaged binary has the `EnableNodeCliInspectArguments` Electron fuse disabled (a security requirement). This prevents Playwright from establishing a CDP connection. Instead, tests launch Electron directly from the Vite-built output (`electron .`), which reads the `main` property in `package.json` and loads `.vite/build/main.js`.
+The packaged binary has the `EnableNodeCliInspectArguments` Electron fuse disabled (a security requirement). This prevents Playwright from establishing a CDP connection. Instead, tests launch Electron directly from the Vite-built output (`electron .`), which reads the `main` property in `package.json` and loads `.vite/build/main.cjs`.
 
 The `test:e2e:build` script runs `electron-forge package` to produce this `.vite/` output. `electron-forge` has no standalone "build" command, so `package` is the only reliable way to generate the build with all forge-injected variables. The `out/` directory it also creates is an unused byproduct.
 

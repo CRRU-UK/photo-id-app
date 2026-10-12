@@ -83,7 +83,6 @@ const initSentry = (): void => {
     enabled: telemetry === "enabled",
     integrations: [Sentry.consoleLoggingIntegration({ levels: ["log", "warn", "error"] })],
     enableRendererProfiling: true,
-    enableLogs: true,
   });
 };
 
