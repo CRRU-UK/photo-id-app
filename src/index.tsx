@@ -9,6 +9,7 @@ import { BaseStyles, ThemeProvider } from "@primer/react";
 import {
   createHashHistory,
   createRouter,
+  type ErrorComponentProps,
   RouterProvider,
   useNavigate,
   useRouterState,
@@ -24,11 +25,7 @@ import { routeTree } from "./routeTree.gen";
 
 import "./styles.css";
 
-type RouteErrorComponentProps = {
-  error: Error;
-};
-
-const DefaultRouteErrorComponent = ({ error }: RouteErrorComponentProps) => {
+const DefaultRouteErrorComponent = ({ error }: ErrorComponentProps) => {
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (state) => state.location.pathname });
 
@@ -48,7 +45,10 @@ const DefaultRouteErrorComponent = ({ error }: RouteErrorComponentProps) => {
 
   return (
     <div className="error-view">
-      <RouteErrorFallback error={error} recovery={recovery} />
+      <RouteErrorFallback
+        error={error instanceof Error ? error : new Error(String(error))}
+        recovery={recovery}
+      />
     </div>
   );
 };

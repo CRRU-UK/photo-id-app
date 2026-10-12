@@ -109,7 +109,7 @@ describe("editor IPC handlers", () => {
   describe(handleOpenEditWindow, () => {
     const config = {
       production: true,
-      defaultWebPreferences: { preload: "/preload.js" } as Electron.WebPreferences,
+      defaultWebPreferences: { preload: "/preload.cjs" } as Electron.WebPreferences,
       basePath: "/path/to/index.html",
     };
 
@@ -162,7 +162,7 @@ describe("editor IPC handlers", () => {
           height: 800,
           webPreferences: expect.objectContaining({
             ...config.defaultWebPreferences,
-            preload: "/preload-editor.js",
+            preload: "/preload-editor.cjs",
           }),
           backgroundColor: "black",
           fullscreenable: false,

@@ -15,13 +15,13 @@ export type EditorConfig = {
 };
 
 /**
- * Build the edit-window preferences. Edit windows use a narrowed preload (`preload-editor.js`)
+ * Build the edit-window preferences. Edit windows use a narrowed preload (`preload-editor.cjs`)
  * that only exposes the IPC the editor renderer actually needs, so anything that mutates project
  * data, opens new windows, or interacts with the home/project screens is intentionally absent.
  */
 const buildEditorWebPreferences = (base: Electron.WebPreferences): Electron.WebPreferences => ({
   ...base,
-  preload: path.join(path.dirname(base.preload ?? ""), "preload-editor.js"),
+  preload: path.join(path.dirname(base.preload ?? ""), "preload-editor.cjs"),
 });
 
 export const handleOpenEditWindow = (config: EditorConfig) => {

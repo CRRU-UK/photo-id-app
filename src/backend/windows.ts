@@ -16,7 +16,7 @@ let projectSessionCounter = 0;
  * `src/backend/ipc/editorHandlers.ts`).
  */
 export const defaultWebPreferences: Electron.WebPreferences = {
-  preload: path.join(__dirname, "preload.js"),
+  preload: path.join(__dirname, "preload.cjs"),
   nodeIntegration: false,
   contextIsolation: true,
   webSecurity: true,
