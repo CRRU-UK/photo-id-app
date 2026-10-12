@@ -33,7 +33,7 @@
 
 ### Development Flow
 
-- **Prerequisites**: Node >= 24 required (see `README.md`)
+- **Prerequisites**: Node >= 26 required (see `README.md`)
 - **Install dependencies**: `npm ci`
 - **Run locally**: `npm start` (uses `electron-forge start`)
 - **Run tests**: `npm test` (includes linting, type-check, and unit tests)

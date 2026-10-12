@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- Node.js >= 24 (use `nvm install 24` / `nvm use 24` - the repo includes a `.nvmrc` and `engines.node` so `nvm use` and `npm install` will pick this up automatically)
+- Node.js >= 26 (use `nvm install 26` / `nvm use 26` - the repo includes a `.nvmrc` and `engines.node` so `nvm use` and `npm install` will pick this up automatically)
 - npm (comes with Node.js)
 
 ## Getting Started
@@ -54,7 +54,7 @@ See `ARCHITECTURE.md` for detailed specifications, user journeys, and technical 
 
 ## Troubleshooting
 
-- **Wrong Node version**: run `nvm use` (uses `.nvmrc` automatically). If you do not have nvm, install Node 24 from [nodejs.org](https://nodejs.org).
+- **Wrong Node version**: run `nvm use` (uses `.nvmrc` automatically). If you do not have nvm, install Node 26 from [nodejs.org](https://nodejs.org).
 - **`npm ci` fails on `@napi-rs/canvas`**: most platforms get a prebuilt binary automatically. If yours falls back to building from source, install your platform's standard native build tools (see [node-gyp installation notes](https://github.com/nodejs/node-gyp#installation)).
 - **License check fails in CI**: a new dependency introduced a copyleft (GPL/LGPL/AGPL) licence. Either swap it for an alternative or, if it is genuinely required and compatible with our distribution, allow-list it explicitly via `--excludePackages` in the `Audit production licenses` step.
 
